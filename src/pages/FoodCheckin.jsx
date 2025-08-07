@@ -13,10 +13,46 @@ export default function FoodCheckin() {
 
   const fetchCheckins = async () => {
     try {
-      const response = await fetch('/api/food-checkins')
-      if (response.ok) {
-        const data = await response.json()
+      const savedCheckins = localStorage.getItem('foodCheckins')
+      if (savedCheckins) {
+        const data = JSON.parse(savedCheckins)
         setCheckins(data)
+      } else {
+        // 如果没有数据，使用默认示例数据
+        const defaultCheckins = [
+          {
+            id: 1,
+            restaurant_name: '海底捞',
+            address: '市中心商场店',
+            cuisine: '火锅',
+            date: '2024-01-20',
+            price_range: '200-300',
+            overall_rating: 5,
+            taste_rating: 5,
+            environment_rating: 4,
+            service_rating: 5,
+            recommended_dishes: ['毛肚', '鸭血', '牛肉'],
+            description: '服务超好，环境也很棒，菜品新鲜！',
+            images: ['https://via.placeholder.com/800x600']
+          },
+          {
+            id: 2,
+            restaurant_name: '星巴克',
+            address: '大学路店',
+            cuisine: '甜品',
+            date: '2024-01-25',
+            price_range: '50-100',
+            overall_rating: 4,
+            taste_rating: 4,
+            environment_rating: 5,
+            service_rating: 4,
+            recommended_dishes: ['拿铁', '提拉米苏'],
+            description: '环境安静，适合约会聊天',
+            images: ['https://via.placeholder.com/800x600']
+          }
+        ]
+        setCheckins(defaultCheckins)
+        localStorage.setItem('foodCheckins', JSON.stringify(defaultCheckins))
       }
     } catch (error) {
       console.error('获取美食打卡失败:', error)

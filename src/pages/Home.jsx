@@ -1,28 +1,35 @@
 import { useState, useEffect } from 'react'
-import { Heart, Calendar, Camera } from 'lucide-react'
+import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 
 export default function Home() {
   const [config, setConfig] = useState({
     coupleName1: '小明',
     coupleName2: '小红',
-    anniversaryDate: '2023-01-01',
-    backgroundImage: null
+    anniversaryDate: '2023-01-01'
   })
 
   const timeTogether = useLoveTimer(config.anniversaryDate)
 
   useEffect(() => {
-    // 从API获取配置
+    // 从localStorage获取配置，保持与后台同步
     fetchConfig()
   }, [])
 
   const fetchConfig = async () => {
     try {
-      const response = await fetch('/api/config')
-      if (response.ok) {
-        const data = await response.json()
-        setConfig(data)
+      const savedConfig = localStorage.getItem('coupleConfig')
+      if (savedConfig) {
+        setConfig(JSON.parse(savedConfig))
+      } else {
+        // 默认配置
+        const defaultConfig = {
+          coupleName1: '小明',
+          coupleName2: '小红',
+          anniversaryDate: '2024-01-01'
+        }
+        setConfig(defaultConfig)
+        localStorage.setItem('coupleConfig', JSON.stringify(defaultConfig))
       }
     } catch (error) {
       console.error('获取配置失败:', error)
@@ -30,17 +37,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-        style={{
-          backgroundImage: config.backgroundImage 
-            ? `url(${config.backgroundImage})` 
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-        }}
-      />
-      
-      <div className="relative z-10 text-center">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="text-center">
         <div className="glass-card max-w-2xl mx-auto p-8 md:p-12">
           <div className="mb-8">
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-4">

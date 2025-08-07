@@ -11,10 +11,34 @@ export default function Diary() {
 
   const fetchDiaries = async () => {
     try {
-      const response = await fetch('/api/diaries')
-      if (response.ok) {
-        const data = await response.json()
+      const savedDiaries = localStorage.getItem('diaryEntries')
+      if (savedDiaries) {
+        const data = JSON.parse(savedDiaries)
         setDiaries(data)
+      } else {
+        // 如果没有数据，使用默认示例数据
+        const defaultDiaries = [
+          {
+            id: 1,
+            title: '今天好开心',
+            date: '2024-01-20',
+            content: '今天和他一起去看了电影，然后吃了好吃的火锅，感觉特别幸福！',
+            mood: '开心',
+            weather: '晴天',
+            images: []
+          },
+          {
+            id: 2,
+            title: '下雨天的小确幸',
+            date: '2024-01-25',
+            content: '虽然今天下雨了，但是他给我送了伞，还在楼下等了我半个小时，真的好感动。',
+            mood: '感动',
+            weather: '雨天',
+            images: []
+          }
+        ]
+        setDiaries(defaultDiaries)
+        localStorage.setItem('diaryEntries', JSON.stringify(defaultDiaries))
       }
     } catch (error) {
       console.error('获取日记失败:', error)

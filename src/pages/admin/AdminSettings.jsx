@@ -5,8 +5,7 @@ export default function AdminSettings() {
   const [config, setConfig] = useState({
     coupleName1: '',
     coupleName2: '',
-    anniversaryDate: '',
-    backgroundImage: null
+    anniversaryDate: ''
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -18,10 +17,17 @@ export default function AdminSettings() {
 
   const fetchConfig = async () => {
     try {
-      const response = await fetch('/api/config')
-      if (response.ok) {
-        const data = await response.json()
-        setConfig(data)
+      // 使用本地存储代替API
+      const savedConfig = localStorage.getItem('coupleConfig')
+      if (savedConfig) {
+        setConfig(JSON.parse(savedConfig))
+      } else {
+        // 默认配置
+        setConfig({
+          coupleName1: '小明',
+          coupleName2: '小红',
+          anniversaryDate: '2024-01-01'
+        })
       }
     } catch (error) {
       console.error('获取配置失败:', error)
@@ -35,53 +41,27 @@ export default function AdminSettings() {
     setSaving(true)
     setMessage('')
 
-    try {
-      const response = await fetch('/api/config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(config)
-      })
+    // 验证必填字段
+    if (!config.coupleName1 || !config.coupleName2 || !config.anniversaryDate) {
+      setMessage('请填写完整的情侣姓名和纪念日')
+      setSaving(false)
+      return
+    }
 
-      if (response.ok) {
-        setMessage('保存成功！')
-        setTimeout(() => setMessage(''), 3000)
-      } else {
-        setMessage('保存失败，请重试')
-      }
+    try {
+      // 保存到本地存储
+      localStorage.setItem('coupleConfig', JSON.stringify(config))
+      setMessage('保存成功！')
+      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
+      console.error('保存失败:', error)
       setMessage('保存失败，请重试')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
 
-    const formData = new FormData()
-    formData.append('image', file)
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setConfig({ ...config, backgroundImage: data.url })
-      }
-    } catch (error) {
-      console.error('上传图片失败:', error)
-    }
-  }
 
   if (loading) {
     return <div className="text-center py-8">加载中...</div>
@@ -131,34 +111,7 @@ export default function AdminSettings() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              背景图片
-            </label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="background-upload"
-              />
-              <label
-                htmlFor="background-upload"
-                className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg flex items-center"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                选择图片
-              </label>
-              {config.backgroundImage && (
-                <img
-                  src={config.backgroundImage}
-                  alt="背景预览"
-                  className="h-16 w-16 object-cover rounded-lg"
-                />
-              )}
-            </div>
-          </div>
+
 
           {message && (
             <div className={`text-sm ${message.includes('成功') ? 'text-green-600' : 'text-red-600'}`}>

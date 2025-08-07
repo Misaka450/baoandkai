@@ -20,10 +20,23 @@ export default function AdminTimeline() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/timeline')
-      if (response.ok) {
-        const data = await response.json()
-        setEvents(data)
+      // 使用本地存储代替API
+      const savedEvents = localStorage.getItem('timelineEvents')
+      if (savedEvents) {
+        setEvents(JSON.parse(savedEvents))
+      } else {
+        // 默认示例数据
+        setEvents([
+          {
+            id: 1,
+            title: '我们的第一次约会',
+            description: '在咖啡厅度过了美好的下午时光',
+            date: '2024-01-15',
+            location: '星巴克',
+            category: '约会',
+            images: []
+          }
+        ])
       }
     } catch (error) {
       console.error('获取事件失败:', error)
@@ -34,24 +47,35 @@ export default function AdminTimeline() {
     e.preventDefault()
     
     try {
-      const method = editingEvent ? 'PUT' : 'POST'
-      const url = editingEvent ? `/api/timeline/${editingEvent.id}` : '/api/timeline'
+      const savedEvents = localStorage.getItem('timelineEvents')
+      let events = savedEvents ? JSON.parse(savedEvents) : []
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        setShowForm(false)
-        setEditingEvent(null)
-        setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] })
-        fetchEvents()
+      if (editingEvent) {
+        // 编辑现有事件
+        events = events.map(event => 
+          event.id === editingEvent.id 
+            ? { ...event, ...formData }
+            : event
+        )
+      } else {
+        // 添加新事件
+        const newEvent = {
+          id: Date.now(),
+          ...formData
+        }
+        events.push(newEvent)
       }
+      
+      // 按日期排序，最新的在前面
+      events.sort((a, b) => new Date(b.date) - new Date(a.date))
+      
+      // 保存到本地存储
+      localStorage.setItem('timelineEvents', JSON.stringify(events))
+      
+      setShowForm(false)
+      setEditingEvent(null)
+      setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] })
+      fetchEvents()
     } catch (error) {
       console.error('保存事件失败:', error)
     }
@@ -61,14 +85,10 @@ export default function AdminTimeline() {
     if (!confirm('确定要删除这个事件吗？')) return
 
     try {
-      const response = await fetch(`/api/timeline/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-
-      if (response.ok) {
+      const savedEvents = localStorage.getItem('timelineEvents')
+      if (savedEvents) {
+        const events = JSON.parse(savedEvents).filter(event => event.id !== id)
+        localStorage.setItem('timelineEvents', JSON.stringify(events))
         fetchEvents()
       }
     } catch (error) {
