@@ -7,6 +7,7 @@ import AdminTimeline from './admin/AdminTimeline'
 import AdminAlbums from './admin/AdminAlbums'
 import AdminDiary from './admin/AdminDiary'
 import AdminFood from './admin/AdminFood'
+// import TestUpload from '../TestUpload.jsx'
 
 export default function Admin() {
   const { user } = useAuth()
@@ -26,6 +27,7 @@ export default function Admin() {
           <Route path="albums" element={<AdminAlbums />} />
           <Route path="diary" element={<AdminDiary />} />
           <Route path="food" element={<AdminFood />} />
+          {/* <Route path="test" element={<TestUpload />} /> */}
         </Routes>
       </div>
     </div>
@@ -42,6 +44,7 @@ function AdminSidebar() {
     { path: '/admin/albums', label: '相册管理', icon: Image },
     { path: '/admin/diary', label: '日记管理', icon: BookOpen },
     { path: '/admin/food', label: '美食管理', icon: Utensils },
+    // { path: '/admin/test', label: 'R2测试', icon: Image },
   ]
 
   return (

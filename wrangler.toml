@@ -5,17 +5,20 @@ compatibility_date = "2024-01-01"
 command = "npm run build"
 output_dir = "dist"
 
+[functions]
+directory = "functions"
+
 [env.production]
 name = "baoandkai"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "couple-moments-db"
-database_id = "your-database-id"
+database_name = "oursql"
+database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
 
 [[env.production.r2_buckets]]
-binding = "R2"
-bucket_name = "couple-moments-images"
+binding = "ouralbum"
+bucket_name = "our"
 
 [env.production.vars]
 ENVIRONMENT = "production"
@@ -25,12 +28,12 @@ name = "baoandkai-dev"
 
 [[env.development.d1_databases]]
 binding = "DB"
-database_name = "couple-moments-dev-db"
-database_id = "your-dev-database-id"
+database_name = "oursql"
+database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
 
 [[env.development.r2_buckets]]
-binding = "R2"
-bucket_name = "couple-moments-dev-images"
+binding = "ouralbum"
+bucket_name = "our"
 
 [env.development.vars]
 ENVIRONMENT = "development"

@@ -15,84 +15,71 @@ export default function AdminTimeline() {
   })
 
   useEffect(() => {
-    fetchEvents()
-  }, [])
+    loadEvents();
+  }, []);
 
-  const fetchEvents = async () => {
+  const loadEvents = async () => {
     try {
-      // 使用本地存储代替API
-      const savedEvents = localStorage.getItem('timelineEvents')
-      if (savedEvents) {
-        setEvents(JSON.parse(savedEvents))
-      } else {
-        // 默认示例数据
-        setEvents([
-          {
-            id: 1,
-            title: '我们的第一次约会',
-            description: '在咖啡厅度过了美好的下午时光',
-            date: '2024-01-15',
-            location: '星巴克',
-            category: '约会',
-            images: []
-          }
-        ])
-      }
+      const response = await fetch('/api/timeline');
+      const data = await response.json();
+      setEvents(data);
     } catch (error) {
-      console.error('获取事件失败:', error)
+      console.error('加载时间轴失败:', error);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
+    const eventData = {
+      title: formData.title,
+      description: formData.description,
+      date: formData.date,
+      location: formData.location,
+      category: formData.category,
+      images: formData.images
+    };
+
     try {
-      const savedEvents = localStorage.getItem('timelineEvents')
-      let events = savedEvents ? JSON.parse(savedEvents) : []
-      
+      let response;
       if (editingEvent) {
-        // 编辑现有事件
-        events = events.map(event => 
-          event.id === editingEvent.id 
-            ? { ...event, ...formData }
-            : event
-        )
+        response = await fetch(`/api/timeline/${editingEvent.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        });
       } else {
-        // 添加新事件
-        const newEvent = {
-          id: Date.now(),
-          ...formData
-        }
-        events.push(newEvent)
+        response = await fetch('/api/timeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        });
       }
-      
-      // 按日期排序，最新的在前面
-      events.sort((a, b) => new Date(b.date) - new Date(a.date))
-      
-      // 保存到本地存储
-      localStorage.setItem('timelineEvents', JSON.stringify(events))
-      
-      setShowForm(false)
-      setEditingEvent(null)
-      setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] })
-      fetchEvents()
+
+      if (response.ok) {
+        loadEvents();
+        setShowForm(false);
+        setEditingEvent(null);
+        setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] });
+      }
     } catch (error) {
-      console.error('保存事件失败:', error)
+      console.error('保存时间节点失败:', error);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (!confirm('确定要删除这个事件吗？')) return
+    if (!window.confirm('确定要删除这个时间节点吗？')) return;
 
     try {
-      const savedEvents = localStorage.getItem('timelineEvents')
-      if (savedEvents) {
-        const events = JSON.parse(savedEvents).filter(event => event.id !== id)
-        localStorage.setItem('timelineEvents', JSON.stringify(events))
-        fetchEvents()
+      const response = await fetch(`/api/timeline/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        loadEvents();
       }
     } catch (error) {
-      console.error('删除事件失败:', error)
+      console.error('删除时间节点失败:', error);
     }
   }
 

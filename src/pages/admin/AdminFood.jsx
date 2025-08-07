@@ -6,17 +6,11 @@ export default function AdminFood() {
   const [showForm, setShowForm] = useState(false)
   const [editingCheckin, setEditingCheckin] = useState(null)
   const [formData, setFormData] = useState({
-    restaurant_name: '',
-    address: '',
-    cuisine: '',
-    price_range: '',
-    overall_rating: 5,
-    taste_rating: 5,
-    environment_rating: 5,
-    service_rating: 5,
-    recommended_dishes: [],
+    name: '',
     description: '',
     date: '',
+    location: '',
+    rating: 5,
     images: []
   })
 
@@ -26,76 +20,67 @@ export default function AdminFood() {
 
   const fetchCheckins = async () => {
     try {
-      const savedCheckins = localStorage.getItem('foodCheckins')
-      if (savedCheckins) {
-        const data = JSON.parse(savedCheckins)
-        setCheckins(data)
-      } else {
-        // 如果没有数据，使用默认示例数据
-        const defaultCheckins = [
-          {
-            id: 1,
-            restaurant_name: '海底捞',
-            address: '市中心商场店',
-            cuisine: '火锅',
-            price_range: '200-300',
-            overall_rating: 5,
-            taste_rating: 5,
-            environment_rating: 4,
-            service_rating: 5,
-            recommended_dishes: ['毛肚', '鸭血', '牛肉'],
-            description: '服务超好，环境也很棒，菜品新鲜！',
-            date: '2024-01-25',
-            images: ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400']
-          }
-        ]
-        setCheckins(defaultCheckins)
-        localStorage.setItem('foodCheckins', JSON.stringify(defaultCheckins))
-      }
+      const response = await fetch('/api/food')
+      const data = await response.json()
+      setCheckins(data)
     } catch (error) {
-      console.error('获取美食打卡失败:', error)
+      console.error('加载美食记录失败:', error)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    const foodData = {
+      restaurant_name: formData.restaurant_name,
+      address: formData.address,
+      cuisine: formData.cuisine,
+      price_range: formData.price_range,
+      overall_rating: formData.overall_rating,
+      taste_rating: formData.taste_rating,
+      environment_rating: formData.environment_rating,
+      service_rating: formData.service_rating,
+      recommended_dishes: formData.recommended_dishes,
+      description: formData.description,
+      date: formData.date,
+      images: formData.images
+    }
+
     try {
-      const savedCheckins = localStorage.getItem('foodCheckins')
-      let checkins = savedCheckins ? JSON.parse(savedCheckins) : []
-      
+      let response
       if (editingCheckin) {
-        checkins = checkins.map(checkin => 
-          checkin.id === editingCheckin.id 
-            ? { ...checkin, ...formData }
-            : checkin
-        )
+        response = await fetch(`/api/food/${editingCheckin.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(foodData)
+        })
       } else {
-        const newCheckin = {
-          id: Date.now(),
-          ...formData
-        }
-        checkins.push(newCheckin)
+        response = await fetch('/api/food', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(foodData)
+        })
       }
-      
-      // 按日期排序，最新的在前面
-      checkins.sort((a, b) => new Date(b.date) - new Date(a.date))
-      
-      localStorage.setItem('foodCheckins', JSON.stringify(checkins))
-      
-      setShowForm(false)
-      setEditingCheckin(null)
-      setFormData({
-        restaurantName: '',
-        dishName: '',
-        rating: 5,
-        date: '',
-        location: '',
-        price: '',
-        notes: '',
-        images: []
-      })
-      fetchCheckins()
+
+      if (response.ok) {
+        fetchCheckins()
+        setShowForm(false)
+        setEditingCheckin(null)
+        setFormData({
+          restaurant_name: '',
+          address: '',
+          cuisine: '',
+          price_range: '',
+          overall_rating: 5,
+          taste_rating: 5,
+          environment_rating: 5,
+          service_rating: 5,
+          recommended_dishes: [],
+          description: '',
+          date: '',
+          images: []
+        })
+      }
     } catch (error) {
       console.error('保存美食记录失败:', error)
     }
@@ -105,10 +90,11 @@ export default function AdminFood() {
     if (!confirm('确定要删除这条美食记录吗？')) return
 
     try {
-      const savedCheckins = localStorage.getItem('foodCheckins')
-      if (savedCheckins) {
-        const checkins = JSON.parse(savedCheckins).filter(checkin => checkin.id !== id)
-        localStorage.setItem('foodCheckins', JSON.stringify(checkins))
+      const response = await fetch(`/api/food/${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
         fetchCheckins()
       }
     } catch (error) {
