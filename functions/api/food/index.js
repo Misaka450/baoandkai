@@ -3,8 +3,8 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   try {
-    const foods = await env.DB.prepare(`
-      SELECT * FROM food_records ORDER BY date DESC, created_at DESC
+    const foods = await env.oursql.prepare(`
+      SELECT * FROM food_checkins ORDER BY date DESC, created_at DESC
     `).all();
     
     const foodsWithImages = foods.results.map(food => ({
@@ -42,8 +42,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    const result = await env.DB.prepare(`
-      INSERT INTO food_records (name, description, date, location, rating, images, created_at) 
+    const result = await env.oursql.prepare(`
+      INSERT INTO food_checkins (restaurant_name, description, date, address, overall_rating, images, created_at) 
       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
       name, description, date, location || '', rating || 5, 
@@ -51,8 +51,8 @@ export async function onRequestPost(context) {
     ).run();
     
     const foodId = result.meta.last_row_id;
-    const newFood = await env.DB.prepare(`
-      SELECT * FROM food_records WHERE id = ?
+    const newFood = await env.oursql.prepare(`
+      SELECT * FROM food_checkins WHERE id = ?
     `).bind(foodId).first();
 
     return new Response(JSON.stringify({
@@ -81,14 +81,14 @@ export async function onRequestPut(context) {
     const body = await request.json();
     const { name, description, date, location, rating, images = [] } = body;
     
-    await env.DB.prepare(`
-      UPDATE food_records 
-      SET name = ?, description = ?, date = ?, location = ?, rating = ?, images = ?, updated_at = datetime('now') 
+    await env.oursql.prepare(`
+      UPDATE food_checkins 
+      SET restaurant_name = ?, description = ?, date = ?, address = ?, overall_rating = ?, images = ?, updated_at = datetime('now') 
       WHERE id = ?
     `).bind(name, description, date, location, rating, images.join(','), id).run();
     
-    const updatedFood = await env.DB.prepare(`
-      SELECT * FROM food_records WHERE id = ?
+    const updatedFood = await env.oursql.prepare(`
+      SELECT * FROM food_checkins WHERE id = ?
     `).bind(id).first();
 
     return new Response(JSON.stringify({
@@ -115,7 +115,7 @@ export async function onRequestDelete(context) {
     const url = new URL(context.request.url);
     const id = url.pathname.split('/').pop();
     
-    await env.DB.prepare('DELETE FROM food_records WHERE id = ?').bind(id).run();
+    await env.oursql.prepare('DELETE FROM food_checkins WHERE id = ?').bind(id).run();
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 

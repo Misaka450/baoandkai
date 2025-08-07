@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiRequest } from '../../utils/api.js'
 import { Heart, Upload } from 'lucide-react'
 
 export default function AdminSettings() {
@@ -13,6 +14,9 @@ export default function AdminSettings() {
     enable_diary: true,
     enable_food: true
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -20,27 +24,31 @@ export default function AdminSettings() {
 
   const loadSettings = async () => {
     try {
-      const response = await fetch('/api/settings');
-      const data = await response.json();
+      const data = await apiRequest('/api/settings');
       setSettings(data);
     } catch (error) {
       console.error('加载设置失败:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage('');
+
     try {
-      const response = await fetch('/api/settings', {
+      await apiRequest('/api/settings', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
-      
-      if (response.ok) {
-        alert('设置已保存！');
-      }
+      setMessage('设置保存成功！');
     } catch (error) {
       console.error('保存设置失败:', error);
+      setMessage('保存失败，请检查网络连接');
+    } finally {
+      setSaving(false);
     }
   };
 

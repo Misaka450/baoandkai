@@ -8,6 +8,19 @@ output_dir = "dist"
 [functions]
 directory = "functions"
 
+# 全局数据库绑定（适用于Pages Functions）
+[[d1_databases]]
+binding = "DB"
+database_name = "oursql"
+database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
+
+[[r2_buckets]]
+binding = "ouralbum"
+bucket_name = "our"
+
+[vars]
+ENVIRONMENT = "production"
+
 [env.production]
 name = "baoandkai"
 

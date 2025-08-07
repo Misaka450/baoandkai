@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2, MapPin, Star, Calendar, X } from 'lucide-react'
 
 export default function AdminFood() {
@@ -20,8 +21,7 @@ export default function AdminFood() {
 
   const fetchCheckins = async () => {
     try {
-      const response = await fetch('/api/food')
-      const data = await response.json()
+      const data = await apiRequest('/api/food')
       setCheckins(data)
     } catch (error) {
       console.error('加载美食记录失败:', error)
@@ -47,40 +47,34 @@ export default function AdminFood() {
     }
 
     try {
-      let response
       if (editingCheckin) {
-        response = await fetch(`/api/food/${editingCheckin.id}`, {
+        await apiRequest(`/api/food/${editingCheckin.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(foodData)
         })
       } else {
-        response = await fetch('/api/food', {
+        await apiRequest('/api/food', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(foodData)
         })
       }
-
-      if (response.ok) {
-        fetchCheckins()
-        setShowForm(false)
-        setEditingCheckin(null)
-        setFormData({
-          restaurant_name: '',
-          address: '',
-          cuisine: '',
-          price_range: '',
-          overall_rating: 5,
-          taste_rating: 5,
-          environment_rating: 5,
-          service_rating: 5,
-          recommended_dishes: [],
-          description: '',
-          date: '',
-          images: []
-        })
-      }
+      fetchCheckins()
+      setShowForm(false)
+      setEditingCheckin(null)
+      setFormData({
+        restaurant_name: '',
+        address: '',
+        cuisine: '',
+        price_range: '',
+        overall_rating: 5,
+        taste_rating: 5,
+        environment_rating: 5,
+        service_rating: 5,
+        recommended_dishes: [],
+        description: '',
+        date: '',
+        images: []
+      })
     } catch (error) {
       console.error('保存美食记录失败:', error)
     }
@@ -90,13 +84,10 @@ export default function AdminFood() {
     if (!confirm('确定要删除这条美食记录吗？')) return
 
     try {
-      const response = await fetch(`/api/food/${id}`, {
+      await apiRequest(`/api/food/${id}`, {
         method: 'DELETE'
       })
-      
-      if (response.ok) {
-        fetchCheckins()
-      }
+      fetchCheckins()
     } catch (error) {
       console.error('删除美食记录失败:', error)
     }

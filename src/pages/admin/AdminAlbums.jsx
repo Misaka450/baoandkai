@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2, Image, X, Upload, Loader2 } from 'lucide-react'
 import { r2UploadManager } from '../../utils/r2Upload.js'
 
@@ -21,8 +22,7 @@ export default function AdminAlbums() {
 
   const fetchAlbums = async () => {
     try {
-      const response = await fetch('/api/albums')
-      const data = await response.json()
+      const data = await apiRequest('/api/albums')
       setAlbums(data)
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -39,28 +39,22 @@ export default function AdminAlbums() {
     }
 
     try {
-      let response
       if (editingAlbum) {
-        response = await fetch(`/api/albums/${editingAlbum.id}`, {
+        await apiRequest(`/api/albums/${editingAlbum.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(albumData)
         })
       } else {
-        response = await fetch('/api/albums', {
+        await apiRequest('/api/albums', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(albumData)
         })
       }
-
-      if (response.ok) {
-        setShowForm(false)
-        setEditingAlbum(null)
-        setFormData({ name: '', description: '', images: [] })
-        setUploadingImages([])
-        fetchAlbums()
-      }
+      setShowForm(false)
+      setEditingAlbum(null)
+      setFormData({ name: '', description: '', images: [] })
+      setUploadingImages([])
+      fetchAlbums()
     } catch (error) {
       console.error('保存相册失败:', error)
     }
@@ -70,13 +64,10 @@ export default function AdminAlbums() {
     if (!confirm('确定要删除这个相册吗？')) return
 
     try {
-      const response = await fetch(`/api/albums/${id}`, {
+      await apiRequest(`/api/albums/${id}`, {
         method: 'DELETE'
       })
-      
-      if (response.ok) {
-        fetchAlbums()
-      }
+      fetchAlbums()
     } catch (error) {
       console.error('删除相册失败:', error)
     }

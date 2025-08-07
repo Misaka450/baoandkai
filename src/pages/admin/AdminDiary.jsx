@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2, Calendar, X, Upload, Loader2 } from 'lucide-react'
 import { r2UploadManager } from '../../utils/r2Upload.js'
 
@@ -21,8 +22,7 @@ export default function AdminDiary() {
 
   const fetchEntries = async () => {
     try {
-      const response = await fetch('/api/diaries')
-      const data = await response.json()
+      const data = await apiRequest('/api/diaries')
       setEntries(data)
     } catch (error) {
       console.error('加载日记失败:', error)
@@ -42,27 +42,21 @@ export default function AdminDiary() {
     }
 
     try {
-      let response
       if (editingEntry) {
-        response = await fetch(`/api/diaries/${editingEntry.id}`, {
+        await apiRequest(`/api/diaries/${editingEntry.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(diaryData)
         })
       } else {
-        response = await fetch('/api/diaries', {
+        await apiRequest('/api/diaries', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(diaryData)
         })
       }
-
-      if (response.ok) {
-        fetchEntries()
-        setShowForm(false)
-        setEditingEntry(null)
-        setFormData({ title: '', content: '', date: '', mood: '开心', weather: '晴天', images: [] })
-      }
+      fetchEntries()
+      setShowForm(false)
+      setEditingEntry(null)
+      setFormData({ title: '', content: '', date: '', mood: '开心', weather: '晴天', images: [] })
     } catch (error) {
       console.error('保存日记失败:', error)
     }
@@ -72,13 +66,10 @@ export default function AdminDiary() {
     if (!confirm('确定要删除这篇日记吗？')) return
 
     try {
-      const response = await fetch(`/api/diaries/${id}`, {
+      await apiRequest(`/api/diaries/${id}`, {
         method: 'DELETE'
       })
-      
-      if (response.ok) {
-        fetchEntries()
-      }
+      fetchEntries()
     } catch (error) {
       console.error('删除日记失败:', error)
     }
