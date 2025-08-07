@@ -1,11 +1,13 @@
-name = "couple-moments"
+name = "baoandkai"
 compatibility_date = "2024-01-01"
 
 [build]
 command = "npm run build"
 
+pages_build_output_dir = "dist"
+
 [env.production]
-name = "couple-moments"
+name = "baoandkai"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -20,7 +22,7 @@ bucket_name = "couple-moments-images"
 ENVIRONMENT = "production"
 
 [env.development]
-name = "couple-moments-dev"
+name = "baoandkai-dev"
 
 [[env.development.d1_databases]]
 binding = "DB"
@@ -33,9 +35,3 @@ bucket_name = "couple-moments-dev-images"
 
 [env.development.vars]
 ENVIRONMENT = "development"
-
-[build]
-command = "npm run build"
-
-[[pages_build_output_dir]]
-dir = "dist"

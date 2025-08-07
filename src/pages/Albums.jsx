@@ -14,10 +14,45 @@ export default function Albums() {
 
   const fetchAlbums = async () => {
     try {
-      const response = await fetch('/api/albums')
-      if (response.ok) {
-        const data = await response.json()
-        setAlbums(data)
+      const savedAlbums = localStorage.getItem('albums')
+      if (savedAlbums) {
+        const data = JSON.parse(savedAlbums)
+        // 转换数据结构，确保photos格式正确
+        const formattedData = data.map(album => ({
+          ...album,
+          photos: (album.photos || album.images || []).map(photo => 
+            typeof photo === 'string' 
+              ? { url: photo, caption: '' }
+              : photo
+          )
+        }))
+        setAlbums(formattedData)
+      } else {
+        // 如果没有数据，使用默认示例数据
+        const defaultAlbums = [
+          {
+            id: 1,
+            name: '第一次约会',
+            description: '记录我们第一次约会的点点滴滴',
+            date: '2024-01-15',
+            photos: [
+              { url: 'https://via.placeholder.com/800x600', caption: '咖啡厅合影' },
+              { url: 'https://via.placeholder.com/800x600', caption: '第一次牵手' }
+            ]
+          },
+          {
+            id: 2,
+            name: '情人节特辑',
+            description: '2024年情人节的美好回忆',
+            date: '2024-02-14',
+            photos: [
+              { url: 'https://via.placeholder.com/800x600', caption: '海边日落' },
+              { url: 'https://via.placeholder.com/800x600', caption: '晚餐时光' }
+            ]
+          }
+        ]
+        setAlbums(defaultAlbums)
+        localStorage.setItem('albums', JSON.stringify(defaultAlbums))
       }
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -92,9 +127,13 @@ export default function Albums() {
           >
             <div className="aspect-square">
               <img
-                src={album.cover_image || 'https://via.placeholder.com/400x400'}
+                src={album.photos && album.photos.length > 0 ? album.photos[0].url : 'https://via.placeholder.com/400x400'}
                 alt={album.name}
                 className="w-full h-full object-cover rounded-t-2xl"
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/400x400'
+                  e.target.alt = '图片加载失败'
+                }}
               />
             </div>
             <div className="p-4">
@@ -153,6 +192,10 @@ export default function Albums() {
                   src={selectedAlbum.photos[currentPhotoIndex].url}
                   alt={selectedAlbum.photos[currentPhotoIndex].caption}
                   className="max-w-full max-h-96 mx-auto rounded-lg"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x600'
+                    e.target.alt = '图片加载失败'
+                  }}
                 />
                 <div className="text-center mt-4">
                   <p className="text-white">

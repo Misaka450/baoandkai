@@ -16,7 +16,7 @@ export default function AdminLogin() {
     try {
       await login(username, password)
     } catch (error) {
-      setError('登录失败，请检查用户名和密码')
+      setError(error.message || '登录失败，请检查用户名和密码')
     } finally {
       setLoading(false)
     }

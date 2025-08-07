@@ -12,10 +12,34 @@ export default function Timeline() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/timeline')
-      if (response.ok) {
-        const data = await response.json()
+      const savedEvents = localStorage.getItem('timelineEvents')
+      if (savedEvents) {
+        const data = JSON.parse(savedEvents)
         setEvents(data)
+      } else {
+        // 如果没有数据，使用默认示例数据
+        const defaultEvents = [
+          {
+            id: 1,
+            title: '第一次约会',
+            date: '2024-01-15',
+            description: '在咖啡厅第一次见面，聊了很久很久，感觉时间过的好快',
+            category: '约会',
+            location: '星巴克',
+            images: []
+          },
+          {
+            id: 2,
+            title: '第一次旅行',
+            date: '2024-02-14',
+            description: '情人节一起去海边，看了最美的日落',
+            category: '旅行',
+            location: '三亚',
+            images: []
+          }
+        ]
+        setEvents(defaultEvents)
+        localStorage.setItem('timelineEvents', JSON.stringify(defaultEvents))
       }
     } catch (error) {
       console.error('获取时间轴事件失败:', error)
