@@ -3,7 +3,7 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   try {
-    const foods = await env.oursql.prepare(`
+    const foods = await env.DB.prepare(`
       SELECT * FROM food_checkins ORDER BY date DESC, created_at DESC
     `).all();
     
@@ -33,27 +33,45 @@ export async function onRequestPost(context) {
   
   try {
     const body = await request.json();
-    const { name, description, date, location, rating, images = [] } = body;
+    const { 
+      restaurant_name, 
+      description, 
+      date, 
+      address, 
+      cuisine, 
+      price_range,
+      overall_rating,
+      taste_rating,
+      environment_rating,
+      service_rating,
+      recommended_dishes,
+      images = [] 
+    } = body;
     
-    if (!name || !date) {
-      return new Response(JSON.stringify({ error: '美食名称和日期不能为空' }), { 
+    if (!restaurant_name || !date) {
+      return new Response(JSON.stringify({ error: '餐厅名称和日期不能为空' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const result = await env.oursql.prepare(`
-      INSERT INTO food_checkins (restaurant_name, description, date, address, overall_rating, images, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    const result = await env.DB.prepare(`
+      INSERT INTO food_checkins (
+        restaurant_name, description, date, address, cuisine, price_range,
+        overall_rating, taste_rating, environment_rating, service_rating,
+        recommended_dishes, images, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
-      name, description, date, location || '', rating || 5, 
-      images.join(',')
+      restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
+      overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
+      Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
+      Array.isArray(images) ? images.join(',') : images
     ).run();
     
     const foodId = result.meta.last_row_id;
-    const newFood = await env.oursql.prepare(`
-      SELECT * FROM food_checkins WHERE id = ?
-    `).bind(foodId).first();
+    const newFood = await env.DB.prepare(`
+        SELECT * FROM food_checkins WHERE id = ?
+      `).bind(foodId).first();
 
     return new Response(JSON.stringify({
       ...newFood,
@@ -79,15 +97,35 @@ export async function onRequestPut(context) {
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
     const body = await request.json();
-    const { name, description, date, location, rating, images = [] } = body;
+    const { 
+      restaurant_name, 
+      description, 
+      date, 
+      address, 
+      cuisine, 
+      price_range,
+      overall_rating,
+      taste_rating,
+      environment_rating,
+      service_rating,
+      recommended_dishes,
+      images = [] 
+    } = body;
     
-    await env.oursql.prepare(`
+    await env.DB.prepare(`
       UPDATE food_checkins 
-      SET restaurant_name = ?, description = ?, date = ?, address = ?, overall_rating = ?, images = ?, updated_at = datetime('now') 
+      SET restaurant_name = ?, description = ?, date = ?, address = ?, cuisine = ?, price_range = ?,
+          overall_rating = ?, taste_rating = ?, environment_rating = ?, service_rating = ?,
+          recommended_dishes = ?, images = ?, updated_at = datetime('now') 
       WHERE id = ?
-    `).bind(name, description, date, location, rating, images.join(','), id).run();
+    `).bind(
+      restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
+      overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
+      Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
+      Array.isArray(images) ? images.join(',') : images, id
+    ).run();
     
-    const updatedFood = await env.oursql.prepare(`
+    const updatedFood = await env.DB.prepare(`
       SELECT * FROM food_checkins WHERE id = ?
     `).bind(id).first();
 
@@ -115,7 +153,7 @@ export async function onRequestDelete(context) {
     const url = new URL(context.request.url);
     const id = url.pathname.split('/').pop();
     
-    await env.oursql.prepare('DELETE FROM food_checkins WHERE id = ?').bind(id).run();
+    await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?').bind(id).run();
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 

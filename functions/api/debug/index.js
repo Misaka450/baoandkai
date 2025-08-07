@@ -7,10 +7,10 @@ export async function onRequestGet(context) {
     console.log('Available bindings:', Object.keys(env || {}));
     
     // 检查数据库连接
-    if (!env.oursql) {
-      console.error('oursql binding not found in environment');
+    if (!env.DB) {
+      console.error('DB binding not found in environment');
       return new Response(JSON.stringify({
-        error: 'oursql binding not found',
+        error: 'DB binding not found',
         available_bindings: Object.keys(env || {}),
         status: 'failed'
       }), { 
@@ -20,15 +20,15 @@ export async function onRequestGet(context) {
     }
     
     // 检查数据库连接
-    const tables = await env.oursql.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+    const tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
     console.log('Tables found:', tables.results);
     
     // 检查timeline_events表结构
-    const columns = await env.oursql.prepare("PRAGMA table_info(timeline_events)").all();
+    const columns = await env.DB.prepare("PRAGMA table_info(timeline_events)").all();
     console.log('Timeline columns:', columns.results);
     
     // 检查timeline_events数据量
-    const count = await env.oursql.prepare("SELECT COUNT(*) as count FROM timeline_events").first();
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM timeline_events").first();
     console.log('Timeline events count:', count.count);
     
     return new Response(JSON.stringify({

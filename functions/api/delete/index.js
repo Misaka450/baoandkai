@@ -26,7 +26,7 @@ export async function onRequestDelete(context) {
       });
     }
 
-    await env.ouralbum.delete(filename);
+    await env.DB.delete(filename);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

@@ -3,8 +3,8 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   try {
-    const albums = await env.oursql.prepare(`SELECT * FROM albums`).all();
-    const photos = await env.oursql.prepare('SELECT * FROM photos').all();
+    const albums = await env.DB.prepare(`SELECT * FROM albums`).all();
+    const photos = await env.DB.prepare('SELECT * FROM photos').all();
     
     const albumsWithPhotos = albums.results.map(album => ({
       ...album,
@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const albumResult = await env.oursql.prepare(`
+    const albumResult = await env.DB.prepare(`
       INSERT INTO albums (name, description, created_at) 
       VALUES (?, ?, datetime('now'))
     `).bind(name, description).run();
@@ -51,7 +51,7 @@ export async function onRequestPost(context) {
     // 批量插入照片
     if (photos.length > 0) {
       const photoPromises = photos.map(photo => 
-        env.oursql.prepare(`
+        env.DB.prepare(`
           INSERT INTO photos (album_id, url, caption, created_at) 
           VALUES (?, ?, ?, datetime('now'))
         `).bind(albumId, photo.url, photo.caption || '').run()
@@ -59,11 +59,11 @@ export async function onRequestPost(context) {
       await Promise.all(photoPromises);
     }
 
-    const newAlbum = await env.oursql.prepare(`
+    const newAlbum = await env.DB.prepare(`
       SELECT * FROM albums WHERE id = ?
     `).bind(albumId).first();
     
-    const albumPhotos = await env.oursql.prepare(`
+    const albumPhotos = await env.DB.prepare(`
       SELECT * FROM photos WHERE album_id = ?
     `).bind(albumId).all();
 
@@ -93,17 +93,17 @@ export async function onRequestPut(context) {
     const body = await request.json();
     const { name, description, photos = [] } = body;
     
-    await env.oursql.prepare(`
+    await env.DB.prepare(`
       UPDATE albums SET name = ?, description = ?, updated_at = datetime('now') 
       WHERE id = ?
     `).bind(name, description, id).run();
     
     // 删除旧照片并插入新照片
-    await env.oursql.prepare('DELETE FROM photos WHERE album_id = ?').bind(id).run();
+    await env.DB.prepare('DELETE FROM photos WHERE album_id = ?').bind(id).run();
     
     if (photos.length > 0) {
       const photoPromises = photos.map(photo => 
-        env.oursql.prepare(`
+        env.DB.prepare(`
           INSERT INTO photos (album_id, url, caption, created_at) 
           VALUES (?, ?, ?, datetime('now'))
         `).bind(id, photo.url, photo.caption || '').run()
@@ -111,11 +111,11 @@ export async function onRequestPut(context) {
       await Promise.all(photoPromises);
     }
 
-    const updatedAlbum = await env.oursql.prepare(`
+    const updatedAlbum = await env.DB.prepare(`
       SELECT * FROM albums WHERE id = ?
     `).bind(id).first();
     
-    const albumPhotos = await env.oursql.prepare(`
+    const albumPhotos = await env.DB.prepare(`
       SELECT * FROM photos WHERE album_id = ?
     `).bind(id).all();
 
@@ -143,8 +143,8 @@ export async function onRequestDelete(context) {
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
     
-    await env.oursql.prepare('DELETE FROM photos WHERE album_id = ?').bind(id).run();
-    await env.oursql.prepare('DELETE FROM albums WHERE id = ?').bind(id).run();
+    await env.DB.prepare('DELETE FROM photos WHERE album_id = ?').bind(id).run();
+    await env.DB.prepare('DELETE FROM albums WHERE id = ?').bind(id).run();
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 

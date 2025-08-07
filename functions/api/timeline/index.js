@@ -3,7 +3,7 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   try {
-    const events = await env.oursql.prepare(`
+    const events = await env.DB.prepare(`
       SELECT * FROM timeline_events ORDER BY date DESC, created_at DESC
     `).all();
     
@@ -49,20 +49,18 @@ export async function onRequestPost(context) {
 
     console.log('正在插入数据到数据库...');
     
-    const result = await env.oursql.prepare(`
-      INSERT INTO timeline_events (title, description, date, location, category, images, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-    `).bind(
-      title, description, date, location || '', category || '日常', 
-      images.join(',')
-    ).run();
-    
-    console.log('插入成功, 新记录ID:', result.meta.last_row_id);
-    
-    const eventId = result.meta.last_row_id;
-    const newEvent = await env.oursql.prepare(`
-      SELECT * FROM timeline_events WHERE id = ?
-    `).bind(eventId).first();
+    const result = await env.DB.prepare(`
+        INSERT INTO timeline_events (title, description, date, location, category, images, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+      `).bind(
+        title, description, date, location || '', category || '日常', 
+        images.join(',')
+      ).run();
+      
+      const eventId = result.meta.last_row_id;
+      const newEvent = await env.DB.prepare(`
+        SELECT * FROM timeline_events WHERE id = ?
+      `).bind(eventId).first();
 
     console.log('查询新记录成功:', newEvent);
 
@@ -96,13 +94,13 @@ export async function onRequestPut(context) {
     const body = await request.json();
     const { title, description, date, location, category, images = [] } = body;
     
-    await env.oursql.prepare(`
+    await env.DB.prepare(`
       UPDATE timeline_events 
       SET title = ?, description = ?, date = ?, location = ?, category = ?, images = ?, updated_at = datetime('now') 
       WHERE id = ?
     `).bind(title, description, date, location, category, images.join(','), id).run();
     
-    const updatedEvent = await env.oursql.prepare(`
+    const updatedEvent = await env.DB.prepare(`
       SELECT * FROM timeline_events WHERE id = ?
     `).bind(id).first();
 
@@ -130,7 +128,7 @@ export async function onRequestDelete(context) {
     const url = new URL(context.request.url);
     const id = url.pathname.split('/').pop();
     
-    await env.oursql.prepare('DELETE FROM timeline_events WHERE id = ?').bind(id).run();
+    await env.DB.prepare('DELETE FROM timeline_events WHERE id = ?').bind(id).run();
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 
