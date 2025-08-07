@@ -1,0 +1,41 @@
+name = "couple-moments"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm run build"
+
+[env.production]
+name = "couple-moments"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "couple-moments-db"
+database_id = "your-database-id"
+
+[[env.production.r2_buckets]]
+binding = "R2"
+bucket_name = "couple-moments-images"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+[env.development]
+name = "couple-moments-dev"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "couple-moments-dev-db"
+database_id = "your-dev-database-id"
+
+[[env.development.r2_buckets]]
+binding = "R2"
+bucket_name = "couple-moments-dev-images"
+
+[env.development.vars]
+ENVIRONMENT = "development"
+
+[build]
+command = "npm run build"
+
+[[pages_build_output_dir]]
+dir = "dist"
