@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Image, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Image, X, Upload, Loader2 } from 'lucide-react'
+import { r2UploadManager } from '../../utils/r2Upload.js'
 
 export default function AdminAlbums() {
   const [albums, setAlbums] = useState([])
@@ -12,6 +13,7 @@ export default function AdminAlbums() {
   })
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [uploadingImages, setUploadingImages] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     fetchAlbums()
@@ -19,23 +21,9 @@ export default function AdminAlbums() {
 
   const fetchAlbums = async () => {
     try {
-      const savedAlbums = localStorage.getItem('albums')
-      if (savedAlbums) {
-        setAlbums(JSON.parse(savedAlbums))
-      } else {
-        // 默认示例数据
-        setAlbums([
-          {
-            id: 1,
-            name: '我们的旅行',
-            description: '记录我们一起走过的美好时光',
-            images: [
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'
-            ]
-          }
-        ])
-      }
+      const response = await fetch('/api/albums')
+      const data = await response.json()
+      setAlbums(data)
     } catch (error) {
       console.error('获取相册失败:', error)
     }
@@ -44,43 +32,35 @@ export default function AdminAlbums() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    const albumData = {
+      name: formData.name,
+      description: formData.description,
+      images: formData.images
+    }
+
     try {
-      const savedAlbums = localStorage.getItem('albums')
-      let albums = savedAlbums ? JSON.parse(savedAlbums) : []
-      
+      let response
       if (editingAlbum) {
-        // 编辑现有相册
-        albums = albums.map(album => 
-          album.id === editingAlbum.id 
-            ? { 
-                ...album, 
-                name: formData.name,
-                description: formData.description,
-                photos: formData.images.map(url => ({ url, caption: '' }))
-              }
-            : album
-        )
+        response = await fetch(`/api/albums/${editingAlbum.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(albumData)
+        })
       } else {
-        // 创建新相册
-        const newAlbum = {
-          id: Date.now(),
-          name: formData.name,
-          description: formData.description,
-          photos: formData.images.map(url => ({ url, caption: '' })),
-          date: new Date().toISOString().split('T')[0]
-        }
-        albums.push(newAlbum)
+        response = await fetch('/api/albums', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(albumData)
+        })
       }
-      
-      // 按日期排序，最新的在前
-      albums.sort((a, b) => new Date(b.date) - new Date(a.date))
-      localStorage.setItem('albums', JSON.stringify(albums))
-      
-      setShowForm(false)
-      setEditingAlbum(null)
-      setFormData({ name: '', description: '', images: [] })
-      setUploadingImages([])
-      fetchAlbums()
+
+      if (response.ok) {
+        setShowForm(false)
+        setEditingAlbum(null)
+        setFormData({ name: '', description: '', images: [] })
+        setUploadingImages([])
+        fetchAlbums()
+      }
     } catch (error) {
       console.error('保存相册失败:', error)
     }
@@ -90,10 +70,11 @@ export default function AdminAlbums() {
     if (!confirm('确定要删除这个相册吗？')) return
 
     try {
-      const savedAlbums = localStorage.getItem('albums')
-      if (savedAlbums) {
-        const albums = JSON.parse(savedAlbums).filter(album => album.id !== id)
-        localStorage.setItem('albums', JSON.stringify(albums))
+      const response = await fetch(`/api/albums/${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
         fetchAlbums()
       }
     } catch (error) {
@@ -105,17 +86,16 @@ export default function AdminAlbums() {
     const files = Array.from(e.target.files)
     if (!files.length) return
 
-    for (const file of files) {
-      try {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          const base64Url = event.target.result
-          addImageToAlbum(base64Url)
-        }
-        reader.readAsDataURL(file)
-      } catch (error) {
-        console.error('上传图片失败:', error)
-      }
+    setIsUploading(true)
+    try {
+      const uploadedUrls = await r2UploadManager.uploadMultipleFiles(files, 'albums')
+      // 直接使用返回的URL数组，uploadMultipleFiles已经返回扁平化的URL数组
+      uploadedUrls.forEach(url => addImageToAlbum(url))
+    } catch (error) {
+      console.error('上传图片失败:', error)
+      alert('上传失败，请重试')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -200,9 +180,20 @@ export default function AdminAlbums() {
               <button
                 type="button"
                 onClick={() => setShowImageUpload(true)}
-                className="px-3 py-1 bg-gray-100 rounded text-sm"
+                disabled={isUploading}
+                className="px-3 py-1 bg-gray-100 rounded text-sm flex items-center gap-2 disabled:opacity-50"
               >
-                添加图片
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    上传中...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    添加图片
+                  </>
+                )}
               </button>
             </div>
 

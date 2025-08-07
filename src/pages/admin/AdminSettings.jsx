@@ -2,64 +2,47 @@ import { useState, useEffect } from 'react'
 import { Heart, Upload } from 'lucide-react'
 
 export default function AdminSettings() {
-  const [config, setConfig] = useState({
-    coupleName1: '',
-    coupleName2: '',
-    anniversaryDate: ''
-  })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const [settings, setSettings] = useState({
+    site_name: '宝宝和凯凯的故事',
+    site_description: '记录我们的点点滴滴',
+    theme: 'light',
+    enable_comments: true,
+    enable_share: true,
+    enable_timeline: true,
+    enable_albums: true,
+    enable_diary: true,
+    enable_food: true
+  });
 
   useEffect(() => {
-    fetchConfig()
-  }, [])
+    loadSettings();
+  }, []);
 
-  const fetchConfig = async () => {
+  const loadSettings = async () => {
     try {
-      // 使用本地存储代替API
-      const savedConfig = localStorage.getItem('coupleConfig')
-      if (savedConfig) {
-        setConfig(JSON.parse(savedConfig))
-      } else {
-        // 默认配置
-        setConfig({
-          coupleName1: '小明',
-          coupleName2: '小红',
-          anniversaryDate: '2024-01-01'
-        })
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      setSettings(data);
+    } catch (error) {
+      console.error('加载设置失败:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      
+      if (response.ok) {
+        alert('设置已保存！');
       }
     } catch (error) {
-      console.error('获取配置失败:', error)
-    } finally {
-      setLoading(false)
+      console.error('保存设置失败:', error);
     }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    setMessage('')
-
-    // 验证必填字段
-    if (!config.coupleName1 || !config.coupleName2 || !config.anniversaryDate) {
-      setMessage('请填写完整的情侣姓名和纪念日')
-      setSaving(false)
-      return
-    }
-
-    try {
-      // 保存到本地存储
-      localStorage.setItem('coupleConfig', JSON.stringify(config))
-      setMessage('保存成功！')
-      setTimeout(() => setMessage(''), 3000)
-    } catch (error) {
-      console.error('保存失败:', error)
-      setMessage('保存失败，请重试')
-    } finally {
-      setSaving(false)
-    }
-  }
+  };
 
 
 
@@ -73,43 +56,101 @@ export default function AdminSettings() {
 
       <form onSubmit={handleSubmit} className="glass-card p-6 max-w-2xl">
         <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              情侣姓名
-            </label>
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={config.coupleName1}
-                onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
-                placeholder="小明"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
-                required
-              />
-              <Heart className="h-5 w-5 text-pink-500 self-center" />
-              <input
-                type="text"
-                value={config.coupleName2}
-                onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
-                placeholder="小红"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              纪念日
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">网站名称</label>
             <input
-              type="date"
-              value={config.anniversaryDate}
-              onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
-              required
+              type="text"
+              value={settings.site_name}
+              onChange={(e) => setSettings({...settings, site_name: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">网站描述</label>
+            <textarea
+              value={settings.site_description}
+              onChange={(e) => setSettings({...settings, site_description: e.target.value})}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">主题</label>
+            <select
+              value={settings.theme}
+              onChange={(e) => setSettings({...settings, theme: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+            </select>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_comments}
+                onChange={(e) => setSettings({...settings, enable_comments: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用评论</span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_share}
+                onChange={(e) => setSettings({...settings, enable_share: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用分享</span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_timeline}
+                onChange={(e) => setSettings({...settings, enable_timeline: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用时间轴</span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_albums}
+                onChange={(e) => setSettings({...settings, enable_albums: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用相册</span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_diary}
+                onChange={(e) => setSettings({...settings, enable_diary: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用日记</span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={settings.enable_food}
+                onChange={(e) => setSettings({...settings, enable_food: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>启用美食</span>
+            </label>
+          </div>
+        </div>
 
 
 

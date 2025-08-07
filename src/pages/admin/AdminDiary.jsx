@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Calendar, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Calendar, X, Upload, Loader2 } from 'lucide-react'
+import { r2UploadManager } from '../../utils/r2Upload.js'
 
 export default function AdminDiary() {
   const [entries, setEntries] = useState([])
@@ -20,58 +21,48 @@ export default function AdminDiary() {
 
   const fetchEntries = async () => {
     try {
-      const savedEntries = localStorage.getItem('diaryEntries')
-      if (savedEntries) {
-        setEntries(JSON.parse(savedEntries))
-      } else {
-        // 默认示例数据
-        setEntries([
-          {
-            id: 1,
-            title: '今天是个好日子',
-            content: '今天我们一起去了公园，阳光很好，心情也很愉快。',
-            date: '2024-01-20',
-            mood: '开心',
-            weather: '晴天',
-            images: []
-          }
-        ])
-      }
+      const response = await fetch('/api/diaries')
+      const data = await response.json()
+      setEntries(data)
     } catch (error) {
-      console.error('获取日记失败:', error)
+      console.error('加载日记失败:', error)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    const diaryData = {
+      title: formData.title,
+      content: formData.content,
+      date: formData.date,
+      mood: formData.mood,
+      weather: formData.weather,
+      images: formData.images
+    }
+
     try {
-      const savedEntries = localStorage.getItem('diaryEntries')
-      let entries = savedEntries ? JSON.parse(savedEntries) : []
-      
+      let response
       if (editingEntry) {
-        entries = entries.map(entry => 
-          entry.id === editingEntry.id 
-            ? { ...entry, ...formData }
-            : entry
-        )
+        response = await fetch(`/api/diaries/${editingEntry.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(diaryData)
+        })
       } else {
-        const newEntry = {
-          id: Date.now(),
-          ...formData
-        }
-        entries.push(newEntry)
+        response = await fetch('/api/diaries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(diaryData)
+        })
       }
-      
-      // 按日期排序，最新的在前面
-      entries.sort((a, b) => new Date(b.date) - new Date(a.date))
-      
-      localStorage.setItem('diaryEntries', JSON.stringify(entries))
-      
-      setShowForm(false)
-      setEditingEntry(null)
-      setFormData({ title: '', content: '', date: '', mood: '开心', weather: '晴天', images: [] })
-      fetchEntries()
+
+      if (response.ok) {
+        fetchEntries()
+        setShowForm(false)
+        setEditingEntry(null)
+        setFormData({ title: '', content: '', date: '', mood: '开心', weather: '晴天', images: [] })
+      }
     } catch (error) {
       console.error('保存日记失败:', error)
     }
@@ -81,10 +72,11 @@ export default function AdminDiary() {
     if (!confirm('确定要删除这篇日记吗？')) return
 
     try {
-      const savedEntries = localStorage.getItem('diaryEntries')
-      if (savedEntries) {
-        const entries = JSON.parse(savedEntries).filter(entry => entry.id !== id)
-        localStorage.setItem('diaryEntries', JSON.stringify(entries))
+      const response = await fetch(`/api/diaries/${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
         fetchEntries()
       }
     } catch (error) {
@@ -95,24 +87,24 @@ export default function AdminDiary() {
   const moods = ['开心', '难过', '激动', '平静', '思念', '感动']
   const weathers = ['晴天', '多云', '雨天', '雪天', '阴天', '大风']
 
+  const [isUploading, setIsUploading] = useState(false)
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files)
     if (!files.length) return
 
-    for (const file of files) {
-      try {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          const base64Url = event.target.result
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, base64Url]
-          }))
-        }
-        reader.readAsDataURL(file)
-      } catch (error) {
-        console.error('上传图片失败:', error)
-      }
+    setIsUploading(true)
+    try {
+      const uploadedUrls = await r2UploadManager.uploadMultipleFiles(files, 'diary')
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedUrls]
+      }))
+    } catch (error) {
+      console.error('上传图片失败:', error)
+      alert('上传失败，请重试')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -227,8 +219,15 @@ export default function AdminDiary() {
                 multiple
                 accept="image/*"
                 onChange={handleImageUpload}
-                className="w-full px-3 py-2 border rounded-lg"
+                disabled={isUploading}
+                className="w-full px-3 py-2 border rounded-lg disabled:opacity-50"
               />
+              {isUploading && (
+                <div className="flex items-center text-sm text-gray-600 mt-2">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  正在上传图片...
+                </div>
+              )}
             </div>
             <div className="flex space-x-2">
               <button
