@@ -1,14 +1,8 @@
 name = "baoandkai"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
 
-[build]
-command = "npm run build"
-output_dir = "dist"
-
-[functions]
-directory = "functions"
-
-# 全局数据库绑定（适用于Pages Functions）
 [[d1_databases]]
 binding = "DB"
 database_name = "oursql"
@@ -20,33 +14,3 @@ bucket_name = "our"
 
 [vars]
 ENVIRONMENT = "production"
-
-[env.production]
-name = "baoandkai"
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "oursql"
-database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
-
-[[env.production.r2_buckets]]
-binding = "ouralbum"
-bucket_name = "our"
-
-[env.production.vars]
-ENVIRONMENT = "production"
-
-[env.development]
-name = "baoandkai-dev"
-
-[[env.development.d1_databases]]
-binding = "DB"
-database_name = "oursql"
-database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
-
-[[env.development.r2_buckets]]
-binding = "ouralbum"
-bucket_name = "our"
-
-[env.development.vars]
-ENVIRONMENT = "development"

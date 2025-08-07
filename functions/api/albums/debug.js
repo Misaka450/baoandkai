@@ -4,22 +4,20 @@ export async function onRequestGet(context) {
   
   try {
     // 检查albums表结构
-    const albumsSchema = await env.oursql.prepare(`
-      PRAGMA table_info(albums)
+    const albumsSchema = await env.DB.prepare(`
+      SELECT sql FROM sqlite_master WHERE type='table' AND name='albums'
+    `).first();
+    
+    const photosSchema = await env.DB.prepare(`
+      SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'
+    `).first();
+    
+    const simpleAlbums = await env.DB.prepare(`
+      SELECT * FROM albums ORDER BY created_at DESC LIMIT 3
     `).all();
     
-    // 检查photos表结构
-    const photosSchema = await env.oursql.prepare(`
-      PRAGMA table_info(photos)
-    `).all();
-    
-    // 简单查询测试
-    const simpleAlbums = await env.oursql.prepare(`
-      SELECT * FROM albums LIMIT 1
-    `).all();
-    
-    const simplePhotos = await env.oursql.prepare(`
-      SELECT * FROM photos LIMIT 1
+    const simplePhotos = await env.DB.prepare(`
+      SELECT * FROM photos ORDER BY created_at DESC LIMIT 5
     `).all();
     
     return new Response(JSON.stringify({

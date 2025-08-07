@@ -7,11 +7,17 @@ export default function AdminFood() {
   const [showForm, setShowForm] = useState(false)
   const [editingCheckin, setEditingCheckin] = useState(null)
   const [formData, setFormData] = useState({
-    name: '',
+    restaurant_name: '',
+    address: '',
+    cuisine: '',
+    price_range: '',
+    overall_rating: 5,
+    taste_rating: 5,
+    environment_rating: 5,
+    service_rating: 5,
+    recommended_dishes: [],
     description: '',
     date: '',
-    location: '',
-    rating: 5,
     images: []
   })
 
@@ -337,13 +343,17 @@ export default function AdminFood() {
                   setShowForm(false)
                   setEditingCheckin(null)
                   setFormData({
-                    restaurantName: '',
-                    dishName: '',
-                    rating: 5,
+                    restaurant_name: '',
+                    address: '',
+                    cuisine: '',
+                    price_range: '',
+                    overall_rating: 5,
+                    taste_rating: 5,
+                    environment_rating: 5,
+                    service_rating: 5,
+                    recommended_dishes: [],
+                    description: '',
                     date: '',
-                    location: '',
-                    price: '',
-                    notes: '',
                     images: []
                   })
                 }}
@@ -386,16 +396,29 @@ export default function AdminFood() {
             {checkin.description && (
               <p className="text-sm text-gray-600 mb-3">{checkin.description}</p>
             )}
-            {checkin.recommended_dishes && checkin.recommended_dishes.length > 0 && (
+            {checkin.recommended_dishes && (
               <p className="text-sm text-gray-600 mb-2">
-                <span className="font-medium">推荐：</span>{checkin.recommended_dishes.join(', ')}
+                <span className="font-medium">推荐：</span>
+                {Array.isArray(checkin.recommended_dishes) 
+                  ? checkin.recommended_dishes.join(', ') 
+                  : typeof checkin.recommended_dishes === 'string' 
+                    ? checkin.recommended_dishes.split(',').map(item => item.trim()).filter(item => item).join(', ')
+                    : String(checkin.recommended_dishes)}
               </p>
             )}
             <div className="flex space-x-2">
               <button
                 onClick={() => {
                   setEditingCheckin(checkin)
-                  setFormData(checkin)
+                  setFormData({
+                    ...checkin,
+                    recommended_dishes: typeof checkin.recommended_dishes === 'string' 
+                      ? checkin.recommended_dishes.split(',').map(item => item.trim()).filter(item => item)
+                      : Array.isArray(checkin.recommended_dishes) 
+                        ? checkin.recommended_dishes 
+                        : [],
+                    images: checkin.images ? (Array.isArray(checkin.images) ? checkin.images : checkin.images.split(',')) : []
+                  })
                   setShowForm(true)
                 }}
                 className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
