@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Grid, Play, X } from 'lucide-react'
+import { apiRequest } from '../utils/api'
 
 export default function Albums() {
   const [albums, setAlbums] = useState([])
@@ -14,46 +15,17 @@ export default function Albums() {
 
   const fetchAlbums = async () => {
     try {
-      const savedAlbums = localStorage.getItem('albums')
-      if (savedAlbums) {
-        const data = JSON.parse(savedAlbums)
-        // 转换数据结构，确保photos格式正确
-        const formattedData = data.map(album => ({
-          ...album,
-          photos: (album.photos || album.images || []).map(photo => 
-            typeof photo === 'string' 
-              ? { url: photo, caption: '' }
-              : photo
-          )
-        }))
-        setAlbums(formattedData)
-      } else {
-        // 如果没有数据，使用默认示例数据
-        const defaultAlbums = [
-          {
-            id: 1,
-            name: '第一次约会',
-            description: '记录我们第一次约会的点点滴滴',
-            date: '2024-01-15',
-            photos: [
-              { url: 'https://via.placeholder.com/800x600', caption: '咖啡厅合影' },
-              { url: 'https://via.placeholder.com/800x600', caption: '第一次牵手' }
-            ]
-          },
-          {
-            id: 2,
-            name: '情人节特辑',
-            description: '2024年情人节的美好回忆',
-            date: '2024-02-14',
-            photos: [
-              { url: 'https://via.placeholder.com/800x600', caption: '海边日落' },
-              { url: 'https://via.placeholder.com/800x600', caption: '晚餐时光' }
-            ]
-          }
-        ]
-        setAlbums(defaultAlbums)
-        localStorage.setItem('albums', JSON.stringify(defaultAlbums))
-      }
+      const data = await apiRequest('/api/albums')
+      // 转换数据结构，确保photos格式正确
+      const formattedData = data.map(album => ({
+        ...album,
+        photos: (album.photos || album.images || []).map(photo => 
+          typeof photo === 'string' 
+            ? { url: photo, caption: '' }
+            : photo
+        )
+      }))
+      setAlbums(formattedData)
     } catch (error) {
       console.error('获取相册失败:', error)
     } finally {

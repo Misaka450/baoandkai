@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 
 export default function AdminTimeline() {
@@ -20,16 +21,21 @@ export default function AdminTimeline() {
 
   const loadEvents = async () => {
     try {
-      const response = await fetch('/api/timeline');
-      const data = await response.json();
+      const data = await apiRequest('/api/timeline');
       setEvents(data);
     } catch (error) {
-      console.error('加载时间轴失败:', error);
+      console.error('获取时间轴事件失败:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 验证必填字段
+    if (!formData.title || !formData.date) {
+      alert('标题和日期不能为空！');
+      return;
+    }
 
     const eventData = {
       title: formData.title,
@@ -41,29 +47,31 @@ export default function AdminTimeline() {
     };
 
     try {
-      let response;
+      console.log('正在保存时间轴事件:', eventData);
+      
       if (editingEvent) {
-        response = await fetch(`/api/timeline/${editingEvent.id}`, {
+        await apiRequest(`/api/timeline/${editingEvent.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData)
-        });
+        })
+        console.log('时间轴事件更新成功');
       } else {
-        response = await fetch('/api/timeline', {
+        await apiRequest('/api/timeline', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData)
-        });
+        })
+        console.log('时间轴事件创建成功');
       }
-
-      if (response.ok) {
-        loadEvents();
-        setShowForm(false);
-        setEditingEvent(null);
-        setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] });
-      }
+      
+      await loadEvents();
+      setShowForm(false);
+      setEditingEvent(null);
+      setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] });
+      
+      alert('保存成功！');
     } catch (error) {
       console.error('保存时间节点失败:', error);
+      alert('保存失败: ' + error.message);
     }
   };
 
@@ -71,13 +79,10 @@ export default function AdminTimeline() {
     if (!window.confirm('确定要删除这个时间节点吗？')) return;
 
     try {
-      const response = await fetch(`/api/timeline/${id}`, {
+      await apiRequest(`/api/timeline/${id}`, {
         method: 'DELETE'
       });
-
-      if (response.ok) {
-        loadEvents();
-      }
+      loadEvents();
     } catch (error) {
       console.error('删除时间节点失败:', error);
     }

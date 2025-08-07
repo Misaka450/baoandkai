@@ -3,7 +3,7 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   try {
-    const diaries = await env.DB.prepare(`
+    const diaries = await env.oursql.prepare(`
       SELECT * FROM diaries ORDER BY date DESC, created_at DESC
     `).all();
     
@@ -42,7 +42,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const result = await env.DB.prepare(`
+    const result = await env.oursql.prepare(`
       INSERT INTO diaries (title, content, date, mood, weather, images, created_at) 
       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
@@ -51,7 +51,7 @@ export async function onRequestPost(context) {
     ).run();
     
     const diaryId = result.meta.last_row_id;
-    const newDiary = await env.DB.prepare(`
+    const newDiary = await env.oursql.prepare(`
       SELECT * FROM diaries WHERE id = ?
     `).bind(diaryId).first();
 
@@ -81,13 +81,13 @@ export async function onRequestPut(context) {
     const body = await request.json();
     const { title, content, date, mood, weather, images = [] } = body;
     
-    await env.DB.prepare(`
+    await env.oursql.prepare(`
       UPDATE diaries 
       SET title = ?, content = ?, date = ?, mood = ?, weather = ?, images = ?, updated_at = datetime('now') 
       WHERE id = ?
     `).bind(title, content, date, mood, weather, images.join(','), id).run();
     
-    const updatedDiary = await env.DB.prepare(`
+    const updatedDiary = await env.oursql.prepare(`
       SELECT * FROM diaries WHERE id = ?
     `).bind(id).first();
 
@@ -115,7 +115,7 @@ export async function onRequestDelete(context) {
     const url = new URL(context.request.url);
     const id = url.pathname.split('/').pop();
     
-    await env.DB.prepare('DELETE FROM diaries WHERE id = ?').bind(id).run();
+    await env.oursql.prepare('DELETE FROM diaries WHERE id = ?').bind(id).run();
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 

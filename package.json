@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npx wrangler pages publish dist --project-name=baoandkai"
+    "dev:wrangler": "wrangler pages dev --local",
+    "deploy": "npx wrangler pages publish dist --project-name=baoandkai",
+    "db:init": "npx wrangler d1 execute oursql --file=./migrations/init.sql",
+    "db:init:remote": "npx wrangler d1 execute oursql --file=./migrations/init.sql --remote",
+    "db:migrate": "npx wrangler d1 migrations apply oursql",
+    "db:migrate:remote": "npx wrangler d1 migrations apply oursql --remote"
   },
   "dependencies": {
     "react": "^18.2.0",
