@@ -103,70 +103,75 @@ export default function Timeline() {
           })}
         </div>
 
-        <div className="relative">
-          {/* 时间轴线 */}
+        <div className="relative max-w-6xl mx-auto">
+          {/* 时间轴线 - 调整位置 */}
           <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-stone-200 via-stone-300 to-stone-200"></div>
 
-          <div className="space-y-12">
+          <div className="space-y-16">
             {filteredEvents.map((event, index) => {
               const Icon = categoryIcons[event.category] || Tag
               const colorClass = categoryColors[event.category] || 'from-stone-50 to-stone-100 text-stone-700 border-stone-200'
               
               return (
                 <div key={event.id} className="relative">
-                  {/* 时间点 */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-2">
-                    <div className={`w-4 h-4 rounded-full bg-white border-2 ${filter === event.category || filter === 'all' ? 'border-stone-800' : 'border-stone-300'} shadow-lg`}></div>
+                  {/* 时间点 - 调整位置 */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-0.5 z-10">
+                    <div className={`w-5 h-5 rounded-full bg-white border-2 ${filter === event.category || filter === 'all' ? 'border-stone-600' : 'border-stone-300'} shadow-lg transition-all duration-300 hover:scale-110`}></div>
                   </div>
 
-                  {/* 卡片 */}
-                  <div className={`ml-0 md:ml-8 md:mr-0 mr-0 md:w-[calc(50%-2rem)] w-full backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1 ${index % 2 === 0 ? 'md:ml-auto md:mr-8' : ''}`}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-3">
-                          <div className={`p-2.5 rounded-xl bg-white/60 backdrop-blur-sm mr-3 shadow-sm`}>
-                            <Icon className="h-4 w-4" />
+                  {/* 卡片容器 - 增加间距 */}
+                  <div className={`flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`w-full md:w-[calc(50%-3rem)] ${index % 2 === 0 ? 'md:pr-8 pr-0' : 'md:pl-8 pl-0'}`}>
+                      {/* 卡片 */}
+                      <div className={`backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1`}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-3">
+                              <div className={`p-2.5 rounded-xl bg-white/60 backdrop-blur-sm mr-3 shadow-sm`}>
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <span className="text-xs font-medium tracking-wide uppercase opacity-75">{event.category}</span>
+                            </div>
+                            
+                            <h3 className="text-lg font-light text-stone-800 mb-3 leading-relaxed tracking-wide">{event.title}</h3>
+                            
+                            <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
+                              <span className="flex items-center">
+                                <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                                {new Date(event.date).toLocaleDateString('zh-CN', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                              {event.location && (
+                                <span className="flex items-center">
+                                  <MapPin className="h-3.5 w-3.5 mr-1.5" />
+                                  {event.location}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-xs font-medium tracking-wide uppercase opacity-75">{event.category}</span>
                         </div>
                         
-                        <h3 className="text-lg font-light text-stone-800 mb-3 leading-relaxed tracking-wide">{event.title}</h3>
+                        <p className="text-stone-700 mb-5 font-light leading-relaxed text-sm opacity-90">{event.description}</p>
                         
-                        <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
-                          <span className="flex items-center">
-                            <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                            {new Date(event.date).toLocaleDateString('zh-CN', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </span>
-                          {event.location && (
-                            <span className="flex items-center">
-                              <MapPin className="h-3.5 w-3.5 mr-1.5" />
-                              {event.location}
-                            </span>
-                          )}
-                        </div>
+                        {event.images && event.images.length > 0 && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                            {event.images.map((image, imgIndex) => (
+                              <div key={imgIndex} className="relative group overflow-hidden rounded-xl">
+                                <img
+                                  src={image}
+                                  alt={`${event.title} - ${imgIndex + 1}`}
+                                  className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    
-                    <p className="text-stone-700 mb-5 font-light leading-relaxed text-sm opacity-90">{event.description}</p>
-                    
-                    {event.images && event.images.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                        {event.images.map((image, imgIndex) => (
-                          <div key={imgIndex} className="relative group overflow-hidden rounded-xl">
-                            <img
-                              src={image}
-                              alt={`${event.title} - ${imgIndex + 1}`}
-                              className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               )
