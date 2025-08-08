@@ -5,7 +5,7 @@ const API_BASE = '/api';
 // 开发环境mock数据
 const mockData = {
   settings: {
-    site_name: '宝宝和凯凯的故事',
+    site_name: '包包和恺恺的故事',
     site_description: '记录我们的点点滴滴',
     theme: 'light',
     enable_comments: true,
