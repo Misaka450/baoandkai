@@ -3,11 +3,19 @@ import Navigation from './Navigation'
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-primary">
       <Navigation />
       <main className="pt-20 pb-8">
-        <Outlet />
+        <div className="animate-fade-in">
+          <Outlet />
+        </div>
       </main>
+      
+      {/* 装饰性背景元素 */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-pink-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-pink-200/20 rounded-full blur-3xl"></div>
+      </div>
     </div>
   )
 }
