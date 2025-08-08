@@ -169,17 +169,17 @@ export default function StickyNotes() {
           {notes.map((note) => (
             <div
               key={note.id}
-              className={`${note.color} border-2 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative group`}
+              className={`${note.color} border-2 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative group flex flex-col justify-between min-h-[120px]`}
             >
-              <p className="text-gray-800 mb-2 whitespace-pre-wrap">{note.content}</p>
-              <div className="flex justify-between items-end text-xs text-gray-600">
+              <p className="text-gray-800 mb-3 whitespace-pre-wrap flex-1">{note.content}</p>
+              <div className="flex justify-between items-center text-xs text-gray-600 mt-auto">
                 <span className="flex items-center">
-                  <Heart className="h-3 w-3 mr-1 text-pink-500" />
-                  {new Date(note.created_at).toLocaleDateString('zh-CN')}
+                  <Heart className="h-3 w-3 mr-1 text-pink-500 flex-shrink-0" />
+                  <span>{new Date(note.created_at).toLocaleDateString('zh-CN')}</span>
                 </span>
                 <button
                   onClick={() => deleteNote(note.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 flex-shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </button>
