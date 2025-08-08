@@ -4,7 +4,7 @@ import { Heart, Upload } from 'lucide-react'
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState({
-    site_name: '宝宝和凯凯的故事',
+    site_name: '包包和恺恺的故事',
     site_description: '记录我们的点点滴滴',
     theme: 'light',
     enable_comments: true,

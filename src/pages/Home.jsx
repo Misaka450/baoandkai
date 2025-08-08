@@ -4,9 +4,9 @@ import { useLoveTimer } from '../hooks/useLoveTimer'
 
 export default function Home() {
   const [config, setConfig] = useState({
-    coupleName1: '小明',
-    coupleName2: '小红',
-    anniversaryDate: '2023-01-01'
+    coupleName1: '包包',
+    coupleName2: '恺恺',
+    anniversaryDate: '2024-01-01'
   })
 
   const timeTogether = useLoveTimer(config.anniversaryDate)
@@ -24,8 +24,8 @@ export default function Home() {
       } else {
         // 默认配置
         const defaultConfig = {
-          coupleName1: '小明',
-          coupleName2: '小红',
+          coupleName1: '包包',
+          coupleName2: '恺恺',
           anniversaryDate: '2024-01-01'
         }
         setConfig(defaultConfig)

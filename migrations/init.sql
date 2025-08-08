@@ -82,7 +82,7 @@ CREATE TABLE food_checkins (
 
 -- 插入默认管理员用户
 INSERT INTO users (username, password_hash, email, couple_name1, couple_name2, anniversary_date)
-VALUES ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com', '小明', '小红', '2023-01-01');
+VALUES ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com', '包包', '恺恺', '2024-01-01');
 
 -- 创建索引优化查询性能
 CREATE INDEX idx_timeline_date ON timeline_events(date);
