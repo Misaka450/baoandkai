@@ -15,33 +15,3 @@
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-
-## 🔍 **当前字体问题分析**
-
-1. **主要问题**：使用Inter字体，但只加载了300-700的权重
-2. **字体太细**：大量使用`font-light`（300权重）和`font-light`（400权重）
-3. **中文字体支持**：Inter对中文支持有限，可能显示较细
-
-## 🎯 **字体优化方案**
-
-### 方案1：增强字体权重配置
-让我先更新字体加载配置：
-```html
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>包包和恺恺的情侣空间</title>
-    <meta name="description" content="包包和恺恺的专属情侣空间，记录每一个美好瞬间" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-```
