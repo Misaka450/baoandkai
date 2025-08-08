@@ -13,13 +13,11 @@ export default function Home() {
   const timeTogether = useLoveTimer(config.anniversaryDate)
 
   useEffect(() => {
-    // 从API获取配置
     fetchConfig()
   }, [])
 
   const fetchConfig = async () => {
     try {
-      // 从API获取配置
       const response = await fetch('/api/config')
       if (response.ok) {
         const data = await response.json()
@@ -29,7 +27,6 @@ export default function Home() {
           anniversaryDate: data.anniversaryDate || '2024-01-01'
         })
       } else {
-        // 如果API失败，使用默认配置
         const defaultConfig = {
           coupleName1: '包包',
           coupleName2: '恺恺',
@@ -39,7 +36,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error('获取配置失败:', error)
-      // 如果API失败，使用默认配置
       const defaultConfig = {
         coupleName1: '包包',
         coupleName2: '恺恺',
@@ -49,21 +45,23 @@ export default function Home() {
     }
   }
 
-  const TimeCard = ({ value, label, color = 'pink' }) => {
+  const TimeCard = ({ value, label, color = 'rose' }) => {
     const colorClasses = {
-      pink: 'from-rose-100 to-rose-200 text-rose-700 shadow-rose-100',
-      purple: 'from-violet-100 to-violet-200 text-violet-700 shadow-violet-100',
-      indigo: 'from-indigo-100 to-indigo-200 text-indigo-700 shadow-indigo-100',
-      blue: 'from-sky-100 to-sky-200 text-sky-700 shadow-sky-100'
+      rose: 'from-rose-50/80 to-rose-100/80 text-rose-700 border-rose-200/30',
+      amber: 'from-amber-50/80 to-amber-100/80 text-amber-700 border-amber-200/30',
+      slate: 'from-slate-50/80 to-slate-100/80 text-slate-700 border-slate-200/30',
+      emerald: 'from-emerald-50/80 to-emerald-100/80 text-emerald-700 border-emerald-200/30',
+      violet: 'from-violet-50/80 to-violet-100/80 text-violet-700 border-violet-200/30',
+      stone: 'from-stone-50/80 to-stone-100/80 text-stone-700 border-stone-200/30'
     }
 
     return (
       <div className="relative">
-        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-2xl p-6 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}>
+        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-6 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] hover:-translate-y-1`}>
           <div className="text-3xl md:text-4xl font-light mb-2 font-mono">
             {String(value).padStart(2, '0')}
           </div>
-          <div className="text-sm font-medium opacity-80">
+          <div className="text-sm font-light opacity-80">
             {label}
           </div>
         </div>
@@ -71,44 +69,46 @@ export default function Home() {
     )
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="text-center">
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl max-w-4xl mx-auto p-8 md:p-12 shadow-xl">
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-6xl font-light text-stone-800 mb-4">
-              {config.coupleName1} <span className="text-rose-400 mx-2">♥</span> {config.coupleName2}
-            </h1>
-            <p className="text-lg text-stone-600 font-light tracking-wide">我们的温柔时光</p>
-          </div>
+  const colors = ['rose', 'amber', 'slate', 'emerald', 'violet', 'stone']
 
-          <div className="mb-12">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-6xl font-light text-stone-800 mb-6">
+            {config.coupleName1} <span className="text-rose-400 mx-4">♥</span> {config.coupleName2}
+          </h1>
+          <p className="text-xl text-stone-600 font-light tracking-wide">我们的温柔时光</p>
+        </div>
+
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] mb-12">
+          <div className="text-center mb-8">
             <div className="text-xl text-stone-600 mb-8 font-light">我们相爱已经</div>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
-              <TimeCard value={timeTogether.years} label="年" color="pink" />
-              <TimeCard value={timeTogether.months} label="月" color="purple" />
-              <TimeCard value={timeTogether.days} label="日" color="indigo" />
-              <TimeCard value={String(timeTogether.hours).padStart(2, '0')} label="时" color="blue" />
-              <TimeCard value={String(timeTogether.minutes).padStart(2, '0')} label="分" color="pink" />
-              <TimeCard value={String(timeTogether.seconds).padStart(2, '0')} label="秒" color="purple" />
+              <TimeCard value={timeTogether.years} label="年" color={colors[0]} />
+              <TimeCard value={timeTogether.months} label="月" color={colors[1]} />
+              <TimeCard value={timeTogether.days} label="日" color={colors[2]} />
+              <TimeCard value={String(timeTogether.hours).padStart(2, '0')} label="时" color={colors[3]} />
+              <TimeCard value={String(timeTogether.minutes).padStart(2, '0')} label="分" color={colors[4]} />
+              <TimeCard value={String(timeTogether.seconds).padStart(2, '0')} label="秒" color={colors[5]} />
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-stone-50 to-stone-100 rounded-2xl p-6 mb-8">
-            <div className="flex items-center justify-center text-stone-700">
-              <Calendar className="h-5 w-5 mr-3 text-stone-500" />
+          <div className="bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/30">
+            <div className="flex items-center justify-center text-stone-700 mb-2">
+              <Calendar className="h-5 w-5 mr-3 text-stone-400" />
               <span className="text-base font-light">我们的纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
               })}</span>
             </div>
-            <div className="mt-2 text-sm text-stone-500 font-light">
+            <div className="text-sm text-stone-500 font-light text-center">
               已经一起走过了 {timeTogether.totalDays} 个温柔的日子
             </div>
           </div>
 
-          <div className="flex justify-center space-x-8 text-stone-500">
+          <div className="flex justify-center space-x-8 text-stone-500 mt-8">
             <div className="flex items-center">
               <Heart className="h-4 w-4 mr-2 text-rose-400" />
               <span className="text-sm font-light">每一天都在相爱</span>
@@ -121,7 +121,7 @@ export default function Home() {
         </div>
         
         {/* 碎碎念区域 */}
-        <div className="mt-12">
+        <div>
           <StickyNotes />
         </div>
       </div>
