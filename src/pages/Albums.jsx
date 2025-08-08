@@ -198,7 +198,6 @@ export default function Albums() {
   const [albums, setAlbums] = useState([])
   const [selectedAlbum, setSelectedAlbum] = useState(null)
   const [selectedPhoto, setSelectedPhoto] = useState(null)
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -208,15 +207,7 @@ export default function Albums() {
   const fetchAlbums = async () => {
     try {
       const data = await apiRequest('/api/albums')
-      const formattedData = data.map(album => ({
-        ...album,
-        photos: (album.photos || album.images || []).map(photo => 
-          typeof photo === 'string' 
-            ? { url: photo, caption: '' }
-            : photo
-        )
-      }))
-      setAlbums(formattedData)
+      setAlbums(data)
     } catch (error) {
       console.error('获取相册失败:', error)
     } finally {
@@ -224,159 +215,109 @@ export default function Albums() {
     }
   }
 
-  const openAlbum = (album) => {
-    setSelectedAlbum(album)
-    setSelectedPhoto(null)
-    setCurrentPhotoIndex(0)
-  }
-
-  const closeAlbum = () => {
-    setSelectedAlbum(null)
-    setSelectedPhoto(null)
-  }
-
-  const openPhoto = (photo, index) => {
-    setSelectedPhoto(photo)
-    setCurrentPhotoIndex(index)
-  }
-
-  const closePhoto = () => {
-    setSelectedPhoto(null)
-  }
-
-  const nextPhoto = () => {
-    if (selectedAlbum && selectedAlbum.photos) {
-      const nextIndex = (currentPhotoIndex + 1) % selectedAlbum.photos.length
-      setCurrentPhotoIndex(nextIndex)
-      setSelectedPhoto(selectedAlbum.photos[nextIndex])
-    }
-  }
-
-  const prevPhoto = () => {
-    if (selectedAlbum && selectedAlbum.photos) {
-      const prevIndex = currentPhotoIndex === 0 
-        ? selectedAlbum.photos.length - 1 
-        : currentPhotoIndex - 1
-      setCurrentPhotoIndex(prevIndex)
-      setSelectedPhoto(selectedAlbum.photos[prevIndex])
-    }
-  }
-
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="text-center">加载中...</div>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="text-center">
+            <div className="inline-flex flex-col items-center space-y-3">
+              <div className="animate-pulse">
+                <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
+                <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
+              </div>
+              <div className="mt-8 space-y-4 w-full max-w-md">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-stone-200 rounded w-1/2"></div>
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">我们的相册</h1>
-        <p className="text-gray-600 text-lg">记录每一个美好瞬间</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {albums.map((album) => (
-          <div
-            key={album.id}
-            onClick={() => openAlbum(album)}
-            className="glass-card cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105"
-          >
-            <div className="aspect-square relative overflow-hidden rounded-t-2xl">
-              <img
-                src={album.photos && album.photos.length > 0 ? album.photos[0].url : 'https://via.placeholder.com/400x400'}
-                alt={album.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x400'
-                  e.target.alt = '图片加载失败'
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              {album.photos && album.photos.length > 1 && (
-                <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                  {album.photos.length} 张
-                </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate">{album.name}</h3>
-              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{album.description || '暂无描述'}</p>
-              <p className="text-xs text-gray-500">
-                {album.photos?.length || 0} 张照片
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {albums.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">还没有创建任何相册</p>
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的回忆相册</h1>
+          <p className="text-stone-600 font-light">收藏每一个值得珍藏的瞬间</p>
         </div>
-      )}
 
-      {/* 相册详情模态框 */}
-      {selectedAlbum && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800">{selectedAlbum.name}</h2>
-                <p className="text-gray-600">{selectedAlbum.description}</p>
-              </div>
-              <button
-                onClick={closeAlbum}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        {!selectedAlbum ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {albums.map((album) => (
+              <div
+                key={album.id}
+                onClick={() => setSelectedAlbum(album)}
+                className="group cursor-pointer"
               >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
+                <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1">
+                  <div className="aspect-video rounded-2xl overflow-hidden mb-4">
+                    <img
+                      src={album.cover_image || '/placeholder-album.jpg'}
+                      alt={album.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <h3 className="text-xl font-light text-stone-800 mb-2">{album.name}</h3>
+                  <p className="text-sm text-stone-600 font-light">{album.description || `${album.photo_count} 张照片`}</p>
+                  <div className="mt-3">
+                    <span className="text-xs text-stone-500 font-light">{new Date(album.created_at).toLocaleDateString('zh-CN')}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <button
+              onClick={() => setSelectedAlbum(null)}
+              className="mb-6 flex items-center text-stone-600 hover:text-stone-800 transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5 mr-1" />
+              返回相册列表
+            </button>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {selectedAlbum.photos && selectedAlbum.photos.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {selectedAlbum.photos.map((photo, index) => (
-                    <div
-                      key={index}
-                      onClick={() => openPhoto(photo, index)}
-                      className="aspect-square cursor-pointer hover:scale-105 transition-transform duration-200"
-                    >
-                      <img
-                        src={photo.url}
-                        alt={photo.caption || `${selectedAlbum.name} - ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/300x300'
-                          e.target.alt = '图片加载失败'
-                        }}
-                      />
-                    </div>
-                  ))}
+            <div className="mb-8">
+              <h2 className="text-3xl font-light text-stone-800 mb-2">{selectedAlbum.name}</h2>
+              <p className="text-stone-600 font-light">{selectedAlbum.description}</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {selectedAlbum.photos?.map((photo, index) => (
+                <div
+                  key={photo.id}
+                  onClick={() => setSelectedPhoto({ photo, index })}
+                  className="group cursor-pointer"
+                >
+                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || `照片 ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  {photo.caption && (
+                    <p className="mt-2 text-sm text-stone-600 font-light truncate">{photo.caption}</p>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <p>这个相册还没有照片</p>
-                </div>
-              )}
+              ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 优化后的图片查看器 */}
-      {selectedPhoto && selectedAlbum && (
-        <ImageViewer
-          photo={selectedPhoto}
-          onClose={closePhoto}
-          onPrev={prevPhoto}
-          onNext={nextPhoto}
-          hasPrev={selectedAlbum.photos && currentPhotoIndex > 0}
-          hasNext={selectedAlbum.photos && currentPhotoIndex < selectedAlbum.photos.length - 1}
-        />
-      )}
+        )}
+      </div>
     </div>
   )
 }

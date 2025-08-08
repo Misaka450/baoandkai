@@ -4,13 +4,14 @@ import { Heart, Trash2, Plus, Loader2, MessageSquare, X } from 'lucide-react'
 const API_BASE = '/api'
 const ADMIN_TOKEN = 'admin-token-123456789'
 
+// 莫兰迪色系配色方案 - 与时间轴统一
 const colorSchemes = [
-  { name: 'yellow', gradient: 'bg-gradient-card-1', border: 'border-amber-200' },
-  { name: 'pink', gradient: 'bg-gradient-card-2', border: 'border-rose-200' },
-  { name: 'blue', gradient: 'bg-gradient-card-3', border: 'border-indigo-200' },
-  { name: 'green', gradient: 'bg-gradient-card-4', border: 'border-emerald-200' },
-  { name: 'purple', gradient: 'bg-gradient-card-5', border: 'border-violet-200' },
-  { name: 'orange', gradient: 'bg-gradient-card-6', border: 'border-red-200' }
+  { name: 'rose', gradient: 'bg-gradient-to-br from-rose-50/80 to-rose-100/80', border: 'border-rose-200/30', text: 'text-rose-800' },
+  { name: 'amber', gradient: 'bg-gradient-to-br from-amber-50/80 to-amber-100/80', border: 'border-amber-200/30', text: 'text-amber-800' },
+  { name: 'slate', gradient: 'bg-gradient-to-br from-slate-50/80 to-slate-100/80', border: 'border-slate-200/30', text: 'text-slate-800' },
+  { name: 'emerald', gradient: 'bg-gradient-to-br from-emerald-50/80 to-emerald-100/80', border: 'border-emerald-200/30', text: 'text-emerald-800' },
+  { name: 'violet', gradient: 'bg-gradient-to-br from-violet-50/80 to-violet-100/80', border: 'border-violet-200/30', text: 'text-violet-800' },
+  { name: 'stone', gradient: 'bg-gradient-to-br from-stone-50/80 to-stone-100/80', border: 'border-stone-200/30', text: 'text-stone-800' }
 ]
 
 // 获取随机颜色
@@ -60,7 +61,6 @@ export default function StickyNotes() {
 
     setAddLoading(true)
     try {
-      // 使用随机颜色
       const randomColor = getRandomColor()
       
       const response = await fetch(`${API_BASE}/notes`, {
@@ -79,7 +79,7 @@ export default function StickyNotes() {
       console.log('添加碎碎念返回:', data)
       
       if (response.ok) {
-        await fetchNotes() // 重新获取所有数据
+        await fetchNotes()
         setNewNote('')
         setShowAddModal(false)
       } else {
@@ -104,7 +104,7 @@ export default function StickyNotes() {
 
       const data = await response.json()
       if (response.ok) {
-        await fetchNotes() // 重新获取数据
+        await fetchNotes()
         setShowDeleteModal(false)
         setNoteToDelete(null)
       }
@@ -151,12 +151,12 @@ export default function StickyNotes() {
     }
     
     const colorMapping = {
-      'bg-yellow-100 border-yellow-200': colorSchemes[0],
-      'bg-pink-100 border-pink-200': colorSchemes[1],
+      'bg-yellow-100 border-yellow-200': colorSchemes[1],
+      'bg-pink-100 border-pink-200': colorSchemes[0],
       'bg-blue-100 border-blue-200': colorSchemes[2],
       'from-green-50 to-emerald-50 border-emerald-200': colorSchemes[3],
       'bg-purple-100 border-purple-200': colorSchemes[4],
-      'bg-orange-100 border-orange-200': colorSchemes[5]
+      'bg-orange-100 border-orange-200': colorSchemes[1]
     }
     
     return colorMapping[noteColor] || getRandomColor()
@@ -164,11 +164,26 @@ export default function StickyNotes() {
 
   if (loading) {
     return (
-      <div className="container-modern">
-        <div className="animate-slide-up">
-          <h1 className="page-title">我们的碎碎念</h1>
-          <div className="flex justify-center py-8">
-            <div className="loading-spinner"></div>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="text-center">
+            <div className="inline-flex flex-col items-center space-y-3">
+              <div className="animate-pulse">
+                <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
+                <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
+              </div>
+              <div className="mt-8 space-y-4 w-full max-w-md">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-stone-200 rounded w-1/2"></div>
+                      <div className="h-2 bg-stone-200 rounded w-full"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -176,146 +191,152 @@ export default function StickyNotes() {
   }
 
   return (
-    <div className="container-modern">
-      <div className="animate-slide-up">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="page-title mb-0">我们的碎碎念</h1>
-          <button
-            onClick={openAddModal}
-            className="btn-gradient flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>添加碎碎念</span>
-          </button>
-        </div>
-        
-        {/* 碎碎念列表 */}
-        {notes.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <MessageSquare className="w-10 h-10 text-pink-400" />
-            </div>
-            <h3 className="empty-title">还没有碎碎念</h3>
-            <p className="empty-subtitle">点击"添加碎碎念"按钮来创建第一条吧！</p>
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="animate-slide-up">
+          <div className="flex justify-between items-center mb-12">
+            <h1 className="text-4xl font-light text-stone-800">我们的碎碎念</h1>
+            <button
+              onClick={openAddModal}
+              className="bg-gradient-to-r from-rose-400 to-amber-400 text-white px-6 py-3 rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all duration-300 flex items-center space-x-2 hover:-translate-y-0.5"
+            >
+              <Plus className="w-5 h-5" />
+              <span>添加碎碎念</span>
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {notes.map((note) => {
-              const colorScheme = getNoteColorScheme(note.color)
-              return (
-                <div
-                  key={note.id}
-                  className={`glass-card p-6 card-hover ${colorScheme.gradient} ${colorScheme.border}`}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <p className="text-gray-800 leading-relaxed">{note.content}</p>
-                    </div>
-                    <button
-                      onClick={() => openDeleteModal(note)}
-                      className="ml-2 p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="divider-modern my-4"></div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
-                      {new Date(note.created_at).toLocaleDateString('zh-CN')}
-                    </span>
-                    <Heart className="w-4 h-4 text-pink-400" />
-                  </div>
+          
+          {/* 碎碎念列表 */}
+          {notes.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="inline-flex flex-col items-center space-y-6">
+                <div className="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center">
+                  <MessageSquare className="w-10 h-10 text-stone-400" />
                 </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* 添加碎碎念弹窗 - 简化版，移除颜色选择 */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="glass-card p-6 max-w-md w-full animate-scale-in">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">添加碎碎念</h3>
-                <button
-                  onClick={closeAddModal}
-                  className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    内容
-                  </label>
-                  <textarea
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="写下你想说的话..."
-                    className="input-modern w-full resize-none"
-                    rows={4}
-                    autoFocus
-                  />
+                  <h3 className="text-xl font-light text-stone-800 mb-2">还没有碎碎念</h3>
+                  <p className="text-stone-600 font-light">点击"添加碎碎念"按钮来创建第一条吧！</p>
                 </div>
-                
-                <div className="flex space-x-3">
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {notes.map((note) => {
+                const colorScheme = getNoteColorScheme(note.color)
+                return (
+                  <div
+                    key={note.id}
+                    className={`backdrop-blur-sm border rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1 ${colorScheme.gradient} ${colorScheme.border}`}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <p className={`${colorScheme.text} font-light leading-relaxed text-sm`}>{note.content}</p>
+                      </div>
+                      <button
+                        onClick={() => openDeleteModal(note)}
+                        className="ml-2 p-2 text-stone-400 hover:text-stone-600 hover:bg-white/30 rounded-full transition-all duration-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="border-t border-white/20 my-4"></div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-stone-500 font-light">
+                        {new Date(note.created_at).toLocaleDateString('zh-CN')}
+                      </span>
+                      <Heart className="w-4 h-4 text-rose-400" />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* 添加碎碎念弹窗 */}
+          {showAddModal && (
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 max-w-md w-full shadow-[0_20px_80px_rgba(0,0,0,0.16)] animate-scale-in">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-light text-stone-800">添加碎碎念</h3>
                   <button
                     onClick={closeAddModal}
-                    className="btn-secondary flex-1"
+                    className="p-2 text-stone-400 hover:text-stone-600 rounded-full hover:bg-stone-100/50 transition-all"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-light text-stone-700 mb-2">
+                      内容
+                    </label>
+                    <textarea
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="写下你想说的话..."
+                      className="w-full px-4 py-3 bg-white/50 border border-stone-200/50 rounded-2xl font-light text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-rose-200/50 focus:border-transparent resize-none"
+                      rows={4}
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={closeAddModal}
+                      className="flex-1 px-4 py-3 bg-stone-100/50 text-stone-600 rounded-2xl font-light hover:bg-stone-200/50 transition-all"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={addNote}
+                      disabled={!newNote.trim() || addLoading}
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-rose-400 to-amber-400 text-white rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {addLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                      ) : (
+                        '添加'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 删除确认弹窗 */}
+          {showDeleteModal && noteToDelete && (
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 max-w-sm w-full shadow-[0_20px_80px_rgba(0,0,0,0.16)] animate-scale-in">
+                <h3 className="text-xl font-light text-stone-800 mb-4">确认删除</h3>
+                <p className="text-stone-600 font-light mb-6">
+                  确定要删除这条碎碎念吗？
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={closeDeleteModal}
+                    className="flex-1 px-4 py-3 bg-stone-100/50 text-stone-600 rounded-2xl font-light hover:bg-stone-200/50 transition-all"
                   >
                     取消
                   </button>
                   <button
-                    onClick={addNote}
-                    disabled={!newNote.trim() || addLoading}
-                    className="btn-gradient flex-1"
+                    onClick={confirmDelete}
+                    disabled={deleteLoading}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-rose-400 to-red-400 text-white rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all"
                   >
-                    {addLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                    {deleteLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                     ) : (
-                      '添加'
+                      '删除'
                     )}
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* 删除确认弹窗 */}
-        {showDeleteModal && noteToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="glass-card p-6 max-w-sm w-full animate-scale-in">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">确认删除</h3>
-              <p className="text-gray-600 mb-4">
-                确定要删除这条碎碎念吗？
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={closeDeleteModal}
-                  className="btn-secondary flex-1"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={deleteLoading}
-                  className="btn-danger flex-1"
-                >
-                  {deleteLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    '删除'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
