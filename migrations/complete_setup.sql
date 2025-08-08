@@ -42,12 +42,15 @@ CREATE TABLE IF NOT EXISTS timeline_events (
 );
 
 -- 相册表（如果还不存在）
+-- 相册表（如果还不存在）
 CREATE TABLE IF NOT EXISTS albums (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
   cover_image TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -59,6 +62,7 @@ CREATE TABLE IF NOT EXISTS photos (
   caption TEXT,
   date TEXT,
   location TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
