@@ -33,8 +33,17 @@ export default {
         }
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Inter', 'Noto Sans SC', 'system-ui', 'sans-serif'],
+        'chinese': ['Noto Sans SC', 'system-ui', 'sans-serif'],
       },
+      fontWeight: {
+        'light': 300,
+        'normal': 400,
+        'medium': 500,
+        'semibold': 600,
+        'bold': 700,
+        'extrabold': 800,
+      }
     },
   },
   plugins: [],
