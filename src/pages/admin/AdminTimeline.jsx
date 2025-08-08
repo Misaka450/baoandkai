@@ -228,18 +228,17 @@ export default function AdminTimeline() {
           </div>
         ))}
       </div>
-    </div>
       
-    <AdminModal
-      isOpen={modalState.isOpen}
-      onClose={closeModal}
-      title={modalState.title}
-      message={modalState.message}
-      type={modalState.type}
-      onConfirm={modalState.onConfirm}
-      showCancel={modalState.showCancel}
-      confirmText={modalState.confirmText}
-    />
-  </div>
+      <AdminModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+        confirmText={modalState.confirmText}
+      />
+    </div>
   )
 }
