@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { apiRequest } from '../../utils/api.js'
-import { Plus, Edit, Trash2, Image, X, Upload, Loader2 } from 'lucide-react'
-import { r2UploadManager } from '../../utils/r2Upload.js'
+import React, { useState, useEffect } from 'react'
+import { Plus, X, Trash2, Edit2, Upload, Loader2, Image } from 'lucide-react'
+import { apiRequest } from '../../utils/api'
+import ImageUploader from '../../components/ImageUploader'
 
 export default function AdminAlbums() {
   const [albums, setAlbums] = useState([])
@@ -12,9 +12,6 @@ export default function AdminAlbums() {
     description: '',
     images: []
   })
-  const [showImageUpload, setShowImageUpload] = useState(false)
-  const [uploadingImages, setUploadingImages] = useState([])
-  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     fetchAlbums()
@@ -62,7 +59,6 @@ export default function AdminAlbums() {
       setShowForm(false)
       setEditingAlbum(null)
       setFormData({ name: '', description: '', images: [] })
-      setUploadingImages([])
       fetchAlbums()
       
       alert('相册保存成功！')
@@ -85,31 +81,24 @@ export default function AdminAlbums() {
     }
   }
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files)
-    if (!files.length) return
-
-    setIsUploading(true)
-    try {
-      const uploadedUrls = await r2UploadManager.uploadMultipleFiles(files, 'albums')
-      // 直接使用返回的URL数组，uploadMultipleFiles已经返回扁平化的URL数组
-      uploadedUrls.forEach(url => addImageToAlbum(url))
-    } catch (error) {
-      console.error('上传图片失败:', error)
-      alert('上传失败，请重试')
-    } finally {
-      setIsUploading(false)
-    }
+  const handleEdit = (album) => {
+    setEditingAlbum(album)
+    setFormData({
+      name: album.name,
+      description: album.description || '',
+      images: album.photos?.map(p => p.url) || []
+    })
+    setShowForm(true)
   }
 
-  const addImageToAlbum = (url) => {
+  const handleImagesUploaded = (urls) => {
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, url]
+      images: [...prev.images, ...urls]
     }))
   }
 
-  const removeImageFromAlbum = (index) => {
+  const removeImage = (index) => {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
@@ -155,49 +144,15 @@ export default function AdminAlbums() {
               />
             </div>
 
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">相册图片</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.images.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img 
-                      src={url} 
-                      alt="" 
-                      className="h-20 w-20 object-cover rounded"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/80x80'
-                        e.target.alt = '图片加载失败'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImageFromAlbum(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowImageUpload(true)}
-                disabled={isUploading}
-                className="px-3 py-1 bg-gray-100 rounded text-sm flex items-center gap-2 disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    上传中...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4" />
-                    添加图片
-                  </>
-                )}
-              </button>
+              <ImageUploader
+                onImagesUploaded={handleImagesUploaded}
+                existingImages={formData.images}
+                onRemoveImage={removeImage}
+                folder="albums"
+                maxImages={50}
+              />
             </div>
 
             <div className="flex space-x-2">
@@ -212,8 +167,7 @@ export default function AdminAlbums() {
                 onClick={() => {
                   setShowForm(false)
                   setEditingAlbum(null)
-                  setFormData({ name: '', description: '', coverImage: '', images: [] })
-                  setUploadingImages([])
+                  setFormData({ name: '', description: '', images: [] })
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg"
               >
@@ -224,77 +178,58 @@ export default function AdminAlbums() {
         </div>
       )}
 
-      {showImageUpload && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">上传图片</h3>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="mb-4"
-            />
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setShowImageUpload(false)}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* 相册列表 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {albums.map((album) => (
-          <div key={album.id} className="glass-card p-4">
-            {album.photos && album.photos.length > 0 && (
-              <img
-                src={typeof album.photos[0] === 'string' ? album.photos[0] : album.photos[0].url}
-                alt={album.name}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x400'
-                  e.target.alt = '封面图片加载失败'
-                }}
-              />
-            )}
-            <h3 className="font-semibold text-gray-800">{album.name}</h3>
-            <p className="text-sm text-gray-600 mb-2">{album.description}</p>
-            <p className="text-sm text-gray-500">{album.photos?.length || 0} 张照片</p>
-            <div className="flex space-x-2 mt-4">
-              <button
-                onClick={() => {
-                  setEditingAlbum(album)
-                  setFormData({
-                    id: album.id,
-                    name: album.name || '',
-                    description: album.description || '',
-  
-                    images: (album.photos || []).map(photo => 
-                      typeof photo === 'string' ? photo : photo.url
-                    )
-                  })
-                  setShowForm(true)
-                }}
-                className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                编辑
-              </button>
-              <button
-                onClick={() => handleDelete(album.id)}
-                className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 rounded"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                删除
-              </button>
+        {albums.map(album => (
+          <div key={album.id} className="glass-card overflow-hidden">
+            <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+              {album.photos?.[0] ? (
+                <img
+                  src={album.photos[0].url}
+                  alt={album.name}
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-r from-pink-100 to-purple-100">
+                  <Image className="h-12 w-12 text-gray-400" />
+                </div>
+              )}
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold text-lg mb-1">{album.name}</h3>
+              <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                {album.description || '暂无描述'}
+              </p>
+              <p className="text-sm text-gray-500 mb-3">
+                {album.photos?.length || 0} 张照片
+              </p>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEdit(album)}
+                  className="flex items-center px-3 py-1 text-sm bg-blue-500 text-white rounded"
+                >
+                  <Edit2 className="h-3 w-3 mr-1" />
+                  编辑
+                </button>
+                <button
+                  onClick={() => handleDelete(album.id)}
+                  className="flex items-center px-3 py-1 text-sm bg-red-500 text-white rounded"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  删除
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {albums.length === 0 && (
+        <div className="text-center py-12">
+          <Image className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">暂无相册，点击右上角创建第一个相册吧！</p>
+        </div>
+      )}
     </div>
   )
 }
