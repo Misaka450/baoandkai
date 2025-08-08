@@ -5,7 +5,7 @@ import AdminLogin from './admin/AdminLogin'
 import AdminSettings from './admin/AdminSettings'
 import AdminTimeline from './admin/AdminTimeline'
 import AdminAlbums from './admin/AdminAlbums'
-import AdminDiary from './admin/AdminDiary'
+// 日记管理已移除
 import AdminFood from './admin/AdminFood'
 
 export default function Admin() {
@@ -24,7 +24,7 @@ export default function Admin() {
           <Route path="settings" element={<AdminSettings />} />
           <Route path="timeline" element={<AdminTimeline />} />
           <Route path="albums" element={<AdminAlbums />} />
-          <Route path="diary" element={<AdminDiary />} />
+          {/* <Route path="diary" element={<AdminDiary />} /> 日记管理已移除 */}
           <Route path="food" element={<AdminFood />} />
         </Routes>
       </div>
@@ -40,7 +40,7 @@ function AdminSidebar() {
     { path: '/admin/settings', label: '基础设置', icon: Settings },
     { path: '/admin/timeline', label: '时间轴管理', icon: Clock },
     { path: '/admin/albums', label: '相册管理', icon: Image },
-    { path: '/admin/diary', label: '日记管理', icon: BookOpen },
+    // { path: '/admin/diary', label: '日记管理', icon: BookOpen }, // 日记管理已移除
     { path: '/admin/food', label: '美食管理', icon: Utensils },
   ]
 
