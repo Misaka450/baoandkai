@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2 } from 'lucide-react'
-import AdminModal from '../../components/AdminModal'
+import { AdminModal } from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 
 export default function AdminTimeline() {
