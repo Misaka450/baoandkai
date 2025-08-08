@@ -13,10 +13,14 @@ const colorSchemes = [
   { name: 'orange', gradient: 'bg-gradient-card-6', border: 'border-red-200' }
 ]
 
+// 获取随机颜色
+const getRandomColor = () => {
+  return colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
+}
+
 export default function StickyNotes() {
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
-  const [selectedColor, setSelectedColor] = useState(colorSchemes[0])
   const [loading, setLoading] = useState(true)
   const [addLoading, setAddLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -35,7 +39,6 @@ export default function StickyNotes() {
       const data = await response.json()
       console.log('获取到的碎碎念数据:', data)
       
-      // 修复：API直接返回数组，而不是{success, notes}格式
       if (Array.isArray(data)) {
         setNotes(data)
       } else if (data.success && Array.isArray(data.notes)) {
@@ -57,6 +60,9 @@ export default function StickyNotes() {
 
     setAddLoading(true)
     try {
+      // 使用随机颜色
+      const randomColor = getRandomColor()
+      
       const response = await fetch(`${API_BASE}/notes`, {
         method: 'POST',
         headers: {
@@ -65,14 +71,13 @@ export default function StickyNotes() {
         },
         body: JSON.stringify({
           content: newNote,
-          color: selectedColor.name
+          color: randomColor.name
         })
       })
 
       const data = await response.json()
       console.log('添加碎碎念返回:', data)
       
-      // 修复：添加成功后重新获取数据
       if (response.ok) {
         await fetchNotes() // 重新获取所有数据
         setNewNote('')
@@ -136,17 +141,15 @@ export default function StickyNotes() {
   }
 
   const getColorScheme = (colorName) => {
-    return colorSchemes.find(scheme => scheme.name === colorName) || colorSchemes[0]
+    return colorSchemes.find(scheme => scheme.name === colorName) || getRandomColor()
   }
 
-  // 修复：兼容旧的颜色格式
+  // 兼容旧的颜色格式
   const getNoteColorScheme = (noteColor) => {
-    // 如果是新的颜色名称格式
     if (colorSchemes.some(scheme => scheme.name === noteColor)) {
       return getColorScheme(noteColor)
     }
     
-    // 如果是旧的CSS类格式，映射到新的颜色方案
     const colorMapping = {
       'bg-yellow-100 border-yellow-200': colorSchemes[0],
       'bg-pink-100 border-pink-200': colorSchemes[1],
@@ -156,7 +159,7 @@ export default function StickyNotes() {
       'bg-orange-100 border-orange-200': colorSchemes[5]
     }
     
-    return colorMapping[noteColor] || colorSchemes[0]
+    return colorMapping[noteColor] || getRandomColor()
   }
 
   if (loading) {
@@ -230,7 +233,7 @@ export default function StickyNotes() {
           </div>
         )}
 
-        {/* 添加碎碎念弹窗 */}
+        {/* 添加碎碎念弹窗 - 简化版，移除颜色选择 */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="glass-card p-6 max-w-md w-full animate-scale-in">
@@ -247,25 +250,6 @@ export default function StickyNotes() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    选择颜色
-                  </label>
-                  <div className="flex space-x-2">
-                    {colorSchemes.map((scheme) => (
-                      <button
-                        key={scheme.name}
-                        onClick={() => setSelectedColor(scheme)}
-                        className={`w-8 h-8 rounded-full ${scheme.gradient} border-2 ${
-                          selectedColor.name === scheme.name
-                            ? `border-gray-800 ${scheme.border}`
-                            : 'border-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     内容
                   </label>
                   <textarea
@@ -274,6 +258,7 @@ export default function StickyNotes() {
                     placeholder="写下你想说的话..."
                     className="input-modern w-full resize-none"
                     rows={4}
+                    autoFocus
                   />
                 </div>
                 
