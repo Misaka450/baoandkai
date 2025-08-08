@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MessageSquare, Heart, Plus, X, Lock, Send } from 'lucide-react'
+import { MessageSquare, Heart, Plus, X, Lock, Send, Trash2 } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -10,6 +10,9 @@ export default function StickyNotes() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showInput, setShowInput] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteNoteId, setDeleteNoteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     loadNotes()
@@ -34,8 +37,7 @@ export default function StickyNotes() {
     try {
       const note = {
         content: newNote.trim(),
-        color: getRandomColor(),
-        created_at: new Date().toISOString()
+        color: getRandomColor()
       }
       
       const savedNote = await apiRequest('/api/notes', {
@@ -59,26 +61,38 @@ export default function StickyNotes() {
     }
   }
 
-  const deleteNote = async (id) => {
-    if (!user) {
-      alert('请先登录后再删除碎碎念')
-      return
-    }
+  const handleDeleteClick = (id) => {
+    setDeleteNoteId(id)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!user || !deleteNoteId) return
     
+    setDeleting(true)
     try {
-      await apiRequest(`/api/notes/${id}`, { 
+      await apiRequest(`/api/notes/${deleteNoteId}`, { 
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
       })
-      setNotes(notes.filter(note => note.id !== id))
+      setNotes(notes.filter(note => note.id !== deleteNoteId))
+      setShowDeleteConfirm(false)
+      setDeleteNoteId(null)
     } catch (error) {
       console.error('删除碎碎念失败:', error)
       if (error.message.includes('401')) {
         alert('请先登录后再删除碎碎念')
       }
+    } finally {
+      setDeleting(false)
     }
+  }
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false)
+    setDeleteNoteId(null)
   }
 
   const getRandomColor = () => {
@@ -171,10 +185,10 @@ export default function StickyNotes() {
                   <span>{new Date(note.created_at).toLocaleDateString('zh-CN')}</span>
                 </span>
                 <button
-                  onClick={() => deleteNote(note.id)}
+                  onClick={() => handleDeleteClick(note.id)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 flex-shrink-0"
                 >
-                  <X className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -188,6 +202,34 @@ export default function StickyNotes() {
           </div>
         )}
       </div>
+
+      {/* 确认删除对话框 */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="glass-card p-6 rounded-lg max-w-sm mx-4 animate-in fade-in duration-200">
+            <div className="text-center">
+              <Trash2 className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">确认删除</h3>
+              <p className="text-gray-600 mb-6">确定要删除这条碎碎念吗？此操作无法撤销。</p>
+              <div className="flex justify-center space-x-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
+                >
+                  {deleting ? '删除中...' : '确认删除'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
