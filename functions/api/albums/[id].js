@@ -41,8 +41,8 @@ export async function onRequestPut(context) {
     if (photos.length > 0) {
       const photoPromises = photos.map(photo => 
         env.DB.prepare(`
-          INSERT INTO photos (album_id, url, caption, created_at) 
-          VALUES (?, ?, ?, datetime('now'))
+          INSERT INTO photos (album_id, url, caption) 
+          VALUES (?, ?, ?)
         `).bind(parseInt(id), photo.url || photo, photo.caption || '').run()
       );
       await Promise.all(photoPromises);
