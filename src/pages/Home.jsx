@@ -6,7 +6,7 @@ export default function Home() {
   const [config, setConfig] = useState({
     coupleName1: '包包',
     coupleName2: '恺恺',
-    anniversaryDate: '2024-01-01'
+    anniversaryDate: '2023-10-08'
   })
 
   const timeTogether = useLoveTimer(config.anniversaryDate)
@@ -18,21 +18,33 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const savedConfig = localStorage.getItem('coupleConfig')
-      if (savedConfig) {
-        setConfig(JSON.parse(savedConfig))
+      // 从API获取配置
+      const response = await fetch('/api/config')
+      if (response.ok) {
+        const data = await response.json()
+        setConfig({
+          coupleName1: data.coupleName1 || '包包',
+          coupleName2: data.coupleName2 || '恺恺',
+          anniversaryDate: data.anniversaryDate || '2024-01-01'
+        })
       } else {
-        // 默认配置
+        // 如果API失败，使用默认配置
         const defaultConfig = {
           coupleName1: '包包',
           coupleName2: '恺恺',
           anniversaryDate: '2024-01-01'
         }
         setConfig(defaultConfig)
-        localStorage.setItem('coupleConfig', JSON.stringify(defaultConfig))
       }
     } catch (error) {
       console.error('获取配置失败:', error)
+      // 如果API失败，使用默认配置
+      const defaultConfig = {
+        coupleName1: '包包',
+        coupleName2: '恺恺',
+        anniversaryDate: '2024-01-01'
+      }
+      setConfig(defaultConfig)
     }
   }
 

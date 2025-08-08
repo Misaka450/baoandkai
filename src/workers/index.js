@@ -18,9 +18,9 @@ router.get('/api/config', async (request, env) => {
     const result = await env.DB.prepare('SELECT * FROM users LIMIT 1').first()
     if (!result) {
       return new Response(JSON.stringify({
-        coupleName1: '小明',
-        coupleName2: '小红',
-        anniversaryDate: '2023-01-01',
+        coupleName1: '包包',
+        coupleName2: '恺恺',
+        anniversaryDate: '2024-01-01',
         backgroundImage: null
       }), { headers: corsHeaders })
     }
