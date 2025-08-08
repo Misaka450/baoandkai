@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { apiRequest } from '../../utils/api.js'
-import { Plus, Edit, Trash2, Calendar, X, Upload, Loader2 } from 'lucide-react'
-import { r2UploadManager } from '../../utils/r2Upload.js'
+import React, { useState, useEffect } from 'react'
+import { Plus, X, Trash2, Edit2, Calendar } from 'lucide-react'
+import { apiRequest } from '../../utils/api'
+import ImageUploader from '../../components/ImageUploader'
 
 export default function AdminDiary() {
   const [entries, setEntries] = useState([])
@@ -78,25 +78,24 @@ export default function AdminDiary() {
   const moods = ['开心', '难过', '激动', '平静', '思念', '感动']
   const weathers = ['晴天', '多云', '雨天', '雪天', '阴天', '大风']
 
-  const [isUploading, setIsUploading] = useState(false)
+  const handleEdit = (entry) => {
+    setEditingEntry(entry)
+    setFormData({
+      title: entry.title,
+      content: entry.content,
+      date: entry.date,
+      mood: entry.mood,
+      weather: entry.weather,
+      images: entry.images || []
+    })
+    setShowForm(true)
+  }
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files)
-    if (!files.length) return
-
-    setIsUploading(true)
-    try {
-      const uploadedUrls = await r2UploadManager.uploadMultipleFiles(files, 'diary')
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...uploadedUrls]
-      }))
-    } catch (error) {
-      console.error('上传图片失败:', error)
-      alert('上传失败，请重试')
-    } finally {
-      setIsUploading(false)
-    }
+  const handleImagesUploaded = (urls) => {
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...urls]
+    }))
   }
 
   const removeImage = (index) => {
@@ -183,42 +182,13 @@ export default function AdminDiary() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">日记图片</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.images.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img 
-                      src={url} 
-                      alt="" 
-                      className="h-20 w-20 object-cover rounded"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/80x80'
-                        e.target.alt = '图片加载失败'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={isUploading}
-                className="w-full px-3 py-2 border rounded-lg disabled:opacity-50"
+              <ImageUploader
+                onImagesUploaded={handleImagesUploaded}
+                existingImages={formData.images}
+                onRemoveImage={removeImage}
+                folder="diary"
+                maxImages={20}
               />
-              {isUploading && (
-                <div className="flex items-center text-sm text-gray-600 mt-2">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  正在上传图片...
-                </div>
-              )}
             </div>
             <div className="flex space-x-2">
               <button
@@ -244,52 +214,61 @@ export default function AdminDiary() {
       )}
 
       <div className="space-y-4">
-        {entries.map((entry) => (
-          <div key={entry.id} className="glass-card p-6">
+        {entries.map(entry => (
+          <div key={entry.id} className="glass-card p-4">
             <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800">{entry.title}</h3>
-                <div className="flex items-center text-sm text-gray-600 mb-2">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(entry.date).toLocaleDateString('zh-CN')}
-                  <span className="mx-2">•</span>
-                  心情: {entry.mood}
-                  <span className="mx-2">•</span>
-                  天气: {entry.weather}
+              <div>
+                <h3 className="font-semibold text-lg">{entry.title}</h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-500 mb-2">
+                  <span className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {entry.date}
+                  </span>
+                  <span>心情: {entry.mood}</span>
+                  <span>天气: {entry.weather}</span>
                 </div>
-                <p className="text-gray-700 mb-3">{entry.content}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{entry.content}</p>
                 {entry.images && entry.images.length > 0 && (
-                  <div className="flex space-x-2">
-                    {entry.images.map((img, index) => (
-                      <img key={index} src={img} alt="" className="h-16 w-16 object-cover rounded" />
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {entry.images.map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt=""
+                        className="h-16 w-16 object-cover rounded"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/64x64'
+                        }}
+                      />
                     ))}
                   </div>
                 )}
               </div>
-              <div className="flex space-x-2 ml-4">
+              <div className="flex space-x-2">
                 <button
-                  onClick={() => {
-                    setEditingEntry(entry)
-                    setFormData(entry)
-                    setShowForm(true)
-                  }}
-                  className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                  onClick={() => handleEdit(entry)}
+                  className="text-blue-600 hover:text-blue-800"
                 >
-                  <Edit className="h-4 w-4 mr-1" />
-                  编辑
+                  <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(entry.id)}
-                  className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 rounded"
+                  className="text-red-600 hover:text-red-800"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  删除
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {entries.length === 0 && (
+        <div className="text-center py-12">
+          <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">暂无日记，点击右上角开始记录吧！</p>
+        </div>
+      )}
     </div>
   )
 }
