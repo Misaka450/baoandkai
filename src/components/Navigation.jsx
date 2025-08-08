@@ -5,7 +5,6 @@ const navigation = [
   { name: '首页', href: '/', icon: Heart },
   { name: '时间轴', href: '/timeline', icon: Clock },
   { name: '相册', href: '/albums', icon: Image },
-  { name: '日记', href: '/diary', icon: BookOpen },
   { name: '美食', href: '/food', icon: Utensils },
   { name: '管理', href: '/admin', icon: Settings },
 ]

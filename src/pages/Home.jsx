@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
+import StickyNotes from '../components/StickyNotes'
 
 export default function Home() {
   const [config, setConfig] = useState({
@@ -103,15 +104,16 @@ export default function Home() {
               <Camera className="h-4 w-4 mr-2" />
               相册
             </a>
-            <a href="/diary" className="btn-secondary flex items-center justify-center">
-              <Heart className="h-4 w-4 mr-2" />
-              日记
-            </a>
             <a href="/food" className="btn-secondary flex items-center justify-center">
               <Heart className="h-4 w-4 mr-2" />
               美食
             </a>
           </div>
+        </div>
+        
+        {/* 碎碎念区域 */}
+        <div className="mt-12">
+          <StickyNotes />
         </div>
       </div>
     </div>
