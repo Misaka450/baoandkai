@@ -36,8 +36,9 @@ export async function onRequestPost(context) {
     }
     
     const token = authHeader.split(' ')[1]
-    const user = await verifyToken(token, env)
-    if (!user) {
+    
+    // 简化的token验证
+    if (!token || !token.startsWith('admin-token-')) {
       return new Response(JSON.stringify({ error: '无效的登录状态' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
@@ -48,7 +49,7 @@ export async function onRequestPost(context) {
     try {
       body = await request.json()
     } catch (e) {
-      return new Response(JSON.stringify({ error: '请求格式错误' }), { 
+      return new Response(JSON.stringify({ error: '请求格式错误', details: '无效的JSON格式' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       })
@@ -56,7 +57,7 @@ export async function onRequestPost(context) {
     
     const { content, color } = body || {}
     
-    if (!content || content.trim().length === 0) {
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return new Response(JSON.stringify({ error: '内容不能为空' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
@@ -66,7 +67,11 @@ export async function onRequestPost(context) {
     const result = await env.DB.prepare(`
       INSERT INTO notes (content, color, user_id, created_at, updated_at) 
       VALUES (?, ?, ?, datetime('now'), datetime('now'))
-    `).bind(content.trim(), color || 'bg-yellow-100 border-yellow-200', user.id).run()
+    `).bind(
+      content.trim(), 
+      color || 'bg-yellow-100 border-yellow-200', 
+      1  // 使用固定的user_id=1
+    ).run()
     
     const newNote = await env.DB.prepare(`
       SELECT * FROM notes WHERE id = ?
@@ -85,24 +90,6 @@ export async function onRequestPost(context) {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     })
-  }
-}
-
-async function verifyToken(token, env) {
-  try {
-    // 兼容前端的简单token验证
-    if (token && token.startsWith('admin-token-')) {
-      return { id: 1, username: 'admin', role: 'admin' }
-    }
-    
-    // 同时支持数据库验证
-    const user = await env.DB.prepare(`
-      SELECT * FROM users WHERE token = ? AND token_expires > datetime('now')
-    `).bind(token).first()
-    
-    return user
-  } catch (error) {
-    return null
   }
 }
 
