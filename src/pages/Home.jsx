@@ -95,7 +95,7 @@ export default function Home() {
             <span>纪念日: {new Date(config.anniversaryDate).toLocaleDateString('zh-CN')}</span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             <a href="/timeline" className="btn-primary flex items-center justify-center">
               <Clock className="h-4 w-4 mr-2" />
               时间轴
