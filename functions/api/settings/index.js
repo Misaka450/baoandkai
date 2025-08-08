@@ -12,23 +12,14 @@ export async function onRequestGet(context) {
       const defaultSettings = {
         site_name: '包包和恺恺的故事',
         site_description: '记录我们的点点滴滴',
-        theme: 'light',
-        enable_comments: 1,
-        enable_share: 1,
-        enable_timeline: 1,
-        enable_albums: 1,
-        enable_diary: 1,
-        enable_food: 1
+        theme: 'light'
       };
       
       await env.DB.prepare(`
-        INSERT INTO settings (id, site_name, site_description, theme, enable_comments, enable_share, 
-                           enable_timeline, enable_albums, enable_diary, enable_food, created_at)
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO settings (id, site_name, site_description, theme, created_at)
+        VALUES (1, ?, ?, ?, datetime('now'))
       `).bind(
-        defaultSettings.site_name, defaultSettings.site_description, defaultSettings.theme,
-        defaultSettings.enable_comments, defaultSettings.enable_share, defaultSettings.enable_timeline,
-        defaultSettings.enable_albums, defaultSettings.enable_diary, defaultSettings.enable_food
+        defaultSettings.site_name, defaultSettings.site_description, defaultSettings.theme
       ).run();
       
       return new Response(JSON.stringify(defaultSettings), {
@@ -60,22 +51,14 @@ export async function onRequestPut(context) {
   
   try {
     const body = await request.json();
-    const {
-      site_name, site_description, theme, enable_comments, enable_share,
-      enable_timeline, enable_albums, enable_diary, enable_food
-    } = body;
+    const { site_name, site_description, theme } = body;
     
     await env.DB.prepare(`
       UPDATE settings 
       SET site_name = ?, site_description = ?, theme = ?, 
-          enable_comments = ?, enable_share = ?, enable_timeline = ?, 
-          enable_albums = ?, enable_diary = ?, enable_food = ?, 
           updated_at = datetime('now') 
       WHERE id = 1
-    `).bind(
-      site_name, site_description, theme, enable_comments, enable_share,
-      enable_timeline, enable_albums, enable_diary, enable_food
-    ).run();
+    `).bind(site_name, site_description, theme).run();
     
     const updatedSettings = await env.DB.prepare(`
       SELECT * FROM settings WHERE id = 1

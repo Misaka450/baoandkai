@@ -6,13 +6,7 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState({
     site_name: '包包和恺恺的故事',
     site_description: '记录我们的点点滴滴',
-    theme: 'light',
-    enable_comments: true,
-    enable_share: true,
-    enable_timeline: true,
-    enable_albums: true,
-    enable_diary: true,
-    enable_food: true
+    theme: 'light'
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,68 +89,6 @@ export default function AdminSettings() {
               <option value="light">浅色</option>
               <option value="dark">深色</option>
             </select>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_comments}
-                onChange={(e) => setSettings({...settings, enable_comments: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用评论</span>
-            </label>
-            
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_share}
-                onChange={(e) => setSettings({...settings, enable_share: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用分享</span>
-            </label>
-            
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_timeline}
-                onChange={(e) => setSettings({...settings, enable_timeline: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用时间轴</span>
-            </label>
-            
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_albums}
-                onChange={(e) => setSettings({...settings, enable_albums: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用相册</span>
-            </label>
-            
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_diary}
-                onChange={(e) => setSettings({...settings, enable_diary: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用日记</span>
-            </label>
-            
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.enable_food}
-                onChange={(e) => setSettings({...settings, enable_food: e.target.checked})}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>启用美食</span>
-            </label>
           </div>
         </div>
 
