@@ -20,7 +20,7 @@ router.get('/api/config', async (request, env) => {
       return new Response(JSON.stringify({
         coupleName1: '包包',
         coupleName2: '恺恺',
-        anniversaryDate: '2024-01-01',
+        anniversaryDate: '2023-10-08',
         backgroundImage: null
       }), { headers: corsHeaders })
     }

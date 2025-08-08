@@ -32,7 +32,7 @@ export default function Home() {
         const defaultConfig = {
           coupleName1: '包包',
           coupleName2: '恺恺',
-          anniversaryDate: '2024-01-01'
+          anniversaryDate: '2023-10-08'
         }
         setConfig(defaultConfig)
       }
@@ -42,7 +42,7 @@ export default function Home() {
       const defaultConfig = {
         coupleName1: '包包',
         coupleName2: '恺恺',
-        anniversaryDate: '2024-01-01'
+        anniversaryDate: '2023-10-08'
       }
       setConfig(defaultConfig)
     }

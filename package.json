@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "date-fns": "^2.29.3",
+    "itty-router": "^5.0.21",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
