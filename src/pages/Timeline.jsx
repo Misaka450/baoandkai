@@ -47,9 +47,27 @@ export default function Timeline() {
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="text-center">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-stone-200 rounded w-1/2 mx-auto"></div>
-              <div className="h-4 bg-stone-200 rounded w-1/3 mx-auto"></div>
+            <div className="inline-flex flex-col items-center space-y-3">
+              <div className="animate-pulse">
+                <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
+                <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
+              </div>
+              <div className="mt-8 space-y-4 w-full max-w-md">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-stone-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-stone-200 rounded w-2/3"></div>
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                        <div className="h-20 bg-stone-200 rounded-xl"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -102,21 +120,21 @@ export default function Timeline() {
                   </div>
 
                   {/* 卡片 */}
-                  <div className={`ml-0 md:ml-8 md:mr-0 mr-0 md:w-[calc(50%-2rem)] w-full bg-gradient-to-br ${colorClass} border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${index % 2 === 0 ? 'md:ml-auto md:mr-8' : ''}`}>
+                  <div className={`ml-0 md:ml-8 md:mr-0 mr-0 md:w-[calc(50%-2rem)] w-full backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1 ${index % 2 === 0 ? 'md:ml-auto md:mr-8' : ''}`}>
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center mb-3">
-                          <div className={`p-2 rounded-full bg-white/50 mr-3`}>
-                            <Icon className="h-5 w-5" />
+                          <div className={`p-2.5 rounded-xl bg-white/60 backdrop-blur-sm mr-3 shadow-sm`}>
+                            <Icon className="h-4 w-4" />
                           </div>
-                          <span className="text-sm font-light opacity-80">{event.category}</span>
+                          <span className="text-xs font-medium tracking-wide uppercase opacity-75">{event.category}</span>
                         </div>
                         
-                        <h3 className="text-xl font-light text-stone-800 mb-2 leading-relaxed">{event.title}</h3>
+                        <h3 className="text-lg font-light text-stone-800 mb-3 leading-relaxed tracking-wide">{event.title}</h3>
                         
-                        <div className="flex items-center text-sm text-stone-600 space-x-4 font-light">
+                        <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
                           <span className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1" />
+                            <Calendar className="h-3.5 w-3.5 mr-1.5" />
                             {new Date(event.date).toLocaleDateString('zh-CN', {
                               year: 'numeric',
                               month: 'long',
@@ -125,7 +143,7 @@ export default function Timeline() {
                           </span>
                           {event.location && (
                             <span className="flex items-center">
-                              <MapPin className="h-4 w-4 mr-1" />
+                              <MapPin className="h-3.5 w-3.5 mr-1.5" />
                               {event.location}
                             </span>
                           )}
@@ -133,18 +151,18 @@ export default function Timeline() {
                       </div>
                     </div>
                     
-                    <p className="text-stone-700 mb-4 font-light leading-relaxed">{event.description}</p>
+                    <p className="text-stone-700 mb-5 font-light leading-relaxed text-sm opacity-90">{event.description}</p>
                     
                     {event.images && event.images.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                         {event.images.map((image, imgIndex) => (
-                          <div key={imgIndex} className="relative group">
+                          <div key={imgIndex} className="relative group overflow-hidden rounded-xl">
                             <img
                               src={image}
                               alt={`${event.title} - ${imgIndex + 1}`}
-                              className="rounded-xl object-cover h-32 w-full transition-transform duration-300 group-hover:scale-105"
+                              className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                           </div>
                         ))}
                       </div>
@@ -158,10 +176,13 @@ export default function Timeline() {
 
         {filteredEvents.length === 0 && (
           <div className="text-center py-16">
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto">
-              <Camera className="h-16 w-16 text-stone-400 mx-auto mb-4" />
-              <h3 className="text-xl font-light text-stone-700 mb-2">还没有记录任何瞬间</h3>
-              <p className="text-stone-500 font-light">开始记录你们的第一个美好时刻吧</p>
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+              <div className="mb-6">
+                <Camera className="h-16 w-16 text-stone-300 mx-auto mb-4" />
+                <h3 className="text-lg font-light text-stone-700 mb-2">还没有记录任何瞬间</h3>
+                <p className="text-sm text-stone-500 font-light">开始记录你们的第一个美好时刻吧</p>
+              </div>
+              <div className="w-16 h-0.5 bg-stone-200 mx-auto rounded-full"></div>
             </div>
           </div>
         )}
