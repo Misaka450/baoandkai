@@ -34,10 +34,14 @@ export default function StickyNotes() {
       const response = await fetch(`${API_BASE}/notes`)
       const data = await response.json()
       console.log('获取到的碎碎念数据:', data)
-      if (data.success) {
+      
+      // 修复：API直接返回数组，而不是{success, notes}格式
+      if (Array.isArray(data)) {
+        setNotes(data)
+      } else if (data.success && Array.isArray(data.notes)) {
         setNotes(data.notes || [])
       } else {
-        console.error('API返回错误:', data)
+        console.error('API返回格式错误:', data)
         setNotes([])
       }
     } catch (error) {
@@ -67,8 +71,10 @@ export default function StickyNotes() {
 
       const data = await response.json()
       console.log('添加碎碎念返回:', data)
-      if (data.success) {
-        setNotes([data.note, ...notes])
+      
+      // 修复：添加成功后重新获取数据
+      if (response.ok) {
+        await fetchNotes() // 重新获取所有数据
         setNewNote('')
         setShowAddModal(false)
       } else {
@@ -92,8 +98,8 @@ export default function StickyNotes() {
       })
 
       const data = await response.json()
-      if (data.success) {
-        setNotes(notes.filter(note => note.id !== id))
+      if (response.ok) {
+        await fetchNotes() // 重新获取数据
         setShowDeleteModal(false)
         setNoteToDelete(null)
       }
@@ -131,6 +137,26 @@ export default function StickyNotes() {
 
   const getColorScheme = (colorName) => {
     return colorSchemes.find(scheme => scheme.name === colorName) || colorSchemes[0]
+  }
+
+  // 修复：兼容旧的颜色格式
+  const getNoteColorScheme = (noteColor) => {
+    // 如果是新的颜色名称格式
+    if (colorSchemes.some(scheme => scheme.name === noteColor)) {
+      return getColorScheme(noteColor)
+    }
+    
+    // 如果是旧的CSS类格式，映射到新的颜色方案
+    const colorMapping = {
+      'bg-yellow-100 border-yellow-200': colorSchemes[0],
+      'bg-pink-100 border-pink-200': colorSchemes[1],
+      'bg-blue-100 border-blue-200': colorSchemes[2],
+      'from-green-50 to-emerald-50 border-emerald-200': colorSchemes[3],
+      'bg-purple-100 border-purple-200': colorSchemes[4],
+      'bg-orange-100 border-orange-200': colorSchemes[5]
+    }
+    
+    return colorMapping[noteColor] || colorSchemes[0]
   }
 
   if (loading) {
@@ -172,7 +198,7 @@ export default function StickyNotes() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {notes.map((note) => {
-              const colorScheme = getColorScheme(note.color)
+              const colorScheme = getNoteColorScheme(note.color)
               return (
                 <div
                   key={note.id}
@@ -203,118 +229,109 @@ export default function StickyNotes() {
             })}
           </div>
         )}
-      </div>
 
-      {/* 添加碎碎念模态框 */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="glass-card p-8 max-w-lg w-full mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-800">添加新的碎碎念</h3>
-              <button
-                onClick={closeAddModal}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="写下你想说的悄悄话..."
-                className="input-modern min-h-[120px] resize-none"
-                autoFocus
-              />
-              
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-gray-600">选择颜色:</span>
-                <div className="flex space-x-2">
-                  {colorSchemes.map((scheme) => (
-                    <button
-                      key={scheme.name}
-                      onClick={() => setSelectedColor(scheme)}
-                      className={`w-8 h-8 rounded-full ${scheme.gradient} border-2 ${
-                        selectedColor.name === scheme.name ? 'border-gray-400 scale-110' : 'border-transparent'
-                      } transition-all duration-200`}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex space-x-4">
+        {/* 添加碎碎念弹窗 */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="glass-card p-6 max-w-md w-full animate-scale-in">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">添加碎碎念</h3>
                 <button
                   onClick={closeAddModal}
-                  className="flex-1 btn-gradient-outline"
+                  className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    选择颜色
+                  </label>
+                  <div className="flex space-x-2">
+                    {colorSchemes.map((scheme) => (
+                      <button
+                        key={scheme.name}
+                        onClick={() => setSelectedColor(scheme)}
+                        className={`w-8 h-8 rounded-full ${scheme.gradient} border-2 ${
+                          selectedColor.name === scheme.name
+                            ? `border-gray-800 ${scheme.border}`
+                            : 'border-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    内容
+                  </label>
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="写下你想说的话..."
+                    className="input-modern w-full resize-none"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={closeAddModal}
+                    className="btn-secondary flex-1"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={addNote}
+                    disabled={!newNote.trim() || addLoading}
+                    className="btn-gradient flex-1"
+                  >
+                    {addLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      '添加'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 删除确认弹窗 */}
+        {showDeleteModal && noteToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="glass-card p-6 max-w-sm w-full animate-scale-in">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">确认删除</h3>
+              <p className="text-gray-600 mb-4">
+                确定要删除这条碎碎念吗？
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="btn-secondary flex-1"
                 >
                   取消
                 </button>
                 <button
-                  onClick={addNote}
-                  disabled={addLoading || !newNote.trim()}
-                  className="flex-1 btn-gradient disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={confirmDelete}
+                  disabled={deleteLoading}
+                  className="btn-danger flex-1"
                 >
-                  {addLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      添加中...
-                    </>
+                  {deleteLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    '添加碎碎念'
+                    '删除'
                   )}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 删除确认模态框 */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="glass-card p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <Trash2 className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
-              <p className="text-gray-600 mb-6">
-                确定要删除这条碎碎念吗？此操作无法撤销。
-              </p>
-              {noteToDelete && (
-                <p className="text-sm text-gray-500 mb-6 italic">
-                  "{noteToDelete.content.substring(0, 50)}..."
-                </p>
-              )}
-            </div>
-            
-            <div className="flex space-x-4">
-              <button
-                onClick={closeDeleteModal}
-                className="flex-1 btn-gradient-outline"
-                disabled={deleteLoading}
-              >
-                取消
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteLoading}
-                className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl py-3 font-semibold shadow-lg hover:shadow-2xl hover:shadow-red-500/25 transform hover:-translate-y-0.5 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleteLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
-                    删除中...
-                  </>
-                ) : (
-                  '确认删除'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
