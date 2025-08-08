@@ -96,7 +96,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="/timeline" className="btn-primary flex items-center justify-center">
+            <a href="/timeline" className="btn-secondary flex items-center justify-center">
               <Clock className="h-4 w-4 mr-2" />
               时间轴
             </a>
