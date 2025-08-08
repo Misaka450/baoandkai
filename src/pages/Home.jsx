@@ -12,7 +12,7 @@ export default function Home() {
   const timeTogether = useLoveTimer(config.anniversaryDate)
 
   useEffect(() => {
-    // 从localStorage获取配置，保持与后台同步
+    // 从API获取配置
     fetchConfig()
   }, [])
 
