@@ -38,6 +38,16 @@ export default function AdminFood() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // 验证必填字段
+    if (!formData.restaurant_name.trim()) {
+      alert('请输入餐厅名称')
+      return
+    }
+    if (!formData.date) {
+      alert('请选择日期')
+      return
+    }
+    
     const foodData = {
       ...formData,
       overall_rating: parseInt(formData.overall_rating),
@@ -78,6 +88,7 @@ export default function AdminFood() {
       })
     } catch (error) {
       console.error('保存美食打卡失败:', error)
+      alert('保存失败，请重试')
     }
   }
 
@@ -315,10 +326,16 @@ export default function AdminFood() {
                   setEditingCheckin(null)
                   setFormData({
                     restaurant_name: '',
-                    food_name: '',
-                    rating: 5,
-                    location: '',
+                    cuisine: '',
+                    price_range: '',
                     description: '',
+                    date: '',
+                    address: '',
+                    overall_rating: 5,
+                    taste_rating: 5,
+                    environment_rating: 5,
+                    service_rating: 5,
+                    recommended_dishes: '',
                     images: []
                   })
                 }}
