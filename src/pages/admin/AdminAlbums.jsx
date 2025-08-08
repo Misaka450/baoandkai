@@ -32,13 +32,20 @@ export default function AdminAlbums() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    if (!formData.name.trim()) {
+      alert('请输入相册名称')
+      return
+    }
+    
     const albumData = {
-      name: formData.name,
-      description: formData.description,
-      images: formData.images
+      name: formData.name.trim(),
+      description: formData.description?.trim() || '',
+      photos: formData.images.map(url => ({ url, caption: '' }))
     }
 
     try {
+      console.log('提交相册数据:', albumData)
+      
       if (editingAlbum) {
         await apiRequest(`/api/albums/${editingAlbum.id}`, {
           method: 'PUT',
@@ -50,13 +57,18 @@ export default function AdminAlbums() {
           body: JSON.stringify(albumData)
         })
       }
+      
+      // 成功后的清理
       setShowForm(false)
       setEditingAlbum(null)
       setFormData({ name: '', description: '', images: [] })
       setUploadingImages([])
       fetchAlbums()
+      
+      alert('相册保存成功！')
     } catch (error) {
       console.error('保存相册失败:', error)
+      alert(`保存失败: ${error.message || '请检查网络连接后重试'}`)
     }
   }
 

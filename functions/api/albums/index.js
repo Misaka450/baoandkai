@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { name, description, photos = [] } = body;
     
-    if (!name) {
+    if (!name || !name.trim()) {
       return new Response(JSON.stringify({ error: '相册名称不能为空' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -44,17 +44,17 @@ export async function onRequestPost(context) {
     const albumResult = await env.DB.prepare(`
       INSERT INTO albums (name, description, created_at) 
       VALUES (?, ?, datetime('now'))
-    `).bind(name, description).run();
+    `).bind(name.trim(), description?.trim() || '').run();
     
     const albumId = albumResult.meta.last_row_id;
     
-    // 批量插入照片
-    if (photos.length > 0) {
+    // 批量插入照片，确保photos是数组
+    if (photos && Array.isArray(photos) && photos.length > 0) {
       const photoPromises = photos.map(photo => 
         env.DB.prepare(`
           INSERT INTO photos (album_id, url, caption, created_at) 
           VALUES (?, ?, ?, datetime('now'))
-        `).bind(albumId, photo.url, photo.caption || '').run()
+        `).bind(albumId, photo.url || photo, photo.caption || '').run()
       );
       await Promise.all(photoPromises);
     }
@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
 
     return new Response(JSON.stringify({
       ...newAlbum,
-      photos: albumPhotos.results
+      photos: albumPhotos.results || []
     }), {
       headers: { 
         'Content-Type': 'application/json',
@@ -77,6 +77,7 @@ export async function onRequestPost(context) {
       }
     });
   } catch (error) {
+    console.error('创建相册失败:', error);
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
