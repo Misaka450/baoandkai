@@ -261,11 +261,6 @@ export default function FoodCheckin() {
   )
 }
 
-export default function FoodCheckin() {
-  const [restaurants, setRestaurants] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null)
-
   useEffect(() => {
     fetchRestaurants()
   }, [])
