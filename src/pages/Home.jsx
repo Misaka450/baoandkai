@@ -94,11 +94,12 @@ export default function Home() {
             <Calendar className="h-5 w-5 mr-2" />
             <span>纪念日: {new Date(config.anniversaryDate).toLocaleDateString('zh-CN')}</span>
           </div>
-
-          {/* 碎碎念区域 */}
-          <div className="mt-12">
-            <StickyNotes />
-          </div>
+        </div>
+        
+        {/* 碎碎念区域 */}
+        <div className="mt-12">
+          <StickyNotes />
+        </div>
       </div>
     </div>
   )
