@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Star, Utensils, DollarSign, Calendar } from 'lucide-react'
+import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
 export default function FoodCheckin() {
@@ -41,16 +41,22 @@ export default function FoodCheckin() {
       return 0
     })
 
-  const renderStars = (rating) => {
+  const renderStars = (rating, label = null) => {
     const numRating = Number(rating) || 0
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < numRating ? 'text-amber-500 fill-amber-500' : 'text-stone-300'
-        }`}
-      />
-    ))
+    return (
+      <div className="flex items-center space-x-1">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`h-3.5 w-3.5 ${
+              i < numRating ? 'text-amber-500 fill-amber-500' : 'text-stone-300'
+            }`}
+          />
+        ))}
+        {label && <span className="text-xs text-stone-600 ml-1 font-light">{label}</span>}
+        <span className="text-xs text-stone-600 ml-1">{numRating}</span>
+      </div>
+    )
   }
 
   const getCategoryColor = (category) => {
@@ -174,11 +180,39 @@ export default function FoodCheckin() {
                   <p className="text-sm text-stone-600 font-light">{checkin.address || ''}</p>
                 </div>
                 
-                <div className="flex items-center space-x-1">
-                  {renderStars(checkin.overall_rating || 0)}
-                  <span className="text-sm text-stone-600 ml-2 font-light">
-                    {checkin.overall_rating || 0} 分
-                  </span>
+                {/* 评分区域 */}
+                <div className="space-y-2 bg-stone-50/50 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Heart className="h-3.5 w-3.5 text-rose-400" />
+                      <span className="text-xs font-medium text-stone-700">总体</span>
+                    </div>
+                    {renderStars(checkin.overall_rating)}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Smile className="h-3.5 w-3.5 text-amber-400" />
+                      <span className="text-xs font-medium text-stone-700">口味</span>
+                    </div>
+                    {renderStars(checkin.taste_rating)}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Coffee className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="text-xs font-medium text-stone-700">环境</span>
+                    </div>
+                    {renderStars(checkin.environment_rating)}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Star className="h-3.5 w-3.5 text-violet-400" />
+                      <span className="text-xs font-medium text-stone-700">服务</span>
+                    </div>
+                    {renderStars(checkin.service_rating)}
+                  </div>
                 </div>
                 
                 {checkin.cuisine && (
