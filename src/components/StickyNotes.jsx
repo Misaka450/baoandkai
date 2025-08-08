@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { MessageSquare, Heart, Plus, X } from 'lucide-react'
+import { MessageSquare, Heart, Plus, X, Lock, Send } from 'lucide-react'
 import { apiRequest } from '../utils/api'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function StickyNotes() {
+  const { user } = useAuth()
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [showInput, setShowInput] = useState(false)
 
   useEffect(() => {
     loadNotes()
@@ -25,7 +28,7 @@ export default function StickyNotes() {
   }
 
   const addNote = async () => {
-    if (!newNote.trim()) return
+    if (!newNote.trim() || !user) return
     
     setSaving(true)
     try {
@@ -37,13 +40,20 @@ export default function StickyNotes() {
       
       const savedNote = await apiRequest('/api/notes', {
         method: 'POST',
-        body: JSON.stringify(note)
+        body: JSON.stringify(note),
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
       })
       
       setNotes([savedNote, ...notes])
       setNewNote('')
+      setShowInput(false)
     } catch (error) {
       console.error('添加碎碎念失败:', error)
+      if (error.message.includes('401')) {
+        alert('请先登录后再添加碎碎念')
+      }
     } finally {
       setSaving(false)
     }
@@ -86,25 +96,59 @@ export default function StickyNotes() {
           碎碎念
         </h2>
         
-        {/* 添加新留言 */}
-        <div className="glass-card p-4 mb-6">
-          <textarea
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            placeholder="写下你想说的话..."
-            className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
-            rows="3"
-          />
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={addNote}
-              disabled={!newNote.trim() || saving}
-              className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50 flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              {saving ? '发送中...' : '发送'}
-            </button>
-          </div>
+        {/* 添加碎碎念按钮 */}
+        <div className="mb-6">
+          {user ? (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowInput(!showInput)}
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="h-5 w-5" />
+                <span>添加碎碎念</span>
+              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-full text-gray-600">
+                <Lock className="h-4 w-4" />
+                <span className="text-sm">登录后添加碎碎念</span>
+              </div>
+            </div>
+          )}
+
+          {/* 展开的输入栏 */}
+          {showInput && user && (
+            <div className="glass-card p-4 mt-4 max-w-md mx-auto animate-in slide-in-from-top duration-200">
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="写下你想说的话..."
+                className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
+                rows="3"
+                autoFocus
+              />
+              <div className="flex justify-end space-x-2 mt-3">
+                <button
+                  onClick={() => {
+                    setShowInput(false)
+                    setNewNote('')
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={addNote}
+                  disabled={!newNote.trim() || saving}
+                  className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50 flex items-center"
+                >
+                  <Send className="h-4 w-4 mr-1" />
+                  {saving ? '发送中...' : '发送'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 碎碎念列表 */}

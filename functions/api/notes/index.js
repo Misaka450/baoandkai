@@ -26,13 +26,31 @@ export async function onRequestPost(context) {
   const { request, env } = context
   
   try {
+    // 验证用户身份
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: '未授权访问' }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+    
+    const token = authHeader.split(' ')[1]
+    const user = await verifyToken(token, env)
+    if (!user) {
+      return new Response(JSON.stringify({ error: '无效的登录状态' }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+
     const body = await request.json()
     const { content, color } = body
     
     if (!content || content.trim().length === 0) {
       return new Response(JSON.stringify({ error: '内容不能为空' }), { 
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       })
     }
     
@@ -54,8 +72,20 @@ export async function onRequestPost(context) {
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     })
+  }
+}
+
+async function verifyToken(token, env) {
+  try {
+    const user = await env.DB.prepare(`
+      SELECT * FROM users WHERE token = ? AND token_expires > datetime('now')
+    `).bind(token).first()
+    
+    return user
+  } catch (error) {
+    return null
   }
 }
 
