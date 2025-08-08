@@ -10,8 +10,7 @@ export default function AdminAlbums() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    images: [],
-    captions: {}
+    images: []
   })
   const [selectedImages, setSelectedImages] = useState([])
   const [previewImage, setPreviewImage] = useState(null)
@@ -42,10 +41,7 @@ export default function AdminAlbums() {
     const albumData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || '',
-      photos: formData.images.map((url, index) => ({
-        url,
-        caption: formData.captions[url] || ''
-      }))
+      photos: formData.images.map(url => ({ url, caption: '' }))
     }
 
     try {
@@ -65,7 +61,7 @@ export default function AdminAlbums() {
       
       setShowForm(false)
       setEditingAlbum(null)
-      setFormData({ name: '', description: '', images: [], captions: {} })
+      setFormData({ name: '', description: '', images: [] })
       setSelectedImages([])
       fetchAlbums()
       
@@ -77,7 +73,7 @@ export default function AdminAlbums() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('确定要删除这个相册吗？')) return
+    if (!confirm('确定要删除这个相册吗？此操作不可恢复！')) return
 
     try {
       await apiRequest(`/api/albums/${id}`, {
@@ -90,17 +86,11 @@ export default function AdminAlbums() {
   }
 
   const handleEdit = (album) => {
-    const captions = {}
-    album.photos?.forEach(photo => {
-      captions[photo.url] = photo.caption || ''
-    })
-    
     setEditingAlbum(album)
     setFormData({
       name: album.name,
       description: album.description || '',
-      images: album.photos?.map(p => p.url) || [],
-      captions
+      images: album.photos?.map(p => p.url) || []
     })
     setSelectedImages([])
     setShowBatchActions(false)
@@ -115,11 +105,38 @@ export default function AdminAlbums() {
   }
 
   const removeImage = (index) => {
+    if (!confirm('确定要删除这张图片吗？')) return
+    
+    const imageUrl = formData.images[index]
+    
+    // 从表单数据中移除图片
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }))
     setSelectedImages(prev => prev.filter(i => i !== index))
+    
+    // 调用删除API从R2中删除图片
+    deleteImageFromR2(imageUrl)
+  }
+
+  const deleteImageFromR2 = async (imageUrl) => {
+    try {
+      // 从URL中提取文件名
+      const url = new URL(imageUrl)
+      const pathname = url.pathname
+      const filename = pathname.split('/').pop()
+      
+      if (filename) {
+        await apiRequest('/api/delete', {
+          method: 'POST',
+          body: JSON.stringify({ filename })
+        })
+        console.log('图片已从R2删除:', filename)
+      }
+    } catch (error) {
+      console.error('删除R2图片失败:', error)
+    }
   }
 
   const handleDragStart = (index) => {
@@ -154,19 +171,18 @@ export default function AdminAlbums() {
   const batchDeleteImages = () => {
     if (selectedImages.length === 0) return
     
-    if (!confirm(`确定要删除选中的 ${selectedImages.length} 张图片吗？`)) return
+    if (!confirm(`确定要删除选中的 ${selectedImages.length} 张图片吗？此操作不可恢复！`)) return
 
+    const imagesToDelete = selectedImages.map(index => formData.images[index])
+    
+    // 从表单数据中移除选中的图片
     const newImages = formData.images.filter((_, index) => !selectedImages.includes(index))
     setFormData(prev => ({ ...prev, images: newImages }))
     setSelectedImages([])
     setShowBatchActions(false)
-  }
-
-  const updateCaption = (url, caption) => {
-    setFormData(prev => ({
-      ...prev,
-      captions: { ...prev.captions, [url]: caption }
-    }))
+    
+    // 批量删除R2中的图片
+    imagesToDelete.forEach(deleteImageFromR2)
   }
 
   return (
@@ -303,16 +319,6 @@ export default function AdminAlbums() {
                           />
                         </div>
                         
-                        <div className="mt-2">
-                          <textarea
-                            placeholder="添加说明..."
-                            value={formData.captions[url] || ''}
-                            onChange={(e) => updateCaption(url, e.target.value)}
-                            className="w-full text-xs px-2 py-1 border rounded resize-none"
-                            rows="2"
-                          />
-                        </div>
-                        
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
                           <GripVertical className="h-6 w-6 text-white" />
                         </div>
@@ -338,7 +344,7 @@ export default function AdminAlbums() {
                 onClick={() => {
                   setShowForm(false)
                   setEditingAlbum(null)
-                  setFormData({ name: '', description: '', images: [], captions: {} })
+                  setFormData({ name: '', description: '', images: [] })
                   setSelectedImages([])
                   setShowBatchActions(false)
                 }}
