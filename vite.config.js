@@ -12,7 +12,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'https://baoandkai.pages.dev',
+        target: 'http://localhost:8788',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path
