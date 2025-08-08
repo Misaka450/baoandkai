@@ -62,18 +62,7 @@ CREATE TABLE IF NOT EXISTS photos (
   FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
--- 日记表（如果还不存在）
-CREATE TABLE IF NOT EXISTS diaries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  date TEXT NOT NULL,
-  mood TEXT,
-  weather TEXT,
-  images TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
+-- 日记表已移除
 
 -- 美食打卡表（如果还不存在）
 CREATE TABLE IF NOT EXISTS food_checkins (
@@ -117,7 +106,6 @@ INSERT OR IGNORE INTO notes (id, content, color, user_id) VALUES
 
 -- 创建索引优化查询性能
 CREATE INDEX IF NOT EXISTS idx_timeline_date ON timeline_events(date);
-CREATE INDEX IF NOT EXISTS idx_diary_date ON diaries(date);
 CREATE INDEX IF NOT EXISTS idx_food_date ON food_checkins(date);
 CREATE INDEX IF NOT EXISTS idx_photos_album ON photos(album_id);
 CREATE INDEX IF NOT EXISTS idx_notes_created ON notes(created_at);

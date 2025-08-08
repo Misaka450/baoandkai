@@ -46,18 +46,7 @@ CREATE TABLE photos (
   FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
--- 日记表
-CREATE TABLE diaries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  date TEXT NOT NULL,
-  mood TEXT,
-  weather TEXT,
-  images TEXT, -- 用逗号分隔的图片URL
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
+-- 日记表已移除
 
 -- 美食打卡表
 CREATE TABLE food_checkins (
@@ -86,6 +75,5 @@ VALUES ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
 
 -- 创建索引优化查询性能
 CREATE INDEX idx_timeline_date ON timeline_events(date);
-CREATE INDEX idx_diary_date ON diaries(date);
 CREATE INDEX idx_food_date ON food_checkins(date);
 CREATE INDEX idx_photos_album ON photos(album_id);
