@@ -9,10 +9,16 @@ export default function AdminFood() {
   const [editingCheckin, setEditingCheckin] = useState(null)
   const [formData, setFormData] = useState({
     restaurant_name: '',
-    food_name: '',
-    rating: 5,
-    location: '',
+    cuisine: '',
+    price_range: '',
     description: '',
+    date: '',
+    address: '',
+    overall_rating: 5,
+    taste_rating: 5,
+    environment_rating: 5,
+    service_rating: 5,
+    recommended_dishes: '',
     images: []
   })
 
@@ -34,7 +40,11 @@ export default function AdminFood() {
     
     const foodData = {
       ...formData,
-      rating: parseInt(formData.rating)
+      overall_rating: parseInt(formData.overall_rating),
+      taste_rating: parseInt(formData.taste_rating),
+      environment_rating: parseInt(formData.environment_rating),
+      service_rating: parseInt(formData.service_rating),
+      recommended_dishes: formData.recommended_dishes ? formData.recommended_dishes.split(',').map(dish => dish.trim()) : []
     }
 
     try {
@@ -54,10 +64,16 @@ export default function AdminFood() {
       setEditingCheckin(null)
       setFormData({
         restaurant_name: '',
-        food_name: '',
-        rating: 5,
-        location: '',
+        cuisine: '',
+        price_range: '',
         description: '',
+        date: '',
+        address: '',
+        overall_rating: 5,
+        taste_rating: 5,
+        environment_rating: 5,
+        service_rating: 5,
+        recommended_dishes: '',
         images: []
       })
     } catch (error) {
@@ -81,11 +97,17 @@ export default function AdminFood() {
   const handleEdit = (checkin) => {
     setEditingCheckin(checkin)
     setFormData({
-      restaurant_name: checkin.restaurant_name,
-      food_name: checkin.food_name,
-      rating: checkin.rating,
-      location: checkin.location || '',
+      restaurant_name: checkin.restaurant_name || '',
+      cuisine: checkin.cuisine || '',
+      price_range: checkin.price_range || '',
       description: checkin.description || '',
+      date: checkin.date || '',
+      address: checkin.address || '',
+      overall_rating: checkin.overall_rating || 5,
+      taste_rating: checkin.taste_rating || 5,
+      environment_rating: checkin.environment_rating || 5,
+      service_rating: checkin.service_rating || 5,
+      recommended_dishes: Array.isArray(checkin.recommended_dishes) ? checkin.recommended_dishes.join(', ') : (checkin.recommended_dishes || ''),
       images: checkin.images || []
     })
     setShowForm(true)
@@ -126,7 +148,7 @@ export default function AdminFood() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">餐厅名称</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">餐厅名称 *</label>
                 <input
                   type="text"
                   value={formData.restaurant_name}
@@ -136,11 +158,11 @@ export default function AdminFood() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">菜品名称</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">日期 *</label>
                 <input
-                  type="text"
-                  value={formData.food_name}
-                  onChange={(e) => setFormData({ ...formData, food_name: e.target.value })}
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                   required
                 />
@@ -148,10 +170,66 @@ export default function AdminFood() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">评分</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">菜系</label>
                 <select
-                  value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                  value={formData.cuisine}
+                  onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="">选择菜系</option>
+                  <option value="中餐">中餐</option>
+                  <option value="西餐">西餐</option>
+                  <option value="日料">日料</option>
+                  <option value="韩料">韩料</option>
+                  <option value="火锅">火锅</option>
+                  <option value="烧烤">烧烤</option>
+                  <option value="甜品">甜品</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">价格区间</label>
+                <select
+                  value={formData.price_range}
+                  onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="">选择价格</option>
+                  <option value="¥">¥ (50以下)</option>
+                  <option value="¥¥">¥¥ (50-100)</option>
+                  <option value="¥¥¥">¥¥¥ (100-200)</option>
+                  <option value="¥¥¥¥">¥¥¥¥ (200以上)</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">地址</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="餐厅地址"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">推荐菜品</label>
+                <input
+                  type="text"
+                  value={formData.recommended_dishes}
+                  onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="用逗号分隔多个菜品"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">综合评分</label>
+                <select
+                  value={formData.overall_rating}
+                  onChange={(e) => setFormData({ ...formData, overall_rating: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
                   {[5, 4, 3, 2, 1].map(rating => (
@@ -162,14 +240,46 @@ export default function AdminFood() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">位置</label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">口味评分</label>
+                <select
+                  value={formData.taste_rating}
+                  onChange={(e) => setFormData({ ...formData, taste_rating: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="可选"
-                />
+                >
+                  {[5, 4, 3, 2, 1].map(rating => (
+                    <option key={rating} value={rating}>
+                      {rating} ⭐
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">环境评分</label>
+                <select
+                  value={formData.environment_rating}
+                  onChange={(e) => setFormData({ ...formData, environment_rating: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  {[5, 4, 3, 2, 1].map(rating => (
+                    <option key={rating} value={rating}>
+                      {rating} ⭐
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">服务评分</label>
+                <select
+                  value={formData.service_rating}
+                  onChange={(e) => setFormData({ ...formData, service_rating: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  {[5, 4, 3, 2, 1].map(rating => (
+                    <option key={rating} value={rating}>
+                      {rating} ⭐
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div>
@@ -239,23 +349,43 @@ export default function AdminFood() {
             </div>
             <div className="p-4">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg">{checkin.food_name}</h3>
+                <h3 className="font-semibold text-lg">{checkin.restaurant_name}</h3>
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       className={`h-4 w-4 ${
-                        i < checkin.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        i < (checkin.overall_rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
               </div>
-              <p className="text-gray-600 text-sm mb-1">{checkin.restaurant_name}</p>
-              {checkin.location && (
+              {checkin.cuisine && (
+                <p className="text-gray-600 text-sm mb-1 flex items-center">
+                  <Utensils className="h-3 w-3 mr-1" />
+                  {checkin.cuisine}
+                </p>
+              )}
+              {checkin.address && (
                 <p className="text-gray-500 text-sm mb-2 flex items-center">
                   <MapPin className="h-3 w-3 mr-1" />
-                  {checkin.location}
+                  {checkin.address}
+                </p>
+              )}
+              {checkin.price_range && (
+                <p className="text-gray-500 text-sm mb-2">
+                  价格: {checkin.price_range}
+                </p>
+              )}
+              {checkin.date && (
+                <p className="text-gray-500 text-sm mb-2">
+                  日期: {new Date(checkin.date).toLocaleDateString('zh-CN')}
+                </p>
+              )}
+              {checkin.recommended_dishes && (
+                <p className="text-gray-600 text-sm mb-2">
+                  推荐: {Array.isArray(checkin.recommended_dishes) ? checkin.recommended_dishes.join('、') : checkin.recommended_dishes}
                 </p>
               )}
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">
