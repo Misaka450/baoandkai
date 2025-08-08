@@ -111,7 +111,7 @@ export default function StickyNotes() {
         
         {/* 添加碎碎念按钮 */}
         <div className="mb-6">
-          {user ? (
+          {user && (
             <div className="flex justify-center">
               <button
                 onClick={() => setShowInput(!showInput)}
@@ -120,13 +120,6 @@ export default function StickyNotes() {
                 <Plus className="h-5 w-5" />
                 <span>添加碎碎念</span>
               </button>
-            </div>
-          ) : (
-            <div className="text-center">
-              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-full text-gray-600">
-                <Lock className="h-4 w-4" />
-                <span className="text-sm">登录后添加碎碎念</span>
-              </div>
             </div>
           )}
 
