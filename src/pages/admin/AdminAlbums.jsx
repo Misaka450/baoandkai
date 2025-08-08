@@ -122,17 +122,36 @@ export default function AdminAlbums() {
 
   const deleteImageFromR2 = async (imageUrl) => {
     try {
-      // 从URL中提取文件名
-      const url = new URL(imageUrl)
-      const pathname = url.pathname
-      const filename = pathname.split('/').pop()
+      // 从URL中提取文件名 - 处理R2 URL格式
+      let filename = ''
+      
+      // 处理 https://baoandkai.pages.dev/uploads/filename.jpg 格式
+      if (imageUrl.includes('/uploads/')) {
+        filename = imageUrl.split('/uploads/')[1]
+      } 
+      // 处理 https://pub-xxx.r2.dev/filename.jpg 格式
+      else if (imageUrl.includes('r2.dev/')) {
+        filename = imageUrl.split('r2.dev/')[1]
+      }
+      // 处理其他格式
+      else {
+        const urlParts = imageUrl.split('/')
+        filename = urlParts[urlParts.length - 1]
+      }
       
       if (filename) {
-        await apiRequest('/api/delete', {
-          method: 'POST',
+        console.log('准备删除R2图片:', filename)
+        
+        const response = await apiRequest('/api/delete', {
+          method: 'DELETE',
           body: JSON.stringify({ filename })
         })
-        console.log('图片已从R2删除:', filename)
+        
+        if (response.success) {
+          console.log('图片已从R2删除:', filename)
+        } else {
+          console.error('删除R2图片失败:', response.error)
+        }
       }
     } catch (error) {
       console.error('删除R2图片失败:', error)

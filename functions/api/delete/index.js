@@ -1,4 +1,4 @@
-// Cloudflare Pages Functions 删除处理
+// Cloudflare Pages Functions - R2图片删除API
 export async function onRequestDelete(context) {
   const { request, env } = context;
   
@@ -26,9 +26,26 @@ export async function onRequestDelete(context) {
       });
     }
 
-    await env.DB.delete(filename);
+    // 从R2存储桶中删除文件
+    const bucket = env.ouralbum;
+    
+    if (!bucket) {
+      console.error('R2存储桶未配置，可用绑定:', Object.keys(env));
+      return new Response(JSON.stringify({ error: '存储服务未配置' }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
 
-    return new Response(JSON.stringify({ success: true }), {
+    // 删除文件
+    await bucket.delete(filename);
+    
+    console.log('R2文件删除成功:', filename);
+
+    return new Response(JSON.stringify({ success: true, message: '文件删除成功' }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -36,6 +53,7 @@ export async function onRequestDelete(context) {
       },
     });
   } catch (error) {
+    console.error('R2文件删除失败:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
