@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Plus, X, Trash2, Edit2, Upload, Loader2, Image } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Plus, X, Trash2, Edit2, Upload, Loader2, Image, Eye, GripVertical, CheckSquare, Square } from 'lucide-react'
 import { apiRequest } from '../../utils/api'
 import ImageUploader from '../../components/ImageUploader'
 
@@ -10,8 +10,13 @@ export default function AdminAlbums() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    images: []
+    images: [],
+    captions: {}
   })
+  const [selectedImages, setSelectedImages] = useState([])
+  const [previewImage, setPreviewImage] = useState(null)
+  const [draggedIndex, setDraggedIndex] = useState(null)
+  const [showBatchActions, setShowBatchActions] = useState(false)
 
   useEffect(() => {
     fetchAlbums()
@@ -37,7 +42,10 @@ export default function AdminAlbums() {
     const albumData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || '',
-      photos: formData.images.map(url => ({ url, caption: '' }))
+      photos: formData.images.map((url, index) => ({
+        url,
+        caption: formData.captions[url] || ''
+      }))
     }
 
     try {
@@ -55,10 +63,10 @@ export default function AdminAlbums() {
         })
       }
       
-      // 成功后的清理
       setShowForm(false)
       setEditingAlbum(null)
-      setFormData({ name: '', description: '', images: [] })
+      setFormData({ name: '', description: '', images: [], captions: {} })
+      setSelectedImages([])
       fetchAlbums()
       
       alert('相册保存成功！')
@@ -82,12 +90,20 @@ export default function AdminAlbums() {
   }
 
   const handleEdit = (album) => {
+    const captions = {}
+    album.photos?.forEach(photo => {
+      captions[photo.url] = photo.caption || ''
+    })
+    
     setEditingAlbum(album)
     setFormData({
       name: album.name,
       description: album.description || '',
-      images: album.photos?.map(p => p.url) || []
+      images: album.photos?.map(p => p.url) || [],
+      captions
     })
+    setSelectedImages([])
+    setShowBatchActions(false)
     setShowForm(true)
   }
 
@@ -102,6 +118,54 @@ export default function AdminAlbums() {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
+    }))
+    setSelectedImages(prev => prev.filter(i => i !== index))
+  }
+
+  const handleDragStart = (index) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) return
+
+    const draggedImage = formData.images[draggedIndex]
+    const newImages = [...formData.images]
+    newImages.splice(draggedIndex, 1)
+    newImages.splice(dropIndex, 0, draggedImage)
+
+    setFormData(prev => ({ ...prev, images: newImages }))
+    setDraggedIndex(null)
+  }
+
+  const toggleImageSelection = (index) => {
+    setSelectedImages(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    )
+  }
+
+  const batchDeleteImages = () => {
+    if (selectedImages.length === 0) return
+    
+    if (!confirm(`确定要删除选中的 ${selectedImages.length} 张图片吗？`)) return
+
+    const newImages = formData.images.filter((_, index) => !selectedImages.includes(index))
+    setFormData(prev => ({ ...prev, images: newImages }))
+    setSelectedImages([])
+    setShowBatchActions(false)
+  }
+
+  const updateCaption = (url, caption) => {
+    setFormData(prev => ({
+      ...prev,
+      captions: { ...prev.captions, [url]: caption }
     }))
   }
 
@@ -120,9 +184,43 @@ export default function AdminAlbums() {
 
       {showForm && (
         <div className="glass-card p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingAlbum ? '编辑相册' : '创建新相册'}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">
+              {editingAlbum ? '编辑相册' : '创建新相册'}
+            </h2>
+            {formData.images.length > 0 && (
+              <div className="flex space-x-2">
+                {showBatchActions ? (
+                  <>
+                    <button
+                      onClick={batchDeleteImages}
+                      disabled={selectedImages.length === 0}
+                      className="px-3 py-1 text-sm bg-red-500 text-white rounded disabled:opacity-50"
+                    >
+                      删除选中 ({selectedImages.length})
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowBatchActions(false)
+                        setSelectedImages([])
+                      }}
+                      className="px-3 py-1 text-sm border rounded"
+                    >
+                      取消
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setShowBatchActions(true)}
+                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
+                  >
+                    批量管理
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">相册名称</label>
@@ -148,11 +246,84 @@ export default function AdminAlbums() {
               <label className="block text-sm font-medium text-gray-700 mb-1">相册图片</label>
               <ImageUploader
                 onImagesUploaded={handleImagesUploaded}
-                existingImages={formData.images}
-                onRemoveImage={removeImage}
+                existingImages={[]}
+                onRemoveImage={() => {}}
                 folder="albums"
                 maxImages={50}
               />
+              
+              {formData.images.length > 0 && (
+                <div className="mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {formData.images.map((url, index) => (
+                      <div
+                        key={index}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`relative group cursor-move ${
+                          selectedImages.includes(index) ? 'ring-2 ring-blue-500' : ''
+                        }`}
+                      >
+                        {showBatchActions && (
+                          <button
+                            type="button"
+                            onClick={() => toggleImageSelection(index)}
+                            className="absolute top-1 left-1 z-10 bg-white rounded-full p-1 shadow-md"
+                          >
+                            {selectedImages.includes(index) ? 
+                              <CheckSquare className="h-4 w-4 text-blue-500" /> : 
+                              <Square className="h-4 w-4 text-gray-400" />
+                            }
+                          </button>
+                        )}
+                        
+                        <button
+                          type="button"
+                          onClick={() => setPreviewImage(url)}
+                          className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Eye className="h-4 w-4 text-gray-600" />
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                        
+                        <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden">
+                          <img
+                            src={url}
+                            alt={`图片 ${index + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        </div>
+                        
+                        <div className="mt-2">
+                          <textarea
+                            placeholder="添加说明..."
+                            value={formData.captions[url] || ''}
+                            onChange={(e) => updateCaption(url, e.target.value)}
+                            className="w-full text-xs px-2 py-1 border rounded resize-none"
+                            rows="2"
+                          />
+                        </div>
+                        
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
+                          <GripVertical className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    拖拽图片可以调整顺序，点击图片预览图标查看大图
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex space-x-2">
@@ -167,7 +338,9 @@ export default function AdminAlbums() {
                 onClick={() => {
                   setShowForm(false)
                   setEditingAlbum(null)
-                  setFormData({ name: '', description: '', images: [] })
+                  setFormData({ name: '', description: '', images: [], captions: {} })
+                  setSelectedImages([])
+                  setShowBatchActions(false)
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg"
               >
@@ -228,6 +401,22 @@ export default function AdminAlbums() {
         <div className="text-center py-12">
           <Image className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500">暂无相册，点击右上角创建第一个相册吧！</p>
+        </div>
+      )}
+
+      {/* 图片预览模态框 */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="max-w-4xl max-h-screen p-4">
+            <img 
+              src={previewImage} 
+              alt="预览" 
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
         </div>
       )}
     </div>
