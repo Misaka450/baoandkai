@@ -215,6 +215,53 @@ export default function Albums() {
     }
   }
 
+  // 获取相册封面图片
+  const getCoverImage = (album) => {
+    if (album.cover_image) return album.cover_image
+    if (album.photos && album.photos.length > 0) return album.photos[0].url
+    return '/placeholder-album.jpg'
+  }
+
+  // 处理图片点击事件
+  const handlePhotoClick = (photo, index) => {
+    setSelectedPhoto({
+      photo,
+      index,
+      album: selectedAlbum
+    })
+  }
+
+  // 关闭图片查看器
+  const closeImageViewer = () => {
+    setSelectedPhoto(null)
+  }
+
+  // 上一张图片
+  const goToPrevPhoto = () => {
+    if (selectedPhoto && selectedPhoto.album) {
+      const currentIndex = selectedPhoto.index
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : selectedPhoto.album.photos.length - 1
+      setSelectedPhoto({
+        ...selectedPhoto,
+        photo: selectedPhoto.album.photos[newIndex],
+        index: newIndex
+      })
+    }
+  }
+
+  // 下一张图片
+  const goToNextPhoto = () => {
+    if (selectedPhoto && selectedPhoto.album) {
+      const currentIndex = selectedPhoto.index
+      const newIndex = currentIndex < selectedPhoto.album.photos.length - 1 ? currentIndex + 1 : 0
+      setSelectedPhoto({
+        ...selectedPhoto,
+        photo: selectedPhoto.album.photos[newIndex],
+        index: newIndex
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
@@ -264,17 +311,24 @@ export default function Albums() {
                 className="group cursor-pointer"
               >
                 <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1">
-                  <div className="aspect-video rounded-2xl overflow-hidden mb-4">
+                  <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-stone-100 flex items-center justify-center">
                     <img
-                      src={album.cover_image || '/placeholder-album.jpg'}
+                      src={getCoverImage(album)}
                       alt={album.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        e.target.src = '/placeholder-album.jpg'
+                      }}
                     />
                   </div>
                   <h3 className="text-xl font-light text-stone-800 mb-2">{album.name}</h3>
-                  <p className="text-sm text-stone-600 font-light">{album.description || `${album.photo_count} 张照片`}</p>
+                  <p className="text-sm text-stone-600 font-light">
+                    {album.description || `${album.photos?.length || 0} 张照片`}
+                  </p>
                   <div className="mt-3">
-                    <span className="text-xs text-stone-500 font-light">{new Date(album.created_at).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-xs text-stone-500 font-light">
+                      {new Date(album.created_at).toLocaleDateString('zh-CN')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -284,7 +338,7 @@ export default function Albums() {
           <div>
             <button
               onClick={() => setSelectedAlbum(null)}
-              className="mb-6 flex items-center text-stone-600 hover:text-stone-800 transition-colors"
+              className="mb-6 flex items-center text-stone-600 hover:text-stone-800 transition-colors font-light"
             >
               <ChevronLeft className="h-5 w-5 mr-1" />
               返回相册列表
@@ -299,14 +353,17 @@ export default function Albums() {
               {selectedAlbum.photos?.map((photo, index) => (
                 <div
                   key={photo.id}
-                  onClick={() => setSelectedPhoto({ photo, index })}
+                  onClick={() => handlePhotoClick(photo, index)}
                   className="group cursor-pointer"
                 >
-                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300">
+                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center">
                     <img
                       src={photo.url}
                       alt={photo.caption || `照片 ${index + 1}`}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        e.target.src = '/placeholder-image.jpg'
+                      }}
                     />
                   </div>
                   {photo.caption && (
@@ -316,6 +373,18 @@ export default function Albums() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* 图片查看器 */}
+        {selectedPhoto && (
+          <ImageViewer
+            photo={selectedPhoto.photo}
+            onClose={closeImageViewer}
+            onPrev={goToPrevPhoto}
+            onNext={goToNextPhoto}
+            hasPrev={selectedPhoto.album.photos.length > 1}
+            hasNext={selectedPhoto.album.photos.length > 1}
+          />
         )}
       </div>
     </div>
