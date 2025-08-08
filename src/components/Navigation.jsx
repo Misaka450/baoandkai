@@ -26,9 +26,8 @@ export default function Navigation() {
           <div className="hidden md:flex space-x-8">
             {navigation.map((item) => {
               const Icon = item.icon
-              const isActive = item.href === '/' 
-                ? location.pathname === '/' 
-                : location.pathname === item.href || location.pathname.startsWith(item.href)
+              const isActive = location.pathname === item.href || 
+                (item.href !== '/' && location.pathname.startsWith(item.href))
               
               return (
                 <Link
