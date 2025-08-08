@@ -148,22 +148,7 @@ router.get('/api/albums', async (request, env) => {
   }
 })
 
-// 日记API
-router.get('/api/diaries', async (request, env) => {
-  try {
-    const result = await env.DB.prepare('SELECT * FROM diaries ORDER BY date DESC').all()
-    const diaries = result.results.map(diary => ({
-      ...diary,
-      images: diary.images ? diary.images.split(',') : []
-    }))
-    return new Response(JSON.stringify(diaries), { headers: corsHeaders })
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500, 
-      headers: corsHeaders 
-    })
-  }
-})
+// 日记API已移除
 
 // 美食打卡API
 router.get('/api/food-checkins', async (request, env) => {

@@ -15,11 +15,11 @@ const mockData = {
     enable_share: true,
     enable_timeline: true,
     enable_albums: true,
-    enable_diary: true,
+    enable_diary: false,
     enable_food: true
   },
   albums: [],
-  diaries: [],
+  // diaries: [],
   timeline: [],
   food: []
 };
@@ -27,7 +27,7 @@ const mockData = {
 // 生成唯一ID
 let nextId = {
   albums: 1,
-  diaries: 1,
+  // diaries: 1,
   timeline: 1,
   food: 1
 };
