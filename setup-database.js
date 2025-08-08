@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-// 数据库初始化脚本
+// 数据库初始化脚本（已移除日记功能）
 // 运行以下命令来初始化数据库
 
 console.log('请运行以下命令来初始化数据库：');
 console.log('');
-console.log('1. 初始化基础表结构：');
+console.log('1. 初始化基础表结构（不含日记）：');
 console.log('npx wrangler d1 execute oursql --file=./migrations/init.sql --remote');
 console.log('');
 console.log('2. 添加碎碎念功能：');
 console.log('npx wrangler d1 execute oursql --file=./migrations/add_notes.sql --remote');
 console.log('');
-console.log('3. 完整设置（推荐）：');
+console.log('3. 完整设置（推荐，不含日记）：');
 console.log('npx wrangler d1 execute oursql --file=./migrations/complete_setup.sql --remote');
 console.log('');
 console.log('数据库绑定信息：');
