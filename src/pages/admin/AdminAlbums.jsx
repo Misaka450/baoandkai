@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Plus, X, Trash2, Edit2, Upload, Loader2, Image, Eye, GripVertical, CheckSquare, Square } from 'lucide-react'
 import { apiRequest } from '../../utils/api'
 import ImageUploader from '../../components/ImageUploader'
+import AdminModal from '../../components/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
 
 export default function AdminAlbums() {
   const [albums, setAlbums] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingAlbum, setEditingAlbum] = useState(null)
+  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -34,7 +37,7 @@ export default function AdminAlbums() {
     e.preventDefault()
     
     if (!formData.name.trim()) {
-      alert('请输入相册名称')
+      await showAlert('提示', '请输入相册名称', 'warning')
       return
     }
     
@@ -65,15 +68,16 @@ export default function AdminAlbums() {
       setSelectedImages([])
       fetchAlbums()
       
-      alert('相册保存成功！')
+      await showAlert('成功', '相册保存成功！', 'success')
     } catch (error) {
       console.error('保存相册失败:', error)
-      alert(`保存失败: ${error.message || '请检查网络连接后重试'}`)
+      await showAlert('错误', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error')
     }
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('确定要删除这个相册吗？此操作不可恢复！')) return
+    const confirmed = await showConfirm('确认删除', '确定要删除这个相册吗？此操作不可恢复！', '删除')
+    if (!confirmed) return
 
     try {
       await apiRequest(`/api/albums/${id}`, {
@@ -104,8 +108,9 @@ export default function AdminAlbums() {
     }))
   }
 
-  const removeImage = (index) => {
-    if (!confirm('确定要删除这张图片吗？')) return
+  const removeImage = async (index) => {
+    const confirmed = await showConfirm('确认删除', '确定要删除这张图片吗？', '删除')
+    if (!confirmed) return
     
     const imageUrl = formData.images[index]
     
@@ -187,10 +192,11 @@ export default function AdminAlbums() {
     )
   }
 
-  const batchDeleteImages = () => {
+  const batchDeleteImages = async () => {
     if (selectedImages.length === 0) return
     
-    if (!confirm(`确定要删除选中的 ${selectedImages.length} 张图片吗？此操作不可恢复！`)) return
+    const confirmed = await showConfirm('确认删除', `确定要删除选中的 ${selectedImages.length} 张图片吗？此操作不可恢复！`, '删除')
+    if (!confirmed) return
 
     const imagesToDelete = selectedImages.map(index => formData.images[index])
     
@@ -444,6 +450,17 @@ export default function AdminAlbums() {
           </div>
         </div>
       )}
+      
+      <AdminModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+        confirmText={modalState.confirmText}
+      />
     </div>
   )
 }

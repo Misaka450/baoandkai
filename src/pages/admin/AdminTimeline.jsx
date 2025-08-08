@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2 } from 'lucide-react'
+import AdminModal from '../../components/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
 
 export default function AdminTimeline() {
   const [events, setEvents] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
+  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,7 +36,7 @@ export default function AdminTimeline() {
 
     // 验证必填字段
     if (!formData.title || !formData.date) {
-      alert('标题和日期不能为空！');
+      await showAlert('提示', '标题和日期不能为空！', 'warning');
       return;
     }
 
@@ -68,15 +71,16 @@ export default function AdminTimeline() {
       setEditingEvent(null);
       setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] });
       
-      alert('保存成功！');
+      await showAlert('成功', '保存成功！', 'success');
     } catch (error) {
       console.error('保存时间节点失败:', error);
-      alert('保存失败: ' + error.message);
+      await showAlert('错误', '保存失败: ' + error.message, 'error');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('确定要删除这个时间节点吗？')) return;
+    const confirmed = await showConfirm('确认删除', '确定要删除这个时间节点吗？', '删除');
+    if (!confirmed) return;
 
     try {
       await apiRequest(`/api/timeline/${id}`, {
@@ -223,7 +227,19 @@ export default function AdminTimeline() {
             </div>
           </div>
         ))}
+</div>
       </div>
+      
+      <AdminModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+        confirmText={modalState.confirmText}
+      />
     </div>
   )
 }
