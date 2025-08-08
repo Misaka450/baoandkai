@@ -51,40 +51,39 @@ export default function Home() {
 
   const TimeCard = ({ value, label, color = 'pink' }) => {
     const colorClasses = {
-      pink: 'from-pink-400 to-pink-600 shadow-pink-200',
-      purple: 'from-purple-400 to-purple-600 shadow-purple-200',
-      indigo: 'from-indigo-400 to-indigo-600 shadow-indigo-200',
-      blue: 'from-blue-400 to-blue-600 shadow-blue-200'
+      pink: 'from-rose-100 to-rose-200 text-rose-700 shadow-rose-100',
+      purple: 'from-violet-100 to-violet-200 text-violet-700 shadow-violet-100',
+      indigo: 'from-indigo-100 to-indigo-200 text-indigo-700 shadow-indigo-100',
+      blue: 'from-sky-100 to-sky-200 text-sky-700 shadow-sky-100'
     }
 
     return (
       <div className="relative">
-        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-2xl p-6 shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
-          <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-2xl p-6 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}>
+          <div className="text-3xl md:text-4xl font-light mb-2 font-mono">
             {String(value).padStart(2, '0')}
           </div>
-          <div className="text-sm text-white/90 font-medium">
+          <div className="text-sm font-medium opacity-80">
             {label}
           </div>
         </div>
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-lg"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="text-center">
-        <div className="glass-card max-w-4xl mx-auto p-8 md:p-12">
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl max-w-4xl mx-auto p-8 md:p-12 shadow-xl">
           <div className="mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent mb-6">
-              {config.coupleName1} 💕 {config.coupleName2}
+            <h1 className="text-4xl md:text-6xl font-light text-stone-800 mb-4">
+              {config.coupleName1} <span className="text-rose-400 mx-2">♥</span> {config.coupleName2}
             </h1>
-            <p className="text-xl text-gray-600 font-light">我们的爱情故事</p>
+            <p className="text-lg text-stone-600 font-light tracking-wide">我们的温柔时光</p>
           </div>
 
           <div className="mb-12">
-            <div className="text-2xl text-gray-700 mb-8 font-medium">我们相爱已经</div>
+            <div className="text-xl text-stone-600 mb-8 font-light">我们相爱已经</div>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
               <TimeCard value={timeTogether.years} label="年" color="pink" />
               <TimeCard value={timeTogether.months} label="月" color="purple" />
@@ -95,28 +94,28 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-6 mb-8">
-            <div className="flex items-center justify-center text-gray-700">
-              <Calendar className="h-6 w-6 mr-3 text-pink-500" />
-              <span className="text-lg font-medium">我们的纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', {
+          <div className="bg-gradient-to-r from-stone-50 to-stone-100 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-center text-stone-700">
+              <Calendar className="h-5 w-5 mr-3 text-stone-500" />
+              <span className="text-base font-light">我们的纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
               })}</span>
             </div>
-            <div className="mt-2 text-sm text-gray-600">
-              已经一起走过了 {timeTogether.totalDays} 个美好的日子
+            <div className="mt-2 text-sm text-stone-500 font-light">
+              已经一起走过了 {timeTogether.totalDays} 个温柔的日子
             </div>
           </div>
 
-          <div className="flex justify-center space-x-8 text-gray-500">
+          <div className="flex justify-center space-x-8 text-stone-500">
             <div className="flex items-center">
-              <Heart className="h-5 w-5 mr-2 text-pink-400" />
-              <span className="text-sm">每一天都在相爱</span>
+              <Heart className="h-4 w-4 mr-2 text-rose-400" />
+              <span className="text-sm font-light">每一天都在相爱</span>
             </div>
             <div className="flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-purple-400" />
-              <span className="text-sm">每一刻都值得纪念</span>
+              <Clock className="h-4 w-4 mr-2 text-stone-400" />
+              <span className="text-sm font-light">每一刻都值得纪念</span>
             </div>
           </div>
         </div>
