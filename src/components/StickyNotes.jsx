@@ -42,7 +42,8 @@ export default function StickyNotes() {
         method: 'POST',
         body: JSON.stringify(note),
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json'
         }
       })
       
@@ -51,9 +52,8 @@ export default function StickyNotes() {
       setShowInput(false)
     } catch (error) {
       console.error('添加碎碎念失败:', error)
-      if (error.message.includes('401')) {
-        alert('请先登录后再添加碎碎念')
-      }
+      console.error('错误详情:', error.message, error.stack)
+      alert(`添加失败: ${error.message}`)
     } finally {
       setSaving(false)
     }

@@ -44,8 +44,17 @@ export async function onRequestPost(context) {
       })
     }
 
-    const body = await request.json()
-    const { content, color } = body
+    let body;
+    try {
+      body = await request.json()
+    } catch (e) {
+      return new Response(JSON.stringify({ error: '请求格式错误' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+    
+    const { content, color } = body || {}
     
     if (!content || content.trim().length === 0) {
       return new Response(JSON.stringify({ error: '内容不能为空' }), { 
@@ -55,8 +64,8 @@ export async function onRequestPost(context) {
     }
     
     const result = await env.DB.prepare(`
-      INSERT INTO notes (content, color, created_at) 
-      VALUES (?, ?, datetime('now'))
+      INSERT INTO notes (content, color, created_at, updated_at) 
+      VALUES (?, ?, datetime('now'), datetime('now'))
     `).bind(content.trim(), color || 'bg-yellow-100 border-yellow-200').run()
     
     const newNote = await env.DB.prepare(`
@@ -64,13 +73,15 @@ export async function onRequestPost(context) {
     `).bind(result.meta.last_row_id).first()
     
     return new Response(JSON.stringify(newNote), {
+      status: 201,
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
+    console.error('添加碎碎念API错误:', error)
+    return new Response(JSON.stringify({ error: '服务器内部错误', details: error.message }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     })
