@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
@@ -10,23 +12,152 @@
   body {
     @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-pink-300 to-purple-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply from-pink-400 to-purple-400;
   }
 }
 
 @layer components {
+  /* 毛玻璃卡片 */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl;
   }
   
-  .love-gradient {
-    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500;
+  /* 渐变按钮 */
+  .btn-gradient {
+    @apply px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-0.5 hover:scale-105 transition-all duration-300;
   }
   
-  .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200;
+  .btn-gradient-outline {
+    @apply px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
   }
   
-  .btn-secondary {
-    @apply px-6 py-3 bg-white/80 backdrop-blur-sm border border-pink-200 text-pink-600 rounded-full font-medium hover:bg-pink-50 transition-all duration-200;
+  /* 渐变文字 */
+  .text-gradient {
+    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent;
+  }
+  
+  /* 卡片悬停效果 */
+  .card-hover {
+    @apply transform transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-2xl;
+  }
+  
+  /* 输入框样式 */
+  .input-modern {
+    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400;
+  }
+  
+  /* 页面标题 */
+  .page-title {
+    @apply text-4xl font-bold text-gradient mb-8 text-center;
+  }
+  
+  /* 容器样式 */
+  .container-modern {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* 动画效果 */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* 分隔线 */
+  .divider-modern {
+    @apply h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent;
+  }
+  
+  /* 状态徽章 */
+  .badge-modern {
+    @apply px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 rounded-full text-sm font-medium;
+  }
+  
+  /* 加载动画 */
+  .loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500;
+  }
+  
+  /* 空状态 */
+  .empty-state {
+    @apply text-center py-16;
+  }
+  
+  .empty-icon {
+    @apply inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full mb-4;
+  }
+  
+  .empty-title {
+    @apply text-gray-500 text-lg font-medium mb-2;
+  }
+  
+  .empty-subtitle {
+    @apply text-gray-400 text-sm;
+  }
+}
+
+@layer utilities {
+  /* 渐变背景 */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
+  }
+  
+  .bg-gradient-card-1 {
+    @apply bg-gradient-to-br from-yellow-50 to-amber-50 border-amber-200;
+  }
+  
+  .bg-gradient-card-2 {
+    @apply bg-gradient-to-br from-pink-50 to-rose-50 border-rose-200;
+  }
+  
+  .bg-gradient-card-3 {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-200;
+  }
+  
+  .bg-gradient-card-4 {
+    @apply bg-gradient-to-br from-green-50 to-emerald-50 border-emerald-200;
+  }
+  
+  .bg-gradient-card-5 {
+    @apply bg-gradient-to-br from-purple-50 to-violet-50 border-violet-200;
+  }
+  
+  .bg-gradient-card-6 {
+    @apply bg-gradient-to-br from-orange-50 to-red-50 border-red-200;
   }
 }
