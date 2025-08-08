@@ -12,11 +12,12 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'https://baoandkai.pages.dev', // 使用生产环境的API
+        target: 'https://baoandkai.pages.dev',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path
       }
     }
-  }
+  },
+  base: './' // 确保相对路径正确
 })
