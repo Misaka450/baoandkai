@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token')
     if (token) {
       // 验证token有效性
-      setUser({ token })
+      setUser({ token, role: 'admin' })
     }
     setLoading(false)
   }, [])
@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     loading,
+    isAdmin: user?.role === 'admin',
   }
 
   return (
