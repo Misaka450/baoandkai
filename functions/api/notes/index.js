@@ -64,9 +64,9 @@ export async function onRequestPost(context) {
     }
     
     const result = await env.DB.prepare(`
-      INSERT INTO notes (content, color, created_at, updated_at) 
-      VALUES (?, ?, datetime('now'), datetime('now'))
-    `).bind(content.trim(), color || 'bg-yellow-100 border-yellow-200').run()
+      INSERT INTO notes (content, color, user_id, created_at, updated_at) 
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    `).bind(content.trim(), color || 'bg-yellow-100 border-yellow-200', user.id).run()
     
     const newNote = await env.DB.prepare(`
       SELECT * FROM notes WHERE id = ?
