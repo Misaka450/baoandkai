@@ -3,94 +3,80 @@ import React from 'react'
 const AdminModal = ({ isOpen, onClose, title, message, type = 'info', onConfirm, showCancel = false, confirmText = '确定' }) => {
   if (!isOpen) return null
 
-  // 与网站整体配色协调的莫兰迪色系
+  // 极简优雅的配色方案，统一使用莫兰迪色系
   const typeStyles = {
     info: {
-      icon: '💜',
-      gradient: 'from-violet-50/90 to-purple-50/90',
-      border: 'border-violet-200/50',
-      titleColor: 'text-violet-800',
-      textColor: 'text-violet-700',
-      buttonGradient: 'from-violet-400 to-purple-400',
-      buttonHover: 'from-violet-500 to-purple-500'
+      icon: 'ℹ️',
+      bg: 'bg-white/95',
+      border: 'border-stone-200/50',
+      titleColor: 'text-stone-800',
+      textColor: 'text-stone-600',
+      button: 'bg-gradient-to-r from-pink-500 to-purple-500',
+      buttonHover: 'hover:from-pink-600 hover:to-purple-600'
     },
     warning: {
-      icon: '🌸',
-      gradient: 'from-rose-50/90 to-pink-50/90',
-      border: 'border-rose-200/50',
-      titleColor: 'text-rose-800',
-      textColor: 'text-rose-700',
-      buttonGradient: 'from-rose-400 to-pink-400',
-      buttonHover: 'from-rose-500 to-pink-500'
+      icon: '⚠️',
+      bg: 'bg-white/95',
+      border: 'border-stone-200/50',
+      titleColor: 'text-stone-800',
+      textColor: 'text-stone-600',
+      button: 'bg-gradient-to-r from-amber-500 to-orange-500',
+      buttonHover: 'hover:from-amber-600 hover:to-orange-600'
     },
     error: {
-      icon: '💗',
-      gradient: 'from-red-50/90 to-rose-50/90',
-      border: 'border-red-200/50',
-      titleColor: 'text-red-800',
-      textColor: 'text-red-700',
-      buttonGradient: 'from-red-400 to-rose-400',
-      buttonHover: 'from-red-500 to-rose-500'
+      icon: '❌',
+      bg: 'bg-white/95',
+      border: 'border-stone-200/50',
+      titleColor: 'text-stone-800',
+      textColor: 'text-stone-600',
+      button: 'bg-gradient-to-r from-red-500 to-rose-500',
+      buttonHover: 'hover:from-red-600 hover:to-rose-600'
     },
     success: {
-      icon: '✨',
-      gradient: 'from-emerald-50/90 to-teal-50/90',
-      border: 'border-emerald-200/50',
-      titleColor: 'text-emerald-800',
-      textColor: 'text-emerald-700',
-      buttonGradient: 'from-emerald-400 to-teal-400',
-      buttonHover: 'from-emerald-500 to-teal-500'
+      icon: '✅',
+      bg: 'bg-white/95',
+      border: 'border-stone-200/50',
+      titleColor: 'text-stone-800',
+      textColor: 'text-stone-600',
+      button: 'bg-gradient-to-r from-emerald-500 to-teal-500',
+      buttonHover: 'hover:from-emerald-600 hover:to-teal-600'
     }
   }
 
   const style = typeStyles[type] || typeStyles.info
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className={`glass-card max-w-md w-full mx-4 border-0 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-[1.02]`}>
-        {/* 顶部渐变装饰 */}
-        <div className={`h-2 bg-gradient-to-r ${style.buttonGradient} rounded-t-2xl`}></div>
-        
-        <div className={`p-8 bg-gradient-to-br ${style.gradient} rounded-b-2xl`}>
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0">
-              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${style.buttonGradient} flex items-center justify-center text-white shadow-lg`}>
-                <span className="text-xl">{style.icon}</span>
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <h3 className={`text-xl font-semibold ${style.titleColor} mb-2 tracking-wide`}>
-                {title}
-              </h3>
-              <p className={`${style.textColor} leading-relaxed font-light`}>
-                {message}
-              </p>
-            </div>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className={`${style.bg} backdrop-blur-md border ${style.border} rounded-2xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300`}>
+        <div className="p-8">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-3">{style.icon}</span>
+            <h3 className={`text-lg font-semibold ${style.titleColor}`}>{title}</h3>
           </div>
-        </div>
-        
-        {/* 底部按钮区域 */}
-        <div className="px-8 py-6 bg-white/60 backdrop-blur-sm rounded-b-2xl flex justify-end space-x-3">
-          {showCancel && (
+          
+          <p className={`${style.textColor} leading-relaxed mb-6`}>{message}</p>
+          
+          <div className="flex justify-end space-x-3">
+            {showCancel && (
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl font-medium transition-colors"
+              >
+                取消
+              </button>
+            )}
             <button
-              onClick={onClose}
-              className="px-5 py-2.5 text-stone-600 bg-white/80 backdrop-blur-sm border border-stone-200/50 rounded-2xl font-medium hover:bg-stone-50/80 hover:border-stone-300/50 transition-all duration-300 hover:shadow-md"
+              onClick={() => {
+                if (onConfirm) {
+                  onConfirm()
+                }
+                onClose()
+              }}
+              className={`px-5 py-2 ${style.button} ${style.buttonHover} text-white rounded-xl font-medium transition-colors`}
             >
-              取消
+              {confirmText}
             </button>
-          )}
-          <button
-            onClick={() => {
-              if (onConfirm) {
-                onConfirm()
-              }
-              onClose()
-            }}
-            className={`px-6 py-2.5 bg-gradient-to-r ${style.buttonGradient} text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:${style.buttonHover} transition-all duration-300 transform hover:-translate-y-0.5 hover:scale-105`}
-          >
-            {confirmText}
-          </button>
+          </div>
         </div>
       </div>
     </div>
