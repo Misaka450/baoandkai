@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { Plus, X, Trash2, Edit2, Utensils, MapPin, Star } from 'lucide-react'
 import { apiRequest } from '../../utils/api'
 import ImageUploader from '../../components/ImageUploader'
+import AdminModal from '../../components/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
 
 export default function AdminFood() {
   const [checkins, setCheckins] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingCheckin, setEditingCheckin] = useState(null)
+  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
   const [formData, setFormData] = useState({
     restaurant_name: '',
     cuisine: '',
@@ -40,11 +43,11 @@ export default function AdminFood() {
     
     // 验证必填字段
     if (!formData.restaurant_name.trim()) {
-      alert('请输入餐厅名称')
+      await showAlert('提示', '请输入餐厅名称', 'warning')
       return
     }
     if (!formData.date) {
-      alert('请选择日期')
+      await showAlert('提示', '请选择日期', 'warning')
       return
     }
     
@@ -88,12 +91,13 @@ export default function AdminFood() {
       })
     } catch (error) {
       console.error('保存美食打卡失败:', error)
-      alert('保存失败，请重试')
+      await showAlert('错误', '保存失败，请重试', 'error')
     }
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('确定要删除这条美食打卡吗？')) return
+    const confirmed = await showConfirm('确认删除', '确定要删除这条美食打卡吗？', '删除')
+    if (!confirmed) return
 
     try {
       await apiRequest(`/api/food/${id}`, {
@@ -435,6 +439,17 @@ export default function AdminFood() {
           <p className="text-gray-500">暂无美食打卡，点击右上角添加第一个美食吧！</p>
         </div>
       )}
+      
+      <AdminModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+        confirmText={modalState.confirmText}
+      />
     </div>
   )
 }
