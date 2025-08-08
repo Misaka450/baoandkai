@@ -9,7 +9,14 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
-    // 移除代理配置，开发环境使用mock数据
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'https://baoandkai.pages.dev', // 使用生产环境的API
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      }
+    }
   }
 })
