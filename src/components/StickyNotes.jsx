@@ -60,11 +60,24 @@ export default function StickyNotes() {
   }
 
   const deleteNote = async (id) => {
+    if (!user) {
+      alert('请先登录后再删除碎碎念')
+      return
+    }
+    
     try {
-      await apiRequest(`/api/notes/${id}`, { method: 'DELETE' })
+      await apiRequest(`/api/notes/${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      })
       setNotes(notes.filter(note => note.id !== id))
     } catch (error) {
       console.error('删除碎碎念失败:', error)
+      if (error.message.includes('401')) {
+        alert('请先登录后再删除碎碎念')
+      }
     }
   }
 
