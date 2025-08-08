@@ -2,17 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   body {
     @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
     min-height: 100vh;
     overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* 优化中文字体显示 */
+  .font-chinese {
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+  }
+
+  /* 增强字体权重 */
+  .font-normal {
+    font-weight: 400;
+  }
+  
+  .font-medium {
+    font-weight: 500;
+  }
+  
+  .font-semibold {
+    font-weight: 600;
   }
 
   /* 自定义滚动条 */
@@ -50,7 +72,7 @@
   
   /* 渐变文字 */
   .text-gradient {
-    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-semibold;
   }
   
   /* 卡片悬停效果 */
@@ -60,7 +82,7 @@
   
   /* 输入框样式 */
   .input-modern {
-    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400;
+    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400 font-normal;
   }
   
   /* 页面标题 */
@@ -128,6 +150,17 @@
   
   .empty-subtitle {
     @apply text-gray-400 text-sm;
+  }
+
+  /* 字体优化类 */
+  .text-readable {
+    font-weight: 450;
+    letter-spacing: 0.025em;
+  }
+  
+  .text-strong {
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 }
 
