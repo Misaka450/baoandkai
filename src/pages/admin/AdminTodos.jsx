@@ -260,6 +260,143 @@ export default function AdminTodos() {
         ))}
       </div>
 
+      {/* 新建/编辑表单 */}
+      {showForm && (
+        <div className="glass-card p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            {editingTodo ? '编辑待办事项' : '新建待办事项'}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="输入待办标题"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="详细描述待办内容"
+                rows="3"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+                <select
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                  <option value={1}>低</option>
+                  <option value={2}>中低</option>
+                  <option value={3}>中</option>
+                  <option value={4}>中高</option>
+                  <option value={5}>高</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                  <option value="general">通用</option>
+                  <option value="work">工作</option>
+                  <option value="life">生活</option>
+                  <option value="study">学习</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                  <option value="pending">待办</option>
+                  <option value="in_progress">进行中</option>
+                  <option value="completed">已完成</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">截止日期</label>
+              <input
+                type="date"
+                name="due_date"
+                value={formData.due_date}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              />
+            </div>
+
+            {formData.status === 'completed' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">完成备注</label>
+                  <textarea
+                    name="notes"
+                    value={completionData.notes}
+                    onChange={(e) => setCompletionData(prev => ({ ...prev, notes: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="记录完成这个待办的心得体会..."
+                    rows="3"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">完成照片</label>
+                  <ImageUploader
+                    photos={completionData.photos}
+                    onPhotoUpload={handlePhotoUpload}
+                    onRemovePhoto={removePhoto}
+                    uploading={uploading}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                disabled={uploading}
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg disabled:opacity-50"
+              >
+                {editingTodo ? '更新待办' : '创建待办'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                取消
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 空状态提示 */}
       {todos.length === 0 && !showForm && (
         <div className="glass-card p-12 text-center">
           <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -267,7 +404,6 @@ export default function AdminTodos() {
           <p className="text-gray-600">点击上方按钮创建第一个待办事项吧</p>
         </div>
       )}
-
 
     </div>
   );
