@@ -61,11 +61,35 @@ export async function onRequestDelete(context) {
     
     console.log('收到待办事项删除请求，ID:', id);
     
-    await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
+    // 验证ID是否为有效数字
+    if (!id || isNaN(id)) {
+      return new Response(JSON.stringify({ error: '无效的待办事项ID' }), {
+        status: 400,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
     
-    console.log('删除成功，ID:', id);
+    // 先检查待办事项是否存在
+    const existing = await env.DB.prepare('SELECT id FROM todos WHERE id = ?').bind(id).first();
+    if (!existing) {
+      return new Response(JSON.stringify({ error: '待办事项不存在' }), {
+        status: 404,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+    
+    // 执行删除
+    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
+    
+    console.log('删除成功，ID:', id, '影响行数:', result.meta.changes);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, deleted: result.meta.changes }), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
@@ -78,7 +102,10 @@ export async function onRequestDelete(context) {
       stack: error.stack 
     }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }
