@@ -28,10 +28,37 @@ export async function onRequestPost(context) {
       });
     }
 
+    // 验证每个文件
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        return new Response(JSON.stringify({ error: `不支持的文件类型: ${file.type}` }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+      
+      if (file.size > maxFileSize) {
+        return new Response(JSON.stringify({ error: `文件太大: ${file.name} (${file.size} bytes)` }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+    }
+
     const uploadedUrls = [];
     
     for (const file of files) {
-      const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${file.name.split('.').pop()}`;
+      const extension = file.name.split('.').pop().toLowerCase();
+      const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
       
       await env.ouralbum.put(filename, file.stream(), {
         httpMetadata: {

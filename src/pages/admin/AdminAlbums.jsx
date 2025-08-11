@@ -330,8 +330,13 @@ export default function AdminAlbums() {
                         
                         <button
                           type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => {
+                            if (window.confirm('确定要删除这张图片吗？')) {
+                              removeImage(index)
+                            }
+                          }}
+                          className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          title="删除图片"
                         >
                           <X className="h-3 w-3" />
                         </button>
