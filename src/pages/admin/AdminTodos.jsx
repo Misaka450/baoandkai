@@ -56,8 +56,14 @@ export default function AdminTodos() {
       return;
     }
     
+    // 映射管理员字段到数据库字段
     const todoData = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      status: formData.status,
+      priority: formData.priority,
+      category: formData.category,
+      due_date: formData.due_date,
       ...(formData.status === 'completed' ? completionData : {})
     };
 
