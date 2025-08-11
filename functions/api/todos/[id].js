@@ -1,195 +1,168 @@
 // Cloudflare Pages Functions - 单个待办事项API
-export async function onRequestGet(context) {
-  const { env, params } = context;
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-
-  try {
-    const id = params.id;
-    const todo = await env.DB.prepare('SELECT * FROM todos WHERE id = ?')
-      .bind(id).first();
-    
-    if (!todo) {
-      return new Response(JSON.stringify({ error: '待办事项不存在' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // 解析完成照片JSON
-    if (todo.completion_photos) {
-      try {
-        todo.completion_photos = JSON.parse(todo.completion_photos);
-      } catch {
-        todo.completion_photos = [];
-      }
-    }
-
-    return new Response(JSON.stringify(todo), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-}
-
 export async function onRequestPut(context) {
   const { request, env, params } = context;
+  
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
   };
 
   try {
-    const id = params.id;
-    const data = await request.json();
-    
-    const updates = [];
-    const values = [];
-
-    if (data.title !== undefined) {
-      updates.push('title = ?');
-      values.push(data.title);
-    }
-    if (data.description !== undefined) {
-      updates.push('description = ?');
-      values.push(data.description);
-    }
-    if (data.status !== undefined) {
-      updates.push('status = ?');
-      values.push(data.status);
-      if (data.status === 'completed' && !data.completed_at) {
-        updates.push('completed_at = CURRENT_TIMESTAMP');
-      }
-    }
-    if (data.priority !== undefined) {
-      updates.push('priority = ?');
-      values.push(data.priority);
-    }
-    if (data.due_date !== undefined) {
-      updates.push('due_date = ?');
-      values.push((data.due_date && data.due_date !== '') ? data.due_date : null);
-    }
-    if (data.category !== undefined) {
-      updates.push('category = ?');
-      values.push(data.category);
-    }
-    if (data.notes !== undefined) {
-      updates.push('completion_notes = ?');
-      values.push(data.notes);
-    } else if (data.notes !== undefined) {
-      if (data.notes === null || data.notes === '') {
-        updates.push('completion_notes = NULL');
-      } else {
-        updates.push('completion_notes = ?');
-        values.push(String(data.notes));
-      }
-    } else if (data.completion_notes !== undefined) {
-      if (data.completion_notes === null || data.completion_notes === '') {
-        updates.push('completion_notes = NULL');
-      } else {
-        updates.push('completion_notes = ?');
-        values.push(String(data.completion_notes));
-      }
-    }
-    if (data.photos !== undefined) {
-      if (data.photos === null || (Array.isArray(data.photos) && data.photos.length === 0)) {
-        updates.push('completion_photos = NULL');
-      } else if (Array.isArray(data.photos)) {
-        const validPhotos = data.photos.filter(photo => 
-          typeof photo === 'string' && photo.trim() !== ''
-        );
-        updates.push('completion_photos = ?');
-        values.push(JSON.stringify(validPhotos));
-      }
-    } else if (data.completion_photos !== undefined) {
-      if (data.completion_photos === null || (Array.isArray(data.completion_photos) && data.completion_photos.length === 0)) {
-        updates.push('completion_photos = NULL');
-      } else if (Array.isArray(data.completion_photos)) {
-        const validPhotos = data.completion_photos.filter(photo => 
-          typeof photo === 'string' && photo.trim() !== ''
-        );
-        updates.push('completion_photos = ?');
-        values.push(JSON.stringify(validPhotos));
-      }
-    } else if (data.completion_photos !== undefined) {
-      updates.push('completion_photos = ?');
-      values.push(JSON.stringify(data.completion_photos));
-    }
-
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(id);
-
-    if (updates.length === 0) {
-      return new Response(JSON.stringify({ error: '没有要更新的字段' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    const id = parseInt(params.id);
+    if (!id) {
+      return new Response(JSON.stringify({ error: '无效的ID' }), { 
+        status: 400, 
+        headers: corsHeaders 
       });
     }
 
-    await env.DB.prepare(`
-      UPDATE todos 
-      SET ${updates.join(', ')}
-      WHERE id = ?
-    `).bind(...values).run();
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return new Response(JSON.stringify({ 
+        error: '请求格式错误', 
+        details: '无效的JSON格式' 
+      }), { 
+        status: 400, 
+        headers: corsHeaders 
+      });
+    }
 
+    // 支持前端字段名
+    const {
+      title,
+      description = '',
+      status = 'pending',
+      priority = 3,
+      due_date = null,
+      category = 'general',
+      notes = '',
+      photos = [],
+      completion_notes,
+      completion_photos
+    } = body || {};
+
+    // 验证必填字段
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return new Response(JSON.stringify({ error: '标题不能为空' }), { 
+        status: 400, 
+        headers: corsHeaders 
+      });
+    }
+
+    // 处理字段映射
+    const finalNotes = notes || completion_notes || '';
+    const finalPhotos = photos || completion_photos || [];
+
+    // 构建更新数据
+    const updateData = {
+      title: String(title).trim(),
+      description: String(description).trim(),
+      status: ['pending', 'completed', 'cancelled'].includes(status) ? status : 'pending',
+      priority: Math.max(1, Math.min(5, parseInt(priority) || 3)),
+      due_date: (due_date && due_date !== '') ? due_date : null,
+      category: String(category).trim() || 'general',
+      completion_notes: (finalNotes && finalNotes !== '') ? String(finalNotes).trim() : null,
+      completion_photos: (Array.isArray(finalPhotos) && finalPhotos.length > 0) 
+        ? JSON.stringify(finalPhotos.filter(p => typeof p === 'string' && p.trim())) 
+        : null
+    };
+
+    // 执行更新
+    await env.DB.prepare(`
+      UPDATE todos SET
+        title = ?, description = ?, status = ?, priority = ?, due_date = ?,
+        category = ?, completion_notes = ?, completion_photos = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).bind(
+      updateData.title,
+      updateData.description,
+      updateData.status,
+      updateData.priority,
+      updateData.due_date,
+      updateData.category,
+      updateData.completion_notes,
+      updateData.completion_photos,
+      id
+    ).run();
+
+    // 获取更新后的记录
     const updatedTodo = await env.DB.prepare('SELECT * FROM todos WHERE id = ?')
       .bind(id).first();
 
-    // 解析完成照片JSON
-    if (updatedTodo.completion_photos) {
-      try {
-        updatedTodo.completion_photos = JSON.parse(updatedTodo.completion_photos);
-      } catch {
-        updatedTodo.completion_photos = [];
-      }
+    if (!updatedTodo) {
+      return new Response(JSON.stringify({ error: '待办事项不存在' }), { 
+        status: 404, 
+        headers: corsHeaders 
+      });
     }
 
     return new Response(JSON.stringify(updatedTodo), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      status: 200,
+      headers: corsHeaders
     });
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    console.error('更新待办事项API错误:', error);
+    return new Response(JSON.stringify({ 
+      error: '服务器内部错误', 
+      details: error.message 
+    }), { 
+      status: 500, 
+      headers: corsHeaders 
     });
   }
 }
 
 export async function onRequestDelete(context) {
   const { env, params } = context;
+  
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
   };
 
   try {
-    const id = params.id;
-    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?')
-      .bind(id).run();
-    
-    if (result.meta.changes === 0) {
-      return new Response(JSON.stringify({ error: '待办事项不存在' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    const id = parseInt(params.id);
+    if (!id) {
+      return new Response(JSON.stringify({ error: '无效的ID' }), { 
+        status: 400, 
+        headers: corsHeaders 
       });
     }
 
-    return new Response(JSON.stringify({ message: '删除成功' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // 检查记录是否存在
+    const exists = await env.DB.prepare('SELECT id FROM todos WHERE id = ?')
+      .bind(id).first();
+
+    if (!exists) {
+      return new Response(JSON.stringify({ error: '待办事项不存在' }), { 
+        status: 404, 
+        headers: corsHeaders 
+      });
+    }
+
+    // 执行删除
+    await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: corsHeaders
     });
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    console.error('删除待办事项API错误:', error);
+    return new Response(JSON.stringify({ 
+      error: '服务器内部错误', 
+      details: error.message 
+    }), { 
+      status: 500, 
+      headers: corsHeaders 
     });
   }
 }
@@ -198,7 +171,7 @@ export async function onRequestOptions() {
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   });
