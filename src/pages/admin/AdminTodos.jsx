@@ -141,6 +141,7 @@ export default function AdminTodos() {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('folder', 'todos'); // 指定上传到todos文件夹
 
         const response = await fetch('/api/upload', {
           method: 'POST',
