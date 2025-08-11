@@ -1,24 +1,76 @@
 #!/usr/bin/env node
 
-// 数据库初始化脚本（已移除日记功能）
-// 运行以下命令来初始化数据库
+/**
+ * 数据库初始化脚本
+ * 用于在部署时自动创建和更新数据库表
+ */
 
-console.log('请运行以下命令来初始化数据库：');
-console.log('');
-console.log('1. 初始化基础表结构（不含日记）：');
-console.log('npx wrangler d1 execute oursql --file=./migrations/init.sql --remote');
-console.log('');
-console.log('2. 添加碎碎念功能：');
-console.log('npx wrangler d1 execute oursql --file=./migrations/add_notes.sql --remote');
-console.log('');
-console.log('3. 完整设置（推荐，不含日记）：');
-console.log('npx wrangler d1 execute oursql --file=./migrations/complete_setup.sql --remote');
-console.log('');
-console.log('数据库绑定信息：');
-console.log('- 数据库名称: oursql');
-console.log('- 数据库ID: 5867481e-ae09-485a-b866-0f453a6e0131');
-console.log('');
-console.log('部署后请检查Cloudflare控制台中的D1数据库状态。');
-console.log('');
-console.log('调试API：');
-console.log('GET /api/debug/database - 查看数据库表结构');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+
+const migrations = [
+  'init.sql',
+  'add_todos.sql',
+  'add_notes.sql',
+  'update_settings.sql',
+  'complete_setup.sql',
+  'fix_albums_schema.sql'
+];
+
+async function setupDatabase() {
+  console.log('🚀 开始设置数据库...');
+  
+  try {
+    // 检查是否在Cloudflare环境中
+    const isCloudflare = process.env.CF_PAGES || process.env.NODE_ENV === 'production';
+    
+    if (isCloudflare) {
+      console.log('🏭 生产环境 - 使用远程数据库');
+      for (const migration of migrations) {
+        const filePath = path.join('./migrations', migration);
+        if (fs.existsSync(filePath)) {
+          console.log(`📄 执行 ${migration}...`);
+          try {
+            execSync(`npx wrangler d1 execute oursql --file=${filePath} --remote`, { 
+              stdio: 'inherit',
+              timeout: 30000
+            });
+            console.log(`✅ ${migration} 执行成功`);
+          } catch (error) {
+            console.warn(`⚠️ ${migration} 执行失败或已存在:`, error.message);
+          }
+        }
+      }
+    } else {
+      console.log('💻 开发环境 - 使用本地数据库');
+      for (const migration of migrations) {
+        const filePath = path.join('./migrations', migration);
+        if (fs.existsSync(filePath)) {
+          console.log(`📄 执行 ${migration}...`);
+          try {
+            execSync(`npx wrangler d1 execute oursql --file=${filePath}`, { 
+              stdio: 'inherit',
+              timeout: 30000
+            });
+            console.log(`✅ ${migration} 执行成功`);
+          } catch (error) {
+            console.warn(`⚠️ ${migration} 执行失败或已存在:`, error.message);
+          }
+        }
+      }
+    }
+    
+    console.log('🎉 数据库设置完成！');
+  } catch (error) {
+    console.error('❌ 数据库设置失败:', error);
+    process.exit(1);
+  }
+}
+
+// 如果是直接运行此脚本
+if (import.meta.url === `file://${process.argv[1]}`) {
+  setupDatabase();
+}
+
+export default setupDatabase;

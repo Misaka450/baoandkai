@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "dev:wrangler": "wrangler pages dev --local",
     "deploy": "npx wrangler pages publish dist --project-name=baoandkai",
+    "setup-db": "node setup-database.js",
+    "setup-db:remote": "node setup-database.js --remote",
     "db:init": "npx wrangler d1 execute oursql --file=./migrations/init.sql",
     "db:init:remote": "npx wrangler d1 execute oursql --file=./migrations/init.sql --remote",
     "db:migrate": "npx wrangler d1 migrations apply oursql",
