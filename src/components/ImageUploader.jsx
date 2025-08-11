@@ -87,12 +87,19 @@ const ImageUploader = ({
             const url = result.urls ? result.urls[0] : result.url;
             resolve(url);
           } else {
-            reject(new Error('上传失败'));
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              reject(new Error(errorData.error || `上传失败: ${xhr.status}`));
+            } catch {
+              reject(new Error(`上传失败: ${xhr.status}`));
+            }
           }
         };
-        xhr.onerror = () => reject(new Error('网络错误'));
+        xhr.onerror = () => reject(new Error('网络连接失败，请检查网络后重试'));
+        xhr.ontimeout = () => reject(new Error('上传超时，请重试'));
         
         xhr.open('POST', '/api/upload');
+        xhr.timeout = 60000; // 60秒超时
         xhr.send(formData);
       });
 
