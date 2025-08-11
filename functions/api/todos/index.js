@@ -21,7 +21,19 @@ export async function onRequestGet(context) {
         created_at DESC
     `).all();
     
-    return new Response(JSON.stringify(results), {
+    // 解析JSON字段
+    const processedResults = results.map(todo => {
+      if (todo.completion_photos) {
+        try {
+          todo.completion_photos = JSON.parse(todo.completion_photos);
+        } catch {
+          todo.completion_photos = [];
+        }
+      }
+      return todo;
+    });
+    
+    return new Response(JSON.stringify(processedResults), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
@@ -54,12 +66,16 @@ export async function onRequestPost(context) {
     let completion_notes = null;
     let completion_photos = null;
     
-    if (data.notes) {
+    if (data.notes !== undefined) {
       completion_notes = data.notes;
+    } else if (data.completion_notes !== undefined) {
+      completion_notes = data.completion_notes;
     }
     
-    if (data.photos && Array.isArray(data.photos)) {
+    if (data.photos !== undefined && Array.isArray(data.photos)) {
       completion_photos = JSON.stringify(data.photos);
+    } else if (data.completion_photos !== undefined && Array.isArray(data.completion_photos)) {
+      completion_photos = JSON.stringify(data.completion_photos);
     }
 
     const result = await env.DB.prepare(`

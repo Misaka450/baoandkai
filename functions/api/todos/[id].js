@@ -81,11 +81,17 @@ export async function onRequestPut(context) {
       updates.push('category = ?');
       values.push(data.category);
     }
-    if (data.completion_notes !== undefined) {
+    if (data.notes !== undefined) {
+      updates.push('completion_notes = ?');
+      values.push(data.notes);
+    } else if (data.completion_notes !== undefined) {
       updates.push('completion_notes = ?');
       values.push(data.completion_notes);
     }
-    if (data.completion_photos !== undefined) {
+    if (data.photos !== undefined) {
+      updates.push('completion_photos = ?');
+      values.push(JSON.stringify(data.photos));
+    } else if (data.completion_photos !== undefined) {
       updates.push('completion_photos = ?');
       values.push(JSON.stringify(data.completion_photos));
     }

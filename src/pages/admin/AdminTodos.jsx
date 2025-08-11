@@ -165,10 +165,10 @@ export default function AdminTodos() {
       due_date: todo.due_date || '',
       status: todo.status || 'pending'
     });
-    if (todo.status === 'completed' && todo.completion) {
+    if (todo.status === 'completed') {
       setCompletionData({
-        notes: todo.completion.notes || '',
-        photos: todo.completion.photos || []
+        notes: todo.completion_notes || '',
+        photos: todo.completion_photos || []
       });
     } else {
       setCompletionData({ notes: '', photos: [] });
