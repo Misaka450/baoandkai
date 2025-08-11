@@ -13,8 +13,8 @@ export async function onRequestGet(context) {
       ORDER BY 
         CASE status 
           WHEN 'pending' THEN 1 
-          WHEN 'in_progress' THEN 2
-          WHEN 'completed' THEN 3 
+          WHEN 'completed' THEN 2 
+          WHEN 'cancelled' THEN 3 
           ELSE 4 
         END,
         priority DESC,
