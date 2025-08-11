@@ -1,20 +1,11 @@
 import { useState, useEffect } from 'react'
-import { CheckSquare, Clock, Calendar, Tag, Plus, Heart, Camera, Star, Trash2, Edit3 } from 'lucide-react'
+import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
 export default function Todos() {
   const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
-  const [showForm, setShowForm] = useState(false)
-  const [editingTodo, setEditingTodo] = useState(null)
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    completed: false,
-    priority: 'medium',
-    due_date: ''
-  })
 
   useEffect(() => {
     fetchTodos()
@@ -34,61 +25,7 @@ export default function Todos() {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      if (editingTodo) {
-        await apiRequest(`/api/todos/${editingTodo.id}`, 'PUT', formData)
-        setEditingTodo(null)
-      } else {
-        await apiRequest('/api/todos', 'POST', formData)
-      }
-      
-      setFormData({ title: '', description: '', completed: false, priority: 'medium', due_date: '' })
-      setShowForm(false)
-      await fetchTodos()
-    } catch (error) {
-      console.error('保存待办事项失败:', error)
-    }
-  }
-
-  const handleDelete = async (id) => {
-    // 添加删除确认
-    if (!window.confirm('确定要删除这个待办事项吗？此操作无法撤销。')) {
-      return
-    }
-
-    try {
-      console.log('开始删除待办事项，ID:', id)
-      const response = await apiRequest(`/api/todos/${id}`, 'DELETE')
-      console.log('删除API响应:', response)
-      
-      if (response.success) {
-        // 立即从本地状态中移除，提供更好的用户体验
-        setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id))
-        console.log('待办事项已从本地状态中移除')
-      } else {
-        throw new Error('服务器返回错误')
-      }
-    } catch (error) {
-      console.error('删除待办事项失败:', error)
-      alert('删除失败: ' + error.message)
-      // 如果本地删除失败，重新获取最新数据
-      await fetchTodos()
-    }
-  }
-
-  const handleEdit = (todo) => {
-    setEditingTodo(todo)
-    setFormData({
-      title: todo.title || '',
-      description: todo.description || '',
-      completed: todo.completed || false,
-      priority: todo.priority || 'medium',
-      due_date: todo.due_date || ''
-    })
-    setShowForm(true)
-  }
+// 只读模式，移除所有添加、编辑、删除功能
 
   // 映射数据库字段到前端字段
   const mapTodoFields = (todo) => {
@@ -151,17 +88,6 @@ export default function Todos() {
           <p className="text-stone-600 font-light">一起完成的小目标，记录我们的点点滴滴</p>
         </div>
 
-        {/* 操作按钮 */}
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center px-6 py-3 bg-stone-800 text-white rounded-full hover:bg-stone-700 transition-colors shadow-lg hover:shadow-xl"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            添加待办
-          </button>
-        </div>
-
         {/* 筛选器 */}
         <div className="flex justify-center space-x-2 mb-8">
           {[
@@ -183,90 +109,7 @@ export default function Todos() {
           ))}
         </div>
 
-        {/* 添加/编辑表单 */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-              <h2 className="text-2xl font-light text-stone-800 mb-6">
-                {editingTodo ? '编辑待办' : '添加待办'}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-light text-stone-700 mb-2">标题 *</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-light text-stone-700 mb-2">描述</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-light text-stone-700 mb-2">优先级</label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
-                  >
-                    <option value="low">低</option>
-                    <option value="medium">中</option>
-                    <option value="high">高</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-light text-stone-700 mb-2">截止日期</label>
-                  <input
-                    type="date"
-                    value={formData.due_date}
-                    onChange={(e) => setFormData({...formData, due_date: e.target.value})}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
-                  />
-                </div>
-                {editingTodo && (
-                  <div>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.completed}
-                        onChange={(e) => setFormData({...formData, completed: e.target.checked})}
-                        className="mr-2"
-                      />
-                      <span className="text-sm font-light text-stone-700">已完成</span>
-                    </label>
-                  </div>
-                )}
-                <div className="flex space-x-3">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-stone-800 text-white py-2 rounded-lg hover:bg-stone-700 transition-colors"
-                  >
-                    {editingTodo ? '更新' : '添加'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false)
-                      setEditingTodo(null)
-                      setFormData({ title: '', description: '', completed: false, priority: 'medium', due_date: '' })
-                    }}
-                    className="flex-1 bg-stone-200 text-stone-700 py-2 rounded-lg hover:bg-stone-300 transition-colors"
-                  >
-                    取消
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+
 
         {/* 待办事项列表 */}
         <div className="space-y-4">
@@ -331,21 +174,7 @@ export default function Todos() {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(todo)}
-                      className="p-2 text-stone-600 hover:text-stone-800 transition-colors"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(todo.id)}
-                      className="p-2 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                      title="删除待办事项"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+
                 </div>
               </div>
             ))
