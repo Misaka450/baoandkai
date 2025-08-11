@@ -454,6 +454,17 @@ export default function AdminTodos() {
         </div>
       )}
 
+      {/* 模态框组件 - 用于确认删除和提示信息 */}
+      <AdminModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.showCancel}
+        confirmText={modalState.confirmText}
+      />
     </div>
   );
 }
