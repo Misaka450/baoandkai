@@ -141,16 +141,19 @@ export default function AdminTodos() {
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'bbkk_todos');
 
-        const response = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
+        const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData
         });
 
         const result = await response.json();
-        if (result.secure_url) {
-          uploadedUrls.push(result.secure_url);
+        console.log('上传结果:', result);
+        
+        if (result.urls && result.urls.length > 0) {
+          uploadedUrls.push(...result.urls);
+        } else if (result.url) {
+          uploadedUrls.push(result.url);
         }
       }
 
@@ -160,7 +163,7 @@ export default function AdminTodos() {
       }));
     } catch (error) {
       console.error('上传失败:', error);
-      alert('图片上传失败，请重试');
+      alert('图片上传失败: ' + error.message);
     } finally {
       setUploading(false);
     }

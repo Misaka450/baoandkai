@@ -11,7 +11,7 @@ export async function onRequestPut(context) {
     const body = await request.json();
     console.log('更新数据:', body);
     
-    const { title, description, status, priority, category, due_date } = body;
+    const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
     
     if (!title) {
       return new Response(JSON.stringify({ error: '标题不能为空' }), { 
@@ -24,9 +24,9 @@ export async function onRequestPut(context) {
     
     const result = await env.DB.prepare(`
         UPDATE todos 
-        SET title = ?, description = ?, status = ?, priority = ?, category = ?, due_date = ?, updated_at = datetime('now')
+        SET title = ?, description = ?, status = ?, priority = ?, category = ?, due_date = ?, completion_notes = ?, completion_photos = ?, updated_at = datetime('now')
         WHERE id = ?
-      `).bind(title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null, id).run();
+      `).bind(title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null, completion_notes || null, completion_photos ? JSON.stringify(completion_photos) : null, id).run();
     
     const updatedTodo = await env.DB.prepare(`
       SELECT * FROM todos WHERE id = ?
