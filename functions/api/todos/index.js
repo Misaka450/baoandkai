@@ -62,20 +62,31 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 处理完成数据
+    // 处理完成数据 - 确保数据类型正确
     let completion_notes = null;
     let completion_photos = null;
     
-    if (data.notes !== undefined) {
-      completion_notes = data.notes;
-    } else if (data.completion_notes !== undefined) {
-      completion_notes = data.completion_notes;
+    if (data.notes !== undefined && data.notes !== null && data.notes !== '') {
+      completion_notes = String(data.notes);
+    } else if (data.completion_notes !== undefined && data.completion_notes !== null && data.completion_notes !== '') {
+      completion_notes = String(data.completion_notes);
     }
     
     if (data.photos !== undefined && Array.isArray(data.photos)) {
-      completion_photos = JSON.stringify(data.photos);
+      // 过滤掉无效的照片URL
+      const validPhotos = data.photos.filter(photo => 
+        typeof photo === 'string' && photo.trim() !== ''
+      );
+      if (validPhotos.length > 0) {
+        completion_photos = JSON.stringify(validPhotos);
+      }
     } else if (data.completion_photos !== undefined && Array.isArray(data.completion_photos)) {
-      completion_photos = JSON.stringify(data.completion_photos);
+      const validPhotos = data.completion_photos.filter(photo => 
+        typeof photo === 'string' && photo.trim() !== ''
+      );
+      if (validPhotos.length > 0) {
+        completion_photos = JSON.stringify(validPhotos);
+      }
     }
 
     const result = await env.DB.prepare(`
@@ -86,7 +97,7 @@ export async function onRequestPost(context) {
       data.description || '',
       data.status || 'pending',
       data.priority || 3,
-      data.due_date || null,
+      (data.due_date && data.due_date !== '') ? data.due_date : null,
       data.category || 'general',
       completion_notes,
       completion_photos
