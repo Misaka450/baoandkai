@@ -76,22 +76,22 @@ export default function AdminTodos() {
           method: 'PUT',
           body: JSON.stringify(todoData)
         });
-        await showAlert('成功', '待办事项更新成功！', 'success');
+        await showAlert('✅ 更新成功', '待办事项已更新！', 'success');
       } else {
         await apiRequest('/api/todos', {
           method: 'POST',
           body: JSON.stringify(todoData)
         });
-        await showAlert('成功', '待办事项创建成功！', 'success');
+        await showAlert('✅ 创建成功', '待办事项已创建！', 'success');
       }
-      
+
       setShowForm(false);
       setEditingTodo(null);
       resetForm();
       fetchTodos();
     } catch (error) {
       console.error('保存待办事项失败:', error);
-      await showAlert('错误', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error');
+      await showAlert('❌ 保存失败', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error');
     }
   };
 
@@ -110,7 +110,15 @@ export default function AdminTodos() {
   const handleDelete = async (id) => {
     console.log('开始删除待办事项，ID:', id);
     
-    const confirmed = await showConfirm('确认删除', '确定要删除这个待办事项吗？此操作不可恢复！', '删除');
+    // 找到对应的待办事项标题，用于更友好的提示
+    const todoToDelete = todos.find(todo => todo.id === id);
+    const todoTitle = todoToDelete?.title || '这个待办事项';
+    
+    const confirmed = await showConfirm(
+      '⚠️ 确认删除', 
+      `确定要删除 “${todoTitle}” 吗？此操作不可恢复！`,
+      '删除'
+    );
     if (!confirmed) return;
 
     try {
@@ -120,11 +128,11 @@ export default function AdminTodos() {
       });
       console.log('删除API响应:', response);
       
-      await showAlert('成功', '待办事项删除成功！', 'success');
+      await showAlert('✅ 删除成功', '待办事项删除成功！', 'success');
       fetchTodos();
     } catch (error) {
       console.error('删除失败:', error);
-      await showAlert('错误', `删除失败: ${error.message || '请重试'}`, 'error');
+      await showAlert('❌ 删除失败', `删除失败: ${error.message || '请重试'}`, 'error');
     }
   };
 
