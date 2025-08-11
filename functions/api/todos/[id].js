@@ -11,7 +11,7 @@ export async function onRequestPut(context) {
     const body = await request.json();
     console.log('更新数据:', body);
     
-    const { title, description, completed, priority, due_date } = body;
+    const { title, description, status, priority, category, due_date } = body;
     
     if (!title) {
       return new Response(JSON.stringify({ error: '标题不能为空' }), { 
@@ -20,17 +20,13 @@ export async function onRequestPut(context) {
       });
     }
 
-    // 映射前端字段到数据库字段
-    const status = completed ? 'completed' : 'pending';
-    const priorityValue = priority === 'high' ? 3 : priority === 'medium' ? 2 : 1;
-
     console.log('正在更新待办事项:', id);
     
     const result = await env.DB.prepare(`
         UPDATE todos 
-        SET title = ?, description = ?, status = ?, priority = ?, due_date = ?, updated_at = datetime('now')
+        SET title = ?, description = ?, status = ?, priority = ?, category = ?, due_date = ?, updated_at = datetime('now')
         WHERE id = ?
-      `).bind(title, description || '', status, priorityValue, due_date || null, id).run();
+      `).bind(title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null, id).run();
     
     const updatedTodo = await env.DB.prepare(`
       SELECT * FROM todos WHERE id = ?

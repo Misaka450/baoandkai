@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
     console.log('请求数据:', body);
     
-    const { title, description, completed, priority = 'medium', due_date } = body;
+    const { title, description, status, priority, category, due_date } = body;
     
     if (!title) {
       console.log('验证失败: 标题为空');
@@ -42,17 +42,13 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 映射前端字段到数据库字段
-    const status = completed ? 'completed' : 'pending';
-    const priorityValue = priority === 'high' ? 3 : priority === 'medium' ? 2 : 1;
-
     console.log('正在插入数据到数据库...');
     
     const result = await env.DB.prepare(`
-        INSERT INTO todos (title, description, status, priority, due_date, created_at) 
-        VALUES (?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO todos (title, description, status, priority, category, due_date, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
       `).bind(
-        title, description || '', status, priorityValue, due_date || null
+        title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null
       ).run();
       
     const todoId = result.meta.last_row_id;
