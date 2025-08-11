@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
     console.log('请求数据:', body);
     
-    const { title, description, status, priority, category, due_date } = body;
+    const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
     
     if (!title) {
       console.log('验证失败: 标题为空');
@@ -45,10 +45,10 @@ export async function onRequestPost(context) {
     console.log('正在插入数据到数据库...');
     
     const result = await env.DB.prepare(`
-        INSERT INTO todos (title, description, status, priority, category, due_date, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `).bind(
-        title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null
+        title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null, completion_notes || null, completion_photos ? JSON.stringify(completion_photos) : null
       ).run();
       
     const todoId = result.meta.last_row_id;
