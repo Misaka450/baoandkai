@@ -4,7 +4,7 @@ export async function onRequestGet(context) {
   
   try {
     const settings = await env.DB.prepare(`
-      SELECT * FROM settings WHERE id = 1
+      SELECT * FROM settings WHERE key = 'site_config'
     `).first();
     
     if (!settings) {
@@ -16,11 +16,9 @@ export async function onRequestGet(context) {
       };
       
       await env.DB.prepare(`
-        INSERT INTO settings (id, site_name, site_description, theme, created_at)
-        VALUES (1, ?, ?, ?, datetime('now'))
-      `).bind(
-        defaultSettings.site_name, defaultSettings.site_description, defaultSettings.theme
-      ).run();
+        INSERT INTO settings (key, value, created_at)
+        VALUES ('site_config', ?, datetime('now'))
+      `).bind(JSON.stringify(defaultSettings)).run();
       
       return new Response(JSON.stringify(defaultSettings), {
         headers: { 
@@ -29,8 +27,11 @@ export async function onRequestGet(context) {
         }
       });
     }
+    
+    // 解析存储的JSON值
+    const config = JSON.parse(settings.value);
 
-    return new Response(JSON.stringify(settings), {
+    return new Response(JSON.stringify(config), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -53,18 +54,21 @@ export async function onRequestPut(context) {
     const body = await request.json();
     const { site_name, site_description, theme } = body;
     
+    const config = { site_name, site_description, theme };
+    
     await env.DB.prepare(`
       UPDATE settings 
-      SET site_name = ?, site_description = ?, theme = ?, 
-          updated_at = datetime('now') 
-      WHERE id = 1
-    `).bind(site_name, site_description, theme).run();
+      SET value = ?, updated_at = datetime('now') 
+      WHERE key = 'site_config'
+    `).bind(JSON.stringify(config)).run();
     
     const updatedSettings = await env.DB.prepare(`
-      SELECT * FROM settings WHERE id = 1
+      SELECT * FROM settings WHERE key = 'site_config'
     `).first();
+    
+    const result = JSON.parse(updatedSettings.value);
 
-    return new Response(JSON.stringify(updatedSettings), {
+    return new Response(JSON.stringify(result), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
