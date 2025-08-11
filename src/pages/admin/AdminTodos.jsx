@@ -255,11 +255,13 @@ export default function AdminTodos() {
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     todo.status === 'completed' 
                       ? 'bg-green-100 text-green-800' 
-                      : todo.status === 'in_progress'
+                      : todo.status === 'pending'
                       ? 'bg-yellow-100 text-yellow-800'
+                      : todo.status === 'cancelled'
+                      ? 'bg-red-100 text-red-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {todo.status === 'completed' ? '已完成' : todo.status === 'in_progress' ? '进行中' : '待办'}
+                    {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
                   </span>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     todo.priority >= 4 
@@ -380,8 +382,8 @@ export default function AdminTodos() {
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200"
                 >
                   <option value="pending">⏳ 待办</option>
-                  <option value="in_progress">🔄 进行中</option>
                   <option value="completed">✅ 已完成</option>
+                  <option value="cancelled">❌ 已取消</option>
                 </select>
               </div>
 
