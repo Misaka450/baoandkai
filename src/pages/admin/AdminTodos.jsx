@@ -23,6 +23,7 @@ export default function AdminTodos() {
     notes: '',
     photos: []
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -30,7 +31,7 @@ export default function AdminTodos() {
 
   const fetchTodos = async () => {
     try {
-      const data = await apiRequest('/todos');
+      const data = await apiRequest('/api/todos');
       setTodos(data);
     } catch (error) {
       console.error('获取待办事项失败:', error);
@@ -54,13 +55,13 @@ export default function AdminTodos() {
 
     try {
       if (editingTodo) {
-        await apiRequest(`/todos/${editingTodo.id}`, {
+        await apiRequest(`/api/todos/${editingTodo.id}`, {
           method: 'PUT',
           body: JSON.stringify(todoData)
         });
         await showAlert('成功', '待办事项更新成功！', 'success');
       } else {
-        await apiRequest('/todos', {
+        await apiRequest('/api/todos', {
           method: 'POST',
           body: JSON.stringify(todoData)
         });
@@ -94,7 +95,7 @@ export default function AdminTodos() {
     if (!confirmed) return;
 
     try {
-      await apiRequest(`/todos/${id}`, {
+      await apiRequest(`/api/todos/${id}`, {
         method: 'DELETE'
       });
       await showAlert('成功', '待办事项删除成功！', 'success');
@@ -447,7 +448,7 @@ export default function AdminTodos() {
       )}
 
       {/* 模态框 */}
-      {showModal && (
+      {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="glass-card rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
@@ -455,7 +456,7 @@ export default function AdminTodos() {
                 {editingTodo ? '编辑待办事项' : '新建待办事项'}
               </h2>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowForm(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X className="w-5 h-5" />
@@ -623,7 +624,7 @@ export default function AdminTodos() {
               <div className="flex justify-end space-x-3 pt-6 border-t">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => setShowForm(false)}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   取消
