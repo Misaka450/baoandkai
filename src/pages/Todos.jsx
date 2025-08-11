@@ -53,11 +53,28 @@ export default function Todos() {
   }
 
   const handleDelete = async (id) => {
+    // 添加删除确认
+    if (!window.confirm('确定要删除这个待办事项吗？此操作无法撤销。')) {
+      return
+    }
+
     try {
-      await apiRequest(`/api/todos/${id}`, 'DELETE')
-      await fetchTodos()
+      console.log('开始删除待办事项，ID:', id)
+      const response = await apiRequest(`/api/todos/${id}`, 'DELETE')
+      console.log('删除API响应:', response)
+      
+      if (response.success) {
+        // 立即从本地状态中移除，提供更好的用户体验
+        setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id))
+        console.log('待办事项已从本地状态中移除')
+      } else {
+        throw new Error('服务器返回错误')
+      }
     } catch (error) {
       console.error('删除待办事项失败:', error)
+      alert('删除失败: ' + error.message)
+      // 如果本地删除失败，重新获取最新数据
+      await fetchTodos()
     }
   }
 
@@ -323,7 +340,8 @@ export default function Todos() {
                     </button>
                     <button
                       onClick={() => handleDelete(todo.id)}
-                      className="p-2 text-stone-600 hover:text-red-600 transition-colors"
+                      className="p-2 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      title="删除待办事项"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
