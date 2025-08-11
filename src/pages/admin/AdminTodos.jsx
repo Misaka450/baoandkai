@@ -64,7 +64,10 @@ export default function AdminTodos() {
       priority: formData.priority,
       category: formData.category,
       due_date: formData.due_date,
-      ...(formData.status === 'completed' ? completionData : {})
+      ...(formData.status === 'completed' ? {
+        completion_notes: completionData.notes,
+        completion_photos: completionData.photos
+      } : {})
     };
 
     try {
