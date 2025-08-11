@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Heart, Clock, Image, BookOpen, Utensils, Settings } from 'lucide-react'
+import { Heart, Clock, Image, BookOpen, Utensils, CheckSquare, Settings } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Navigation() {
@@ -10,6 +10,7 @@ export default function Navigation() {
     { name: '首页', href: '/', icon: Heart },
     { name: '时间轴', href: '/timeline', icon: Clock },
     { name: '相册', href: '/albums', icon: Image },
+    { name: '待办', href: '/todos', icon: CheckSquare },
     { name: '美食', href: '/food', icon: Utensils },
   ]
 

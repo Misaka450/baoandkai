@@ -113,3 +113,24 @@ CREATE INDEX IF NOT EXISTS idx_timeline_date ON timeline_events(date);
 CREATE INDEX IF NOT EXISTS idx_food_date ON food_checkins(date);
 CREATE INDEX IF NOT EXISTS idx_photos_album ON photos(album_id);
 CREATE INDEX IF NOT EXISTS idx_notes_created ON notes(created_at);
+
+-- 待办事项表
+CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled')),
+    priority INTEGER DEFAULT 1 CHECK (priority BETWEEN 1 AND 5),
+    due_date DATE,
+    category TEXT DEFAULT 'general',
+    completed_at DATETIME,
+    completion_notes TEXT,
+    completion_photos TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_todos_status ON todos(status);
+CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority);
+CREATE INDEX IF NOT EXISTS idx_todos_due_date ON todos(due_date);
+CREATE INDEX IF NOT EXISTS idx_todos_category ON todos(category);

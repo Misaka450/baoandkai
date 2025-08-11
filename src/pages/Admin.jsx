@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import { Settings, Clock, Image, BookOpen, Utensils, LogOut } from 'lucide-react'
+import { Settings, Clock, Image, BookOpen, Utensils, CheckSquare, LogOut } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import AdminLogin from './admin/AdminLogin'
 import AdminSettings from './admin/AdminSettings'
@@ -7,6 +7,7 @@ import AdminTimeline from './admin/AdminTimeline'
 import AdminAlbums from './admin/AdminAlbums'
 // 日记管理已移除
 import AdminFood from './admin/AdminFood'
+import AdminTodos from './admin/AdminTodos'
 
 export default function Admin() {
   const { user } = useAuth()
@@ -26,6 +27,7 @@ export default function Admin() {
           <Route path="albums" element={<AdminAlbums />} />
           {/* <Route path="diary" element={<AdminDiary />} /> 日记管理已移除 */}
           <Route path="food" element={<AdminFood />} />
+          <Route path="todos" element={<AdminTodos />} />
         </Routes>
       </div>
     </div>
@@ -42,6 +44,7 @@ function AdminSidebar() {
     { path: '/admin/albums', label: '相册管理', icon: Image },
     // { path: '/admin/diary', label: '日记管理', icon: BookOpen }, // 日记管理已移除
     { path: '/admin/food', label: '美食管理', icon: Utensils },
+    { path: '/admin/todos', label: '待办事项', icon: CheckSquare },
   ]
 
   return (
