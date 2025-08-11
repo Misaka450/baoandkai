@@ -1,20 +1,15 @@
 // Cloudflare Pages Functions - 单个待办事项API
+// 完全基于notes API的成功模式
+
 export async function onRequestPut(context) {
   const { request, env, params } = context;
   
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json'
-  };
-
   try {
     const id = parseInt(params.id);
     if (!id) {
       return new Response(JSON.stringify({ error: '无效的ID' }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
@@ -26,12 +21,11 @@ export async function onRequestPut(context) {
         error: '请求格式错误', 
         details: '无效的JSON格式' 
       }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
-    // 支持前端字段名
     const {
       title,
       description = '',
@@ -40,69 +34,46 @@ export async function onRequestPut(context) {
       due_date = null,
       category = 'general',
       notes = '',
-      photos = [],
-      completion_notes,
-      completion_photos
+      photos = []
     } = body || {};
 
-    // 验证必填字段
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return new Response(JSON.stringify({ error: '标题不能为空' }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
-    // 处理字段映射
-    const finalNotes = notes || completion_notes || '';
-    const finalPhotos = photos || completion_photos || [];
-
-    // 构建更新数据
-    const updateData = {
-      title: String(title).trim(),
-      description: String(description).trim(),
-      status: ['pending', 'completed', 'cancelled'].includes(status) ? status : 'pending',
-      priority: Math.max(1, Math.min(5, parseInt(priority) || 3)),
-      due_date: (due_date && due_date !== '') ? due_date : null,
-      category: String(category).trim() || 'general',
-      completion_notes: (finalNotes && finalNotes !== '') ? String(finalNotes).trim() : null,
-      completion_photos: (Array.isArray(finalPhotos) && finalPhotos.length > 0) 
-        ? JSON.stringify(finalPhotos.filter(p => typeof p === 'string' && p.trim())) 
-        : null
-    };
-
-    // 执行更新
     await env.DB.prepare(`
       UPDATE todos SET
         title = ?, description = ?, status = ?, priority = ?, due_date = ?,
         category = ?, completion_notes = ?, completion_photos = ?, updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-      updateData.title,
-      updateData.description,
-      updateData.status,
-      updateData.priority,
-      updateData.due_date,
-      updateData.category,
-      updateData.completion_notes,
-      updateData.completion_photos,
+      String(title).trim(),
+      String(description).trim(),
+      ['pending', 'completed', 'cancelled'].includes(status) ? status : 'pending',
+      Math.max(1, Math.min(5, parseInt(priority) || 3)),
+      due_date || null,
+      String(category).trim() || 'general',
+      notes || null,
+      photos && photos.length > 0 ? JSON.stringify(photos) : null,
       id
     ).run();
 
-    // 获取更新后的记录
     const updatedTodo = await env.DB.prepare('SELECT * FROM todos WHERE id = ?')
       .bind(id).first();
 
     if (!updatedTodo) {
       return new Response(JSON.stringify({ error: '待办事项不存在' }), { 
-        status: 404, 
-        headers: corsHeaders 
+        status: 404,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
     return new Response(JSON.stringify(updatedTodo), {
       status: 200,
-      headers: corsHeaders
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
 
   } catch (error) {
@@ -111,8 +82,8 @@ export async function onRequestPut(context) {
       error: '服务器内部错误', 
       details: error.message 
     }), { 
-      status: 500, 
-      headers: corsHeaders 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 }
@@ -120,39 +91,30 @@ export async function onRequestPut(context) {
 export async function onRequestDelete(context) {
   const { env, params } = context;
   
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json'
-  };
-
   try {
     const id = parseInt(params.id);
     if (!id) {
       return new Response(JSON.stringify({ error: '无效的ID' }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
-    // 检查记录是否存在
     const exists = await env.DB.prepare('SELECT id FROM todos WHERE id = ?')
       .bind(id).first();
 
     if (!exists) {
       return new Response(JSON.stringify({ error: '待办事项不存在' }), { 
-        status: 404, 
-        headers: corsHeaders 
+        status: 404,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
-    // 执行删除
     await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: corsHeaders
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
 
   } catch (error) {
@@ -161,8 +123,8 @@ export async function onRequestDelete(context) {
       error: '服务器内部错误', 
       details: error.message 
     }), { 
-      status: 500, 
-      headers: corsHeaders 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 }

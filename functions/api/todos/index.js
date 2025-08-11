@@ -1,4 +1,6 @@
 // Cloudflare Pages Functions - 待办事项API
+// 完全基于notes API的成功模式
+
 export async function onRequestGet(context) {
   const { env } = context;
   
@@ -15,7 +17,11 @@ export async function onRequestGet(context) {
       }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
+    console.error('获取待办事项API错误:', error);
+    return new Response(JSON.stringify({ 
+      error: '服务器内部错误', 
+      details: error.message 
+    }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
@@ -25,13 +31,6 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { request, env } = context;
   
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json'
-  };
-
   try {
     let body;
     try {
@@ -41,12 +40,12 @@ export async function onRequestPost(context) {
         error: '请求格式错误', 
         details: '无效的JSON格式' 
       }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-
-    // 支持前端字段名
+    
+    // 兼容前端字段名
     const {
       title,
       description = '',
@@ -55,73 +54,54 @@ export async function onRequestPost(context) {
       due_date = null,
       category = 'general',
       notes = '',
-      photos = [],
-      completion_notes, // 兼容旧字段名
-      completion_photos  // 兼容旧字段名
+      photos = []
     } = body || {};
-
+    
     // 验证必填字段
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return new Response(JSON.stringify({ 
         error: '标题不能为空' 
       }), { 
-        status: 400, 
-        headers: corsHeaders 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
-
-    // 处理字段映射
-    const finalNotes = notes || completion_notes || '';
-    const finalPhotos = photos || completion_photos || [];
-
-    // 构建插入数据
-    const insertData = {
-      title: String(title).trim(),
-      description: String(description).trim(),
-      status: ['pending', 'completed', 'cancelled'].includes(status) ? status : 'pending',
-      priority: Math.max(1, Math.min(5, parseInt(priority) || 3)),
-      due_date: (due_date && due_date !== '') ? due_date : null,
-      category: String(category).trim() || 'general',
-      completion_notes: (finalNotes && finalNotes !== '') ? String(finalNotes).trim() : null,
-      completion_photos: (Array.isArray(finalPhotos) && finalPhotos.length > 0) 
-        ? JSON.stringify(finalPhotos.filter(p => typeof p === 'string' && p.trim())) 
-        : null
-    };
-
-    // 执行插入
+    
+    // 简化的数据处理
     const result = await env.DB.prepare(`
       INSERT INTO todos (
         title, description, status, priority, due_date, 
         category, completion_notes, completion_photos, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
     `).bind(
-      insertData.title,
-      insertData.description,
-      insertData.status,
-      insertData.priority,
-      insertData.due_date,
-      insertData.category,
-      insertData.completion_notes,
-      insertData.completion_photos
+      String(title).trim(),
+      String(description).trim(),
+      ['pending', 'completed', 'cancelled'].includes(status) ? status : 'pending',
+      Math.max(1, Math.min(5, parseInt(priority) || 3)),
+      due_date || null,
+      String(category).trim() || 'general',
+      notes || null,
+      photos && photos.length > 0 ? JSON.stringify(photos) : null
     ).run();
-
-    // 获取新创建的记录
+    
     const newTodo = await env.DB.prepare('SELECT * FROM todos WHERE id = ?')
       .bind(result.meta.last_row_id).first();
-
+    
     return new Response(JSON.stringify(newTodo), {
       status: 201,
-      headers: corsHeaders
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
-
   } catch (error) {
     console.error('创建待办事项API错误:', error);
     return new Response(JSON.stringify({ 
       error: '服务器内部错误', 
       details: error.message 
     }), { 
-      status: 500, 
-      headers: corsHeaders 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 }
