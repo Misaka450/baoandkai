@@ -75,7 +75,7 @@ export async function onRequestPut(context) {
     }
     if (data.due_date !== undefined) {
       updates.push('due_date = ?');
-      values.push(data.due_date);
+      values.push((data.due_date && data.due_date !== '') ? data.due_date : null);
     }
     if (data.category !== undefined) {
       updates.push('category = ?');
@@ -84,13 +84,41 @@ export async function onRequestPut(context) {
     if (data.notes !== undefined) {
       updates.push('completion_notes = ?');
       values.push(data.notes);
+    } else if (data.notes !== undefined) {
+      if (data.notes === null || data.notes === '') {
+        updates.push('completion_notes = NULL');
+      } else {
+        updates.push('completion_notes = ?');
+        values.push(String(data.notes));
+      }
     } else if (data.completion_notes !== undefined) {
-      updates.push('completion_notes = ?');
-      values.push(data.completion_notes);
+      if (data.completion_notes === null || data.completion_notes === '') {
+        updates.push('completion_notes = NULL');
+      } else {
+        updates.push('completion_notes = ?');
+        values.push(String(data.completion_notes));
+      }
     }
     if (data.photos !== undefined) {
-      updates.push('completion_photos = ?');
-      values.push(JSON.stringify(data.photos));
+      if (data.photos === null || (Array.isArray(data.photos) && data.photos.length === 0)) {
+        updates.push('completion_photos = NULL');
+      } else if (Array.isArray(data.photos)) {
+        const validPhotos = data.photos.filter(photo => 
+          typeof photo === 'string' && photo.trim() !== ''
+        );
+        updates.push('completion_photos = ?');
+        values.push(JSON.stringify(validPhotos));
+      }
+    } else if (data.completion_photos !== undefined) {
+      if (data.completion_photos === null || (Array.isArray(data.completion_photos) && data.completion_photos.length === 0)) {
+        updates.push('completion_photos = NULL');
+      } else if (Array.isArray(data.completion_photos)) {
+        const validPhotos = data.completion_photos.filter(photo => 
+          typeof photo === 'string' && photo.trim() !== ''
+        );
+        updates.push('completion_photos = ?');
+        values.push(JSON.stringify(validPhotos));
+      }
     } else if (data.completion_photos !== undefined) {
       updates.push('completion_photos = ?');
       values.push(JSON.stringify(data.completion_photos));
