@@ -73,9 +73,19 @@ export default function Todos() {
     setShowForm(true)
   }
 
+  // 映射数据库字段到前端字段
+  const mapTodoFields = (todo) => {
+    return {
+      ...todo,
+      completed: todo.status === 'completed',
+      priority: todo.priority === 3 ? 'high' : todo.priority === 2 ? 'medium' : 'low'
+    }
+  }
+
   const getFilteredTodos = () => {
-    if (filter === 'all') return todos
-    return todos.filter(todo => {
+    const mappedTodos = todos.map(mapTodoFields)
+    if (filter === 'all') return mappedTodos
+    return mappedTodos.filter(todo => {
       if (filter === 'pending') return !todo.completed
       if (filter === 'completed') return todo.completed
       return true

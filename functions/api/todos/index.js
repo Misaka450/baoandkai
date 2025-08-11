@@ -42,13 +42,17 @@ export async function onRequestPost(context) {
       });
     }
 
+    // 映射前端字段到数据库字段
+    const status = completed ? 'completed' : 'pending';
+    const priorityValue = priority === 'high' ? 3 : priority === 'medium' ? 2 : 1;
+
     console.log('正在插入数据到数据库...');
     
     const result = await env.DB.prepare(`
-        INSERT INTO todos (title, description, completed, priority, due_date, created_at) 
+        INSERT INTO todos (title, description, status, priority, due_date, created_at) 
         VALUES (?, ?, ?, ?, ?, datetime('now'))
       `).bind(
-        title, description || '', completed || false, priority, due_date || null
+        title, description || '', status, priorityValue, due_date || null
       ).run();
       
     const todoId = result.meta.last_row_id;
