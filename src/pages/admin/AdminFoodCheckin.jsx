@@ -209,200 +209,14 @@ export default function AdminFoodCheckin() {
         </button>
       </div>
 
+      {/* 弹窗编辑模式 - 页面中央弹出 */}
       {showForm && (
-        <div className="glass-card p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              {editingCheckin ? '编辑美食打卡' : '添加美食打卡'}
-            </h2>
-            <button
-              type="button"
-              onClick={() => {
-                setShowForm(false)
-                setEditingCheckin(null)
-                resetForm()
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                餐厅名称 *
-              </label>
-              <input
-                type="text"
-                value={formData.restaurant_name}
-                onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              />
-            </div>
-            
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  打卡日期 *
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  菜系分类
-                </label>
-                <select
-                  value={formData.cuisine}
-                  onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                >
-                  <option value="">选择菜系</option>
-                  {cuisines.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  价格区间
-                </label>
-                <input
-                  type="text"
-                  value={formData.price_range}
-                  onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="如：人均100-200"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                餐厅地址
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full pl-10 pr-3 py-2 border rounded-lg"
-                  placeholder="请输入餐厅地址"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                描述
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                rows="3"
-                placeholder="分享你的美食体验..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  综合评分
-                </label>
-                {renderStars(formData.overall_rating, (rating) => setFormData({ ...formData, overall_rating: rating }))}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  口味评分
-                </label>
-                {renderStars(formData.taste_rating, (rating) => setFormData({ ...formData, taste_rating: rating }))}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  环境评分
-                </label>
-                {renderStars(formData.environment_rating, (rating) => setFormData({ ...formData, environment_rating: rating }))}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  服务评分
-                </label>
-                {renderStars(formData.service_rating, (rating) => setFormData({ ...formData, service_rating: rating }))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                美食图片
-              </label>
-              <ImageUploader
-                onImagesUploaded={handleImagesUploaded}
-                existingImages={[]}
-                onRemoveImage={() => {}}
-                folder="food"
-                maxImages={9}
-              />
-              
-              {formData.images.length > 0 && (
-                <div className="mt-4">
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {formData.images.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`美食图片 ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                推荐菜品
-              </label>
-              <input
-                type="text"
-                value={formData.recommended_dishes}
-                onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                placeholder="请输入推荐菜品，多个用逗号分隔"
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg"
-              >
-                保存
-              </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-light text-gray-800">
+                {editingCheckin ? '编辑美食打卡' : '添加美食打卡'}
+              </h2>
               <button
                 type="button"
                 onClick={() => {
@@ -410,12 +224,181 @@ export default function AdminFoodCheckin() {
                   setEditingCheckin(null)
                   resetForm()
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
-                取消
+                <X className="h-6 w-6" />
               </button>
             </div>
-          </form>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">餐厅名称 *</label>
+                  <input
+                    type="text"
+                    value={formData.restaurant_name}
+                    onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                    placeholder="请输入餐厅名称"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">打卡日期 *</label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">菜系分类</label>
+                  <select
+                    value={formData.cuisine}
+                    onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                  >
+                    <option value="">选择菜系</option>
+                    {cuisines.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">价格区间</label>
+                  <input
+                    type="text"
+                    value={formData.price_range}
+                    onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                    placeholder="如：人均100-200"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">餐厅地址</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                    placeholder="请输入餐厅地址"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">美食体验描述</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
+                  rows="4"
+                  placeholder="分享你的美食体验、环境氛围、服务感受..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">评分</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">综合评分</label>
+                    {renderStars(formData.overall_rating, (rating) => setFormData({ ...formData, overall_rating: rating }))}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">口味评分</label>
+                    {renderStars(formData.taste_rating, (rating) => setFormData({ ...formData, taste_rating: rating }))}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">环境评分</label>
+                    {renderStars(formData.environment_rating, (rating) => setFormData({ ...formData, environment_rating: rating }))}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">服务评分</label>
+                    {renderStars(formData.service_rating, (rating) => setFormData({ ...formData, service_rating: rating }))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">美食图片</label>
+                <ImageUploader
+                  onImagesUploaded={handleImagesUploaded}
+                  existingImages={[]}
+                  onRemoveImage={() => {}}
+                  folder="food"
+                  maxImages={9}
+                />
+                
+                {formData.images.length > 0 && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                      {formData.images.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`美食图片 ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">推荐菜品</label>
+                <input
+                  type="text"
+                  value={formData.recommended_dishes}
+                  onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                  placeholder="请输入推荐菜品，多个用逗号分隔"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false)
+                    setEditingCheckin(null)
+                    resetForm()
+                  }}
+                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 font-medium shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30"
+                >
+                  {editingCheckin ? '更新美食' : '添加美食'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

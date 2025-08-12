@@ -223,152 +223,14 @@ export default function AdminAlbums() {
         </button>
       </div>
 
+      {/* 弹窗编辑模式 - 页面中央弹出 */}
       {showForm && (
-        <div className="glass-card p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              {editingAlbum ? '编辑相册' : '创建新相册'}
-            </h2>
-            {formData.images.length > 0 && (
-              <div className="flex space-x-2">
-                {showBatchActions ? (
-                  <>
-                    <button
-                      onClick={batchDeleteImages}
-                      disabled={selectedImages.length === 0}
-                      className="px-3 py-1 text-sm bg-red-500 text-white rounded disabled:opacity-50"
-                    >
-                      删除选中 ({selectedImages.length})
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowBatchActions(false)
-                        setSelectedImages([])
-                      }}
-                      className="px-3 py-1 text-sm border rounded"
-                    >
-                      取消
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setShowBatchActions(true)}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
-                  >
-                    批量管理
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">相册名称</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                rows="3"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">相册图片</label>
-              <ImageUploader
-                onImagesUploaded={handleImagesUploaded}
-                existingImages={[]}
-                onRemoveImage={() => {}}
-                folder="albums"
-                maxImages={50}
-              />
-              
-              {formData.images.length > 0 && (
-                <div className="mt-4">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {formData.images.map((url, index) => (
-                      <div
-                        key={index}
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, index)}
-                        className={`relative group cursor-move ${
-                          selectedImages.includes(index) ? 'ring-2 ring-blue-500' : ''
-                        }`}
-                      >
-                        {showBatchActions && (
-                          <button
-                            type="button"
-                            onClick={() => toggleImageSelection(index)}
-                            className="absolute top-1 left-1 z-10 bg-white rounded-full p-1 shadow-md"
-                          >
-                            {selectedImages.includes(index) ? 
-                              <CheckSquare className="h-4 w-4 text-blue-500" /> : 
-                              <Square className="h-4 w-4 text-gray-400" />
-                            }
-                          </button>
-                        )}
-                        
-                        <button
-                          type="button"
-                          onClick={() => setPreviewImage(url)}
-                          className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Eye className="h-4 w-4 text-gray-600" />
-                        </button>
-                        
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm('确定要删除这张图片吗？')) {
-                              removeImage(index)
-                            }
-                          }}
-                          className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                          title="删除图片"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        
-                        <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden">
-                          <img
-                            src={url}
-                            alt={`图片 ${index + 1}`}
-                            className="w-full h-32 object-cover"
-                          />
-                        </div>
-                        
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
-                          <GripVertical className="h-6 w-6 text-white" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    拖拽图片可以调整顺序，点击图片预览图标查看大图
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg"
-              >
-                保存
-              </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-light text-gray-800">
+                {editingAlbum ? '编辑相册' : '创建新相册'}
+              </h2>
               <button
                 type="button"
                 onClick={() => {
@@ -378,12 +240,177 @@ export default function AdminAlbums() {
                   setSelectedImages([])
                   setShowBatchActions(false)
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
-                取消
+                <X className="h-6 w-6" />
               </button>
             </div>
-          </form>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">相册名称 *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                    placeholder="请输入相册名称"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">相册描述</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
+                    rows="3"
+                    placeholder="请输入相册描述"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <label className="block text-sm font-medium text-gray-700">相册图片</label>
+                  {formData.images.length > 0 && (
+                    <div className="flex space-x-2">
+                      {showBatchActions ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={batchDeleteImages}
+                            disabled={selectedImages.length === 0}
+                            className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg disabled:opacity-50 transition-all duration-200"
+                          >
+                            删除选中 ({selectedImages.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowBatchActions(false)
+                              setSelectedImages([])
+                            }}
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg transition-all duration-200 hover:bg-gray-50"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowBatchActions(true)}
+                          className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg transition-all duration-200 hover:bg-blue-600"
+                        >
+                          批量管理
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <ImageUploader
+                  onImagesUploaded={handleImagesUploaded}
+                  existingImages={[]}
+                  onRemoveImage={() => {}}
+                  folder="albums"
+                  maxImages={50}
+                />
+                
+                {formData.images.length > 0 && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {formData.images.map((url, index) => (
+                        <div
+                          key={index}
+                          draggable
+                          onDragStart={() => handleDragStart(index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          className={`relative group cursor-move ${
+                            selectedImages.includes(index) ? 'ring-2 ring-blue-500 rounded-lg' : ''
+                          }`}
+                        >
+                          {showBatchActions && (
+                            <button
+                              type="button"
+                              onClick={() => toggleImageSelection(index)}
+                              className="absolute top-1 left-1 z-10 bg-white rounded-full p-1 shadow-md transition-all duration-200 hover:scale-110"
+                            >
+                              {selectedImages.includes(index) ? 
+                                <CheckSquare className="h-4 w-4 text-blue-500" /> : 
+                                <Square className="h-4 w-4 text-gray-400" />
+                              }
+                            </button>
+                          )}
+                          
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImage(url)}
+                            className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                          >
+                            <Eye className="h-4 w-4 text-gray-600" />
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm('确定要删除这张图片吗？')) {
+                                removeImage(index)
+                              }
+                            }}
+                            className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:scale-110"
+                            title="删除图片"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          
+                          <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden">
+                            <img
+                              src={url}
+                              alt={`图片 ${index + 1}`}
+                              className="w-full h-32 object-cover"
+                            />
+                          </div>
+                          
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
+                            <GripVertical className="h-6 w-6 text-white" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-3">
+                      拖拽图片可以调整顺序，点击图片预览图标查看大图
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false)
+                    setEditingAlbum(null)
+                    setFormData({ name: '', description: '', images: [] })
+                    setSelectedImages([])
+                    setShowBatchActions(false)
+                  }}
+                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
+                >
+                  {editingAlbum ? '更新相册' : '创建相册'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
