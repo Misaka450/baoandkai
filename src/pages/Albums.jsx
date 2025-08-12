@@ -13,11 +13,12 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const imageRef = useRef(null)
 
   // 防下载：禁用右键菜单
+  // 在现有的图片展示部分添加防下载保护
   const preventContextMenu = useCallback((e) => {
     e.preventDefault()
     return false
   }, [])
-
+  
   // 防下载：禁用拖拽
   const preventDrag = useCallback((e) => {
     e.preventDefault()
@@ -385,10 +386,14 @@ export default function Albums() {
               >
                 <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]">
                   <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-stone-100 flex items-center justify-center">
+                    // 修改相册封面图片，添加防下载保护
                     <img
                       src={getCoverImage(album)}
                       alt={album.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 select-none"
+                      draggable={false}
+                      onContextMenu={preventContextMenu}
+                      onDragStart={preventDrag}
                       onError={(e) => {
                         e.target.src = '/placeholder-album.jpg'
                       }}
@@ -429,11 +434,25 @@ export default function Albums() {
                   onClick={() => handlePhotoClick(photo, index)}
                   className="group cursor-pointer"
                 >
-                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center">
+                  // 修改相册内图片，添加防下载保护
+                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center relative group">
+                    {/* 防下载覆盖层 */}
+                    <div className="absolute inset-0 pointer-events-none z-10" />
+                    
+                    {/* 水印覆盖层 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                      <div className="absolute bottom-2 left-2 text-white/70 text-xs">
+                        受保护图片
+                      </div>
+                    </div>
+                    
                     <img
                       src={photo.url}
                       alt={photo.caption || `照片 ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 select-none"
+                      draggable={false}
+                      onContextMenu={preventContextMenu}
+                      onDragStart={preventDrag}
                       onError={(e) => {
                         e.target.src = '/placeholder-image.jpg'
                       }}
@@ -463,74 +482,3 @@ export default function Albums() {
     </div>
   )
 }
-
-// 缩略图网格组件 - 带防下载保护（移除保护提示）
-const ThumbnailGrid = ({ photos, onPhotoClick }) => {
-  const preventContextMenu = useCallback((e) => {
-    e.preventDefault()
-    return false
-  }, [])
-
-  const preventDrag = useCallback((e) => {
-    e.preventDefault()
-    return false
-  }, [])
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {photos.map((photo) => (
-        <div
-          key={photo.id}
-          className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
-          onClick={() => onPhotoClick(photo)}
-        >
-          {/* 防下载覆盖层 */}
-          <div className="absolute inset-0 pointer-events-none z-10" />
-          
-          {/* 水印覆盖层 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
-            <div className="absolute bottom-2 left-2 text-white/70 text-xs">
-              受保护图片
-            </div>
-          </div>
-          
-          <img
-            src={photo.url}
-            alt={photo.caption || '图片'}
-            className="w-full h-48 object-cover select-none"
-            draggable={false}
-            onContextMenu={preventContextMenu}
-            onDragStart={preventDrag}
-            loading="lazy"
-          />
-          
-          {/* 悬停效果 */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-          
-          {/* 移除保护提示 */}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// 在主渲染部分替换原来的图片网格
-      
-      {/* 图片网格 */}
-      {selectedAlbum && selectedAlbum.photos && selectedAlbum.photos.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              {selectedAlbum.name} ({selectedAlbum.photos.length} 张图片)
-            </h3>
-            <div className="text-sm text-gray-500">
-              点击图片查看大图 | 受保护图片
-            </div>
-          </div>
-          
-          <ThumbnailGrid 
-            photos={selectedAlbum.photos} 
-            onPhotoClick={handlePhotoClick} 
-          />
-        </div>
-      )}
