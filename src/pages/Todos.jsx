@@ -227,10 +227,6 @@ export default function Todos() {
                           {/* 完成照片 */}
                           {todo.completion_photos && (
                             <div className="mb-4">
-                              <div className="flex items-center text-sm text-green-700 mb-2 font-medium">
-                                <Camera className="w-4 h-4 mr-2 text-green-600" />
-                                <span>完成瞬间</span>
-                              </div>
                               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                 {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
                                   (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
