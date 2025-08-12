@@ -201,7 +201,7 @@ router.post('/api/auth/login', async (request, env) => {
     const { username, password } = await request.json()
     
     // 简单的认证逻辑，生产环境应该使用密码哈希
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'baobao' && password === 'baobao123') {
       return new Response(JSON.stringify({
         token: 'mock-jwt-token',
         user: { username, role: 'admin' }

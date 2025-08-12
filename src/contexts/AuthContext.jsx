@@ -23,11 +23,11 @@ export function AuthProvider({ children }) {
   const login = async (username, password) => {
     try {
       // 本地验证逻辑，生产环境应该使用API
-      if (username === 'admin' && password === 'admin123') {
+      if (username === 'baobao' && password === 'baobao123') {
         const token = 'admin-token-' + Date.now()
         localStorage.setItem('token', token)
-        setUser({ token, username: 'admin', role: 'admin' })
-        return { token, user: { username: 'admin', role: 'admin' } }
+        setUser({ token, username: 'baobao', role: 'admin' })
+        return { token, user: { username: 'baobao', role: 'admin' } }
       } else {
         throw new Error('用户名或密码错误')
       }
