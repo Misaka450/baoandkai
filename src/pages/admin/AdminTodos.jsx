@@ -23,7 +23,7 @@ export default function AdminTodos() {
     notes: '',
     photos: []
   });
-  const [uploading, setUploading] = useState(false);
+
 
   useEffect(() => {
     fetchTodos();
@@ -136,67 +136,7 @@ export default function AdminTodos() {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
 
-    setUploading(true);
-    const uploadedUrls = [];
-
-    try {
-      for (let file of files) {
-        if (file.size > 5 * 1024 * 1024) {
-          alert('图片大小不能超过5MB');
-          continue;
-        }
-
-        // 检查文件类型
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-          alert('请上传图片文件（JPG、PNG、GIF、WebP）');
-          continue;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'todos'); // 指定上传到todos文件夹
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `上传失败: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('上传结果:', result);
-        
-        // 统一处理API返回格式
-        if (result.urls && Array.isArray(result.urls)) {
-          uploadedUrls.push(...result.urls);
-        } else if (result.url) {
-          uploadedUrls.push(result.url);
-        } else {
-          console.warn('上传API返回格式异常:', result);
-        }
-      }
-
-      if (uploadedUrls.length > 0) {
-        setCompletionData(prev => ({
-          ...prev,
-          photos: [...prev.photos, ...uploadedUrls]
-        }));
-      }
-    } catch (error) {
-      console.error('上传失败:', error);
-      alert('图片上传失败: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleEdit = (todo) => {
     setEditingTodo(todo);
@@ -435,10 +375,17 @@ export default function AdminTodos() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">完成照片</label>
                     <ImageUploader
-                      photos={completionData.photos}
-                      onPhotoUpload={handlePhotoUpload}
-                      onRemovePhoto={removePhoto}
-                      uploading={uploading}
+                      existingImages={completionData.photos}
+                      onImagesUploaded={(urls) => {
+                        setCompletionData(prev => ({
+                          ...prev,
+                          photos: [...prev.photos, ...urls]
+                        }));
+                      }}
+                      onRemoveImage={removePhoto}
+                      maxImages={10}
+                      folder="todos"
+                      maxFileSize={5 * 1024 * 1024} // 5MB限制
                     />
                   </div>
                 </div>
@@ -454,8 +401,7 @@ export default function AdminTodos() {
                 </button>
                 <button
                   type="submit"
-                  disabled={uploading}
-                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
+                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
                 >
                   {editingTodo ? '更新待办' : '创建待办'}
                 </button>
