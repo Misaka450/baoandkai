@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiRequest } from '../utils/api'
+import ImageModal from '../components/ImageModal'
 
 export default function Todos() {
   const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
   const [expandedTodos, setExpandedTodos] = useState(new Set()) // 记录展开的待办ID
+  const [selectedImage, setSelectedImage] = useState(null) // 当前选中的放大图片
 
   useEffect(() => {
     fetchTodos()
@@ -223,7 +225,7 @@ export default function Todos() {
                                       src={photo} 
                                       alt={`完成照片 ${index + 1}`}
                                       className="w-full h-16 object-cover rounded-lg border border-stone-200 hover:scale-110 transition-transform cursor-pointer"
-                                      onClick={() => window.open(photo, '_blank')}
+                                      onClick={() => setSelectedImage(photo)}
                                     />
                                   </div>
                                 ))}
@@ -253,6 +255,14 @@ export default function Todos() {
           )}
         </div>
       </div>
+      
+      {/* 图片放大模态框 */}
+      <ImageModal
+        isOpen={selectedImage !== null}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage}
+        alt="完成照片"
+      />
     </div>
   )
 }
