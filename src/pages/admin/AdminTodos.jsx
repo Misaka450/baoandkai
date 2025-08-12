@@ -298,150 +298,153 @@ export default function AdminTodos() {
         ))}
       </div>
 
-      {/* 新建/编辑表单 */}
+      {/* 新建/编辑模态框 - 页面中央弹出 */}
       {showForm && (
-        <div className="glass-card p-8 mb-8 max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-light text-gray-800">
-              {editingTodo ? '编辑待办事项' : '创建新的待办'}
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">标题</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 placeholder-gray-400"
-                placeholder="给待办事项起个名字"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">详细描述</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 placeholder-gray-400 resize-none"
-                placeholder="详细描述这个待办事项的内容和要求..."
-                rows="4"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">优先级</label>
-                <select
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200"
-                >
-                  <option value={1} className="text-green-600">🟢 低优先级</option>
-                  <option value={2} className="text-blue-600">🔵 中低优先级</option>
-                  <option value={3} className="text-yellow-600">🟡 中优先级</option>
-                  <option value={4} className="text-orange-600">🟠 中高优先级</option>
-                  <option value={5} className="text-red-600">🔴 高优先级</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">分类</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200"
-                >
-                  <option value="general">📋 通用</option>
-                  <option value="work">💼 工作</option>
-                  <option value="life">🏠 生活</option>
-                  <option value="study">📚 学习</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200"
-                >
-                  <option value="pending">⏳ 待办</option>
-                  <option value="completed">✅ 已完成</option>
-                  <option value="cancelled">❌ 已取消</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">截止日期</label>
-                <input
-                  type="date"
-                  name="due_date"
-                  value={formData.due_date}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200"
-                />
-              </div>
-            </div>
-
-            {formData.status === 'completed' && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">完成备注</label>
-                  <textarea
-                    name="notes"
-                    value={completionData.notes}
-                    onChange={(e) => setCompletionData(prev => ({ ...prev, notes: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 placeholder-gray-400 resize-none"
-                    placeholder="分享完成这个待办的心得体会和经验..."
-                    rows="4"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">完成照片</label>
-                  <ImageUploader
-                    photos={completionData.photos}
-                    onPhotoUpload={handlePhotoUpload}
-                    onRemovePhoto={removePhoto}
-                    uploading={uploading}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-light text-gray-800">
+                {editingTodo ? '编辑待办事项' : '创建新的待办'}
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
-                取消
-              </button>
-              <button
-                type="submit"
-                disabled={uploading}
-                className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
-              >
-                {editingTodo ? '更新待办' : '创建待办'}
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-          </form>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">标题 *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
+                  placeholder="给待办事项起个名字"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">详细描述</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
+                  placeholder="详细描述这个待办事项的内容和要求..."
+                  rows="3"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">优先级</label>
+                  <select
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                  >
+                    <option value={1}>🟢 低优先级</option>
+                    <option value={2}>🔵 中低优先级</option>
+                    <option value={3}>🟡 中优先级</option>
+                    <option value={4}>🟠 中高优先级</option>
+                    <option value={5}>🔴 高优先级</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">分类</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                  >
+                    <option value="general">📋 通用</option>
+                    <option value="work">💼 工作</option>
+                    <option value="life">🏠 生活</option>
+                    <option value="study">📚 学习</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                  >
+                    <option value="pending">⏳ 待办</option>
+                    <option value="completed">✅ 已完成</option>
+                    <option value="cancelled">❌ 已取消</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">截止日期</label>
+                  <input
+                    type="date"
+                    name="due_date"
+                    value={formData.due_date}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {formData.status === 'completed' && (
+                <div className="space-y-4 border-t border-gray-100 pt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">完成备注</label>
+                    <textarea
+                      name="notes"
+                      value={completionData.notes}
+                      onChange={(e) => setCompletionData(prev => ({ ...prev, notes: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
+                      placeholder="分享完成这个待办的心得体会和经验..."
+                      rows="2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">完成照片</label>
+                    <ImageUploader
+                      photos={completionData.photos}
+                      onPhotoUpload={handlePhotoUpload}
+                      onRemovePhoto={removePhoto}
+                      uploading={uploading}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
+                >
+                  {editingTodo ? '更新待办' : '创建待办'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
