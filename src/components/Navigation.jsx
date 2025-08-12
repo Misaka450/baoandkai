@@ -7,20 +7,9 @@ export default function Navigation() {
   const location = useLocation()
   const { isAdmin } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollProgress, setScrollProgress] = useState(0)
-
-  // 检测是否为移动设备
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   // 增强版滚动隐藏导航栏 - 带渐变动画
   useEffect(() => {
@@ -64,11 +53,27 @@ export default function Navigation() {
     { name: '管理', href: '/admin', icon: Settings }
   ]
 
-  // 计算导航栏的透明度和位置
+  // 计算导航栏的透明度和位置 - 完美居中
   const getNavStyles = () => {
+    const baseStyles = {
+      position: 'fixed',
+      top: '1rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 50,
+      transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: '0.75rem',
+      padding: '0.75rem 1.5rem',
+      boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.1)'
+    }
+
     if (isVisible) {
       return {
-        transform: 'translateY(0)',
+        ...baseStyles,
+        transform: 'translateX(-50%) translateY(0)',
         opacity: 1,
         backdropFilter: `blur(${Math.max(12 - scrollProgress * 8, 4)}px)`,
         boxShadow: scrollProgress > 0.1 
@@ -77,10 +82,9 @@ export default function Navigation() {
       }
     } else {
       return {
-        transform: 'translateY(-120%)', // 完全隐藏到屏幕外
-        opacity: 0,
-        backdropFilter: 'blur(4px)',
-        boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.1)'
+        ...baseStyles,
+        transform: 'translateX(-50%) translateY(-120%)',
+        opacity: 0
       }
     }
   }
@@ -89,15 +93,29 @@ export default function Navigation() {
   const getHamburgerStyles = () => {
     if (isVisible) {
       return {
+        position: 'fixed',
+        top: '1rem',
+        right: '1rem',
+        zIndex: 50,
         transform: 'translateY(0) scale(1)',
         opacity: 1,
+        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '0.5rem',
+        padding: '0.5rem',
         boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.15)'
       }
     } else {
       return {
-        transform: 'translateY(-100px) scale(0.8)', // 向上滑出并缩小
+        position: 'fixed',
+        top: '1rem',
+        right: '1rem',
+        zIndex: 50,
+        transform: 'translateY(-100px) scale(0.8)',
         opacity: 0,
-        boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.1)'
+        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
       }
     }
   }
@@ -109,7 +127,7 @@ export default function Navigation() {
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         style={getHamburgerStyles()}
-        className="fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden transition-all duration-500 ease-out"
+        className="md:hidden"
       >
         {isMobileMenuOpen ? (
           <X className="h-6 w-6 text-gray-600 transition-transform duration-300 hover:rotate-90" />
@@ -160,12 +178,9 @@ export default function Navigation() {
     </>
   )
 
-  // 桌面端导航 - 带弹性动画
+  // 桌面端导航 - 完美居中
   const DesktopNav = () => (
-    <nav 
-      style={getNavStyles()}
-      className="glass-card fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 hidden md:block transition-all duration-500 ease-out"
-    >
+    <nav style={getNavStyles()} className="hidden md:block">
       <div className="flex items-center space-x-6 lg:space-x-8">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
@@ -190,47 +205,42 @@ export default function Navigation() {
 
   return (
     <>
-      {/* 添加CSS动画 */}
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(100px) scale(0.8);
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateX(100px) scale(0.8);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-          }
-        }
 
-        @keyframes slideOut {
-          from {
-            opacity: 1;
-            transform: translateX(0) scale(1);
+          @keyframes slideOut {
+            from {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+            }
+            to {
+              opacity: 0;
+              transform: translateX(100px) scale(0.8);
+            }
           }
-          to {
-            opacity: 0;
-            transform: translateX(100px) scale(0.8);
-          }
-        }
 
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.9);
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px) scale(0.9);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .glass-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
+        `
+      }} />
       
       <MobileMenu />
       <DesktopNav />
