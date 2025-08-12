@@ -194,3 +194,65 @@
     @apply bg-gradient-to-br from-orange-50 to-red-50 border-red-200;
   }
 }
+
+/* 全局防下载保护样式 */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 为可交互图片恢复指针事件 */
+img[draggable="false"] {
+  pointer-events: auto;
+}
+
+/* 防下载覆盖层样式 */
+.protected-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.protected-image-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 水印样式 */
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  font-size: 3rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+}
+
+/* 禁用右键菜单动画 */
+@keyframes flash-warning {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(239, 68, 68, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.protected-image-container:active {
+  animation: flash-warning 0.3s ease;
+}

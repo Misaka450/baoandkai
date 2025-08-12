@@ -1,15 +1,42 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
-// 图片查看器组件
+// 图片查看器组件 - 带防下载保护
 function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [showWatermark, setShowWatermark] = useState(true)
   const containerRef = useRef(null)
   const imageRef = useRef(null)
+
+  // 防下载：禁用右键菜单
+  const preventContextMenu = useCallback((e) => {
+    e.preventDefault()
+    return false
+  }, [])
+
+  // 防下载：禁用拖拽
+  const preventDrag = useCallback((e) => {
+    e.preventDefault()
+    return false
+  }, [])
+
+  // 防下载：禁用键盘保存快捷键
+  const preventSaveShortcuts = useCallback((e) => {
+    // 禁用 Ctrl+S, Cmd+S, F12, Ctrl+Shift+I, Ctrl+Shift+J
+    if (
+      e.key === 's' && (e.ctrlKey || e.metaKey) ||
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+      (e.ctrlKey && e.key === 'u')
+    ) {
+      e.preventDefault()
+      return false
+    }
+  }, [])
 
   // 重置缩放和位置
   const resetView = useCallback(() => {
@@ -27,6 +54,9 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 
   // 处理键盘事件
   const handleKeyDown = useCallback((e) => {
+    // 先处理防下载快捷键
+    preventSaveShortcuts(e)
+    
     switch (e.key) {
       case 'Escape':
         onClose()
@@ -42,7 +72,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         resetView()
         break
     }
-  }, [onClose, onPrev, onNext, hasPrev, hasNext, resetView])
+  }, [onClose, onPrev, onNext, hasPrev, hasNext, resetView, preventSaveShortcuts])
 
   // 处理拖拽
   const handleMouseDown = useCallback((e) => {
@@ -65,11 +95,20 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
     setIsDragging(false)
   }, [])
 
-  // 添加事件监听
+  // 添加防下载事件监听
   useEffect(() => {
     const container = containerRef.current
+    const image = imageRef.current
+    
     if (container) {
       container.addEventListener('wheel', handleWheel, { passive: false })
+      container.addEventListener('contextmenu', preventContextMenu)
+      container.addEventListener('dragstart', preventDrag)
+    }
+    
+    if (image) {
+      image.addEventListener('contextmenu', preventContextMenu)
+      image.addEventListener('dragstart', preventDrag)
     }
     
     window.addEventListener('keydown', handleKeyDown)
@@ -79,12 +118,20 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
     return () => {
       if (container) {
         container.removeEventListener('wheel', handleWheel)
+        container.removeEventListener('contextmenu', preventContextMenu)
+        container.removeEventListener('dragstart', preventDrag)
       }
+      
+      if (image) {
+        image.removeEventListener('contextmenu', preventContextMenu)
+        image.removeEventListener('dragstart', preventDrag)
+      }
+      
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp])
+  }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp, preventContextMenu, preventDrag])
 
   // 计算图片样式
   const imageStyle = {
@@ -93,7 +140,9 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
     transition: isDragging ? 'none' : 'transform 0.2s ease-out',
     maxWidth: '100%',
     maxHeight: '100%',
-    objectFit: 'contain'
+    objectFit: 'contain',
+    userSelect: 'none',
+    pointerEvents: 'auto'
   }
 
   return (
@@ -103,6 +152,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
+      onContextMenu={preventContextMenu}
     >
       {/* 顶部工具栏 */}
       <div className="absolute top-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-4 flex items-center justify-between z-10">
@@ -111,6 +161,13 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
           <p className="text-xs opacity-50">缩放: {(scale * 100).toFixed(0)}%</p>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowWatermark(!showWatermark)}
+            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+            title={showWatermark ? '隐藏水印' : '显示水印'}
+          >
+            {showWatermark ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
           <button
             onClick={() => setScale(Math.min(3, scale + 0.2))}
             className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
@@ -171,24 +228,40 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         </button>
       )}
 
-      {/* 图片容器 */}
+      {/* 水印层 */}
+      {showWatermark && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/20 text-6xl font-bold select-none whitespace-nowrap transform -rotate-12">
+            情侣空间
+          </div>
+          <div className="absolute bottom-8 right-8 text-white/30 text-lg select-none">
+            baoandkai.pages.dev
+          </div>
+        </div>
+      )}
+
+      {/* 图片容器 - 添加防下载覆盖层 */}
       <div 
-        className="flex items-center justify-center w-full h-full px-16"
+        className="flex items-center justify-center w-full h-full px-16 relative"
         onMouseDown={handleMouseDown}
       >
+        {/* 防下载覆盖层 */}
+        <div className="absolute inset-0 pointer-events-none" />
+        
         <img
           ref={imageRef}
           src={photo.url}
           alt={photo.caption || '图片'}
-          className="select-none"
+          className="select-none pointer-events-auto"
           style={imageStyle}
           draggable={false}
+          onContextMenu={preventContextMenu}
         />
       </div>
 
       {/* 使用说明提示 */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full">
-        滚轮缩放 | 拖拽移动 | 方向键切换 | ESC关闭
+        滚轮缩放 | 拖拽移动 | 方向键切换 | ESC关闭 | 受保护图片
       </div>
     </div>
   )
@@ -390,3 +463,77 @@ export default function Albums() {
     </div>
   )
 }
+
+// 缩略图网格组件 - 带防下载保护
+const ThumbnailGrid = ({ photos, onPhotoClick }) => {
+  const preventContextMenu = useCallback((e) => {
+    e.preventDefault()
+    return false
+  }, [])
+
+  const preventDrag = useCallback((e) => {
+    e.preventDefault()
+    return false
+  }, [])
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      {photos.map((photo) => (
+        <div
+          key={photo.id}
+          className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+          onClick={() => onPhotoClick(photo)}
+        >
+          {/* 防下载覆盖层 */}
+          <div className="absolute inset-0 pointer-events-none z-10" />
+          
+          {/* 水印覆盖层 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+            <div className="absolute bottom-2 left-2 text-white/70 text-xs">
+              受保护图片
+            </div>
+          </div>
+          
+          <img
+            src={photo.url}
+            alt={photo.caption || '图片'}
+            className="w-full h-48 object-cover select-none"
+            draggable={false}
+            onContextMenu={preventContextMenu}
+            onDragStart={preventDrag}
+            loading="lazy"
+          />
+          
+          {/* 悬停效果 */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+          
+          {/* 保护提示 */}
+          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            🔒 保护
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// 在主渲染部分替换原来的图片网格
+      
+      {/* 图片网格 */}
+      {selectedAlbum && selectedAlbum.photos && selectedAlbum.photos.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {selectedAlbum.name} ({selectedAlbum.photos.length} 张图片)
+            </h3>
+            <div className="text-sm text-gray-500">
+              点击图片查看大图 | 受保护图片
+            </div>
+          </div>
+          
+          <ThumbnailGrid 
+            photos={selectedAlbum.photos} 
+            onPhotoClick={handlePhotoClick} 
+          />
+        </div>
+      )}
