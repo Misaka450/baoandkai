@@ -144,24 +144,33 @@ export default function Todos() {
             filteredTodos.map(todo => (
               <div
                 key={todo.id}
-                className={`backdrop-blur-sm bg-white/60 border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1 ${
-                  todo.completed ? 'opacity-75' : ''
+                className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 ${
+                  todo.completed 
+                    ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50' 
+                    : 'bg-white/60 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-3">
                       <div className={`p-2.5 rounded-xl mr-3 shadow-sm ${
-                        todo.completed ? 'bg-green-100' : 'bg-stone-100'
+                        todo.completed ? 'bg-gradient-to-br from-green-100 to-emerald-100 ring-1 ring-green-200' : 'bg-stone-100'
                       }`}>
                         <CheckSquare className={`w-4 h-4 ${
-                          todo.completed ? 'text-green-700' : 'text-stone-700'
+                          todo.completed ? 'text-green-600' : 'text-stone-700'
                         }`} />
                       </div>
                       <h3 className={`text-lg font-light ${
-                        todo.completed ? 'line-through text-stone-500' : 'text-stone-800'
+                        todo.completed 
+                          ? 'text-green-800 font-medium' 
+                          : 'text-stone-800'
                       }`}>
                         {todo.title}
+                        {todo.completed && (
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ✨ 已完成
+                          </span>
+                        )}
                       </h3>
                     </div>
                     
@@ -198,12 +207,14 @@ export default function Todos() {
                       <div className="mt-4">
                         <button
                           onClick={() => toggleTodoExpand(todo.id)}
-                          className="flex items-center text-sm text-stone-600 hover:text-stone-800 transition-colors"
+                          className="flex items-center text-sm transition-colors group"
                         >
-                          <Camera className="w-3 h-3 mr-1" />
-                          <span className="mr-1">完成记录</span>
+                          <Camera className="w-3 h-3 mr-1.5 text-green-600 group-hover:text-green-700 transition-transform group-hover:scale-110" />
+                          <span className="text-green-700 font-medium group-hover:text-green-800">
+                            {isTodoExpanded(todo.id) ? '收起记录' : '查看完成记录'}
+                          </span>
                           <ChevronDown 
-                            className={`w-3 h-3 transition-transform duration-200 ${
+                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${
                               isTodoExpanded(todo.id) ? 'rotate-180' : ''
                             }`} 
                           />
@@ -211,11 +222,15 @@ export default function Todos() {
                         
                         {/* 折叠内容 */}
                         <div className={`overflow-hidden transition-all duration-300 ${
-                          isTodoExpanded(todo.id) ? 'max-h-96 mt-3' : 'max-h-0'
+                          isTodoExpanded(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
                         }`}>
                           {/* 完成照片 */}
                           {todo.completion_photos && (
-                            <div className="mb-3">
+                            <div className="mb-4">
+                              <div className="flex items-center text-sm text-green-700 mb-2 font-medium">
+                                <Camera className="w-4 h-4 mr-2 text-green-600" />
+                                <span>完成瞬间</span>
+                              </div>
                               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                 {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
                                   (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
@@ -224,9 +239,10 @@ export default function Todos() {
                                     <img 
                                       src={photo} 
                                       alt={`完成照片 ${index + 1}`}
-                                      className="w-full h-16 object-cover rounded-lg border border-stone-200 hover:scale-110 transition-transform cursor-pointer"
+                                      className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all cursor-pointer"
                                       onClick={() => setSelectedImage(photo)}
                                     />
+                                    <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/10 rounded-lg transition-colors"></div>
                                   </div>
                                 ))}
                               </div>
@@ -236,12 +252,17 @@ export default function Todos() {
                           {/* 完成心得 */}
                           {todo.completion_notes && (
                             <div>
-                              <div className="flex items-center text-sm text-stone-600 mb-2">
-                                <Heart className="w-3 h-3 mr-1" />
+                              <div className="flex items-center text-sm text-green-700 mb-2 font-medium">
+                                <Heart className="w-4 h-4 mr-2 text-green-600" />
                                 <span>完成心得</span>
                               </div>
-                              <div className="text-sm text-stone-600 bg-stone-50 rounded-lg p-3 border border-stone-100">
-                                {todo.completion_notes}
+                              <div className="text-sm text-green-800 bg-gradient-to-r from-green-50/80 to-emerald-50/80 rounded-xl p-4 border border-green-100 shadow-sm">
+                                <div className="flex items-start">
+                                  <div className="w-1 h-full bg-gradient-to-b from-green-300 to-emerald-300 rounded-full mr-3"></div>
+                                  <div className="flex-1">
+                                    {todo.completion_notes}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )}
