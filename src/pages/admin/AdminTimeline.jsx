@@ -50,20 +50,16 @@ export default function AdminTimeline() {
     };
 
     try {
-      console.log('正在保存时间轴事件:', eventData);
-      
       if (editingEvent) {
         await apiRequest(`/api/timeline/${editingEvent.id}`, {
           method: 'PUT',
           body: JSON.stringify(eventData)
         })
-        console.log('时间轴事件更新成功');
       } else {
         await apiRequest('/api/timeline', {
           method: 'POST',
           body: JSON.stringify(eventData)
         })
-        console.log('时间轴事件创建成功');
       }
       
       await loadEvents();

@@ -6,7 +6,7 @@ import AdminSettings from './admin/AdminSettings'
 import AdminTimeline from './admin/AdminTimeline'
 import AdminAlbums from './admin/AdminAlbums'
 // 日记管理已移除
-import AdminFood from './admin/AdminFood'
+import AdminFoodCheckin from './admin/AdminFoodCheckin'
 import AdminTodos from './admin/AdminTodos'
 
 export default function Admin() {
@@ -26,7 +26,7 @@ export default function Admin() {
           <Route path="timeline" element={<AdminTimeline />} />
           <Route path="albums" element={<AdminAlbums />} />
           {/* <Route path="diary" element={<AdminDiary />} /> 日记管理已移除 */}
-          <Route path="food" element={<AdminFood />} />
+          <Route path="food" element={<AdminFoodCheckin />} />
           <Route path="todos" element={<AdminTodos />} />
         </Routes>
       </div>
