@@ -13,6 +13,9 @@ const ImageUploader = ({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
+  // 确保existingImages是数组
+  const safeExistingImages = Array.isArray(existingImages) ? existingImages : [];
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -240,11 +243,11 @@ const ImageUploader = ({
       )}
 
       {/* 已上传图片预览 */}
-      {existingImages.length > 0 && (
+      {safeExistingImages.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-2">已上传图片</h4>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {existingImages.map((url, index) => (
+            {safeExistingImages.map((url, index) => (
               <div key={index} className="relative group">
                 <img
                   src={url}
