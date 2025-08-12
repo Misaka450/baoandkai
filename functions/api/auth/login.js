@@ -58,16 +58,20 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 验证密码（简化版，实际应该使用bcrypt验证哈希）
-    // 数据库中的密码哈希是 'password' 的哈希值，我们需要特殊处理
+    // 验证密码
+    // 注意：为了简化，我们直接比较密码
+    // 在实际环境中应该使用 bcrypt.compare()
     let isValidPassword = false;
     
-    // 临时解决方案：直接比较密码
+    // 检查密码是否正确（临时解决方案）
     if (password === 'baobao123') {
       isValidPassword = true;
+    } else {
+      // 也接受旧密码 'password' 作为备选
+      if (password === 'password') {
+        isValidPassword = true;
+      }
     }
-    
-    // 注意：在生产环境中应该使用 bcrypt.compare(password, user.password_hash)
 
     if (!isValidPassword) {
       return new Response(JSON.stringify({ 
