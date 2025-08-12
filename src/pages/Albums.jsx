@@ -398,7 +398,6 @@ export default function Albums() {
               >
                 <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]">
                   <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-stone-100 flex items-center justify-center">
-                    // 修改相册封面图片，添加防下载保护
                     <img
                       src={getCoverImage(album)}
                       alt={album.name}
@@ -446,18 +445,7 @@ export default function Albums() {
                   onClick={() => handlePhotoClick(photo, index)}
                   className="group cursor-pointer"
                 >
-                  // 修改相册内图片，添加防下载保护
                   <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center relative group">
-                    {/* 防下载覆盖层 */}
-                    <div className="absolute inset-0 pointer-events-none z-10" />
-                    
-                    {/* 水印覆盖层 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
-                      <div className="absolute bottom-2 left-2 text-white/70 text-xs">
-                        受保护图片
-                      </div>
-                    </div>
-                    
                     <img
                       src={photo.url}
                       alt={photo.caption || `照片 ${index + 1}`}
