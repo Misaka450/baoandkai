@@ -151,7 +151,7 @@ export default function AdminTodos() {
     if (todo.status === 'completed') {
       setCompletionData({
         notes: todo.completion_notes || '',
-        photos: todo.completion_photos || []
+        photos: Array.isArray(todo.completion_photos) ? todo.completion_photos : []
       });
     } else {
       setCompletionData({ notes: '', photos: [] });
@@ -375,11 +375,11 @@ export default function AdminTodos() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">完成照片</label>
                     <ImageUploader
-                      existingImages={completionData.photos}
+                      existingImages={completionData.photos || []}
                       onImagesUploaded={(urls) => {
                         setCompletionData(prev => ({
                           ...prev,
-                          photos: [...prev.photos, ...urls]
+                          photos: [...(prev.photos || []), ...urls]
                         }));
                       }}
                       onRemoveImage={removePhoto}
