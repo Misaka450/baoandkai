@@ -172,6 +172,42 @@ export default function Todos() {
                         {new Date(todo.created_at).toLocaleDateString('zh-CN')}
                       </span>
                     </div>
+
+                    {/* 完成照片展示 */}
+                    {todo.completed && todo.completion_photos && (
+                      <div className="mt-4">
+                        <div className="flex items-center text-sm text-stone-600 mb-2">
+                          <Camera className="w-3 h-3 mr-1" />
+                          <span>完成记录</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                          {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
+                            (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
+                          ).map((photo, index) => (
+                            <div key={index} className="relative group">
+                              <img 
+                                src={photo} 
+                                alt={`完成照片 ${index + 1}`}
+                                className="w-full h-16 object-cover rounded-lg border border-stone-200 hover:scale-110 transition-transform cursor-pointer"
+                                onClick={() => window.open(photo, '_blank')}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {todo.completed && todo.completion_notes && (
+                      <div className="mt-3">
+                        <div className="flex items-center text-sm text-stone-600 mb-2">
+                          <Heart className="w-3 h-3 mr-1" />
+                          <span>完成心得</span>
+                        </div>
+                        <p className="text-sm text-stone-600 font-light bg-stone-50/50 p-3 rounded-lg">
+                          {todo.completion_notes}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
 
