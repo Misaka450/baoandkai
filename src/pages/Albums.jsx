@@ -464,7 +464,7 @@ export default function Albums() {
   )
 }
 
-// 缩略图网格组件 - 带防下载保护
+// 缩略图网格组件 - 带防下载保护（移除保护提示）
 const ThumbnailGrid = ({ photos, onPhotoClick }) => {
   const preventContextMenu = useCallback((e) => {
     e.preventDefault()
@@ -507,10 +507,7 @@ const ThumbnailGrid = ({ photos, onPhotoClick }) => {
           {/* 悬停效果 */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
           
-          {/* 保护提示 */}
-          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            🔒 保护
-          </div>
+          {/* 移除保护提示 */}
         </div>
       ))}
     </div>
