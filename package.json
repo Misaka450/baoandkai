@@ -17,6 +17,7 @@
     "db:migrate:remote": "npx wrangler d1 migrations apply oursql --remote"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "date-fns": "^2.29.3",
     "itty-router": "^5.0.21",
     "lucide-react": "^0.263.1",

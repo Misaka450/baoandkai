@@ -24,6 +24,19 @@ export async function onRequestGet(context) {
       FROM users 
       LIMIT 5
     `).all();
+    
+    // 查询特定用户数据用于调试
+    const user = await env.DB.prepare(`
+      SELECT id, username, email, password_hash FROM users WHERE username = ?
+    `).bind('baobao').first();
+    
+    // 检查密码验证
+    const testPasswords = ['baobao123', 'password'];
+    const passwordChecks = {};
+    
+    for (const pwd of testPasswords) {
+      passwordChecks[pwd] = (pwd === 'baobao123' || pwd === 'password');
+    }
 
     return new Response(JSON.stringify({
       success: true,
@@ -33,6 +46,9 @@ export async function onRequestGet(context) {
       },
       table_structure: tableInfo.results,
       users: users.results,
+      userData: user,
+      passwordChecks: passwordChecks,
+      expectedPasswords: ['baobao123', 'password'],
       timestamp: new Date().toISOString()
     }), { 
       headers: corsHeaders 
