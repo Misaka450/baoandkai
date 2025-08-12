@@ -8,6 +8,8 @@ export default function Navigation() {
   const { isAdmin } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
 
   // 检测是否为移动设备
   useEffect(() => {
@@ -18,6 +20,25 @@ export default function Navigation() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // 滚动隐藏导航栏
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // 向下滚动超过50px时隐藏，向上滚动时显示
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
 
   const navigation = [
     { name: '首页', href: '/', icon: Heart },
@@ -37,7 +58,9 @@ export default function Navigation() {
       {/* 汉堡按钮 */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden"
+        className={`fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden transition-transform duration-300 ${
+          isVisible ? 'translate-y-0' : '-translate-y-20'
+        }`}
       >
         {isMobileMenuOpen ? (
           <X className="h-6 w-6 text-gray-600" />
@@ -78,7 +101,9 @@ export default function Navigation() {
 
   // 桌面端导航
   const DesktopNav = () => (
-    <nav className="glass-card fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 hidden md:block">
+    <nav className={`glass-card fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 hidden md:block transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-20'
+    }`}>
       <div className="flex items-center space-x-6 lg:space-x-8">
         {currentNavigation.map((item) => {
           const isActive = location.pathname === item.href
