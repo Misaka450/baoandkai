@@ -132,7 +132,7 @@ export default function Navigation() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-2">
-              {currentNavigation.map((item, index) => {
+              {navigation.map((item, index) => {
                 const isActive = location.pathname === item.href
                 return (
                   <Link
@@ -152,7 +152,7 @@ export default function Navigation() {
                     <span className="font-medium">{item.name}</span>
                   </Link>
                 )
-              })}
+              })}</item.icon></item.icon></Link>
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function Navigation() {
       className="glass-card fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 hidden md:block transition-all duration-500 ease-out"
     >
       <div className="flex items-center space-x-6 lg:space-x-8">
-        {currentNavigation.map((item) => {
+        {navigation.map((item) => {
           const isActive = location.pathname === item.href
           return (
             <Link
@@ -183,7 +183,7 @@ export default function Navigation() {
               <span className="text-sm font-medium">{item.name}</span>
             </Link>
           )
-        })}
+        })}</item.icon></item.icon></Link>
       </div>
     </nav>
   )
