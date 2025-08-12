@@ -3,6 +3,7 @@ import { apiRequest } from '../../utils/api.js'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
+import ImageUploader from '../../components/ImageUploader'
 
 export default function AdminTimeline() {
   const [events, setEvents] = useState([])
@@ -187,66 +188,23 @@ export default function AdminTimeline() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">照片</label>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-3">
-                    {formData.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`照片 ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newImages = [...formData.images];
-                            newImages.splice(index, 1);
-                            setFormData({ ...formData, images: newImages });
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {formData.images.length < 6 && (
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="url"
-                        placeholder="输入图片URL"
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-400 focus:border-transparent"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const url = e.target.value.trim();
-                            if (url && url.startsWith('http')) {
-                              setFormData({ ...formData, images: [...formData.images, url] });
-                              e.target.value = '';
-                            }
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = prompt('请输入图片URL:');
-                          if (url && url.startsWith('http')) {
-                            setFormData({ ...formData, images: [...formData.images, url] });
-                          }
-                        }}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm"
-                      >
-                        添加
-                      </button>
-                    </div>
-                  )}
-                  
-                  <p className="text-xs text-gray-500">
-                    最多可添加6张照片，支持直接粘贴图片URL
-                  </p>
-                </div>
+                <ImageUploader
+                  onImagesUploaded={(newImages) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      images: [...(prev.images || []), ...newImages]
+                    }));
+                  }}
+                  onRemoveImage={(index) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      images: prev.images.filter((_, i) => i !== index)
+                    }));
+                  }}
+                  existingImages={formData.images || []}
+                  maxImages={6}
+                  folder="timeline"
+                />
               </div>
 
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
