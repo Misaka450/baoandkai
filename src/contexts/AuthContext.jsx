@@ -47,6 +47,8 @@ export function AuthProvider({ children }) {
     logout,
     loading,
     isAdmin: user?.role === 'admin',
+    isLoggedIn: !!user,
+    token: user?.token,
   }
 
   return (
