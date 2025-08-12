@@ -150,6 +150,13 @@ export default function AdminTodos() {
           continue;
         }
 
+        // 检查文件类型
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('请上传图片文件（JPG、PNG、GIF、WebP）');
+          continue;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', 'todos'); // 指定上传到todos文件夹
@@ -159,20 +166,30 @@ export default function AdminTodos() {
           body: formData
         });
 
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `上传失败: ${response.status}`);
+        }
+
         const result = await response.json();
         console.log('上传结果:', result);
         
-        if (result.urls && result.urls.length > 0) {
+        // 统一处理API返回格式
+        if (result.urls && Array.isArray(result.urls)) {
           uploadedUrls.push(...result.urls);
         } else if (result.url) {
           uploadedUrls.push(result.url);
+        } else {
+          console.warn('上传API返回格式异常:', result);
         }
       }
 
-      setCompletionData(prev => ({
-        ...prev,
-        photos: [...prev.photos, ...uploadedUrls]
-      }));
+      if (uploadedUrls.length > 0) {
+        setCompletionData(prev => ({
+          ...prev,
+          photos: [...prev.photos, ...uploadedUrls]
+        }));
+      }
     } catch (error) {
       console.error('上传失败:', error);
       alert('图片上传失败: ' + error.message);
