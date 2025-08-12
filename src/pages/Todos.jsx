@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star } from 'lucide-react'
+import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
 export default function Todos() {
   const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
+  const [expandedTodos, setExpandedTodos] = useState(new Set()) // 记录展开的待办ID
 
   useEffect(() => {
     fetchTodos()
@@ -60,6 +61,22 @@ export default function Todos() {
       day: 'numeric'
     })
   }
+
+  // 切换待办的展开/收起状态
+  const toggleTodoExpand = (todoId) => {
+    setExpandedTodos(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(todoId)) {
+        newSet.delete(todoId)
+      } else {
+        newSet.add(todoId)
+      }
+      return newSet
+    })
+  }
+
+  // 检查待办是否展开
+  const isTodoExpanded = (todoId) => expandedTodos.has(todoId)
 
   if (loading) {
     return (
@@ -174,40 +191,61 @@ export default function Todos() {
                     </div>
 
                     {/* 完成照片展示 */}
-                    {todo.completed && todo.completion_photos && (
+                    {/* 完成记录 - 可折叠展示 */}
+                    {todo.completed && (todo.completion_photos || todo.completion_notes) && (
                       <div className="mt-4">
-                        <div className="flex items-center text-sm text-stone-600 mb-2">
+                        <button
+                          onClick={() => toggleTodoExpand(todo.id)}
+                          className="flex items-center text-sm text-stone-600 hover:text-stone-800 transition-colors"
+                        >
                           <Camera className="w-3 h-3 mr-1" />
-                          <span>完成记录</span>
-                        </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                          {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
-                            (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
-                          ).map((photo, index) => (
-                            <div key={index} className="relative group">
-                              <img 
-                                src={photo} 
-                                alt={`完成照片 ${index + 1}`}
-                                className="w-full h-16 object-cover rounded-lg border border-stone-200 hover:scale-110 transition-transform cursor-pointer"
-                                onClick={() => window.open(photo, '_blank')}
-                              />
+                          <span className="mr-1">完成记录</span>
+                          <ChevronDown 
+                            className={`w-3 h-3 transition-transform duration-200 ${
+                              isTodoExpanded(todo.id) ? 'rotate-180' : ''
+                            }`} 
+                          />
+                        </button>
+                        
+                        {/* 折叠内容 */}
+                        <div className={`overflow-hidden transition-all duration-300 ${
+                          isTodoExpanded(todo.id) ? 'max-h-96 mt-3' : 'max-h-0'
+                        }`}>
+                          {/* 完成照片 */}
+                          {todo.completion_photos && (
+                            <div className="mb-3">
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
+                                  (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
+                                ).map((photo, index) => (
+                                  <div key={index} className="relative group">
+                                    <img 
+                                      src={photo} 
+                                      alt={`完成照片 ${index + 1}`}
+                                      className="w-full h-16 object-cover rounded-lg border border-stone-200 hover:scale-110 transition-transform cursor-pointer"
+                                      onClick={() => window.open(photo, '_blank')}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                          )}
 
-                    {todo.completed && todo.completion_notes && (
-                      <div className="mt-3">
-                        <div className="flex items-center text-sm text-stone-600 mb-2">
-                          <Heart className="w-3 h-3 mr-1" />
-                          <span>完成心得</span>
+                          {/* 完成心得 */}
+                          {todo.completion_notes && (
+                            <div>
+                              <div className="flex items-center text-sm text-stone-600 mb-2">
+                                <Heart className="w-3 h-3 mr-1" />
+                                <span>完成心得</span>
+                              </div>
+                              <div className="text-sm text-stone-600 bg-stone-50 rounded-lg p-3 border border-stone-100">
+                                {todo.completion_notes}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm text-stone-600 font-light bg-stone-50/50 p-3 rounded-lg">
-                          {todo.completion_notes}
-                        </p>
                       </div>
-                    )}
+                    )}]}
                   </div>
                   
 
