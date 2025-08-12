@@ -56,12 +56,7 @@ export async function onRequestDelete(context) {
 
 async function verifyToken(token, env) {
   try {
-    // 兼容前端的简单token验证
-    if (token && token.startsWith('admin-token-')) {
-      return { id: 1, username: 'admin', role: 'admin' }
-    }
-    
-    // 同时支持数据库验证
+    // 使用数据库验证token
     const user = await env.DB.prepare(`
       SELECT * FROM users WHERE token = ? AND token_expires > datetime('now')
     `).bind(token).first()
