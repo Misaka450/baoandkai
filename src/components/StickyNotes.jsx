@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Heart, Trash2, Plus, Loader2, MessageSquare, X } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 const API_BASE = '/api'
-const ADMIN_TOKEN = 'admin-token-123456789'
 
 // 莫兰迪色系配色方案 - 与时间轴统一
 const colorSchemes = [
@@ -20,6 +20,7 @@ const getRandomColor = () => {
 }
 
 export default function StickyNotes() {
+  const { isLoggedIn, token } = useAuth() // 获取登录状态和token
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [loading, setLoading] = useState(true)
@@ -58,6 +59,10 @@ export default function StickyNotes() {
 
   const addNote = async () => {
     if (!newNote.trim()) return
+    if (!isLoggedIn) {
+      alert('请先登录后再添加碎碎念！')
+      return
+    }
 
     setAddLoading(true)
     try {
@@ -67,7 +72,7 @@ export default function StickyNotes() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ADMIN_TOKEN}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           content: newNote,
@@ -93,12 +98,17 @@ export default function StickyNotes() {
   }
 
   const deleteNote = async (id) => {
+    if (!isLoggedIn) {
+      alert('请先登录后再删除碎碎念！')
+      return
+    }
+
     setDeleteLoading(true)
     try {
       const response = await fetch(`${API_BASE}/notes/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${ADMIN_TOKEN}`
+          'Authorization': `Bearer ${token}`
         }
       })
 
@@ -196,13 +206,15 @@ export default function StickyNotes() {
         <div className="animate-slide-up">
           <div className="flex justify-between items-center mb-12">
             <h1 className="text-4xl font-light text-stone-800">我们的碎碎念</h1>
-            <button
-              onClick={openAddModal}
-              className="bg-gradient-to-r from-rose-400 to-amber-400 text-white px-6 py-3 rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all duration-300 flex items-center space-x-2 hover:-translate-y-0.5"
-            >
-              <Plus className="w-5 h-5" />
-              <span>添加碎碎念</span>
-            </button>
+            {isLoggedIn && (
+              <button
+                onClick={openAddModal}
+                className="bg-gradient-to-r from-rose-400 to-amber-400 text-white px-6 py-3 rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all duration-300 flex items-center space-x-2 hover:-translate-y-0.5"
+              >
+                <Plus className="w-5 h-5" />
+                <span>添加碎碎念</span>
+              </button>
+            )}
           </div>
           
           {/* 碎碎念列表 */}
@@ -214,7 +226,9 @@ export default function StickyNotes() {
                 </div>
                 <div>
                   <h3 className="text-xl font-light text-stone-800 mb-2">还没有碎碎念</h3>
-                  <p className="text-stone-600 font-light">点击"添加碎碎念"按钮来创建第一条吧！</p>
+                  <p className="text-stone-600 font-light">
+                    {isLoggedIn ? '点击"添加碎碎念"按钮来创建第一条吧！' : '登录后可以添加碎碎念哦～'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -231,12 +245,14 @@ export default function StickyNotes() {
                       <div className="flex-1">
                         <p className={`${colorScheme.text} font-light leading-relaxed text-sm`}>{note.content}</p>
                       </div>
-                      <button
-                        onClick={() => openDeleteModal(note)}
-                        className="ml-2 p-2 text-stone-400 hover:text-stone-600 hover:bg-white/30 rounded-full transition-all duration-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {isLoggedIn && (
+                        <button
+                          onClick={() => openDeleteModal(note)}
+                          className="ml-2 p-2 text-stone-400 hover:text-stone-600 hover:bg-white/30 rounded-full transition-all duration-200"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                     
                     <div className="border-t border-white/20 my-4"></div>
