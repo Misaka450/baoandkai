@@ -20,7 +20,7 @@ export async function onRequestGet(context) {
 
     // 查询用户表数据
     const users = await env.DB.prepare(`
-      SELECT id, username, email, role, token, token_expires 
+      SELECT id, username, email, password_hash, token, token_expires 
       FROM users 
       LIMIT 5
     `).all();
