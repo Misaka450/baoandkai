@@ -123,7 +123,7 @@ export default function Timeline() {
                   <div className={`flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
                     <div className={`w-full md:w-[calc(50%-3rem)] ${index % 2 === 0 ? 'md:pr-8 pr-0' : 'md:pl-8 pl-0'}`}>
                       {/* 卡片 */}
-                      <div className={`backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1`}>
+                      <div className={`backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]`}>
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <div className="flex items-center mb-3">
