@@ -7,8 +7,7 @@ const ImageUploader = ({
   folder = 'images',
   existingImages = [],
   onRemoveImage,
-  // 文件大小限制 - 支持20MB相机照片
-  const maxFileSize = 20 * 1024 * 1024 // 20MB
+  maxFileSize = 20 * 1024 * 1024 // 20MB 支持更大的相机照片
 }) => {
   const [uploadingFiles, setUploadingFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
