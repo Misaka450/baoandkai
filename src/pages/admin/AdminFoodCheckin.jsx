@@ -11,21 +11,21 @@ export default function AdminFoodCheckin() {
   const [editingCheckin, setEditingCheckin] = useState(null)
   const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
   const [formData, setFormData] = useState({
-    restaurant: '',
-    dish: '',
-    category: '',
-    rating: 0,
-    taste_rating: 0,
-    environment_rating: 0,
-    service_rating: 0,
-    price: '',
-    location: '',
+    restaurant_name: '',
     description: '',
-    images: [],
-    recommended: false
+    date: '',
+    address: '',
+    cuisine: '',
+    price_range: '',
+    overall_rating: 5,
+    taste_rating: 5,
+    environment_rating: 5,
+    service_rating: 5,
+    recommended_dishes: '',
+    images: []
   })
 
-  const categories = ['川菜', '粤菜', '湘菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜', '火锅', '烧烤', '西餐', '日料', '韩料', '东南亚', '其他']
+  const cuisines = ['中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '甜品', '其他']
 
   useEffect(() => {
     fetchCheckins()
@@ -33,7 +33,7 @@ export default function AdminFoodCheckin() {
 
   const fetchCheckins = async () => {
     try {
-      const data = await apiRequest('/api/food-checkin')
+      const data = await apiRequest('/api/food')
       setCheckins(data)
     } catch (error) {
       console.error('获取美食打卡失败:', error)
@@ -43,39 +43,39 @@ export default function AdminFoodCheckin() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.restaurant.trim()) {
+    if (!formData.restaurant_name.trim()) {
       await showAlert('提示', '请输入餐厅名称', 'warning')
       return
     }
     
-    if (!formData.dish.trim()) {
-      await showAlert('提示', '请输入菜品名称', 'warning')
+    if (!formData.date) {
+      await showAlert('提示', '请选择日期', 'warning')
       return
     }
 
     const checkinData = {
-      restaurant: formData.restaurant.trim(),
-      dish: formData.dish.trim(),
-      category: formData.category,
-      rating: Number(formData.rating),
+      restaurant_name: formData.restaurant_name.trim(),
+      description: formData.description?.trim() || '',
+      date: formData.date,
+      address: formData.address?.trim() || '',
+      cuisine: formData.cuisine,
+      price_range: formData.price_range?.trim() || '',
+      overall_rating: Number(formData.overall_rating),
       taste_rating: Number(formData.taste_rating),
       environment_rating: Number(formData.environment_rating),
       service_rating: Number(formData.service_rating),
-      price: formData.price ? Number(formData.price) : null,
-      location: formData.location?.trim() || '',
-      description: formData.description?.trim() || '',
-      images: formData.images,
-      recommended: formData.recommended
+      recommended_dishes: formData.recommended_dishes?.trim() || '',
+      images: formData.images
     }
 
     try {
       if (editingCheckin) {
-        await apiRequest(`/api/food-checkin/${editingCheckin.id}`, {
+        await apiRequest(`/api/food/${editingCheckin.id}`, {
           method: 'PUT',
           body: JSON.stringify(checkinData)
         })
       } else {
-        await apiRequest('/api/food-checkin', {
+        await apiRequest('/api/food', {
           method: 'POST',
           body: JSON.stringify(checkinData)
         })
@@ -95,18 +95,18 @@ export default function AdminFoodCheckin() {
 
   const resetForm = () => {
     setFormData({
-      restaurant: '',
-      dish: '',
-      category: '',
-      rating: 0,
-      taste_rating: 0,
-      environment_rating: 0,
-      service_rating: 0,
-      price: '',
-      location: '',
+      restaurant_name: '',
       description: '',
-      images: [],
-      recommended: false
+      date: '',
+      address: '',
+      cuisine: '',
+      price_range: '',
+      overall_rating: 5,
+      taste_rating: 5,
+      environment_rating: 5,
+      service_rating: 5,
+      recommended_dishes: '',
+      images: []
     })
   }
 
@@ -115,7 +115,7 @@ export default function AdminFoodCheckin() {
     if (!confirmed) return
 
     try {
-      await apiRequest(`/api/food-checkin/${id}`, {
+      await apiRequest(`/api/food/${id}`, {
         method: 'DELETE'
       })
       fetchCheckins()
@@ -127,18 +127,18 @@ export default function AdminFoodCheckin() {
   const handleEdit = (checkin) => {
     setEditingCheckin(checkin)
     setFormData({
-      restaurant: checkin.restaurant,
-      dish: checkin.dish,
-      category: checkin.category,
-      rating: checkin.rating,
-      taste_rating: checkin.taste_rating || 0,
-      environment_rating: checkin.environment_rating || 0,
-      service_rating: checkin.service_rating || 0,
-      price: checkin.price || '',
-      location: checkin.location || '',
+      restaurant_name: checkin.restaurant_name || '',
       description: checkin.description || '',
-      images: checkin.images || [],
-      recommended: checkin.recommended || false
+      date: checkin.date || '',
+      address: checkin.address || '',
+      cuisine: checkin.cuisine || '',
+      price_range: checkin.price_range || '',
+      overall_rating: checkin.overall_rating || 5,
+      taste_rating: checkin.taste_rating || 5,
+      environment_rating: checkin.environment_rating || 5,
+      service_rating: checkin.service_rating || 5,
+      recommended_dishes: checkin.recommended_dishes || '',
+      images: checkin.images || []
     })
     setShowForm(true)
   }
@@ -178,25 +178,18 @@ export default function AdminFoodCheckin() {
     )
   }
 
-  const getCategoryColor = (category) => {
+  const getCategoryColor = (cuisine) => {
     const colors = {
-      '川菜': 'bg-red-100 text-red-800',
-      '粤菜': 'bg-green-100 text-green-800',
-      '湘菜': 'bg-orange-100 text-orange-800',
-      '鲁菜': 'bg-blue-100 text-blue-800',
-      '苏菜': 'bg-purple-100 text-purple-800',
-      '浙菜': 'bg-pink-100 text-pink-800',
-      '闽菜': 'bg-teal-100 text-teal-800',
-      '徽菜': 'bg-yellow-100 text-yellow-800',
-      '火锅': 'bg-red-200 text-red-900',
-      '烧烤': 'bg-gray-100 text-gray-800',
-      '西餐': 'bg-indigo-100 text-indigo-800',
-      '日料': 'bg-red-100 text-red-800',
-      '韩料': 'bg-rose-100 text-rose-800',
-      '东南亚': 'bg-amber-100 text-amber-800',
-      '其他': 'bg-slate-100 text-slate-800'
+      '中餐': 'bg-red-100 text-red-800',
+      '西餐': 'bg-blue-100 text-blue-800',
+      '日料': 'bg-pink-100 text-pink-800',
+      '韩料': 'bg-purple-100 text-purple-800',
+      '火锅': 'bg-red-300 text-red-900',
+      '烧烤': 'bg-orange-200 text-orange-900',
+      '甜品': 'bg-yellow-100 text-yellow-800',
+      '其他': 'bg-gray-100 text-gray-800'
     }
-    return colors[category] || 'bg-gray-100 text-gray-800'
+    return colors[cuisine] || 'bg-gray-100 text-gray-800'
   }
 
   return (
@@ -238,26 +231,26 @@ export default function AdminFoodCheckin() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  餐厅名称 *
-                </label>
-                <input
-                  type="text"
-                  value={formData.restaurant}
-                  onChange={(e) => setFormData({ ...formData, restaurant: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  required
-                />
-              </div>
-              
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                餐厅名称 *
+              </label>
+              <input
+                type="text"
+                value={formData.restaurant_name}
+                onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              />
+            </div>
+            
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  菜品名称 *
+                  打卡日期 *
                 </label>
                 <input
-                  type="text"
-                  value={formData.dish}
-                  onChange={(e) => setFormData({ ...formData, dish: e.target.value })}
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                   required
                 />
@@ -270,43 +263,43 @@ export default function AdminFoodCheckin() {
                   菜系分类
                 </label>
                 <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  value={formData.cuisine}
+                  onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
                   <option value="">选择菜系</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {cuisines.map(c => (
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  价格
+                  价格区间
                 </label>
                 <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  type="text"
+                  value={formData.price_range}
+                  onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="元"
+                  placeholder="如：人均100-200"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                位置
+                餐厅地址
               </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full pl-10 pr-3 py-2 border rounded-lg"
-                  placeholder="餐厅地址"
+                  placeholder="请输入餐厅地址"
                 />
               </div>
             </div>
@@ -327,9 +320,9 @@ export default function AdminFoodCheckin() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  总体评分
+                  综合评分
                 </label>
-                {renderStars(formData.rating, (rating) => setFormData({ ...formData, rating }))}
+                {renderStars(formData.overall_rating, (rating) => setFormData({ ...formData, overall_rating: rating }))}
               </div>
               
               <div>
@@ -390,17 +383,17 @@ export default function AdminFoodCheckin() {
               )}
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="recommended"
-                checked={formData.recommended}
-                onChange={(e) => setFormData({ ...formData, recommended: e.target.checked })}
-                className="mr-2"
-              />
-              <label htmlFor="recommended" className="text-sm font-medium text-gray-700">
-                强烈推荐
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                推荐菜品
               </label>
+              <input
+                type="text"
+                value={formData.recommended_dishes}
+                onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="请输入推荐菜品，多个用逗号分隔"
+              />
             </div>
 
             <div className="flex space-x-2">
@@ -445,7 +438,7 @@ export default function AdminFoodCheckin() {
             </div>
             <div className="p-4">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg">{checkin.dish}</h3>
+                <h3 className="font-semibold text-lg">{checkin.restaurant_name}</h3>
                 {checkin.recommended && (
                   <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
                     推荐
@@ -453,21 +446,23 @@ export default function AdminFoodCheckin() {
                 )}
               </div>
               
-              <p className="text-gray-600 text-sm mb-2">{checkin.restaurant}</p>
+              {checkin.description && (
+                <p className="text-gray-600 text-sm mb-2">{checkin.description}</p>
+              )}
               
-              {checkin.category && (
-                <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${getCategoryColor(checkin.category)}`}>
-                  {checkin.category}
+              {checkin.cuisine && (
+                <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${getCategoryColor(checkin.cuisine)}`}>
+                  {checkin.cuisine}
                 </span>
               )}
               
               <div className="flex items-center mb-2">
-                {renderStars(checkin.rating, () => {})}
-                <span className="ml-2 text-sm text-gray-600">{checkin.rating}分</span>
+                {renderStars(checkin.overall_rating, () => {})}
+                <span className="ml-2 text-sm text-gray-600">{checkin.overall_rating}分</span>
               </div>
               
-              {checkin.price && (
-                <p className="text-sm text-gray-500 mb-2">¥{checkin.price}</p>
+              {checkin.price_range && (
+                <p className="text-sm text-gray-500 mb-2">{checkin.price_range}</p>
               )}
               
               <div className="flex space-x-2 mt-3">
