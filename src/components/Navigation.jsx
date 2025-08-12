@@ -152,7 +152,7 @@ export default function Navigation() {
                     <span className="font-medium">{item.name}</span>
                   </Link>
                 )
-              })}</item.icon></item.icon></Link>
+              })}
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function Navigation() {
               <span className="text-sm font-medium">{item.name}</span>
             </Link>
           )
-        })}</item.icon></item.icon></Link>
+        })}
       </div>
     </nav>
   )
