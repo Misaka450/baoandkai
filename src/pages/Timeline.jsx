@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock } from 'lucide-react'
 import { apiRequest } from '../utils/api'
+import ImageModal from '../components/ImageModal'
 
 export default function Timeline() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imageModalOpen, setImageModalOpen] = useState(false)
 
   useEffect(() => {
     fetchEvents()
@@ -159,13 +162,24 @@ export default function Timeline() {
                         {event.images && event.images.length > 0 && (
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                             {event.images.map((image, imgIndex) => (
-                              <div key={imgIndex} className="relative group overflow-hidden rounded-xl">
+                              <div key={imgIndex} className="relative group overflow-hidden rounded-xl cursor-pointer"
+                                   onClick={() => {
+                                     setSelectedImage(image)
+                                     setImageModalOpen(true)
+                                   }}>
                                 <img
                                   src={image}
                                   alt={`${event.title} - ${imgIndex + 1}`}
                                   className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="bg-black/50 backdrop-blur-sm text-white rounded-full p-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -192,6 +206,13 @@ export default function Timeline() {
           </div>
         )}
       </div>
+      
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={selectedImage}
+        title="查看图片"
+      />
     </div>
   )
 }
