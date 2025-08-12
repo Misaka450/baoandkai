@@ -310,7 +310,7 @@ export default function Albums() {
                 onClick={() => setSelectedAlbum(album)}
                 className="group cursor-pointer"
               >
-                <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1">
+                <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]">
                   <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-stone-100 flex items-center justify-center">
                     <img
                       src={getCoverImage(album)}
