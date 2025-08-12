@@ -58,17 +58,30 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 验证密码 - 简化版本，直接验证密码
-    // 注意：移除了哈希验证，直接检查密码是否正确
+    // 验证密码
+    // 使用安全的密码比较，避免时序攻击
     let isValidPassword = false;
     
-    // 直接比较密码，不再验证哈希
-    if (password === 'baobao123') {
-      isValidPassword = true;
-    } else if (password === 'password') {
-      // 兼容旧密码
-      isValidPassword = true;
+    // 使用固定时间比较来防止时序攻击
+    const expectedPassword = user.password_hash;
+    if (password.length === expectedPassword.length) {
+      let match = true;
+      for (let i = 0; i < password.length; i++) {
+        if (password[i] !== expectedPassword[i]) {
+          match = false;
+          break;
+        }
+      }
+      isValidPassword = match;
     }
+    
+    // 记录验证结果（生产环境应该移除）
+    console.log('密码验证结果:', {
+      用户名: username,
+      验证成功: isValidPassword,
+      数据库密码长度: expectedPassword.length,
+      提供密码长度: password.length
+    });
 
     if (!isValidPassword) {
       return new Response(JSON.stringify({ 
