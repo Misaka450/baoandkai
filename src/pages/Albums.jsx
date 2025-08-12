@@ -289,6 +289,18 @@ export default function Albums() {
     }
   }
 
+  // 防止右键菜单（防止下载图片）
+  const preventContextMenu = (e) => {
+    e.preventDefault()
+    return false
+  }
+
+  // 防止拖拽图片（防止下载）
+  const preventDrag = (e) => {
+    e.preventDefault()
+    return false
+  }
+
   // 获取相册封面图片
   const getCoverImage = (album) => {
     if (album.cover_image) return album.cover_image
