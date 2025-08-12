@@ -58,19 +58,16 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 验证密码
-    // 注意：为了简化，我们直接比较密码
-    // 在实际环境中应该使用 bcrypt.compare()
+    // 验证密码 - 简化版本，直接验证密码
+    // 注意：移除了哈希验证，直接检查密码是否正确
     let isValidPassword = false;
     
-    // 检查密码是否正确（临时解决方案）
+    // 直接比较密码，不再验证哈希
     if (password === 'baobao123') {
       isValidPassword = true;
-    } else {
-      // 也接受旧密码 'password' 作为备选
-      if (password === 'password') {
-        isValidPassword = true;
-      }
+    } else if (password === 'password') {
+      // 兼容旧密码
+      isValidPassword = true;
     }
 
     if (!isValidPassword) {
