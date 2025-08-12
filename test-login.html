@@ -72,11 +72,14 @@
     <div class="container">
         <h1>登录测试页面</h1>
         
-        <h2>1. 首先修复数据库</h2>
-        <button onclick="fixDatabase()">修复数据库密码</button>
-        
-        <h2>2. 检查数据库状态</h2>
-        <button onclick="checkDatabase()">查看数据库状态</button>
+        <h2>1. 设置bcrypt哈希密码</h2>
+    <button onclick="setupHashPassword()">设置安全密码</button>
+    
+    <h2>2. 检查数据库状态</h2>
+    <button onclick="checkDatabase()">查看数据库状态</button>
+    
+    <h2>3. 验证bcrypt哈希</h2>
+    <button onclick="verifyHash()">验证哈希设置</button>
         
         <h2>3. 测试登录</h2>
         <div class="form-group">
@@ -100,10 +103,10 @@
             resultDiv.textContent = content;
         }
 
-        async function fixDatabase() {
-            showResult('正在修复数据库...', 'info');
+        async function setupHashPassword() {
+            showResult('正在设置bcrypt哈希密码...', 'info');
             try {
-                const response = await fetch('/api/auth/fix-password', {
+                const response = await fetch('/api/auth/setup-hash-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -112,7 +115,18 @@
                 const data = await response.json();
                 showResult(JSON.stringify(data, null, 2), data.success ? 'success' : 'error');
             } catch (error) {
-                showResult('修复失败: ' + error.message, 'error');
+                showResult('设置失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function verifyHash() {
+            showResult('正在验证bcrypt哈希...', 'info');
+            try {
+                const response = await fetch('/api/auth/setup-hash-password');
+                const data = await response.json();
+                showResult(JSON.stringify(data, null, 2), 'info');
+            } catch (error) {
+                showResult('验证失败: ' + error.message, 'error');
             }
         }
 
