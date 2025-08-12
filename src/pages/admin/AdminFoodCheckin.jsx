@@ -25,7 +25,7 @@ export default function AdminFoodCheckin() {
     images: []
   })
 
-  const cuisines = ['中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '甜品', '其他']
+  const cuisines = ['中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '烤肉', '甜品', '其他']
 
   useEffect(() => {
     fetchCheckins()
@@ -186,6 +186,7 @@ export default function AdminFoodCheckin() {
       '韩料': 'bg-purple-100 text-purple-800',
       '火锅': 'bg-red-300 text-red-900',
       '烧烤': 'bg-orange-200 text-orange-900',
+      '烤肉': 'bg-red-200 text-red-900',
       '甜品': 'bg-yellow-100 text-yellow-800',
       '其他': 'bg-gray-100 text-gray-800'
     }

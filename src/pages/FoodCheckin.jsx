@@ -28,7 +28,7 @@ export default function FoodCheckin() {
     }
   }
 
-  const cuisines = ['all', '中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '甜品', '其他']
+  const cuisines = ['all', '中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '烤肉', '甜品', '其他']
 
   const filteredAndSortedCheckins = checkins
     .filter(checkin => filter === 'all' || checkin.cuisine === filter)
@@ -65,6 +65,9 @@ export default function FoodCheckin() {
       '西餐': 'bg-stone-100 text-stone-800 border-stone-200',
       '日料': 'bg-slate-100 text-slate-800 border-slate-200',
       '韩料': 'bg-rose-100 text-rose-800 border-rose-200',
+      '火锅': 'bg-red-100 text-red-800 border-red-200',
+      '烧烤': 'bg-orange-100 text-orange-800 border-orange-200',
+      '烤肉': 'bg-red-100 text-red-800 border-red-200',
       '甜品': 'bg-pink-100 text-pink-800 border-pink-200',
       '其他': 'bg-stone-100 text-stone-800 border-stone-200'
     }
