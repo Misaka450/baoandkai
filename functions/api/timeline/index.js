@@ -85,70 +85,13 @@ export async function onRequestPost(context) {
   }
 }
 
-export async function onRequestPut(context) {
-  const { request, env } = context;
-  
-  try {
-    const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
-    const body = await request.json();
-    const { title, description, date, location, category, images = [] } = body;
-    
-    await env.DB.prepare(`
-      UPDATE timeline_events 
-      SET title = ?, description = ?, date = ?, location = ?, category = ?, images = ?, updated_at = datetime('now') 
-      WHERE id = ?
-    `).bind(title, description, date, location, category, images.join(','), id).run();
-    
-    const updatedEvent = await env.DB.prepare(`
-      SELECT * FROM timeline_events WHERE id = ?
-    `).bind(id).first();
-
-    return new Response(JSON.stringify({
-      ...updatedEvent,
-      images: updatedEvent.images ? updatedEvent.images.split(',') : []
-    }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
-
-export async function onRequestDelete(context) {
-  const { env } = context;
-  
-  try {
-    const url = new URL(context.request.url);
-    const id = url.pathname.split('/').pop();
-    
-    await env.DB.prepare('DELETE FROM timeline_events WHERE id = ?').bind(id).run();
-    
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
+// 移除PUT和DELETE方法，由[id].js处理单个事件的操作
 
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   });
