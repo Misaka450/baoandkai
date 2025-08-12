@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 -- 插入默认管理员用户（如果不存在）
 INSERT OR IGNORE INTO users (id, username, password_hash, email, couple_name1, couple_name2, anniversary_date)
-VALUES (1, 'admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com', '包包', '恺恺', '2023-10-08');
+VALUES (1, 'baobao', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'baobao@example.com', '包包', '恺恺', '2023-10-08');
 
 -- 插入默认碎碎念（如果不存在）
 INSERT OR IGNORE INTO notes (id, content, color, user_id) VALUES 
