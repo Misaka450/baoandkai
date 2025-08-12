@@ -25,15 +25,11 @@ export default function Navigation() {
     { name: '相册', href: '/albums', icon: Image },
     { name: '待办', href: '/todos', icon: CheckSquare },
     { name: '美食', href: '/food', icon: Utensils },
-  ]
-
-  // 管理员额外导航
-  const adminNavigation = [
-    ...navigation,
     { name: '管理', href: '/admin', icon: Settings }
   ]
 
-  const currentNavigation = isAdmin ? adminNavigation : navigation
+  // 所有用户都显示管理入口
+  const currentNavigation = navigation
 
   // 移动端汉堡菜单
   const MobileMenu = () => (
