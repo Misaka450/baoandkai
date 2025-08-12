@@ -57,8 +57,8 @@ export default function Home() {
 
     return (
       <div className="relative">
-        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-6 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] hover:-translate-y-1`}>
-          <div className="text-3xl md:text-4xl font-light mb-2 font-mono">
+        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-6 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:scale-[1.02]`}>
+          <div className="text-3xl md:text-4xl font-light mb-2 font-mono tracking-wider">
             {String(value).padStart(2, '0')}
           </div>
           <div className="text-sm font-light opacity-80">
@@ -81,7 +81,7 @@ export default function Home() {
           <p className="text-xl text-stone-600 font-light tracking-wide">我们的温柔时光</p>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] mb-12">
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] mb-12">
           <div className="text-center mb-8">
             <div className="text-xl text-stone-600 mb-8 font-light">我们相爱已经</div>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
@@ -94,7 +94,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/30">
+          <div className="bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/30 transition-all duration-500 hover:bg-stone-100/60">
             <div className="flex items-center justify-center text-stone-700 mb-2">
               <Calendar className="h-5 w-5 mr-3 text-stone-400" />
               <span className="text-base font-light">我们的纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', {
