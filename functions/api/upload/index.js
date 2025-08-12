@@ -29,7 +29,8 @@ export async function onRequestPost(context) {
     }
 
     // 验证每个文件
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    // 上传接口配置
+    const maxFileSize = 20 * 1024 * 1024; // 20MB 支持更大的相机照片
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     
     for (const file of files) {
