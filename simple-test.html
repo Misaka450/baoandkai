@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        #output { white-space: pre-wrap; background: #f5f5f5; padding: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>登录测试</h1>
+    
+    <button onclick="testApi()">测试API连接</button>
+    <button onclick="checkUsers()">查看用户</button>
+    <button onclick="testLogin()">测试登录</button>
+    
+    <div id="output"></div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        function log(message) {
+            document.getElementById('output').textContent += message + '\n';
+        }
+        
+        function clear() {
+            document.getElementById('output').textContent = '';
+        }
+        
+        async function testApi() {
+            clear();
+            log('测试API连接...');
+            try {
+                const response = await fetch('/api/auth/debug-login');
+                const data = await response.json();
+                log('状态: ' + response.status);
+                log('数据: ' + JSON.stringify(data, null, 2));
+            } catch (e) {
+                log('错误: ' + e.message);
+            }
+        }
+        
+        async function checkUsers() {
+            clear();
+            log('查看用户...');
+            try {
+                const response = await fetch('/api/auth/debug-login');
+                const data = await response.json();
+                if (data.users) {
+                    data.users.forEach(user => {
+                        log(`用户: ${user.username}, 密码: ${user.password_hash}`);
+                    });
+                } else {
+                    log('无用户数据: ' + JSON.stringify(data));
+                }
+            } catch (e) {
+                log('错误: ' + e.message);
+            }
+        }
+        
+        async function testLogin() {
+            clear();
+            log('测试登录...');
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: 'baobao', password: 'baobao123'})
+                });
+                const data = await response.json();
+                log('状态: ' + response.status);
+                log('响应: ' + JSON.stringify(data, null, 2));
+            } catch (e) {
+                log('错误: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
