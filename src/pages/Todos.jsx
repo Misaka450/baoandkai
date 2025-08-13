@@ -7,6 +7,7 @@ export default function Todos() {
   const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
+  const [priorityFilter, setPriorityFilter] = useState('all') // all, high, medium, low
   const [expandedTodos, setExpandedTodos] = useState(new Set()) // 记录展开的待办ID
   const [selectedImage, setSelectedImage] = useState(null) // 当前选中的放大图片
 
@@ -49,12 +50,23 @@ export default function Todos() {
 
   const getFilteredTodos = () => {
     const mappedTodos = todos.map(mapTodoFields)
-    if (filter === 'all') return mappedTodos
-    return mappedTodos.filter(todo => {
-      if (filter === 'pending') return !todo.completed
-      if (filter === 'completed') return todo.completed
-      return true
-    })
+    
+    // 先按完成状态筛选
+    let filtered = mappedTodos
+    if (filter !== 'all') {
+      filtered = filtered.filter(todo => {
+        if (filter === 'pending') return !todo.completed
+        if (filter === 'completed') return todo.completed
+        return true
+      })
+    }
+    
+    // 再按优先级筛选
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(todo => todo.priority === priorityFilter)
+    }
+    
+    return filtered
   }
 
   const priorityColors = {
