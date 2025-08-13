@@ -42,13 +42,16 @@ export async function onRequestPost(context) {
       });
     }
 
+    // 验证优先级，确保在1-3范围内
+    const validPriority = priority && priority >= 1 && priority <= 3 ? priority : 2;
+
     console.log('正在插入数据到数据库...');
     
     const result = await env.DB.prepare(`
         INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, created_at) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `).bind(
-        title, description || '', status || 'pending', priority || 3, category || 'general', due_date || null, completion_notes || null, completion_photos ? JSON.stringify(completion_photos) : null
+        title, description || '', status || 'pending', validPriority, category || 'general', due_date || null, completion_notes || null, completion_photos ? JSON.stringify(completion_photos) : null
       ).run();
       
     const todoId = result.meta.last_row_id;
