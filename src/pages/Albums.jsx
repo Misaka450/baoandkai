@@ -8,7 +8,6 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [showWatermark, setShowWatermark] = useState(true)
   const containerRef = useRef(null)
   const imageRef = useRef(null)
 
@@ -163,13 +162,6 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setShowWatermark(!showWatermark)}
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
-            title={showWatermark ? '隐藏水印' : '显示水印'}
-          >
-            {showWatermark ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
-          <button
             onClick={() => setScale(Math.min(3, scale + 0.2))}
             className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
             title="放大"
@@ -229,19 +221,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         </button>
       )}
 
-      {/* 水印层 */}
-      {showWatermark && (
-        <div className="absolute inset-0 pointer-events-none z-20">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/20 text-6xl font-bold select-none whitespace-nowrap transform -rotate-12">
-            情侣空间
-          </div>
-          <div className="absolute bottom-8 right-8 text-white/30 text-lg select-none">
-            baoandkai.pages.dev
-          </div>
-        </div>
-      )}
-
-      {/* 图片容器 - 添加防下载覆盖层 */}
+      {/* 图片容器 - 添加防下载保护 */}
       <div 
         className="flex items-center justify-center w-full h-full px-16 relative"
         onMouseDown={handleMouseDown}
@@ -262,7 +242,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 
       {/* 使用说明提示 */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full">
-        滚轮缩放 | 拖拽移动 | 方向键切换 | ESC关闭 | 受保护图片
+        滚轮缩放 | 拖拽移动 | 方向键切换 | ESC关闭
       </div>
     </div>
   )
@@ -384,7 +364,7 @@ export default function Albums() {
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的回忆相册</h1>
+          <h1 className="text-4xl font-light text-stone-800 mb-4">包包和恺恺的小窝 · 回忆相册</h1>
           <p className="text-stone-600 font-light">收藏每一个值得珍藏的瞬间</p>
         </div>
 
