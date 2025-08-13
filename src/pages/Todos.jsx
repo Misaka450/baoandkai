@@ -238,7 +238,7 @@ export default function Todos() {
                                       className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all cursor-pointer"
                                       onClick={() => setSelectedImage(photo)}
                                     />
-                                    <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/10 rounded-lg transition-colors"></div>
+                                    <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/10 rounded-lg transition-colors pointer-events-none"></div>
                                   </div>
                                 ))}
                               </div>
