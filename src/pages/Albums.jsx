@@ -454,8 +454,8 @@ export default function Albums() {
             onClose={closeImageViewer}
             onPrev={goToPrevPhoto}
             onNext={goToNextPhoto}
-            hasPrev={true}
-            hasNext={true}
+            hasPrev={selectedPhoto.album.photos && selectedPhoto.album.photos.length > 1}
+            hasNext={selectedPhoto.album.photos && selectedPhoto.album.photos.length > 1}
           />
         )}
       </div>
