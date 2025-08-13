@@ -231,12 +231,19 @@ export default function Todos() {
                                 {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
                                   (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
                                 ).map((photo, index) => (
-                                  <div key={index} className="relative group">
+                                  <div 
+                                    key={index} 
+                                    className="relative group cursor-pointer"
+                                    onClick={(e) => {
+                                      console.log('图片区域被点击:', photo);
+                                      e.stopPropagation();
+                                      setSelectedImage(photo);
+                                    }}
+                                  >
                                     <img 
                                       src={photo} 
                                       alt={`完成照片 ${index + 1}`}
-                                      className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all cursor-pointer"
-                                      onClick={() => setSelectedImage(photo)}
+                                      className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all pointer-events-none"
                                     />
                                     <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/10 rounded-lg transition-colors pointer-events-none"></div>
                                   </div>
