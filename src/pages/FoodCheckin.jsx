@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart } from 'lucide-react'
+import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart, Utensils as FoodIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
 export default function FoodCheckin() {
@@ -127,6 +127,7 @@ export default function FoodCheckin() {
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
+          <FoodIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
           <h1 className="text-4xl font-light text-stone-800 mb-4">美食打卡</h1>
           <p className="text-stone-600 font-light">记录我们一起品尝的每一道美食</p>
         </div>

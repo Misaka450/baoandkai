@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff } from 'lucide-react'
+import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 
 // 图片查看器组件 - 带防下载保护
@@ -366,6 +366,7 @@ export default function Albums() {
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
+          <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
           <h1 className="text-4xl font-light text-stone-800 mb-4">包包和恺恺的小窝 · 回忆相册</h1>
           <p className="text-stone-600 font-light">收藏每一个值得珍藏的瞬间</p>
         </div>

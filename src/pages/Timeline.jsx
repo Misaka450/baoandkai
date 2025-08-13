@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock } from 'lucide-react'
+import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock, Clock as TimelineIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 import ImageModal from '../components/ImageModal'
 
@@ -82,6 +82,7 @@ export default function Timeline() {
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
+          <TimelineIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
           <h1 className="text-4xl font-light text-stone-800 mb-4">我们的爱情足迹</h1>
           <p className="text-stone-600 font-light">记录每一个值得纪念的瞬间</p>
         </div>
