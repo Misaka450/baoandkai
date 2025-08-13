@@ -197,13 +197,14 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         <button
           onClick={(e) => {
             e.stopPropagation()
+            console.log('上一张按钮被点击')
             onPrev()
             resetView()
           }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-3 rounded-full transition-all hover:bg-black/70"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-4 rounded-full transition-all hover:bg-black/70 z-20 cursor-pointer"
           title="上一张 (←)"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-8 w-8" />
         </button>
       )}
       
@@ -211,19 +212,20 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         <button
           onClick={(e) => {
             e.stopPropagation()
+            console.log('下一张按钮被点击')
             onNext()
             resetView()
           }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-3 rounded-full transition-all hover:bg-black/70"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-4 rounded-full transition-all hover:bg-black/70 z-20 cursor-pointer"
           title="下一张 (→)"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-8 w-8" />
         </button>
       )}
 
       {/* 图片容器 - 添加防下载保护 */}
       <div 
-        className="flex items-center justify-center w-full h-full px-16 relative"
+        className="flex items-center justify-center w-full h-full px-20 relative"
         onMouseDown={handleMouseDown}
       >
         {/* 防下载覆盖层 */}
