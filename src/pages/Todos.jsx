@@ -30,12 +30,20 @@ export default function Todos() {
 
 // 只读模式，移除所有添加、编辑、删除功能
 
-  // 映射数据库字段到前端字段
+  // 映射数据库字段到前端字段 - 简化为三种优先级
   const mapTodoFields = (todo) => {
+    // 将数据库的1-5优先级映射为三种：高(3)、中(2)、低(1)
+    let priority = 'medium'; // 默认中优先级
+    if (todo.priority >= 3) {
+      priority = 'high';
+    } else if (todo.priority <= 1) {
+      priority = 'low';
+    }
+    
     return {
       ...todo,
       completed: todo.status === 'completed',
-      priority: todo.priority === 3 ? 'high' : todo.priority === 2 ? 'medium' : 'low'
+      priority: priority
     }
   }
 
@@ -128,6 +136,25 @@ export default function Todos() {
           ))}
         </div>
 
+        {/* 优先级筛选 */}
+        <div className="flex justify-center space-x-2 mb-8">
+          {['all', 'high', 'medium', 'low'].map((priority) => (
+            <button
+              key={priority}
+              onClick={() => setPriorityFilter(priority)}
+              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                priorityFilter === priority
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              }`}
+            >
+              {priority === 'all' ? '全部' : 
+               priority === 'high' ? '高' :
+               priority === 'medium' ? '中' : '低'}
+            </button>
+          ))}
+        </div>
+
 
 
         {/* 待办事项列表 */}
@@ -184,8 +211,8 @@ export default function Todos() {
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-light ${
                         priorityColors[todo.priority] || priorityColors.medium
                       }`}>
-                        {todo.priority === 'high' ? '高优先级' : 
-                         todo.priority === 'medium' ? '中优先级' : '低优先级'}
+                        {todo.priority === 'high' ? '高' : 
+                         todo.priority === 'medium' ? '中' : '低'}
                       </span>
                       
                       {todo.due_date && (
