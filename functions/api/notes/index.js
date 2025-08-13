@@ -37,8 +37,21 @@ export async function onRequestPost(context) {
     
     const token = authHeader.split(' ')[1]
     
-    // 简化的token验证
-    if (!token || !token.startsWith('admin-token-')) {
+    // 简化的token验证 - 兼容UUID格式
+    if (!token || token.length < 10) {
+      return new Response(JSON.stringify({ error: '无效的登录状态' }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+    
+    // 验证token是否存在于数据库
+    const user = await env.DB.prepare(`
+      SELECT id FROM users 
+      WHERE token = ? AND token_expires > datetime('now')
+    `).bind(token).first();
+    
+    if (!user) {
       return new Response(JSON.stringify({ error: '无效的登录状态' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
