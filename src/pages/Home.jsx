@@ -74,11 +74,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-light text-stone-800 mb-6">
-            {config.coupleName1} <span className="text-rose-400 mx-4">♥</span> {config.coupleName2}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-light text-stone-800 mb-4 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent">
+            包包和恺恺的小窝
           </h1>
-          <p className="text-xl text-stone-600 font-light tracking-wide">我们的温柔时光</p>
+          <p className="text-xl text-stone-600 font-light max-w-2xl mx-auto">
+            欢迎来到我们的小窝，这里收藏着每一个温暖瞬间
+          </p>
         </div>
 
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] mb-12">
