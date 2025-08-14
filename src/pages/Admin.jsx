@@ -34,7 +34,7 @@ export default function Admin() {
       />
       
       {/* 主要内容区域 */}
-      <div className="lg:ml-64 p-4 lg:p-8 pt-20 lg:pt-8">
+      <div className={`p-4 lg:p-8 pt-20 lg:pt-8 ${sidebarOpen ? 'ml-64' : 'ml-0'} lg:ml-64`}>
         <Routes>
           <Route path="/" element={<AdminSettings />} />
           <Route path="settings" element={<AdminSettings />} />
