@@ -72,10 +72,10 @@ function AdminSidebar({ isOpen, onClose }) {
         />
       )}
       
-      {/* 侧边栏 - 添加滑入动画和阴影效果 */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-2xl transform transition-all duration-300 ease-in-out z-50 ${
-        isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
-      } lg:translate-x-0 lg:shadow-lg hover:lg:shadow-xl transition-shadow duration-300`}>
+      {/* 侧边栏 - 简化效果 */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}>
         <div className="p-6 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">后台管理</h2>
@@ -97,18 +97,13 @@ function AdminSidebar({ isOpen, onClose }) {
                   key={item.path}
                   to={item.path}
                   onClick={onClose}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ease-in-out text-sm transform hover:scale-105 hover:translate-x-1 ${
+                  className={`flex items-center px-4 py-3 rounded-lg text-sm ${
                     isActive
-                      ? 'bg-pink-500 text-white shadow-md hover:bg-pink-600'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+                      ? 'bg-pink-500 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
-                  style={{
-                    animationDelay: `${index * 50}ms`
-                  }}
                 >
-                  <Icon className={`h-5 w-5 mr-3 flex-shrink-0 transition-transform duration-200 ${
-                    isActive ? 'scale-110' : 'group-hover:scale-110'
-                  }`} />
+                  <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
                   {item.label}
                 </Link>
               )
@@ -118,7 +113,7 @@ function AdminSidebar({ isOpen, onClose }) {
           <div className="mt-auto">
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out text-sm"
+              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-gray-100 rounded-lg text-sm"
             >
               <LogOut className="h-5 w-5 mr-2" />
               退出登录
