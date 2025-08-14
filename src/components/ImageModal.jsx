@@ -22,11 +22,13 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
 
     const handleWheel = (event) => {
       event.preventDefault()
-      // 参考相册的滚轮缩放算法，支持更平滑的缩放体验
+      // 使用超平滑的乘法缩放，根据滚轮速度调整缩放幅度
       const isCtrlPressed = event.ctrlKey || event.metaKey
-      const step = isCtrlPressed ? 0.2 : 0.1 // Ctrl键加速缩放
-      const delta = event.deltaY > 0 ? -step : step
-      setScale(prevScale => Math.max(0.3, Math.min(4, prevScale + delta)))
+      const baseFactor = 1.01 // 基础缩放因子
+      const speedFactor = Math.min(Math.abs(event.deltaY) / 100, 2) // 根据滚轮速度调整
+      const factor = isCtrlPressed ? 1 + (speedFactor * 0.03) : 1 + (speedFactor * 0.01)
+      const zoomFactor = event.deltaY > 0 ? (1 / factor) : factor
+      setScale(prevScale => Math.max(0.3, Math.min(4, prevScale * zoomFactor)))
     }
 
     if (isOpen) {
@@ -53,9 +55,9 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
   // 确定当前显示的图片
   const currentImage = images.length > 0 ? images[currentIndex] : imageUrl
 
-  // 缩放控制函数 - 使用相册的步进缩放逻辑
-  const handleZoomIn = () => setScale(prev => Math.min(4, prev + 0.2)) // 放大20%
-  const handleZoomOut = () => setScale(prev => Math.max(0.3, prev - 0.2)) // 缩小20%
+  // 缩放控制函数 - 使用平滑的乘法缩放
+  const handleZoomIn = () => setScale(prev => Math.min(4, prev * 1.1)) // 放大10%
+  const handleZoomOut = () => setScale(prev => Math.max(0.3, prev / 1.1)) // 缩小10%
   const handleReset = () => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
