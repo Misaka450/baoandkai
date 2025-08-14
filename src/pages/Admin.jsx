@@ -118,7 +118,7 @@ function AdminSidebar({ isOpen, onClose }) {
           <div className="mt-auto pt-4 border-t border-gray-200">
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out text-sm transform hover:scale-105 hover:bg-red-100 hover:shadow-md group"
+              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out text-sm transform hover:scale-105 hover:shadow-md group"
             >
               <LogOut className="h-5 w-5 mr-2 transition-transform duration-200 group-hover:rotate-12" />
               退出登录
