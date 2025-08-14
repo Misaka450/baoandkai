@@ -72,8 +72,8 @@ function AdminSidebar({ isOpen, onClose }) {
         />
       )}
       
-      {/* 侧边栏 - 恢复必要的响应式动画 */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+      {/* 侧边栏 - 恢复必要的响应式动画 */
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0`}>
         <div className="p-6 h-full flex flex-col">
