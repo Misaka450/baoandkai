@@ -92,14 +92,14 @@ export default function AdminTimeline() {
   const categories = ['约会', '旅行', '节日', '日常']
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="animate-fade-in">
+      <div className="flex justify-between items-center mb-6 animate-slide-in-left">
         <h1 className="text-2xl font-bold text-gray-800">时间轴管理</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg"
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg transform transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2 transition-transform duration-200 group-hover:rotate-90" />
           添加事件
         </button>
       </div>
@@ -232,11 +232,15 @@ export default function AdminTimeline() {
       )}
 
       <div className="space-y-4">
-        {events.map((event) => (
-          <div key={event.id} className="glass-card p-4">
+        {events.map((event, index) => (
+          <div 
+            key={event.id} 
+            className="glass-card p-4 transform transition-all duration-300 hover:shadow-lg hover:scale-[1.02] animate-fade-in-up"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-semibold text-gray-800">{event.title}</h3>
+                <h3 className="font-semibold text-gray-800 transition-colors duration-200 hover:text-pink-600">{event.title}</h3>
                 <p className="text-sm text-gray-600">
                   {new Date(event.date).toLocaleDateString('zh-CN')} · {event.category}
                 </p>
@@ -256,15 +260,15 @@ export default function AdminTimeline() {
                     })
                     setShowForm(true)
                   }}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded transform transition-all duration-200 hover:scale-110 hover:bg-blue-100"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-4 w-4 transition-transform duration-200 hover:rotate-12" />
                 </button>
                 <button
                   onClick={() => handleDelete(event.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transform transition-all duration-200 hover:scale-110 hover:bg-red-100"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 transition-transform duration-200 hover:rotate-12" />
                 </button>
               </div>
             </div>
