@@ -44,7 +44,11 @@ export default function AdminAlbums() {
     const albumData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || '',
-      photos: formData.images.map(url => ({ url, caption: '' }))
+      photos: formData.images.map((url, index) => ({ 
+        url, 
+        caption: '',
+        sort_order: index  // 保存图片顺序，index即为排序值
+      }))
     }
 
     try {

@@ -286,15 +286,21 @@ export default function Albums() {
   // 获取相册封面图片
   const getCoverImage = (album) => {
     if (album.cover_image) return album.cover_image
-    if (album.photos && album.photos.length > 0) return album.photos[0].url
+    if (album.photos && album.photos.length > 0) {
+      // 按排序顺序获取第一张图片作为封面
+      const sortedPhotos = [...album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      return sortedPhotos[0].url
+    }
     return '/placeholder-album.jpg'
   }
 
   // 处理图片点击事件
   const handlePhotoClick = (photo, index) => {
+    const sortedPhotos = [...selectedAlbum.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    const sortedIndex = sortedPhotos.findIndex(p => p.id === photo.id)
     setSelectedPhoto({
       photo,
-      index,
+      index: sortedIndex,
       album: selectedAlbum
     })
   }
@@ -307,11 +313,12 @@ export default function Albums() {
   // 上一张图片
   const goToPrevPhoto = () => {
     if (selectedPhoto && selectedPhoto.album) {
+      const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       const currentIndex = selectedPhoto.index
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : selectedPhoto.album.photos.length - 1
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : sortedPhotos.length - 1
       setSelectedPhoto({
         ...selectedPhoto,
-        photo: selectedPhoto.album.photos[newIndex],
+        photo: sortedPhotos[newIndex],
         index: newIndex
       })
     }
@@ -320,11 +327,12 @@ export default function Albums() {
   // 下一张图片
   const goToNextPhoto = () => {
     if (selectedPhoto && selectedPhoto.album) {
+      const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       const currentIndex = selectedPhoto.index
-      const newIndex = currentIndex < selectedPhoto.album.photos.length - 1 ? currentIndex + 1 : 0
+      const newIndex = currentIndex < sortedPhotos.length - 1 ? currentIndex + 1 : 0
       setSelectedPhoto({
         ...selectedPhoto,
-        photo: selectedPhoto.album.photos[newIndex],
+        photo: sortedPhotos[newIndex],
         index: newIndex
       })
     }
@@ -422,30 +430,32 @@ export default function Albums() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {selectedAlbum.photos?.map((photo, index) => (
-                <div
-                  key={photo.id}
-                  onClick={() => handlePhotoClick(photo, index)}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center relative group">
-                    <img
-                      src={photo.url}
-                      alt={photo.caption || `照片 ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 select-none"
-                      draggable={false}
-                      onContextMenu={preventContextMenu}
-                      onDragStart={preventDrag}
-                      onError={(e) => {
-                        e.target.src = '/placeholder-image.jpg'
-                      }}
-                    />
+              {selectedAlbum.photos
+                ?.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+                .map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    onClick={() => handlePhotoClick(photo, index)}
+                    className="group cursor-pointer"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center relative group">
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || `照片 ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 select-none"
+                        draggable={false}
+                        onContextMenu={preventContextMenu}
+                        onDragStart={preventDrag}
+                        onError={(e) => {
+                          e.target.src = '/placeholder-image.jpg'
+                        }}
+                      />
+                    </div>
+                    {photo.caption && (
+                      <p className="mt-2 text-sm text-stone-600 font-light truncate">{photo.caption}</p>
+                    )}
                   </div>
-                  {photo.caption && (
-                    <p className="mt-2 text-sm text-stone-600 font-light truncate">{photo.caption}</p>
-                  )}
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}

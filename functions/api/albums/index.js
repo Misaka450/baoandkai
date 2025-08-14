@@ -8,7 +8,9 @@ export async function onRequestGet(context) {
     
     const albumsWithPhotos = albums.results.map(album => ({
       ...album,
-      photos: photos.results.filter(photo => photo.album_id === album.id)
+      photos: photos.results
+        .filter(photo => photo.album_id === album.id)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     }));
 
     return new Response(JSON.stringify(albumsWithPhotos), {
@@ -48,13 +50,18 @@ export async function onRequestPost(context) {
     
     const albumId = albumResult.meta.last_row_id;
     
-    // 批量插入照片，确保photos是数组
+    // 批量插入照片，支持排序顺序
     if (photos && Array.isArray(photos) && photos.length > 0) {
-      const photoPromises = photos.map(photo => 
+      const photoPromises = photos.map((photo, index) => 
         env.DB.prepare(`
-          INSERT INTO photos (album_id, url, caption, created_at) 
-          VALUES (?, ?, ?, datetime('now'))
-        `).bind(albumId, photo.url || photo, photo.caption || '').run()
+          INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
+          VALUES (?, ?, ?, ?, datetime('now'))
+        `).bind(
+          albumId, 
+          photo.url || photo, 
+          photo.caption || '', 
+          photo.sort_order !== undefined ? photo.sort_order : index
+        ).run()
       );
       await Promise.all(photoPromises);
     }

@@ -1,4 +1,51 @@
 // Cloudflare Pages Functions - 相册单个资源API
+export async function onRequestGet(context) {
+  const { env } = context;
+  
+  try {
+    const url = new URL(context.request.url);
+    const id = url.pathname.split('/').pop();
+    
+    if (!id || isNaN(id)) {
+      return new Response(JSON.stringify({ error: '无效的ID' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const album = await env.DB.prepare(`
+      SELECT * FROM albums WHERE id = ?
+    `).bind(parseInt(id)).first();
+    
+    if (!album) {
+      return new Response(JSON.stringify({ error: '相册不存在' }), { 
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const photos = await env.DB.prepare(`
+      SELECT * FROM photos WHERE album_id = ? ORDER BY sort_order ASC
+    `).bind(parseInt(id)).all();
+    
+    return new Response(JSON.stringify({
+      ...album,
+      photos: photos.results || []
+    }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (error) {
+    console.error('获取相册失败:', error);
+    return new Response(JSON.stringify({ error: error.message }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
 export async function onRequestPut(context) {
   const { request, env } = context;
   
@@ -35,15 +82,20 @@ export async function onRequestPut(context) {
       });
     }
     
-    // 删除旧照片并插入新照片
+    // 删除旧照片并插入新照片（带排序字段）
     await env.DB.prepare('DELETE FROM photos WHERE album_id = ?').bind(parseInt(id)).run();
     
     if (photos.length > 0) {
-      const photoPromises = photos.map(photo => 
+      const photoPromises = photos.map((photo, index) => 
         env.DB.prepare(`
-          INSERT INTO photos (album_id, url, caption) 
-          VALUES (?, ?, ?)
-        `).bind(parseInt(id), photo.url || photo, photo.caption || '').run()
+          INSERT INTO photos (album_id, url, caption, sort_order) 
+          VALUES (?, ?, ?, ?)
+        `).bind(
+          parseInt(id), 
+          photo.url || photo, 
+          photo.caption || '', 
+          photo.sort_order !== undefined ? photo.sort_order : index
+        ).run()
       );
       await Promise.all(photoPromises);
     }
