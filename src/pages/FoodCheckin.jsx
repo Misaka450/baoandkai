@@ -329,21 +329,7 @@ export default function FoodCheckin() {
                   </div>
                 )}
                 
-                {checkin.images && checkin.images.length > 1 && (
-                  <div className="mt-3 grid grid-cols-3 gap-1">
-                    {checkin.images.slice(1, 4).map((image, index) => (
-                      <img
-                        key={index}
-                        src={image}
-                        alt={`美食图片 ${index + 2}`}
-                        className="rounded-lg object-cover h-16 w-full"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
+
                 
                 <div className="text-xs text-stone-500 font-light">
                   {new Date(checkin.date).toLocaleDateString('zh-CN')}
