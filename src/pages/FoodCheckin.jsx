@@ -132,20 +132,9 @@ export default function FoodCheckin() {
               </div>
             </div>
           </div>
+        </div>
       </div>
-      
-      {/* 图片查看器模态框 */}
-      <ImageModal
-        isOpen={selectedImage !== null}
-        onClose={closeImageModal}
-        imageUrl={selectedImage}
-        images={allImages}
-        currentIndex={currentImageIndex}
-        onPrevious={goToPreviousImage}
-        onNext={goToNextImage}
-      />
-    </div>
-  )
+    )
 }
 
   if (error) {
@@ -229,15 +218,15 @@ export default function FoodCheckin() {
                   {/* 多张图片时的缩略图预览 */}
                   {checkin.images.length > 1 && (
                     <div className="grid grid-cols-4 gap-2">
-                      {checkin.images.slice(0, 4).map((img, index) => (
+                      {checkin.images.slice(0, 4).map((img, imgIndex) => (
                         <div
-                          key={index}
+                          key={imgIndex}
                           className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border-2 border-white/20 hover:border-stone-300"
-                          onClick={() => handleImageClick(checkin.images, index)}
+                          onClick={() => handleImageClick(checkin.images, imgIndex)}
                         >
                           <img
                             src={img.replace('/upload/', '/upload/w_100,h_100,c_fill/')}
-                            alt={`${checkin.restaurant_name} 图片 ${index + 1}`}
+                            alt={`${checkin.restaurant_name} 图片 ${imgIndex + 1}`}
                             className="w-full h-full object-cover"
                             loading="lazy"
                             onError={(e) => {
@@ -353,6 +342,17 @@ export default function FoodCheckin() {
           </div>
         )}
       </div>
+      
+      {/* 图片查看器模态框 - 放在组件最后，确保始终可用 */}
+      <ImageModal
+        isOpen={selectedImage !== null}
+        onClose={closeImageModal}
+        imageUrl={selectedImage}
+        images={allImages}
+        currentIndex={currentImageIndex}
+        onPrevious={goToPreviousImage}
+        onNext={goToNextImage}
+      />
     </div>
   )
 }

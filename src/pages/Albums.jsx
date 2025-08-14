@@ -296,6 +296,8 @@ export default function Albums() {
 
   // 处理图片点击事件
   const handlePhotoClick = (photo, index) => {
+    if (!selectedAlbum || !selectedAlbum.photos) return
+    
     const sortedPhotos = [...selectedAlbum.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     const sortedIndex = sortedPhotos.findIndex(p => p.id === photo.id)
     setSelectedPhoto({
@@ -312,7 +314,7 @@ export default function Albums() {
 
   // 上一张图片
   const goToPrevPhoto = () => {
-    if (selectedPhoto && selectedPhoto.album) {
+    if (selectedPhoto && selectedPhoto.album && selectedPhoto.album.photos) {
       const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       const currentIndex = selectedPhoto.index
       const newIndex = currentIndex > 0 ? currentIndex - 1 : sortedPhotos.length - 1
@@ -326,7 +328,7 @@ export default function Albums() {
 
   // 下一张图片
   const goToNextPhoto = () => {
-    if (selectedPhoto && selectedPhoto.album) {
+    if (selectedPhoto && selectedPhoto.album && selectedPhoto.album.photos) {
       const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       const currentIndex = selectedPhoto.index
       const newIndex = currentIndex < sortedPhotos.length - 1 ? currentIndex + 1 : 0
