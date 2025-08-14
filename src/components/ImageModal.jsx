@@ -64,7 +64,7 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
           
           <img
             src={currentImage}
-            alt={alt || '图片'}
+            alt="美食图片"
             className="max-w-full max-h-screen object-contain rounded-lg shadow-2xl"
             onClick={onClose} // 点击图片也可以关闭
           />
