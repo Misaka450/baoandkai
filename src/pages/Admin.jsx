@@ -64,18 +64,18 @@ function AdminSidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* 移动端遮罩层 */}
+      {/* 移动端遮罩层 - 添加淡入淡出动画 */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out animate-fade-in"
           onClick={onClose}
         />
       )}
       
-      {/* 侧边栏 */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
+      {/* 侧边栏 - 添加滑入动画和阴影效果 */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-white shadow-2xl transform transition-all duration-300 ease-in-out z-50 ${
+        isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+      } lg:translate-x-0 lg:shadow-lg hover:lg:shadow-xl transition-shadow duration-300`}>
         <div className="p-6 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">后台管理</h2>
@@ -88,7 +88,7 @@ function AdminSidebar({ isOpen, onClose }) {
           </div>
           
           <nav className="flex-1 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => {
+            {menuItems.map((item, index) => {
               const Icon = item.icon
               const isActive = location.pathname === item.path
               
@@ -97,13 +97,18 @@ function AdminSidebar({ isOpen, onClose }) {
                   key={item.path}
                   to={item.path}
                   onClick={onClose}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors text-sm ${
+                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ease-in-out text-sm transform hover:scale-105 hover:translate-x-1 ${
                     isActive
-                      ? 'bg-pink-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-pink-500 text-white shadow-md hover:bg-pink-600'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
                   }`}
+                  style={{
+                    animationDelay: `${index * 50}ms`
+                  }}
                 >
-                  <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <Icon className={`h-5 w-5 mr-3 flex-shrink-0 transition-transform duration-200 ${
+                    isActive ? 'scale-110' : 'group-hover:scale-110'
+                  }`} />
                   {item.label}
                 </Link>
               )
@@ -113,9 +118,9 @@ function AdminSidebar({ isOpen, onClose }) {
           <div className="mt-auto pt-4 border-t border-gray-200">
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
+              className="w-full flex items-center justify-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out text-sm transform hover:scale-105 hover:bg-red-100 hover:shadow-md group"
             >
-              <LogOut className="h-5 w-5 mr-2" />
+              <LogOut className="h-5 w-5 mr-2 transition-transform duration-200 group-hover:rotate-12" />
               退出登录
             </button>
           </div>

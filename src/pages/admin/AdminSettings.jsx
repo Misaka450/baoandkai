@@ -49,14 +49,19 @@ export default function AdminSettings() {
 
 
   if (loading) {
-    return <div className="text-center py-8">加载中...</div>
+    return (
+      <div className="flex items-center justify-center py-8 animate-fade-in">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+        <span className="ml-3 text-gray-600">加载中...</span>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">基础设置</h1>
+    <div className="animate-fade-in">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6 animate-slide-in-left">基础设置</h1>
 
-      <form onSubmit={handleSubmit} className="glass-card p-6 max-w-2xl">
+      <form onSubmit={handleSubmit} className="glass-card p-6 max-w-2xl animate-fade-in-up">
         <div className="space-y-6">
         <div className="space-y-4">
           <div>
@@ -103,7 +108,7 @@ export default function AdminSettings() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50"
+            className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50 transform transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
           >
             {saving ? '保存中...' : '保存设置'}
           </button>
