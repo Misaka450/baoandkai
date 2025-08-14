@@ -9,6 +9,8 @@ export default function Timeline() {
   const [filter, setFilter] = useState('all')
   const [selectedImage, setSelectedImage] = useState(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [currentImages, setCurrentImages] = useState([])
 
   useEffect(() => {
     fetchEvents()
@@ -165,7 +167,8 @@ export default function Timeline() {
                             {event.images.map((image, imgIndex) => (
                               <div key={imgIndex} className="relative group overflow-hidden rounded-xl cursor-pointer"
                                    onClick={() => {
-                                     setSelectedImage(image)
+                                     setCurrentImages(event.images)
+                                     setCurrentImageIndex(imgIndex)
                                      setImageModalOpen(true)
                                    }}>
                                 <img
@@ -211,8 +214,10 @@ export default function Timeline() {
       <ImageModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
-        imageUrl={selectedImage}
-        title="查看图片"
+        images={currentImages}
+        currentIndex={currentImageIndex}
+        onPrevious={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
+        onNext={() => setCurrentImageIndex(prev => Math.min(currentImages.length - 1, prev + 1))}
       />
     </div>
   )
