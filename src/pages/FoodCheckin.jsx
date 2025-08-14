@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart, Utensils as FoodIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
+import ImageModal from '../components/ImageModal'
 
 export default function FoodCheckin() {
   const [checkins, setCheckins] = useState([])
@@ -8,6 +9,9 @@ export default function FoodCheckin() {
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date')
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [allImages, setAllImages] = useState([])
 
   useEffect(() => {
     fetchCheckins()
@@ -74,6 +78,34 @@ export default function FoodCheckin() {
     return colors[category] || colors['其他']
   }
 
+  // 处理图片点击放大
+  const handleImageClick = (images, currentIndex = 0) => {
+    setAllImages(images || [])
+    setCurrentImageIndex(currentIndex)
+    setSelectedImage(images?.[currentIndex] || null)
+  }
+
+  // 关闭图片查看器
+  const closeImageModal = () => {
+    setSelectedImage(null)
+    setAllImages([])
+    setCurrentImageIndex(0)
+  }
+
+  // 切换到上一张图片
+  const goToPreviousImage = () => {
+    const newIndex = currentImageIndex > 0 ? currentImageIndex - 1 : allImages.length - 1
+    setCurrentImageIndex(newIndex)
+    setSelectedImage(allImages[newIndex])
+  }
+
+  // 切换到下一张图片
+  const goToNextImage = () => {
+    const newIndex = currentImageIndex < allImages.length - 1 ? currentImageIndex + 1 : 0
+    setCurrentImageIndex(newIndex)
+    setSelectedImage(allImages[newIndex])
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
@@ -100,10 +132,21 @@ export default function FoodCheckin() {
               </div>
             </div>
           </div>
-        </div>
       </div>
-    )
-  }
+      
+      {/* 图片查看器模态框 */}
+      <ImageModal
+        isOpen={selectedImage !== null}
+        onClose={closeImageModal}
+        imageUrl={selectedImage}
+        images={allImages}
+        currentIndex={currentImageIndex}
+        onPrevious={goToPreviousImage}
+        onNext={goToNextImage}
+      />
+    </div>
+  )
+}
 
   if (error) {
     return (
@@ -166,15 +209,45 @@ export default function FoodCheckin() {
               className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]"
             >
               {checkin.images && checkin.images.length > 0 && (
-                <div className="aspect-video rounded-2xl overflow-hidden mb-4">
-                  <img
-                    src={checkin.images[0]}
-                    alt={checkin.restaurant_name || '餐厅图片'}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none'
-                    }}
-                  />
+                <div className="space-y-3">
+                  {/* 主图显示 - 使用压缩后的缩略图 */}
+                  <div 
+                    className="aspect-video rounded-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => handleImageClick(checkin.images, 0)}
+                  >
+                    <img
+                      src={checkin.images[0].replace('/upload/', '/upload/w_400,h_300,c_fill/')}
+                      alt={checkin.restaurant_name || '餐厅图片'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = checkin.images[0]
+                      }}
+                    />
+                  </div>
+                  
+                  {/* 多张图片时的缩略图预览 */}
+                  {checkin.images.length > 1 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {checkin.images.slice(0, 4).map((img, index) => (
+                        <div
+                          key={index}
+                          className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border-2 border-white/20 hover:border-stone-300"
+                          onClick={() => handleImageClick(checkin.images, index)}
+                        >
+                          <img
+                            src={img.replace('/upload/', '/upload/w_100,h_100,c_fill/')}
+                            alt={`${checkin.restaurant_name} 图片 ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.src = img
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               
