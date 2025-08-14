@@ -22,8 +22,11 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
 
     const handleWheel = (event) => {
       event.preventDefault()
-      const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1 // 滚轮缩放因子
-      setScale(prevScale => Math.max(0.5, Math.min(3, prevScale * zoomFactor)))
+      // 参考相册的滚轮缩放算法，支持更平滑的缩放体验
+      const isCtrlPressed = event.ctrlKey || event.metaKey
+      const step = isCtrlPressed ? 0.2 : 0.1 // Ctrl键加速缩放
+      const delta = event.deltaY > 0 ? -step : step
+      setScale(prevScale => Math.max(0.3, Math.min(4, prevScale + delta)))
     }
 
     if (isOpen) {
@@ -50,9 +53,9 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
   // 确定当前显示的图片
   const currentImage = images.length > 0 ? images[currentIndex] : imageUrl
 
-  // 缩放控制函数 - 使用乘法计算，确保精确缩放
-  const handleZoomIn = () => setScale(prev => Math.min(3, prev * 1.1)) // 放大10%
-  const handleZoomOut = () => setScale(prev => Math.max(0.5, prev / 1.1)) // 缩小10%
+  // 缩放控制函数 - 使用相册的步进缩放逻辑
+  const handleZoomIn = () => setScale(prev => Math.min(4, prev + 0.2)) // 放大20%
+  const handleZoomOut = () => setScale(prev => Math.max(0.3, prev - 0.2)) // 缩小20%
   const handleReset = () => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
@@ -190,7 +193,7 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
 
         {/* 使用提示 */}
         <div className="absolute bottom-8 right-4 text-white text-sm bg-black bg-opacity-30 backdrop-blur-sm rounded-lg px-3 py-2">
-          💡 滚轮缩放 | 拖拽移动 | ESC关闭
+          💡 滚轮缩放(Ctrl加速) | 拖拽移动 | ESC关闭
         </div>
       </div>
     </div>
