@@ -22,8 +22,8 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
 
     const handleWheel = (event) => {
       event.preventDefault()
-      const delta = event.deltaY > 0 ? -0.1 : 0.1
-      setScale(prevScale => Math.max(0.5, Math.min(3, prevScale + delta)))
+      const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1 // 滚轮缩放因子
+      setScale(prevScale => Math.max(0.5, Math.min(3, prevScale * zoomFactor)))
     }
 
     if (isOpen) {
@@ -50,9 +50,9 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
   // 确定当前显示的图片
   const currentImage = images.length > 0 ? images[currentIndex] : imageUrl
 
-  // 缩放控制函数
-  const handleZoomIn = () => setScale(prev => Math.min(3, prev + 0.2))
-  const handleZoomOut = () => setScale(prev => Math.max(0.5, prev - 0.2))
+  // 缩放控制函数 - 使用乘法计算，确保精确缩放
+  const handleZoomIn = () => setScale(prev => Math.min(3, prev * 1.1)) // 放大10%
+  const handleZoomOut = () => setScale(prev => Math.max(0.5, prev / 1.1)) // 缩小10%
   const handleReset = () => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
