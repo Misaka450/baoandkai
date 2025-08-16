@@ -156,12 +156,14 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
           <img
             src={currentImage}
             alt="图片"
-            className="max-w-none max-h-none select-none"
+            className="max-w-full max-h-full select-none"
             style={{
               transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
               transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-              maxWidth: scale <= 1 ? '90vw' : 'none',
-              maxHeight: scale <= 1 ? '90vh' : 'none'
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              width: 'auto',
+              height: 'auto'
             }}
             onClick={(e) => e.stopPropagation()}
             draggable={false}
