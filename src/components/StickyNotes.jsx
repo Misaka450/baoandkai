@@ -117,9 +117,14 @@ export default function StickyNotes() {
         await fetchNotes()
         setShowDeleteModal(false)
         setNoteToDelete(null)
+      } else {
+        // 添加错误提示
+        alert(data.error || '删除失败，请重试')
+        console.error('删除失败:', data)
       }
     } catch (error) {
       console.error('删除碎碎念失败:', error)
+      alert('网络错误，请检查网络连接后重试')
     } finally {
       setDeleteLoading(false)
     }

@@ -31,10 +31,10 @@ export async function onRequestDelete(context) {
       });
     }
     
-    const result = await env.DB.prepare('DELETE FROM notes WHERE id = ?').bind(parseInt(id)).run();
+    const result = await env.DB.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?').bind(parseInt(id), user.id).run();
     
     if (result.changes === 0) {
-      return new Response(JSON.stringify({ error: '记录不存在' }), { 
+      return new Response(JSON.stringify({ error: '记录不存在或无权限删除' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
