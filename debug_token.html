@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token调试工具</title>
+</head>
+<body>
+    <h1>Token调试信息</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        // 显示本地存储的token
+        const debugInfo = document.getElementById('debug-info');
+        const token = localStorage.getItem('token');
+        
+        debugInfo.innerHTML = `
+            <p><strong>本地存储的token:</strong> ${token || '无'}</p>
+            <p><strong>token长度:</strong> ${token ? token.length : 0}</p>
+            <p><strong>token格式:</strong> ${token ? (token.includes('-') ? 'UUID格式' : '其他格式') : '无'}</p>
+            <hr>
+            <p>如果token存在，请复制这个token值用于API测试</p>
+            <p>测试API: <code>curl -H "Authorization: Bearer ${token || 'YOUR_TOKEN'}" /api/notes</code></p>
+        `;
+    </script>
+</body>
+</html>
