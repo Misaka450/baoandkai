@@ -13,9 +13,9 @@ export async function onRequestDelete(context) {
     }
     
     const token = authHeader.split(' ')[1]
-    const user = await verifyToken(token, env)
+    const user = await verifyAdminToken(token, env)
     if (!user) {
-      return new Response(JSON.stringify({ error: '无效的登录状态' }), { 
+      return new Response(JSON.stringify({ error: '请先登录管理员账号' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
@@ -31,10 +31,10 @@ export async function onRequestDelete(context) {
       });
     }
     
-    const result = await env.DB.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?').bind(parseInt(id), user.id).run();
+    const result = await env.DB.prepare('DELETE FROM notes WHERE id = ?').bind(parseInt(id)).run();
     
     if (result.changes === 0) {
-      return new Response(JSON.stringify({ error: '记录不存在或无权限删除' }), { 
+      return new Response(JSON.stringify({ error: '碎碎念不存在' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
@@ -54,14 +54,19 @@ export async function onRequestDelete(context) {
   }
 }
 
-async function verifyToken(token, env) {
+async function verifyAdminToken(token, env) {
   try {
-    // 使用数据库验证token
+    // 验证管理员token
     const user = await env.DB.prepare(`
-      SELECT * FROM users WHERE token = ? AND token_expires > datetime('now')
+      SELECT * FROM users 
+      WHERE token = ? AND token_expires > datetime('now')
     `).bind(token).first()
     
-    return user
+    // 确保用户存在且为管理员（目前只有管理员用户）
+    if (user) {
+      return user
+    }
+    return null
   } catch (error) {
     return null
   }
