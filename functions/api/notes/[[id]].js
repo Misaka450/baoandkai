@@ -15,7 +15,7 @@ export async function onRequestDelete(context) {
     const token = authHeader.split(' ')[1]
     const user = await verifyAdminToken(token, env)
     if (!user) {
-      return new Response(JSON.stringify({ error: '请先登录管理员账号' }), { 
+      return new Response(JSON.stringify({ error: '登录状态无效，请重新登录' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
@@ -56,19 +56,23 @@ export async function onRequestDelete(context) {
 
 async function verifyAdminToken(token, env) {
   try {
-    // 验证管理员token
+    // 验证管理员token - 兼容UUID格式和自定义格式
+    if (!token || token.length < 10) {
+      return null;
+    }
+    
+    // 查询数据库中的有效token
     const user = await env.DB.prepare(`
-      SELECT * FROM users 
+      SELECT id, username, email 
+      FROM users 
       WHERE token = ? AND token_expires > datetime('now')
     `).bind(token).first()
     
-    // 确保用户存在且为管理员（目前只有管理员用户）
-    if (user) {
-      return user
-    }
-    return null
+    // 只要token有效就返回用户（目前只有管理员用户）
+    return user || null;
   } catch (error) {
-    return null
+    console.error('Token验证错误:', error);
+    return null;
   }
 }
 
