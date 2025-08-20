@@ -66,17 +66,24 @@ export async function onRequestDelete(context) {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, deleted: result.meta.changes }), {
+    // 执行删除操作
+    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      deleted: result.meta.changes,
+      message: '删除成功' 
+    }), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     });
   } catch (error) {
-    console.error('待办事项删除失败:', error);
     return new Response(JSON.stringify({ 
-      error: '数据库错误: ' + error.message,
-      stack: error.stack 
+      success: false,
+      error: '删除失败',
+      message: process.env.ENVIRONMENT === 'development' ? error.message : '删除失败，请稍后重试'
     }), { 
       status: 500,
       headers: { 
