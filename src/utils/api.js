@@ -33,19 +33,36 @@ let nextId = {
 };
 
 // 开发环境完全使用代理，不启用mock
+// API请求工具函数（支持分页和认证）
 export async function apiRequest(endpoint, options = {}) {
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  };
+
+  // 如果是需要认证的请求，添加token
+  if (endpoint.includes('/admin') || options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
   try {
-    // 始终使用真实的API调用，开发环境通过vite代理转发到Cloudflare
     const response = await fetch(endpoint, {
+      ...defaultOptions,
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...defaultOptions.headers,
         ...options.headers
       }
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const error = new Error(`HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      throw error;
     }
     
     return await response.json();
@@ -53,4 +70,26 @@ export async function apiRequest(endpoint, options = {}) {
     console.error('API请求失败:', error);
     throw error;
   }
+}
+
+// 分页API工具函数
+export async function apiRequestPaginated(endpoint, page = 1, limit = 10) {
+  const url = new URL(endpoint, window.location.origin);
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('limit', limit.toString());
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (!response.ok) {
+    const error = new Error(`HTTP error! status: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  const data = await response.json();
+  return data;
 }

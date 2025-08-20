@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
-import { apiRequest } from '../utils/api'
+import { apiRequest, apiRequestPaginated } from '../utils/api'
 import ImageModal from '../components/ImageModal'
 
 export default function Todos() {
@@ -10,17 +10,24 @@ export default function Todos() {
   const [priorityFilter, setPriorityFilter] = useState('all') // all, high, medium, low
   const [expandedTodos, setExpandedTodos] = useState(new Set()) // 记录展开的待办ID
   const [selectedImage, setSelectedImage] = useState(null) // 当前选中的放大图片
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const itemsPerPage = 10
 
   useEffect(() => {
-    fetchTodos()
-  }, [])
+    fetchTodos(currentPage)
+  }, [currentPage])
 
-  const fetchTodos = async () => {
+  const fetchTodos = async (page = 1) => {
     try {
       console.log('正在获取待办事项...')
-      const data = await apiRequest('/api/todos')
+      const data = await apiRequestPaginated('/api/todos', page, itemsPerPage)
       console.log('获取到的待办事项:', data)
-      setTodos(data || [])
+      setTodos(data.data || [])
+      setTotalPages(data.totalPages || 1)
+      setTotalCount(data.totalCount || 0)
+      setCurrentPage(data.currentPage || 1)
     } catch (error) {
       console.error('获取待办事项失败:', error)
       setTodos([])
@@ -168,6 +175,13 @@ export default function Todos() {
         </div>
 
 
+
+        {/* 分页信息 */}
+        <div className="text-center mb-6">
+          <p className="text-sm text-stone-600">
+            共 {totalCount} 个待办事项，第 {currentPage} 页 / 共 {totalPages} 页
+          </p>
+        </div>
 
         {/* 待办事项列表 */}
         <div className="space-y-4">
@@ -317,6 +331,54 @@ export default function Todos() {
             ))
           )}
         </div>
+
+          {/* 分页控件 */}
+          {totalPages > 1 && (
+            <div className="flex justify-center space-x-2 mt-8">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                上一页
+              </button>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-stone-800 text-white'
+                        : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                下一页
+              </button>
+            </div>
+          )}
       </div>
       
       {/* 图片放大模态框 */}
