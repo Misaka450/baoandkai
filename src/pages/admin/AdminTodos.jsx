@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { apiRequest } from '../../utils/api';
+import { apiRequest, apiRequestPaginated } from '../../utils/api';
 import { Plus, X, Trash2, Edit2, Upload, Calendar, CheckSquare } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
 import AdminModal from '../../components/AdminModal';
 import { useAdminModal } from '../../hooks/useAdminModal';
 
-export default function AdminTodos() {
-  const [todos, setTodos] = useState([]);
+export default function AdminTodos() {const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
-  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 10;const { modalState, showAlert, showConfirm, closeModal } = useAdminModal();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,15 +29,21 @@ export default function AdminTodos() {
 
 
   useEffect(() => {
-    fetchTodos();
-  }, []);
+    fetchTodos(currentPage);
+  }, [currentPage]);
 
-  const fetchTodos = async () => {
+  const fetchTodos = async (page = 1) => {
     try {
-      const data = await apiRequest('/api/todos');
-      setTodos(data);
-    } catch (error) {
-      console.error('获取待办事项失败:', error);
+      setLoading(true);
+      const data = await apiRequestPaginated('/api/todos', page, itemsPerPage);
+      setTodos(data.data);
+      setTotalPages(data.totalPages);
+      setTotalCount(data.totalCount);
+      setCurrentPage(data.currentPage);
+      setError(null);
+    } catch (err) {
+      setError('获取待办事项失败');
+      console.error('获取待办事项失败:', err);
     } finally {
       setLoading(false);
     }
@@ -88,7 +97,7 @@ export default function AdminTodos() {
       setShowForm(false);
       setEditingTodo(null);
       resetForm();
-      fetchTodos();
+      fetchTodos(currentPage);
     } catch (error) {
       console.error('保存待办事项失败:', error);
       await showAlert('❌ 保存失败', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error');
@@ -128,8 +137,11 @@ export default function AdminTodos() {
       });
       console.log('删除API响应:', response);
       
+      // 如果删除的是最后一页的最后一条，跳转到上一页
+      const newCurrentPage = todos.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+      await fetchTodos(newCurrentPage);
+      
       await showAlert('✅ 删除成功', '待办事项删除成功！', 'success');
-      fetchTodos();
     } catch (error) {
       console.error('删除失败:', error);
       await showAlert('❌ 删除失败', `删除失败: ${error.message || '请重试'}`, 'error');
@@ -198,6 +210,11 @@ export default function AdminTodos() {
 
 
 
+      {/* 分页信息 */}
+      <div className="mb-4 text-sm text-gray-600">
+        共 {totalCount} 个待办事项，第 {currentPage} 页 / 共 {totalPages} 页
+      </div>
+
       {/* 待办事项列表 */}
       <div className="grid gap-4">
         {todos.map((todo) => (
@@ -254,6 +271,54 @@ export default function AdminTodos() {
           </div>
         ))}
       </div>
+
+      {/* 分页控件 */}
+      {totalPages > 1 && (
+        <div className="flex justify-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            上一页
+          </button>
+          
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            
+            return (
+              <button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  currentPage === pageNum
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            下一页
+          </button>
+        </div>
+      )}
 
       {/* 新建/编辑模态框 - 页面中央弹出 */}
       {showForm && (
