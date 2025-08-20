@@ -221,13 +221,13 @@ export default function AdminTodos() {
                     {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
                   </span>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    todo.priority >= 4 
+                    todo.priority >= 3 
                       ? 'bg-red-100 text-red-800' 
-                      : todo.priority >= 3
+                      : todo.priority >= 2
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-green-100 text-green-800'
                   }`}>
-                    {todo.priority >= 4 ? '高优先级' : todo.priority >= 3 ? '中优先级' : '低优先级'}
+                    {todo.priority >= 3 ? '高优先级' : todo.priority >= 2 ? '中优先级' : '低优先级'}
                   </span>
                   <span className="text-gray-500">
                     截止：{todo.due_date ? new Date(todo.due_date).toLocaleDateString('zh-CN') : '无'}
@@ -310,10 +310,8 @@ export default function AdminTodos() {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
                   >
                     <option value={1}>🟢 低优先级</option>
-                    <option value={2}>🔵 中低优先级</option>
-                    <option value={3}>🟡 中优先级</option>
-                    <option value={4}>🟠 中高优先级</option>
-                    <option value={5}>🔴 高优先级</option>
+                    <option value={2}>🟡 中优先级</option>
+                    <option value={3}>🔴 高优先级</option>
                   </select>
                 </div>
 
