@@ -9,7 +9,7 @@ database_name = "oursql"
 database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
 
 [[r2_buckets]]
-binding = "ouralbum"
+binding = "IMAGES"
 bucket_name = "our"
 
 [vars]

@@ -27,15 +27,10 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   
   try {
-    console.log('收到待办事项创建请求');
-    
     const body = await request.json();
-    console.log('请求数据:', body);
-    
     const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
     
     if (!title) {
-      console.log('验证失败: 标题为空');
       return new Response(JSON.stringify({ error: '标题不能为空' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -45,8 +40,6 @@ export async function onRequestPost(context) {
     // 验证优先级，确保在1-3范围内
     const validPriority = priority && priority >= 1 && priority <= 3 ? priority : 2;
 
-    console.log('正在插入数据到数据库...');
-    
     const result = await env.DB.prepare(`
         INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, created_at) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -59,8 +52,6 @@ export async function onRequestPost(context) {
       SELECT * FROM todos WHERE id = ?
     `).bind(todoId).first();
 
-    console.log('查询新记录成功:', newTodo);
-
     return new Response(JSON.stringify(newTodo), {
       headers: { 
         'Content-Type': 'application/json',
@@ -68,13 +59,16 @@ export async function onRequestPost(context) {
       }
     });
   } catch (error) {
-    console.error('待办事项创建失败:', error);
     return new Response(JSON.stringify({ 
-      error: '数据库错误: ' + error.message,
-      stack: error.stack 
+      success: false,
+      error: '服务器内部错误',
+      message: process.env.ENVIRONMENT === 'development' ? error.message : '请稍后重试'
     }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }

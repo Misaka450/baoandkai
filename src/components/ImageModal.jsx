@@ -156,7 +156,7 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
           <img
             src={currentImage}
             alt="图片"
-            className="max-w-full max-h-full select-none"
+            className="select-none"
             style={{
               transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
               transition: isDragging ? 'none' : 'transform 0.2s ease-out',
