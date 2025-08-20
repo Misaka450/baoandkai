@@ -1,26 +1,19 @@
 // Cloudflare Pages Functions - 单个待办事项API（基于时间轴成功模式）
 export async function onRequestPut(context) {
-  const { request, env } = context;
+  const { request, env, params } = context;
+  const id = params.id;
   
   try {
-    const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
-    
-    console.log('收到待办事项更新请求，ID:', id);
-    
     const body = await request.json();
-    console.log('更新数据:', body);
     
-    const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
-    
-    if (!title) {
-      return new Response(JSON.stringify({ error: '标题不能为空' }), { 
-        status: 400,
+    // 验证待办事项是否存在
+    const existing = await env.DB.prepare('SELECT id FROM todos WHERE id = ?').bind(id).first();
+    if (!existing) {
+      return new Response(JSON.stringify({ error: '待办事项不存在' }), {
+        status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-
-    console.log('正在更新待办事项:', id);
     
     const result = await env.DB.prepare(`
         UPDATE todos 
@@ -32,8 +25,6 @@ export async function onRequestPut(context) {
       SELECT * FROM todos WHERE id = ?
     `).bind(id).first();
 
-    console.log('更新成功:', updatedTodo);
-
     return new Response(JSON.stringify(updatedTodo), {
       headers: { 
         'Content-Type': 'application/json',
@@ -41,41 +32,32 @@ export async function onRequestPut(context) {
       }
     });
   } catch (error) {
-    console.error('待办事项更新失败:', error);
     return new Response(JSON.stringify({ 
-      error: '数据库错误: ' + error.message,
-      stack: error.stack 
+      success: false,
+      error: '服务器内部错误',
+      message: process.env.ENVIRONMENT === 'development' ? error.message : '请稍后重试'
     }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }
 
 export async function onRequestDelete(context) {
-  const { env } = context;
+  const { request, env, params } = context;
+  const id = params.id;
   
   try {
-    const url = new URL(context.request.url);
-    const id = url.pathname.split('/').pop();
-    
-    console.log('收到待办事项删除请求，ID:', id);
-    
-    // 验证ID是否为有效数字
-    if (!id || isNaN(id)) {
-      return new Response(JSON.stringify({ error: '无效的待办事项ID' }), {
-        status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
-    
-    // 先检查待办事项是否存在
+    // 验证待办事项是否存在
     const existing = await env.DB.prepare('SELECT id FROM todos WHERE id = ?').bind(id).first();
     if (!existing) {
-      return new Response(JSON.stringify({ error: '待办事项不存在' }), {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: '待办事项不存在' 
+      }), {
         status: 404,
         headers: { 
           'Content-Type': 'application/json',
@@ -83,11 +65,6 @@ export async function onRequestDelete(context) {
         }
       });
     }
-    
-    // 执行删除
-    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
-    
-    console.log('删除成功，ID:', id, '影响行数:', result.meta.changes);
 
     return new Response(JSON.stringify({ success: true, deleted: result.meta.changes }), {
       headers: { 

@@ -33,61 +33,71 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   
   try {
-    const body = await request.json();
-    const { name, description, photos = [] } = body;
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const description = formData.get('description') || '';
     
-    if (!name || !name.trim()) {
-      return new Response(JSON.stringify({ error: '相册名称不能为空' }), { 
+    if (!file) {
+      return new Response(JSON.stringify({ error: '请选择要上传的图片' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const albumResult = await env.DB.prepare(`
-      INSERT INTO albums (name, description, created_at) 
-      VALUES (?, ?, datetime('now'))
-    `).bind(name.trim(), description?.trim() || '').run();
-    
-    const albumId = albumResult.meta.last_row_id;
-    
-    // 批量插入照片，支持排序顺序
-    if (photos && Array.isArray(photos) && photos.length > 0) {
-      const photoPromises = photos.map((photo, index) => 
-        env.DB.prepare(`
-          INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
-          VALUES (?, ?, ?, ?, datetime('now'))
-        `).bind(
-          albumId, 
-          photo.url || photo, 
-          photo.caption || '', 
-          photo.sort_order !== undefined ? photo.sort_order : index
-        ).run()
-      );
-      await Promise.all(photoPromises);
+    // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return new Response(JSON.stringify({ error: '请上传 JPG、PNG、WebP 或 GIF 格式的图片' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const newAlbum = await env.DB.prepare(`
-      SELECT * FROM albums WHERE id = ?
-    `).bind(albumId).first();
+    // 验证文件大小 (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return new Response(JSON.stringify({ error: '图片大小不能超过 5MB' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    const key = `albums/${Date.now()}-${file.name}`;
+    await env.IMAGES.put(key, file.stream(), {
+      httpMetadata: {
+        contentType: file.type,
+        cacheControl: 'public, max-age=31536000'
+      }
+    });
     
-    const albumPhotos = await env.DB.prepare(`
-      SELECT * FROM photos WHERE album_id = ?
-    `).bind(albumId).all();
-
-    return new Response(JSON.stringify({
-      ...newAlbum,
-      photos: albumPhotos.results || []
-    }), {
+    // 获取文件URL
+    const url = `https://images.baoandkai.com/${key}`;
+    
+    const result = await env.DB.prepare(`
+      INSERT INTO photos (url, description, created_at) 
+      VALUES (?, ?, datetime('now'))
+    `).bind(url, description).run();
+    
+    const newPhoto = await env.DB.prepare(`
+      SELECT * FROM photos WHERE id = ?
+    `).bind(result.meta.last_row_id).first();
+    
+    return new Response(JSON.stringify(newPhoto), {
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     });
   } catch (error) {
-    console.error('创建相册失败:', error);
-    return new Response(JSON.stringify({ error: error.message }), { 
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: '上传失败',
+      message: process.env.ENVIRONMENT === 'development' ? error.message : '图片上传失败，请重试'
+    }), { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }

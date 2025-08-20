@@ -85,12 +85,6 @@ export async function onRequestPost(context) {
     const isValidPassword = await verifyPassword(password, user.password_hash);
 
     if (!isValidPassword) {
-      console.log('密码验证失败:', {
-        用户名: username,
-        提供密码: password,
-        数据库哈希: user.password_hash
-      });
-      
       return new Response(JSON.stringify({ 
         error: '用户名或密码错误'
       }), { 
@@ -109,12 +103,6 @@ export async function onRequestPost(context) {
       WHERE id = ?
     `).bind(token, user.id).run();
 
-    console.log('登录成功:', {
-      用户名: username,
-      用户ID: user.id,
-      token: token
-    });
-
     // 返回成功响应
     return new Response(JSON.stringify({
       success: true,
@@ -132,11 +120,15 @@ export async function onRequestPost(context) {
   } catch (error) {
     console.error('登录API错误:', error);
     return new Response(JSON.stringify({ 
-      error: '服务器内部错误',
-      details: error.message
+      success: false,
+      error: '登录失败',
+      message: process.env.ENVIRONMENT === 'development' ? error.message : '登录失败，请稍后重试'
     }), { 
-      status: 500, 
-      headers: corsHeaders 
+      status: 500,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }
