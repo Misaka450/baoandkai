@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API测试</title>
+</head>
+<body>
+    <h1>待办事项API测试</h1>
+    <button onclick="testApi()">测试API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testApi() {
+            try {
+                const response = await fetch('http://localhost:3000/api/todos');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>响应状态: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>错误: ${error.message}</h3>
+                `;
+            }
+        }
+
+        // 页面加载时自动测试
+        testApi();
+    </script>
+</body>
+</html>

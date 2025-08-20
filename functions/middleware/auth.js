@@ -12,13 +12,14 @@ export function createAuthMiddleware(env) {
         }
 
         const token = authHeader.substring(7);
-        const payload = await env.AUTH.verify(token);
         
-        if (!payload || !payload.admin) {
+        // 简单验证：检查token是否匹配环境变量中的管理员token
+        const expectedToken = env.ADMIN_TOKEN || 'your-secret-token';
+        if (token !== expectedToken) {
           return { valid: false, error: '权限不足' };
         }
 
-        return { valid: true, user: payload };
+        return { valid: true, user: { admin: true } };
       } catch (error) {
         return { valid: false, error: '令牌验证失败' };
       }
@@ -93,9 +94,11 @@ export function createAuthMiddleware(env) {
     createValidator(schema) {
       return async (request, env) => {
         try {
+          let authResult = null;
+          
           // 验证管理员权限（如果需要）
           if (schema.requireAuth) {
-            const authResult = await this.validateAdminToken(request);
+            authResult = await this.validateAdminToken(request);
             if (!authResult.valid) {
               return { valid: false, response: this.createErrorResponse(authResult.error, 401) };
             }
@@ -125,9 +128,10 @@ export function createAuthMiddleware(env) {
 
           return { valid: true, params, user: authResult?.user };
         } catch (error) {
+          console.error('验证器错误:', error);
           return { 
             valid: false, 
-            response: this.createErrorResponse('验证过程出错', 500) 
+            response: this.createErrorResponse('验证过程出错: ' + error.message, 500) 
           };
         }
       };
@@ -171,12 +175,27 @@ export const schemas = {
 
 // 快捷验证函数
 export async function withValidation(request, env, schema, handler) {
-  const middleware = createAuthMiddleware(env);
-  const result = await middleware.createValidator(schema)(request, env);
-  
-  if (!result.valid) {
-    return result.response;
+  try {
+    const middleware = createAuthMiddleware(env);
+    const result = await middleware.createValidator(schema)(request, env);
+    
+    if (!result.valid) {
+      return result.response;
+    }
+    
+    return handler(result.params, result.user);
+  } catch (error) {
+    console.error('验证错误:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: '验证过程出错',
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   }
-  
-  return handler(result.params, result.user);
 }
