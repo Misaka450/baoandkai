@@ -43,7 +43,7 @@ export async function apiRequest(endpoint, options = {}) {
 
   // 如果是需要认证的请求，添加token
   if (endpoint.includes('/admin') || options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token'); // 修正token key与AuthContext一致
     if (token) {
       defaultOptions.headers['Authorization'] = `Bearer ${token}`;
     }
