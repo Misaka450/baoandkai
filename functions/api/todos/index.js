@@ -26,14 +26,10 @@ export async function onRequestGet(context) {
       
       return new Response(JSON.stringify({
         data: todos.results,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: page * limit < total,
-          hasPrev: page > 1
-        }
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalCount: total,
+        limit: limit
       }), {
         headers: { 
           'Content-Type': 'application/json',
