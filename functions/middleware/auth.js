@@ -14,33 +14,33 @@ export function createAuthMiddleware(env) {
         const token = authHeader.substring(7);
         
         try {
-          // 方法1: 检查数据库中的token
-          const user = await env.DB.prepare(`
-            SELECT id, username FROM users 
-            WHERE token = ? AND token_expires > datetime('now')
-          `).bind(token).first();
-          
-          if (user) {
-            return { valid: true, user: { admin: true, id: user.id, username: user.username } };
+            // 方法1: 检查数据库中的token（主要验证方式）
+            const user = await env.DB.prepare(`
+              SELECT id, username FROM users 
+              WHERE token = ? AND token_expires > datetime('now')
+            `).bind(token).first();
+            
+            if (user) {
+              return { valid: true, user: { admin: true, id: user.id, username: user.username } };
+            }
+            
+            // 方法2: 检查环境变量中的固定token（备用验证方式）
+            const expectedToken = env.ADMIN_TOKEN;
+            if (expectedToken && token === expectedToken) {
+              return { valid: true, user: { admin: true } };
+            }
+            
+            return { valid: false, error: '权限不足' };
+            
+          } catch (dbError) {
+            console.error('数据库验证错误:', dbError);
+            // 如果数据库验证失败，回退到环境变量验证
+            const expectedToken = env.ADMIN_TOKEN;
+            if (expectedToken && token === expectedToken) {
+              return { valid: true, user: { admin: true } };
+            }
+            return { valid: false, error: '权限不足' };
           }
-          
-          // 方法2: 检查环境变量中的固定token
-          const expectedToken = env.ADMIN_TOKEN || 'your-secret-token';
-          if (token === expectedToken) {
-            return { valid: true, user: { admin: true } };
-          }
-          
-          return { valid: false, error: '权限不足' };
-          
-        } catch (dbError) {
-          console.error('数据库验证错误:', dbError);
-          // 如果数据库验证失败，回退到环境变量验证
-          const expectedToken = env.ADMIN_TOKEN || 'your-secret-token';
-          if (token === expectedToken) {
-            return { valid: true, user: { admin: true } };
-          }
-          return { valid: false, error: '权限不足' };
-        }
       } catch (error) {
         console.error('token验证错误:', error);
         return { valid: false, error: '令牌验证失败' };
