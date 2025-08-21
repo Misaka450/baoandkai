@@ -37,13 +37,23 @@ export const priorityColors = {
   low: 'bg-green-100 text-green-700 border-green-200'
 };
 
-// 加载状态组件
-export const LoadingSpinner = ({ message = '加载中...' }) => (
-  <div className="text-center">
-    <div className="animate-pulse">
-      <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
-      <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
-      {message && <p className="text-stone-500 mt-4">{message}</p>}
-    </div>
-  </div>
-);
+// 加载状态组件 - 使用函数返回JSX
+import React from 'react';
+
+export const LoadingSpinner = ({ message = '加载中...' }) => {
+  return React.createElement(
+    'div',
+    { className: 'flex justify-center items-center py-8' },
+    [
+      React.createElement('div', {
+        key: 'spinner',
+        className: 'animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500'
+      }),
+      message && React.createElement(
+        'span',
+        { key: 'message', className: 'ml-3 text-gray-600' },
+        message
+      )
+    ]
+  );
+};
