@@ -20,9 +20,18 @@ export default function AdminSettings() {
   const loadSettings = async () => {
     try {
       const data = await apiService.get('/api/settings');
-      setSettings(data);
+      setSettings(data || {
+        site_name: '包包和恺恺的故事',
+        site_description: '记录我们的点点滴滴',
+        theme: 'light'
+      });
     } catch (error) {
       console.error('加载设置失败:', error);
+      setSettings({
+        site_name: '包包和恺恺的故事',
+        site_description: '记录我们的点点滴滴',
+        theme: 'light'
+      });
     } finally {
       setLoading(false);
     }

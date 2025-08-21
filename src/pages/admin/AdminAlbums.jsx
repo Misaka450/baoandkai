@@ -27,9 +27,10 @@ export default function AdminAlbums() {
   const fetchAlbums = async () => {
     try {
       const { data } = await apiService.get('/api/albums')
-      setAlbums(data)
+      setAlbums(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取相册失败:', error)
+      setAlbums([])
     }
   }
 

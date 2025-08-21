@@ -36,14 +36,15 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     try {
       setLoading(true);
       const { data } = await apiService.get(`/api/todos?page=${page}&limit=${itemsPerPage}`);
-      setTodos(data.data);
-      setTotalPages(data.totalPages);
-      setTotalCount(data.totalCount);
-      setCurrentPage(data.currentPage);
+      setTodos(Array.isArray(data.data) ? data.data : []);
+      setTotalPages(data.totalPages || 1);
+      setTotalCount(data.totalCount || 0);
+      setCurrentPage(data.currentPage || 1);
       setError(null);
     } catch (err) {
       setError('获取待办事项失败');
       console.error('获取待办事项失败:', err);
+      setTodos([]);
     } finally {
       setLoading(false);
     }
