@@ -61,61 +61,62 @@ export default function Navigation() {
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 50,
-      transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      borderRadius: '0.75rem',
+      transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      borderRadius: '1rem',
       padding: '0.75rem 1.5rem',
-      boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.1)'
+      boxShadow: '0 8px 32px -8px rgba(0, 0, 0, 0.08)'
     }
 
     if (isVisible) {
       return {
         ...baseStyles,
-        transform: 'translateX(-50%) translateY(0)',
+        transform: 'translateX(-50%) translateY(0) scale(1)',
         opacity: 1,
-        backdropFilter: `blur(${Math.max(12 - scrollProgress * 8, 4)}px)`,
+        backdropFilter: `blur(${Math.max(16 - scrollProgress * 12, 8)}px)`,
         boxShadow: scrollProgress > 0.1 
-          ? '0 10px 40px -10px rgba(0, 0, 0, 0.15)' 
-          : '0 4px 20px -5px rgba(0, 0, 0, 0.1)'
+          ? '0 20px 60px -20px rgba(0, 0, 0, 0.12)' 
+          : '0 8px 32px -8px rgba(0, 0, 0, 0.08)'
       }
     } else {
       return {
         ...baseStyles,
-        transform: 'translateX(-50%) translateY(-120%)',
-        opacity: 0
+        transform: 'translateX(-50%) translateY(-150%) scale(0.9)',
+        opacity: 0,
+        backdropFilter: 'blur(8px)'
       }
     }
   }
 
   // 计算汉堡按钮的透明度和位置
   const getHamburgerStyles = () => {
+    const baseStyles = {
+      position: 'fixed',
+      top: '1rem',
+      right: '1rem',
+      zIndex: 50,
+      transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      borderRadius: '0.75rem',
+      padding: '0.75rem',
+      boxShadow: '0 8px 32px -8px rgba(0, 0, 0, 0.15)'
+    }
+
     if (isVisible) {
       return {
-        position: 'fixed',
-        top: '1rem',
-        right: '1rem',
-        zIndex: 50,
+        ...baseStyles,
         transform: 'translateY(0) scale(1)',
-        opacity: 1,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        borderRadius: '0.5rem',
-        padding: '0.5rem',
-        boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.15)'
+        opacity: 1
       }
     } else {
       return {
-        position: 'fixed',
-        top: '1rem',
-        right: '1rem',
-        zIndex: 50,
-        transform: 'translateY(-100px) scale(0.8)',
-        opacity: 0,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+        ...baseStyles,
+        transform: 'translateY(-150px) scale(0.8)',
+        opacity: 0
       }
     }
   }
@@ -129,72 +130,92 @@ export default function Navigation() {
         style={getHamburgerStyles()}
         className="md:hidden"
       >
-        {isMobileMenuOpen ? (
-          <X className="h-6 w-6 text-gray-600 transition-transform duration-300 hover:rotate-90" />
-        ) : (
-          <Menu className="h-6 w-6 text-gray-600 transition-transform duration-300 hover:scale-110" />
-        )}
+        <div className="relative w-6 h-6">
+          <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`}></span>
+          <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+          <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-2.5' : ''}`}></span>
+        </div>
       </button>
 
       {/* 移动端菜单 - 带淡入淡出动画 */}
-      {isMobileMenuOpen && (
+      <div 
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ease-in-out ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden transition-opacity duration-300 ease-in-out"
-          onClick={() => setIsMobileMenuOpen(false)}
+          className={`absolute top-16 right-4 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 w-56 transform transition-all duration-500 ease-out ${isMobileMenuOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div 
-            className="absolute top-16 right-4 bg-white rounded-lg shadow-xl p-4 w-48 transform transition-all duration-300 ease-out"
-            style={{
-              animation: isMobileMenuOpen ? 'slideIn 0.3s ease-out' : 'slideOut 0.3s ease-in'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="space-y-2">
-              {navigation.map((item, index) => {
-                const isActive = location.pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 ease-out ${
-                      isActive
-                        ? 'bg-pink-100 text-pink-600 scale-105'
-                        : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50 hover:scale-105'
-                    }`}
-                    style={{
-                      animation: isMobileMenuOpen ? `fadeInUp 0.4s ease-out ${index * 0.1}s both` : ''
-                    }}
-                  >
-                    <item.icon className="h-5 w-5 transition-transform duration-300 hover:rotate-12" />
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                )
-              })}
-            </div>
+          <div className="space-y-1">
+            {navigation.map((item, index) => {
+              const isActive = location.pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 shadow-md'
+                      : 'text-gray-600 hover:text-pink-600 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:shadow-sm'
+                  }`}
+                  style={{
+                    animation: isMobileMenuOpen ? `slideInFromRight 0.5s ease-out ${index * 0.08}s both` : ''
+                  }}
+                >
+                  <item.icon className="h-5 w-5 transition-transform duration-300 hover:rotate-12" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              )
+            })}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* 添加CSS动画 */}
+      <style jsx>{`
+        @keyframes slideInFromRight {
+          from {
+            opacity: 0;
+            transform: translateX(100%) scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </>
   )
 
   // 桌面端导航 - 完美居中
   const DesktopNav = () => (
     <nav style={getNavStyles()} className="hidden md:block">
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center space-x-4 lg:space-x-6">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
           return (
             <Link
               key={item.name}
               to={item.href}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ease-out ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-500 ease-out transform hover:scale-110 ${
                 isActive
-                  ? 'bg-pink-100 text-pink-600 scale-105 shadow-md'
-                  : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50 hover:scale-105 hover:shadow-sm'
+                  ? 'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 scale-110 shadow-lg ring-2 ring-pink-200/50'
+                  : 'text-gray-600 hover:text-pink-600 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:scale-110 hover:shadow-md'
               }`}
             >
-              <item.icon className="h-4 w-4 transition-transform duration-300 hover:rotate-12" />
+              <item.icon className="h-5 w-5 transition-transform duration-500 hover:rotate-12" />
               <span className="text-sm font-medium">{item.name}</span>
             </Link>
           )
@@ -205,45 +226,8 @@ export default function Navigation() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateX(100px) scale(0.8);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0) scale(1);
-            }
-          }
-
-          @keyframes slideOut {
-            from {
-              opacity: 1;
-              transform: translateX(0) scale(1);
-            }
-            to {
-              opacity: 0;
-              transform: translateX(100px) scale(0.8);
-            }
-          }
-
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px) scale(0.9);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-        `
-      }} />
-      
-      <MobileMenu />
       <DesktopNav />
+      <MobileMenu />
     </>
   )
 }
