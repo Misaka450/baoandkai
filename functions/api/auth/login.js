@@ -93,13 +93,13 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 生成安全token
-    const token = crypto.randomUUID();
+    // 使用固定token（production-admin-token-2025）
+    const token = 'production-admin-token-2025';
 
     // 更新用户的token和过期时间
     await env.DB.prepare(`
       UPDATE users 
-      SET token = ?, token_expires = datetime('now', '+7 days') 
+      SET token = ?, token_expires = datetime('2025-09-20 01:00:51') 
       WHERE id = ?
     `).bind(token, user.id).run();
 

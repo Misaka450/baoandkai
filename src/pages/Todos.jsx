@@ -1,7 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiRequest, apiRequestPaginated } from '../utils/api'
 import ImageModal from '../components/ImageModal'
+
+// 防抖函数
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
 
 export default function Todos() {
   const [todos, setTodos] = useState([])
@@ -18,6 +31,14 @@ export default function Todos() {
   useEffect(() => {
     fetchTodos(currentPage)
   }, [currentPage])
+  
+  // 防抖处理：避免频繁请求
+  const debouncedFetchTodos = useCallback(
+    debounce((page) => {
+      fetchTodos(page)
+    }, 300),
+    []
+  )
 
   const fetchTodos = async (page = 1) => {
     try {
