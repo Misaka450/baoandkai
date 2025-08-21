@@ -160,7 +160,7 @@ export default function Navigation() {
                       : 'text-gray-600 hover:text-pink-600 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:shadow-sm'
                   }`}
                   style={{
-                    animation: isMobileMenuOpen ? `slideInFromRight 0.5s ease-out ${index * 0.08}s both` : ''
+                    animationDelay: `${index * 0.08}s`
                   }}
                 >
                   <item.icon className="h-5 w-5 transition-transform duration-300 hover:rotate-12" />
@@ -171,31 +171,6 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-
-      {/* 添加CSS动画 */}
-      <style jsx>{`
-        @keyframes slideInFromRight {
-          from {
-            opacity: 0;
-            transform: translateX(100%) scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-          }
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   )
 
