@@ -254,12 +254,14 @@ export default function Albums() {
     }
   }
 
+  // 修改fetchPhotos函数，使用正确的API路径
   const fetchPhotos = async (albumId) => {
     try {
-      const data = await apiRequest(`/api/albums/${albumId}/photos`)
-      setPhotos(data)
+      const data = await apiRequest(`/api/albums/${albumId}`)
+      setPhotos(data.photos || [])
     } catch (error) {
       console.error('获取照片失败:', error)
+      setPhotos([])
     }
   }
 
@@ -294,12 +296,12 @@ export default function Albums() {
   // 使用统一加载组件
   if (loading && !selectedAlbum) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
-            <ImageIcon className="w-12 h-12 text-purple-800 mx-auto mb-4" />
-            <h1 className="text-4xl font-light text-purple-800 mb-4">我们的相册</h1>
-            <p className="text-purple-600 font-light mb-8">收藏每一个美好瞬间</p>
+            <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
+            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的相册</h1>
+            <p className="text-stone-600 font-light">收藏每一个美好瞬间</p>
             <LoadingSpinner message="正在加载相册..." />
           </div>
         </div>
@@ -308,22 +310,23 @@ export default function Albums() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* 页面标题 */}
         <div className="text-center mb-12">
-          <ImageIcon className="w-12 h-12 text-purple-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-purple-800 mb-4">我们的相册</h1>
-          <p className="text-purple-600 font-light">收藏每一个美好瞬间</p>
+          <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
+          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的相册</h1>
+          <p className="text-stone-600 font-light">收藏每一个美好瞬间</p>
         </div>
 
         {!selectedAlbum ? (
           // 相册列表视图
+          // 相册列表视图 - 统一stone色系
           <div>
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-light text-purple-800">相册列表</h2>
+              <h2 className="text-2xl font-light text-stone-800">相册列表</h2>
             </div>
-
+          
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {albums.map(album => (
                 <div
@@ -331,7 +334,7 @@ export default function Albums() {
                   onClick={() => handleAlbumSelect(album)}
                   className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl mb-4 flex items-center justify-center">
+                  <div className="aspect-video bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl mb-4 flex items-center justify-center">
                     {album.photos && album.photos.length > 0 ? (
                       <img 
                         src={album.photos[0].url} 
@@ -339,52 +342,52 @@ export default function Albums() {
                         className="w-full h-full object-cover rounded-xl"
                         onError={(e) => {
                           e.target.style.display = 'none'
-                          e.target.parentElement.innerHTML = '<svg class="h-12 w-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+                          e.target.parentElement.innerHTML = '<svg class="h-12 w-12 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
                         }}
                       />
                     ) : (
-                      <ImageIcon className="h-12 w-12 text-purple-400" />
+                      <ImageIcon className="h-12 w-12 text-stone-400" />
                     )}
                   </div>
-                  <h3 className="text-lg font-light text-purple-800 mb-2">{album.name}</h3>
-                  <p className="text-sm text-purple-600 font-light">
+                  <h3 className="text-lg font-light text-stone-800 mb-2">{album.name}</h3>
+                  <p className="text-sm text-stone-600 font-light">
                     {album.photos ? album.photos.length : 0} 张照片
                   </p>
                 </div>
               ))}
             </div>
-
+          
             {albums.length === 0 && (
               <div className="text-center py-16">
                 <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                  <ImageIcon className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-light text-purple-700 mb-2">暂无相册</h3>
-                  <p className="text-sm text-purple-500 font-light">还没有创建任何相册</p>
+                  <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-light text-stone-700 mb-2">暂无相册</h3>
+                  <p className="text-sm text-stone-500 font-light">还没有创建任何相册</p>
                 </div>
               </div>
             )}
           </div>
         ) : (
           // 照片列表视图
+          // 照片列表视图 - 统一stone色系
           <div>
             <button
               onClick={() => {
                 setSelectedAlbum(null)
                 setPhotos([])
               }}
-              className="flex items-center mb-6 text-purple-600 hover:text-purple-800 transition-colors"
+              className="flex items-center mb-6 text-stone-600 hover:text-stone-800 transition-colors"
             >
               <ChevronLeft className="h-5 w-5 mr-1" />
               返回相册列表
             </button>
-
-            <div className="mb-8">
-              <h2 className="text-2xl font-light text-purple-800 mb-2">{selectedAlbum.name}</h2>
-              <p className="text-purple-600 font-light">
-                {photos.length} 张照片
-              </p>
+          
+            {/* 相册标题 */}
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-light text-stone-800 mb-2">{selectedAlbum.name}</h2>
+              <p className="text-stone-600 font-light">{selectedAlbum.description || '收藏每一个美好瞬间'}</p>
             </div>
-
+          
             {loading ? (
               <div className="text-center py-16">
                 <LoadingSpinner message="正在加载照片..." />
@@ -395,7 +398,7 @@ export default function Albums() {
                   <div
                     key={photo.id}
                     onClick={() => openPhoto(photo, index)}
-                    className="group relative aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1"
+                    className="group relative aspect-square bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1"
                   >
                     <img
                       src={photo.url}
@@ -415,12 +418,12 @@ export default function Albums() {
               </div>
             ) : (
               <div className="text-center py-16">
-                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                  <ImageIcon className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-light text-purple-700 mb-2">暂无照片</h3>
-                  <p className="text-sm text-purple-500 font-light">这个相册还没有照片</p>
+                  <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+                    <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-light text-stone-700 mb-2">暂无照片</h3>
+                    <p className="text-sm text-stone-500 font-light">这个相册还没有照片</p>
+                  </div>
                 </div>
-              </div>
             )}
           </div>
         )}
@@ -439,4 +442,26 @@ export default function Albums() {
       )}
     </div>
   )
+}
+
+// 统一配色风格 - 使用stone色系
+const TimeCard = ({ value, label, color = 'stone' }) => {
+const colorClasses = {
+stone: 'from-stone-50/80 to-stone-100/80 text-stone-700 border-stone-200/30',
+rose: 'from-rose-50/80 to-rose-100/80 text-rose-700 border-rose-200/30',
+amber: 'from-amber-50/80 to-amber-100/80 text-amber-700 border-amber-200/30',
+emerald: 'from-emerald-50/80 to-emerald-100/80 text-emerald-700 border-emerald-200/30',
+violet: 'from-violet-50/80 to-violet-100/80 text-violet-700 border-violet-200/30'
+}
+
+return (
+<div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-4 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)]`}>
+<div className="text-2xl font-light mb-1 font-mono tracking-wider">
+{String(value).padStart(2, '0')}
+</div>
+<div className="text-xs font-light opacity-80">
+{label}
+</div>
+</div>
+)
 }
