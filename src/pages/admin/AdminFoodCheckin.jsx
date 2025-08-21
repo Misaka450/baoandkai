@@ -34,9 +34,10 @@ export default function AdminFoodCheckin() {
   const fetchCheckins = async () => {
     try {
       const { data } = await apiService.get('/api/food')
-      setCheckins(data)
+      setCheckins(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
+      setCheckins([])
     }
   }
 
