@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import StickyNotes from '../components/StickyNotes'
+import { apiRequest } from '../utils/api.js'
+import { formatDate } from '../utils/common.js'
 
 export default function Home() {
   const [config, setConfig] = useState({
@@ -18,22 +20,12 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const response = await fetch('/api/config')
-      if (response.ok) {
-        const data = await response.json()
-        setConfig({
-          coupleName1: data.coupleName1 || '包包',
-          coupleName2: data.coupleName2 || '恺恺',
-          anniversaryDate: data.anniversaryDate || '2024-01-01'
-        })
-      } else {
-        const defaultConfig = {
-          coupleName1: '包包',
-          coupleName2: '恺恺',
-          anniversaryDate: '2023-10-08'
-        }
-        setConfig(defaultConfig)
-      }
+      const data = await apiRequest('/api/config')
+      setConfig({
+        coupleName1: data.coupleName1 || '包包',
+        coupleName2: data.coupleName2 || '恺恺',
+        anniversaryDate: data.anniversaryDate || '2024-01-01'
+      })
     } catch (error) {
       console.error('获取配置失败:', error)
       const defaultConfig = {
@@ -99,11 +91,7 @@ export default function Home() {
           <div className="bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/30 transition-all duration-500 hover:bg-stone-100/60">
             <div className="flex items-center justify-center text-stone-700 mb-2">
               <Calendar className="h-5 w-5 mr-3 text-stone-400" />
-              <span className="text-base font-light">我们的纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</span>
+              <span className="text-base font-light">我们的纪念日：{formatDate(config.anniversaryDate)}</span>
             </div>
             <div className="text-sm text-stone-500 font-light text-center">
               已经一起走过了 {timeTogether.totalDays} 个温柔的日子

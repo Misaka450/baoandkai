@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
+import { formatDate, LoadingSpinner } from '../utils/common.js'
 
 // 图片查看器组件 - 带防下载保护
 function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
@@ -12,12 +13,11 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const imageRef = useRef(null)
 
   // 防下载：禁用右键菜单
-  // 在现有的图片展示部分添加防下载保护
   const preventContextMenu = useCallback((e) => {
     e.preventDefault()
     return false
   }, [])
-  
+
   // 防下载：禁用拖拽
   const preventDrag = useCallback((e) => {
     e.preventDefault()
@@ -26,7 +26,6 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 
   // 防下载：禁用键盘保存快捷键
   const preventSaveShortcuts = useCallback((e) => {
-    // 禁用 Ctrl+S, Cmd+S, F12, Ctrl+Shift+I, Ctrl+Shift+J
     if (
       e.key === 's' && (e.ctrlKey || e.metaKey) ||
       e.key === 'F12' ||
@@ -54,7 +53,6 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 
   // 处理键盘事件
   const handleKeyDown = useCallback((e) => {
-    // 先处理防下载快捷键
     preventSaveShortcuts(e)
     
     switch (e.key) {
@@ -197,54 +195,36 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
         <button
           onClick={(e) => {
             e.stopPropagation()
-            console.log('上一张按钮被点击')
             onPrev()
-            resetView()
           }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-4 rounded-full transition-all hover:bg-black/70 z-20 cursor-pointer"
-          title="上一张 (←)"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-colors"
         >
-          <ChevronLeft className="h-8 w-8" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
       )}
-      
+
       {hasNext && (
         <button
           onClick={(e) => {
             e.stopPropagation()
-            console.log('下一张按钮被点击')
             onNext()
-            resetView()
           }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 bg-black/50 p-4 rounded-full transition-all hover:bg-black/70 z-20 cursor-pointer"
-          title="下一张 (→)"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-colors"
         >
-          <ChevronRight className="h-8 w-8" />
+          <ChevronRight className="h-6 w-6" />
         </button>
       )}
 
-      {/* 图片容器 - 添加防下载保护 */}
-      <div 
-        className="flex items-center justify-center w-full h-full px-20 relative"
-        onMouseDown={handleMouseDown}
-      >
-        {/* 防下载覆盖层 */}
-        <div className="absolute inset-0 pointer-events-none" />
-        
+      {/* 图片容器 */}
+      <div className="relative flex items-center justify-center w-full h-full px-20">
         <img
           ref={imageRef}
           src={photo.url}
           alt={photo.caption || '图片'}
-          className="select-none pointer-events-auto"
           style={imageStyle}
+          className="max-w-full max-h-full object-contain select-none"
           draggable={false}
-          onContextMenu={preventContextMenu}
         />
-      </div>
-
-      {/* 使用说明提示 */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full">
-        滚轮缩放 | 拖拽移动 | 方向键切换 | ESC关闭
       </div>
     </div>
   )
@@ -253,8 +233,16 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 export default function Albums() {
   const [albums, setAlbums] = useState([])
   const [selectedAlbum, setSelectedAlbum] = useState(null)
-  const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('grid')
+  const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [photoIndex, setPhotoIndex] = useState(0)
+  const [showAddAlbum, setShowAddAlbum] = useState(false)
+  const [newAlbumName, setNewAlbumName] = useState('')
+  const [showAddPhoto, setShowAddPhoto] = useState(false)
+  const [newPhotoFile, setNewPhotoFile] = useState(null)
+  const [newPhotoCaption, setNewPhotoCaption] = useState('')
 
   useEffect(() => {
     fetchAlbums()
@@ -271,101 +259,90 @@ export default function Albums() {
     }
   }
 
-  // 防止右键菜单（防止下载图片）
-  const preventContextMenu = (e) => {
-    e.preventDefault()
-    return false
-  }
-
-  // 防止拖拽图片（防止下载）
-  const preventDrag = (e) => {
-    e.preventDefault()
-    return false
-  }
-
-  // 获取相册封面图片
-  const getCoverImage = (album) => {
-    if (album.cover_image) return album.cover_image
-    if (album.photos && album.photos.length > 0) {
-      // 按排序顺序获取第一张图片作为封面
-      const sortedPhotos = [...album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      return sortedPhotos[0].url
+  const fetchPhotos = async (albumId) => {
+    try {
+      const data = await apiRequest(`/api/albums/${albumId}/photos`)
+      setPhotos(data)
+    } catch (error) {
+      console.error('获取照片失败:', error)
     }
-    return '/placeholder-album.jpg'
   }
 
-  // 处理图片点击事件
-  const handlePhotoClick = (photo, index) => {
-    if (!selectedAlbum || !selectedAlbum.photos) return
+  const handleAlbumSelect = async (album) => {
+    setSelectedAlbum(album)
+    setLoading(true)
+    await fetchPhotos(album.id)
+    setLoading(false)
+  }
+
+  const handleAddAlbum = async () => {
+    if (!newAlbumName.trim()) return
     
-    const sortedPhotos = [...selectedAlbum.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    const sortedIndex = sortedPhotos.findIndex(p => p.id === photo.id)
-    setSelectedPhoto({
-      photo,
-      index: sortedIndex,
-      album: selectedAlbum
-    })
+    try {
+      const newAlbum = await apiRequest('/api/albums', {
+        method: 'POST',
+        body: JSON.stringify({ name: newAlbumName })
+      })
+      setAlbums([...albums, newAlbum])
+      setNewAlbumName('')
+      setShowAddAlbum(false)
+    } catch (error) {
+      console.error('创建相册失败:', error)
+    }
   }
 
-  // 关闭图片查看器
-  const closeImageViewer = () => {
+  const handleAddPhoto = async () => {
+    if (!newPhotoFile || !selectedAlbum) return
+    
+    const formData = new FormData()
+    formData.append('photo', newPhotoFile)
+    formData.append('caption', newPhotoCaption)
+    
+    try {
+      const newPhoto = await apiRequest(`/api/albums/${selectedAlbum.id}/photos`, {
+        method: 'POST',
+        body: formData
+      })
+      setPhotos([...photos, newPhoto])
+      setNewPhotoFile(null)
+      setNewPhotoCaption('')
+      setShowAddPhoto(false)
+    } catch (error) {
+      console.error('上传照片失败:', error)
+    }
+  }
+
+  const openPhoto = (photo, index) => {
+    setSelectedPhoto(photo)
+    setPhotoIndex(index)
+  }
+
+  const closePhoto = () => {
     setSelectedPhoto(null)
   }
 
-  // 上一张图片
-  const goToPrevPhoto = () => {
-    if (selectedPhoto && selectedPhoto.album && selectedPhoto.album.photos) {
-      const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      const currentIndex = selectedPhoto.index
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : sortedPhotos.length - 1
-      setSelectedPhoto({
-        ...selectedPhoto,
-        photo: sortedPhotos[newIndex],
-        index: newIndex
-      })
-    }
+  const prevPhoto = () => {
+    const newIndex = photoIndex > 0 ? photoIndex - 1 : photos.length - 1
+    setSelectedPhoto(photos[newIndex])
+    setPhotoIndex(newIndex)
   }
 
-  // 下一张图片
-  const goToNextPhoto = () => {
-    if (selectedPhoto && selectedPhoto.album && selectedPhoto.album.photos) {
-      const sortedPhotos = [...selectedPhoto.album.photos].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      const currentIndex = selectedPhoto.index
-      const newIndex = currentIndex < sortedPhotos.length - 1 ? currentIndex + 1 : 0
-      setSelectedPhoto({
-        ...selectedPhoto,
-        photo: sortedPhotos[newIndex],
-        index: newIndex
-      })
-    }
+  const nextPhoto = () => {
+    const newIndex = photoIndex < photos.length - 1 ? photoIndex + 1 : 0
+    setSelectedPhoto(photos[newIndex])
+    setPhotoIndex(newIndex)
   }
 
-  if (loading) {
+  // 使用统一加载组件
+  if (loading && !selectedAlbum) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+        <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
-            <div className="inline-flex flex-col items-center space-y-3">
-              <div className="animate-pulse">
-                <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
-                <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
-              </div>
-              <div className="mt-8 space-y-4 w-full max-w-md">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-stone-200 rounded w-1/2"></div>
-                      <div className="grid grid-cols-3 gap-2 mt-4">
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ImageIcon className="w-12 h-12 text-purple-800 mx-auto mb-4" />
+            <h1 className="text-4xl font-light text-purple-800 mb-4">我们的相册</h1>
+            <p className="text-purple-600 font-light mb-8">收藏每一个美好瞬间</p>
+            <LoadingSpinner message="正在加载相册..." />
           </div>
         </div>
       </div>
@@ -373,91 +350,216 @@ export default function Albums() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* 页面标题 */}
         <div className="text-center mb-12">
-          <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4">包包和恺恺的小窝 · 回忆相册</h1>
-          <p className="text-stone-600 font-light">收藏每一个值得珍藏的瞬间</p>
+          <ImageIcon className="w-12 h-12 text-purple-800 mx-auto mb-4" />
+          <h1 className="text-4xl font-light text-purple-800 mb-4">我们的相册</h1>
+          <p className="text-purple-600 font-light">收藏每一个美好瞬间</p>
         </div>
 
         {!selectedAlbum ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {albums.map((album) => (
-              <div
-                key={album.id}
-                onClick={() => setSelectedAlbum(album)}
-                className="group cursor-pointer"
-              >
-                <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]">
-                  <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-stone-100 flex items-center justify-center">
-                    <img
-                      src={getCoverImage(album)}
-                      alt={album.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 select-none"
-                      draggable={false}
-                      onContextMenu={preventContextMenu}
-                      onDragStart={preventDrag}
-                      onError={(e) => {
-                        e.target.src = '/placeholder-album.jpg'
-                      }}
-                    />
-                  </div>
-                  <h3 className="text-xl font-light text-stone-800 mb-2">{album.name}</h3>
-                  <p className="text-sm text-stone-600 font-light">
-                    {album.description || `${album.photos?.length || 0} 张照片`}
-                  </p>
-                  <div className="mt-3">
-                    <span className="text-xs text-stone-500 font-light">
-                      {new Date(album.created_at).toLocaleDateString('zh-CN')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
+          // 相册列表视图
           <div>
-            <button
-              onClick={() => setSelectedAlbum(null)}
-              className="mb-6 flex items-center text-stone-600 hover:text-stone-800 transition-colors font-light"
-            >
-              <ChevronLeft className="h-5 w-5 mr-1" />
-              返回相册列表
-            </button>
-            
-            <div className="mb-8">
-              <h2 className="text-3xl font-light text-stone-800 mb-2">{selectedAlbum.name}</h2>
-              <p className="text-stone-600 font-light">{selectedAlbum.description}</p>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-light text-purple-800">相册列表</h2>
+              <button
+                onClick={() => setShowAddAlbum(true)}
+                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                新建相册
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {selectedAlbum.photos
-                ?.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-                .map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    onClick={() => handlePhotoClick(photo, index)}
-                    className="group cursor-pointer"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {albums.map(album => (
+                <div
+                  key={album.id}
+                  onClick={() => handleAlbumSelect(album)}
+                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl mb-4 flex items-center justify-center">
+                    <ImageIcon className="h-12 w-12 text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-light text-purple-800 mb-2">{album.name}</h3>
+                  <p className="text-sm text-purple-600 font-light">{album.photoCount || 0} 张照片</p>
+                </div>
+              ))}
+            </div>
+
+            {albums.length === 0 && (
+              <div className="text-center py-16">
+                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+                  <ImageIcon className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-light text-purple-700 mb-2">暂无相册</h3>
+                  <p className="text-sm text-purple-500 font-light">创建第一个相册开始收藏美好回忆</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          // 照片列表视图
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <button
+                onClick={() => {
+                  setSelectedAlbum(null)
+                  setPhotos([])
+                }}
+                className="flex items-center text-purple-600 hover:text-purple-800 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5 mr-1" />
+                返回相册列表
+              </button>
+              
+              <div className="flex items-center space-x-4">
+                <div className="flex bg-white/50 backdrop-blur-sm rounded-full p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      viewMode === 'grid' ? 'bg-purple-600 text-white' : 'text-purple-600'
+                    }`}
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 bg-stone-100 flex items-center justify-center relative group">
+                    <Grid className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      viewMode === 'list' ? 'bg-purple-600 text-white' : 'text-purple-600'
+                    }`}
+                  >
+                    <Play className="h-4 w-4" />
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowAddPhoto(true)}
+                  className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  上传照片
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-light text-purple-800 mb-6">{selectedAlbum.name}</h2>
+              
+              {loading ? (
+                <div className="text-center py-12">
+                  <LoadingSpinner message="正在加载照片..." />
+                </div>
+              ) : (
+                <div className={viewMode === 'grid' ? 
+                  "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : 
+                  "space-y-4"
+                }>
+                  {photos.map((photo, index) => (
+                    <div
+                      key={photo.id}
+                      onClick={() => openPhoto(photo, index)}
+                      className={`bg-white/60 backdrop-blur-sm rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer ${
+                        viewMode === 'list' ? 'flex' : ''
+                      }`}
+                    >
                       <img
                         src={photo.url}
-                        alt={photo.caption || `照片 ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 select-none"
-                        draggable={false}
-                        onContextMenu={preventContextMenu}
-                        onDragStart={preventDrag}
-                        onError={(e) => {
-                          e.target.src = '/placeholder-image.jpg'
-                        }}
+                        alt={photo.caption || '照片'}
+                        className={`w-full h-48 object-cover ${
+                          viewMode === 'list' ? 'w-32 h-32 rounded-l-2xl' : ''
+                        }`}
                       />
+                      {viewMode === 'list' && (
+                        <div className="p-4 flex-1">
+                          <p className="font-light text-purple-800 mb-2">{photo.caption || '无标题'}</p>
+                          <p className="text-sm text-purple-600 font-light">
+                            {formatDate(photo.createdAt)}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    {photo.caption && (
-                      <p className="mt-2 text-sm text-stone-600 font-light truncate">{photo.caption}</p>
-                    )}
+                  ))}
+                </div>
+              )}
+
+              {photos.length === 0 && !loading && (
+                <div className="text-center py-16">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+                    <ImageIcon className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-light text-purple-700 mb-2">暂无照片</h3>
+                    <p className="text-sm text-purple-500 font-light">上传第一张照片到相册吧</p>
                   </div>
-                ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 添加相册对话框 */}
+        {showAddAlbum && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-light text-purple-800 mb-4">新建相册</h3>
+              <input
+                type="text"
+                value={newAlbumName}
+                onChange={(e) => setNewAlbumName(e.target.value)}
+                placeholder="相册名称"
+                className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddAlbum()}
+              />
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowAddAlbum(false)}
+                  className="flex-1 px-4 py-2 border border-purple-200 text-purple-600 rounded-xl hover:bg-purple-50 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleAddAlbum}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  创建
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 上传照片对话框 */}
+        {showAddPhoto && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-light text-purple-800 mb-4">上传照片</h3>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setNewPhotoFile(e.target.files[0])}
+                className="w-full mb-4"
+              />
+              <input
+                type="text"
+                value={newPhotoCaption}
+                onChange={(e) => setNewPhotoCaption(e.target.value)}
+                placeholder="照片描述（可选）"
+                className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
+              />
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowAddPhoto(false)}
+                  className="flex-1 px-4 py-2 border border-purple-200 text-purple-600 rounded-xl hover:bg-purple-50 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleAddPhoto}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  上传
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -465,12 +567,12 @@ export default function Albums() {
         {/* 图片查看器 */}
         {selectedPhoto && (
           <ImageViewer
-            photo={selectedPhoto.photo}
-            onClose={closeImageViewer}
-            onPrev={goToPrevPhoto}
-            onNext={goToNextPhoto}
-            hasPrev={selectedPhoto.album.photos && selectedPhoto.album.photos.length > 1}
-            hasNext={selectedPhoto.album.photos && selectedPhoto.album.photos.length > 1}
+            photo={selectedPhoto}
+            onClose={closePhoto}
+            onPrev={prevPhoto}
+            onNext={nextPhoto}
+            hasPrev={photoIndex > 0}
+            hasNext={photoIndex < photos.length - 1}
           />
         )}
       </div>
