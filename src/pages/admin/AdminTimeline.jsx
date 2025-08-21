@@ -25,7 +25,12 @@ export default function AdminTimeline() {
 
   const loadEvents = async () => {
     try {
-      const data = await apiService.get('/api/timeline');
+      const { data, error } = await apiService.get('/api/timeline');
+      if (error) {
+        console.error('获取时间轴事件失败:', error);
+        setEvents([]);
+        return;
+      }
       setEvents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('获取时间轴事件失败:', error);
