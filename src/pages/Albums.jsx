@@ -246,9 +246,10 @@ export default function Albums() {
   const fetchAlbums = async () => {
     try {
       const { data } = await apiService.get('/api/albums')
-      setAlbums(data)
+      setAlbums(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取相册失败:', error)
+      setAlbums([])
     } finally {
       setLoading(false)
     }
@@ -258,7 +259,7 @@ export default function Albums() {
   const fetchPhotos = async (albumId) => {
     try {
       const { data } = await apiService.get(`/api/albums/${albumId}`)
-      setPhotos(data.photos || [])
+      setPhotos(Array.isArray(data.photos) ? data.photos : [])
     } catch (error) {
       console.error('获取照片失败:', error)
       setPhotos([])
@@ -335,9 +336,9 @@ export default function Albums() {
                   className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
                 >
                   <div className="aspect-video bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl mb-4 flex items-center justify-center">
-                    {album.photos && album.photos.length > 0 ? (
+                    {Array.isArray(album.photos) && album.photos.length > 0 ? (
                       <img 
-                        src={album.photos[0].url} 
+                        src={album.photos[0]?.url} 
                         alt={album.name}
                         className="w-full h-full object-cover rounded-xl"
                         onError={(e) => {
@@ -351,7 +352,7 @@ export default function Albums() {
                   </div>
                   <h3 className="text-lg font-light text-stone-800 mb-2">{album.name}</h3>
                   <p className="text-sm text-stone-600 font-light">
-                    {album.photos ? album.photos.length : 0} 张照片
+                    {Array.isArray(album.photos) ? album.photos.length : 0} 张照片
                   </p>
                 </div>
               ))}
