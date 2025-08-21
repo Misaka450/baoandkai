@@ -43,8 +43,31 @@ export default {
         'semibold': 600,
         'bold': 700,
         'extrabold': 800,
-      }
+      },
+      // 添加动画优化
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
     },
   },
+  // 优化未使用样式的移除
+  safelist: [
+    'bg-pink-500',
+    'bg-pink-600',
+    'hover:bg-pink-600',
+    'text-pink-500',
+    'border-pink-500',
+  ],
   plugins: [],
 }
