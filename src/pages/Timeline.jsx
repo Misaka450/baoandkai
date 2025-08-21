@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock, Clock as TimelineIcon } from 'lucide-react'
 import { apiRequest } from '../utils/api'
 import ImageModal from '../components/ImageModal'
+import { formatDate, LoadingSpinner } from '../utils/common.js'
 
 export default function Timeline() {
   const [events, setEvents] = useState([])
@@ -47,33 +48,16 @@ export default function Timeline() {
     '日常': Clock
   }
 
+  // 使用统一的加载组件
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="text-center">
-            <div className="inline-flex flex-col items-center space-y-3">
-              <div className="animate-pulse">
-                <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
-                <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
-              </div>
-              <div className="mt-8 space-y-4 w-full max-w-md">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-4 bg-stone-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-stone-200 rounded w-1/2"></div>
-                      <div className="h-3 bg-stone-200 rounded w-2/3"></div>
-                      <div className="grid grid-cols-3 gap-2 mt-4">
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                        <div className="h-20 bg-stone-200 rounded-xl"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <TimelineIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
+            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的爱情足迹</h1>
+            <p className="text-stone-600 font-light mb-8">记录每一个值得纪念的瞬间</p>
+            <LoadingSpinner message="正在加载时间轴..." />
           </div>
         </div>
       </div>
@@ -144,11 +128,8 @@ export default function Timeline() {
                             <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
                               <span className="flex items-center">
                                 <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                                {new Date(event.date).toLocaleDateString('zh-CN', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
+                                {/* 使用公共日期格式化函数 */}
+                                {formatDate(event.date)}
                               </span>
                               {event.location && (
                                 <span className="flex items-center">
@@ -200,24 +181,23 @@ export default function Timeline() {
         {filteredEvents.length === 0 && (
           <div className="text-center py-16">
             <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-              <div className="mb-6">
-                <Camera className="h-16 w-16 text-stone-300 mx-auto mb-4" />
-                <h3 className="text-lg font-light text-stone-700 mb-2">还没有记录任何瞬间</h3>
-                <p className="text-sm text-stone-500 font-light">开始记录你们的第一个美好时刻吧</p>
-              </div>
-              <div className="w-16 h-0.5 bg-stone-200 mx-auto rounded-full"></div>
+              <Calendar className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+              <h3 className="text-lg font-light text-stone-700 mb-2">暂无记录</h3>
+              <p className="text-sm text-stone-500 font-light">还没有添加任何时间轴事件，让我们开始记录美好时光吧！</p>
             </div>
           </div>
         )}
+
       </div>
-      
+
       <ImageModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
+        imageUrl={currentImages[currentImageIndex]}
         images={currentImages}
         currentIndex={currentImageIndex}
-        onPrevious={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
-        onNext={() => setCurrentImageIndex(prev => Math.min(currentImages.length - 1, prev + 1))}
+        onNext={() => setCurrentImageIndex((prev) => (prev + 1) % currentImages.length)}
+        onPrev={() => setCurrentImageIndex((prev) => (prev - 1 + currentImages.length) % currentImages.length)}
       />
     </div>
   )

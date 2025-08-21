@@ -2,19 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiRequest, apiRequestPaginated } from '../utils/api'
 import ImageModal from '../components/ImageModal'
-
-// 防抖函数
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
+import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common.js'
 
 export default function Todos() {
   const [todos, setTodos] = useState([])
@@ -32,7 +20,7 @@ export default function Todos() {
     fetchTodos(currentPage)
   }, [currentPage])
   
-  // 防抖处理：避免频繁请求
+  // 使用公共防抖函数
   const debouncedFetchTodos = useCallback(
     debounce((page) => {
       fetchTodos(page)
@@ -97,22 +85,8 @@ export default function Todos() {
     return filtered
   }
 
-  const priorityColors = {
-    high: 'bg-red-100 text-red-700 border-red-200',
-    medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    low: 'bg-green-100 text-green-700 border-green-200'
-  }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  // 切换待办的展开/收起状态
+  // 移除 priorityColors 和 formatDate 的重复定义
+  
   const toggleTodoExpand = (todoId) => {
     setExpandedTodos(prev => {
       const newSet = new Set(prev)
@@ -125,19 +99,18 @@ export default function Todos() {
     })
   }
 
-  // 检查待办是否展开
   const isTodoExpanded = (todoId) => expandedTodos.has(todoId)
 
+  // 使用统一的加载组件
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="text-center">
-            <div className="animate-pulse">
-              <CheckSquare className="w-12 h-12 text-stone-400 mx-auto mb-4" />
-              <div className="h-2 bg-stone-200 rounded-full w-48 mb-4"></div>
-              <div className="h-1.5 bg-stone-200 rounded-full w-32"></div>
-            </div>
+            <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
+            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
+            <p className="text-stone-600 font-light mb-8">一起完成的小目标，记录我们的点点滴滴</p>
+            <LoadingSpinner message="正在加载待办事项..." />
           </div>
         </div>
       </div>
