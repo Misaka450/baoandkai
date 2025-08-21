@@ -1,4 +1,4 @@
-import { API_BASE } from '../config/performance'
+import { API_BASE } from '../config/api'
 
 /**
  * 统一的API服务

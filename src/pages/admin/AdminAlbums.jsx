@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Plus, X, Trash2, Edit2, Upload, Loader2, Image, Eye, GripVertical, CheckSquare, Square } from 'lucide-react'
-import { apiRequest } from '../../utils/api'
+import { apiService } from '../../services/apiService'
 import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
@@ -26,7 +26,7 @@ export default function AdminAlbums() {
 
   const fetchAlbums = async () => {
     try {
-      const data = await apiRequest('/api/albums')
+      const { data } = await apiService.get('/api/albums')
       setAlbums(data)
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -55,15 +55,9 @@ export default function AdminAlbums() {
       console.log('提交相册数据:', albumData)
       
       if (editingAlbum) {
-        await apiRequest(`/api/albums/${editingAlbum.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(albumData)
-        })
+        await apiService.put(`/api/albums/${editingAlbum.id}`, albumData)
       } else {
-        await apiRequest('/api/albums', {
-          method: 'POST',
-          body: JSON.stringify(albumData)
-        })
+        await apiService.post('/api/albums', albumData)
       }
       
       setShowForm(false)
@@ -84,9 +78,7 @@ export default function AdminAlbums() {
     if (!confirmed) return
 
     try {
-      await apiRequest(`/api/albums/${id}`, {
-        method: 'DELETE'
-      })
+      await apiService.delete(`/api/albums/${id}`)
       fetchAlbums()
     } catch (error) {
       console.error('删除相册失败:', error)
@@ -151,10 +143,7 @@ export default function AdminAlbums() {
       if (filename) {
         console.log('准备删除R2图片:', filename)
         
-        const response = await apiRequest('/api/delete', {
-          method: 'DELETE',
-          body: JSON.stringify({ filename })
-        })
+        const response = await apiService.delete('/api/delete', { filename })
         
         if (response.success) {
           console.log('图片已从R2删除:', filename)

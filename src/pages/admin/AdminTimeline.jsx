@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { apiRequest } from '../../utils/api.js'
+import { apiService } from '../../services/apiService.js'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
@@ -25,7 +25,7 @@ export default function AdminTimeline() {
 
   const loadEvents = async () => {
     try {
-      const data = await apiRequest('/api/timeline');
+      const data = await apiService.get('/api/timeline');
       setEvents(data);
     } catch (error) {
       console.error('获取时间轴事件失败:', error);
@@ -52,15 +52,9 @@ export default function AdminTimeline() {
 
     try {
       if (editingEvent) {
-        await apiRequest(`/api/timeline/${editingEvent.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(eventData)
-        })
+        await apiService.put(`/api/timeline/${editingEvent.id}`, eventData)
       } else {
-        await apiRequest('/api/timeline', {
-          method: 'POST',
-          body: JSON.stringify(eventData)
-        })
+        await apiService.post('/api/timeline', eventData)
       }
       
       await loadEvents();
@@ -80,9 +74,7 @@ export default function AdminTimeline() {
     if (!confirmed) return;
 
     try {
-      await apiRequest(`/api/timeline/${id}`, {
-        method: 'DELETE'
-      });
+      await apiService.delete(`/api/timeline/${id}`);
       loadEvents();
     } catch (error) {
       console.error('删除时间节点失败:', error);

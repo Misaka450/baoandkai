@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiRequest, apiRequestPaginated } from '../../utils/api';
+import { apiService } from '../../services/apiService';
 import { Plus, X, Trash2, Edit2, Upload, Calendar, CheckSquare } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
 import AdminModal from '../../components/AdminModal';
@@ -35,7 +35,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
   const fetchTodos = async (page = 1) => {
     try {
       setLoading(true);
-      const data = await apiRequestPaginated('/api/todos', page, itemsPerPage);
+      const { data } = await apiService.get(`/api/todos?page=${page}&limit=${itemsPerPage}`);
       setTodos(data.data);
       setTotalPages(data.totalPages);
       setTotalCount(data.totalCount);
@@ -81,16 +81,10 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
 
     try {
       if (editingTodo) {
-        await apiRequest(`/api/todos/${editingTodo.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(todoData)
-        });
+        await apiService.put(`/api/todos/${editingTodo.id}`, todoData);
         await showAlert('✅ 更新成功', '待办事项已更新！', 'success');
       } else {
-        await apiRequest('/api/todos', {
-          method: 'POST',
-          body: JSON.stringify(todoData)
-        });
+        await apiService.post('/api/todos', todoData);
         await showAlert('✅ 创建成功', '待办事项已创建！', 'success');
       }
 
@@ -132,9 +126,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
 
     try {
       console.log('用户确认删除，正在调用API...');
-      const response = await apiRequest(`/api/todos/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await apiService.delete(`/api/todos/${id}`);
       console.log('删除API响应:', response);
       
       // 如果删除的是最后一页的最后一条，跳转到上一页

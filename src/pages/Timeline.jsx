@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock, Clock as TimelineIcon } from 'lucide-react'
-import { apiRequest } from '../utils/api'
+import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 import { formatDate, LoadingSpinner } from '../utils/common.js'
 
@@ -19,7 +19,7 @@ export default function Timeline() {
 
   const fetchEvents = async () => {
     try {
-      const data = await apiRequest('/api/timeline')
+      const { data } = await apiService.get('/api/timeline')
       setEvents(data)
     } catch (error) {
       console.error('获取时间轴事件失败:', error)

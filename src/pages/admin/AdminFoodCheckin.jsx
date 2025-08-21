@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, X, Trash2, Edit2, Star, MapPin, Utensils } from 'lucide-react'
-import { apiRequest } from '../../utils/api'
+import { apiService } from '../../services/apiService'
 import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
@@ -33,7 +33,7 @@ export default function AdminFoodCheckin() {
 
   const fetchCheckins = async () => {
     try {
-      const data = await apiRequest('/api/food')
+      const { data } = await apiService.get('/api/food')
       setCheckins(data)
     } catch (error) {
       console.error('获取美食打卡失败:', error)
@@ -70,15 +70,9 @@ export default function AdminFoodCheckin() {
 
     try {
       if (editingCheckin) {
-        await apiRequest(`/api/food/${editingCheckin.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(checkinData)
-        })
+        await apiService.put(`/api/food/${editingCheckin.id}`, checkinData)
       } else {
-        await apiRequest('/api/food', {
-          method: 'POST',
-          body: JSON.stringify(checkinData)
-        })
+        await apiService.post('/api/food', checkinData)
       }
       
       setShowForm(false)
@@ -115,9 +109,7 @@ export default function AdminFoodCheckin() {
     if (!confirmed) return
 
     try {
-      await apiRequest(`/api/food/${id}`, {
-        method: 'DELETE'
-      })
+      await apiService.delete(`/api/food/${id}`)
       fetchCheckins()
     } catch (error) {
       console.error('删除美食打卡失败:', error)

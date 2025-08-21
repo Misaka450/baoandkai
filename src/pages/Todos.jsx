@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
-import { apiRequest, apiRequestPaginated } from '../utils/api'
+import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common.js'
 
@@ -31,7 +31,7 @@ export default function Todos() {
   const fetchTodos = async (page = 1) => {
     try {
       console.log('正在获取待办事项...')
-      const data = await apiRequestPaginated('/api/todos', page, itemsPerPage)
+      const { data } = await apiService.get(`/api/todos?page=${page}&limit=${itemsPerPage}`)
       console.log('获取到的待办事项:', data)
       setTodos(data.data || [])
       setTotalPages(data.totalPages || 1)
