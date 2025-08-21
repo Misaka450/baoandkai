@@ -20,7 +20,7 @@ const getRandomColor = () => {
 }
 
 export default function StickyNotes() {
-  const { isLoggedIn, token } = useAuth() // 获取登录状态和token
+  const { isAdmin, token } = useAuth() // 改为使用isAdmin而不是isLoggedIn
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [loading, setLoading] = useState(true)
@@ -59,8 +59,8 @@ export default function StickyNotes() {
 
   const addNote = async () => {
     if (!newNote.trim()) return
-    if (!isLoggedIn) {
-      alert('请先登录后再添加碎碎念！')
+    if (!isAdmin) { // 改为检查isAdmin
+      alert('只有管理员才能添加碎碎念！')
       return
     }
 
@@ -98,8 +98,8 @@ export default function StickyNotes() {
   }
 
   const deleteNote = async (id) => {
-    if (!isLoggedIn) {
-      alert('请先登录后再删除碎碎念！')
+    if (!isAdmin) { // 改为检查isAdmin
+      alert('只有管理员才能删除碎碎念！')
       return
     }
 
@@ -177,6 +177,7 @@ export default function StickyNotes() {
     return colorMapping[noteColor] || getRandomColor()
   }
 
+  // 修改返回的JSX部分
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
@@ -211,7 +212,7 @@ export default function StickyNotes() {
         <div className="animate-slide-up">
           <div className="flex justify-between items-center mb-12">
             <h1 className="text-4xl font-light text-stone-800">我们的碎碎念</h1>
-            {isLoggedIn && (
+            {isAdmin && ( // 改为检查isAdmin
               <button
                 onClick={openAddModal}
                 className="bg-gradient-to-r from-rose-400 to-amber-400 text-white px-6 py-3 rounded-2xl font-light shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.16)] transition-all duration-300 flex items-center space-x-2 hover:-translate-y-0.5"
@@ -232,7 +233,7 @@ export default function StickyNotes() {
                 <div>
                   <h3 className="text-xl font-light text-stone-800 mb-2">还没有碎碎念</h3>
                   <p className="text-stone-600 font-light">
-                    {isLoggedIn ? '点击"添加碎碎念"按钮来创建第一条吧！' : '登录后可以添加碎碎念哦～'}
+                    {isAdmin ? '点击"添加碎碎念"按钮来创建第一条吧！' : '这里还没有碎碎念哦～'} // 改为检查isAdmin
                   </p>
                 </div>
               </div>
@@ -250,7 +251,7 @@ export default function StickyNotes() {
                       <div className="flex-1">
                         <p className={`${colorScheme.text} font-light leading-relaxed text-sm`}>{note.content}</p>
                       </div>
-                      {isLoggedIn && (
+                      {isAdmin && ( // 改为检查isAdmin
                         <button
                           onClick={() => openDeleteModal(note)}
                           className="ml-2 p-2 text-stone-400 hover:text-stone-600 hover:bg-white/30 rounded-full transition-all duration-200"
@@ -275,7 +276,7 @@ export default function StickyNotes() {
           )}
 
           {/* 添加碎碎念弹窗 */}
-          {showAddModal && (
+          {showAddModal && isAdmin && ( // 添加isAdmin检查
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 max-w-md w-full shadow-[0_20px_80px_rgba(0,0,0,0.16)] animate-scale-in">
                 <div className="flex justify-between items-center mb-6">
@@ -328,7 +329,7 @@ export default function StickyNotes() {
           )}
 
           {/* 删除确认弹窗 */}
-          {showDeleteModal && noteToDelete && (
+          {showDeleteModal && isAdmin && ( // 添加isAdmin检查
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 max-w-sm w-full shadow-[0_20px_80px_rgba(0,0,0,0.16)] animate-scale-in">
                 <h3 className="text-xl font-light text-stone-800 mb-4">确认删除</h3>
