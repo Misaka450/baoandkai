@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import StickyNotes from '../components/StickyNotes'
-import { apiRequest } from '../utils/api.js'
+import { apiService } from '../services/apiService.js'
 import { formatDate } from '../utils/common.js'
 
 export default function Home() {
@@ -20,7 +20,7 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const data = await apiRequest('/api/config')
+      const data = await apiService.get('/api/config')
       setConfig({
         coupleName1: data.coupleName1 || '包包',
         coupleName2: data.coupleName2 || '恺恺',

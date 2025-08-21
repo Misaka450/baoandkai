@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { apiRequest } from '../../utils/api.js'
+import { apiService } from '../../services/apiService.js'
 import { Heart, Upload } from 'lucide-react'
 import { LoadingSpinner } from '../../utils/common.js'
 
@@ -19,7 +19,7 @@ export default function AdminSettings() {
 
   const loadSettings = async () => {
     try {
-      const data = await apiRequest('/api/settings');
+      const data = await apiService.get('/api/settings');
       setSettings(data);
     } catch (error) {
       console.error('加载设置失败:', error);
@@ -34,10 +34,7 @@ export default function AdminSettings() {
     setMessage('');
 
     try {
-      await apiRequest('/api/settings', {
-        method: 'PUT',
-        body: JSON.stringify(settings)
-      });
+      await apiService.put('/api/settings', settings);
       setMessage('设置保存成功！');
     } catch (error) {
       console.error('保存设置失败:', error);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
-import { apiRequest } from '../utils/api'
+import { apiService } from '../services/apiService'
 import { formatDate, LoadingSpinner } from '../utils/common.js'
 
 // 图片查看器组件 - 带防下载保护
@@ -245,7 +245,7 @@ export default function Albums() {
 
   const fetchAlbums = async () => {
     try {
-      const data = await apiRequest('/api/albums')
+      const { data } = await apiService.get('/api/albums')
       setAlbums(data)
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -257,7 +257,7 @@ export default function Albums() {
   // 修改fetchPhotos函数，使用正确的API路径
   const fetchPhotos = async (albumId) => {
     try {
-      const data = await apiRequest(`/api/albums/${albumId}`)
+      const { data } = await apiService.get(`/api/albums/${albumId}`)
       setPhotos(data.photos || [])
     } catch (error) {
       console.error('获取照片失败:', error)

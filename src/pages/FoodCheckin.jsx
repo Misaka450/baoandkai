@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart, Utensils as FoodIcon } from 'lucide-react'
-import { apiRequest } from '../utils/api'
+import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 
 export default function FoodCheckin() {
@@ -21,7 +21,7 @@ export default function FoodCheckin() {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiRequest('/api/food')
+      const { data } = await apiService.get('/api/food')
       setCheckins(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
