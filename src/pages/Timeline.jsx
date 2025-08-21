@@ -20,9 +20,10 @@ export default function Timeline() {
   const fetchEvents = async () => {
     try {
       const { data } = await apiService.get('/api/timeline')
-      setEvents(data)
+      setEvents(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取时间轴事件失败:', error)
+      setEvents([])
     } finally {
       setLoading(false)
     }
