@@ -245,7 +245,7 @@ export default function Albums() {
 
   const fetchAlbums = async () => {
     try {
-      const { data } = await apiService.get('/api/albums')
+      const { data } = await apiService.get('/albums')
       setAlbums(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -258,7 +258,7 @@ export default function Albums() {
   // 修改fetchPhotos函数，使用正确的API路径
   const fetchPhotos = async (albumId) => {
     try {
-      const { data } = await apiService.get(`/api/albums/${albumId}`)
+      const { data } = await apiService.get(`/albums/${albumId}`)
       setPhotos(Array.isArray(data.photos) ? data.photos : [])
     } catch (error) {
       console.error('获取照片失败:', error)

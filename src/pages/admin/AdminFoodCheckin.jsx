@@ -33,7 +33,7 @@ export default function AdminFoodCheckin() {
 
   const fetchCheckins = async () => {
     try {
-      const { data } = await apiService.get('/api/food')
+      const { data } = await apiService.get('/food')
       setCheckins(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
@@ -71,9 +71,9 @@ export default function AdminFoodCheckin() {
 
     try {
       if (editingCheckin) {
-        await apiService.put(`/api/food/${editingCheckin.id}`, checkinData)
+        await apiService.put(`/food/${editingCheckin.id}`, checkinData)
       } else {
-        await apiService.post('/api/food', checkinData)
+        await apiService.post('/food', checkinData)
       }
       
       setShowForm(false)
@@ -110,7 +110,7 @@ export default function AdminFoodCheckin() {
     if (!confirmed) return
 
     try {
-      await apiService.delete(`/api/food/${id}`)
+      await apiService.delete(`/food/${id}`)
       fetchCheckins()
     } catch (error) {
       console.error('删除美食打卡失败:', error)

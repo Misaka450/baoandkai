@@ -25,7 +25,7 @@ export default function AdminTimeline() {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await apiService.get('/api/timeline');
+      const { data, error } = await apiService.get('/timeline');
       if (error) {
         console.error('获取时间轴事件失败:', error);
         setEvents([]);
@@ -58,9 +58,9 @@ export default function AdminTimeline() {
 
     try {
       if (editingEvent) {
-        await apiService.put(`/api/timeline/${editingEvent.id}`, eventData)
+        await apiService.put(`/timeline/${editingEvent.id}`, eventData)
       } else {
-        await apiService.post('/api/timeline', eventData)
+        await apiService.post('/timeline', eventData)
       }
       
       await loadEvents();
@@ -80,7 +80,7 @@ export default function AdminTimeline() {
     if (!confirmed) return;
 
     try {
-      await apiService.delete(`/api/timeline/${id}`);
+      await apiService.delete(`/timeline/${id}`);
       loadEvents();
     } catch (error) {
       console.error('删除时间节点失败:', error);

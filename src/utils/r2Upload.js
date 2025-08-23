@@ -65,7 +65,7 @@ class R2UploadManager {
       formData.append('file', compressedFile, filename);
       formData.append('folder', folder);
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/upload', {
         method: 'POST',
         body: formData,
       });
@@ -98,7 +98,7 @@ class R2UploadManager {
   async deleteFromR2(url) {
     try {
       const filename = url.split('/').pop();
-      const response = await fetch('/api/delete', {
+      const response = await fetch('/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
