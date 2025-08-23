@@ -26,7 +26,7 @@ export default function AdminAlbums() {
 
   const fetchAlbums = async () => {
     try {
-      const { data } = await apiService.get('/api/albums')
+      const { data } = await apiService.get('/albums')
       setAlbums(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取相册失败:', error)
@@ -56,9 +56,9 @@ export default function AdminAlbums() {
       console.log('提交相册数据:', albumData)
       
       if (editingAlbum) {
-        await apiService.put(`/api/albums/${editingAlbum.id}`, albumData)
+        await apiService.put(`/albums/${editingAlbum.id}`, albumData)
       } else {
-        await apiService.post('/api/albums', albumData)
+        await apiService.post('/albums', albumData)
       }
       
       setShowForm(false)
@@ -79,7 +79,7 @@ export default function AdminAlbums() {
     if (!confirmed) return
 
     try {
-      await apiService.delete(`/api/albums/${id}`)
+      await apiService.delete(`/albums/${id}`)
       fetchAlbums()
     } catch (error) {
       console.error('删除相册失败:', error)
@@ -144,7 +144,7 @@ export default function AdminAlbums() {
       if (filename) {
         console.log('准备删除R2图片:', filename)
         
-        const response = await apiService.delete('/api/delete', { filename })
+        const response = await apiService.delete('/delete', { filename })
         
         if (response.success) {
           console.log('图片已从R2删除:', filename)

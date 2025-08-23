@@ -31,7 +31,7 @@ export default function Todos() {
   const fetchTodos = async (page = 1) => {
     try {
       console.log('正在获取待办事项...')
-      const { data } = await apiService.get(`/api/todos?page=${page}&limit=${itemsPerPage}`)
+      const { data } = await apiService.get(`/todos?page=${page}&limit=${itemsPerPage}`)
       console.log('获取到的待办事项:', data)
       setTodos(data.data || [])
       setTotalPages(data.totalPages || 1)

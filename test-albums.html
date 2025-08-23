@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>相册测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .album { border: 1px solid #ccc; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .photo { display: inline-block; margin: 5px; }
+        .photo img { max-width: 100px; max-height: 100px; }
+        .loading { color: blue; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>相册数据测试</h1>
+    <button onclick="testAlbums()">测试相册API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAlbums() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading">正在加载...</div>';
+            
+            try {
+                console.log('开始请求相册数据...');
+                const response = await fetch('/api/albums');
+                console.log('响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('获取到的数据:', data);
+                
+                resultDiv.innerHTML = `<div class="success">
+                    <h3>✅ 成功获取 ${data.length} 个相册</h3>
+                    <p>数据类型: ${Array.isArray(data) ? '数组' : typeof data}</p>
+                </div>`;
+                
+                // 显示相册详情
+                data.forEach(album => {
+                    const albumDiv = document.createElement('div');
+                    albumDiv.className = 'album';
+                    albumDiv.innerHTML = `
+                        <h4>${album.name}</h4>
+                        <p>描述: ${album.description || '无'}</p>
+                        <p>照片数: ${album.photos ? album.photos.length : 0}</p>
+                        <p>创建时间: ${album.created_at}</p>
+                    `;
+                    resultDiv.appendChild(albumDiv);
+                });
+                
+            } catch (error) {
+                console.error('错误详情:', error);
+                resultDiv.innerHTML = `<div class="error">
+                    <h3>❌ 加载失败</h3>
+                    <p>错误: ${error.message}</p>
+                    <p>请检查浏览器控制台获取更多信息</p>
+                </div>`;
+            }
+        }
+        
+        // 页面加载后自动测试
+        window.addEventListener('load', () => {
+            setTimeout(testAlbums, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -20,7 +20,7 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const data = await apiService.get('/api/config')
+      const data = await apiService.get('/config')
       setConfig({
         coupleName1: data.coupleName1 || '包包',
         coupleName2: data.coupleName2 || '恺恺',

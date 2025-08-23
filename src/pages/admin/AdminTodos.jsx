@@ -35,7 +35,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
   const fetchTodos = async (page = 1) => {
     try {
       setLoading(true);
-      const { data } = await apiService.get(`/api/todos?page=${page}&limit=${itemsPerPage}`);
+      const { data } = await apiService.get(`/todos?page=${page}&limit=${itemsPerPage}`);
       setTodos(Array.isArray(data.data) ? data.data : []);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
@@ -82,10 +82,10 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
 
     try {
       if (editingTodo) {
-        await apiService.put(`/api/todos/${editingTodo.id}`, todoData);
+        await apiService.put(`/todos/${editingTodo.id}`, todoData);
         await showAlert('✅ 更新成功', '待办事项已更新！', 'success');
       } else {
-        await apiService.post('/api/todos', todoData);
+        await apiService.post('/todos', todoData);
         await showAlert('✅ 创建成功', '待办事项已创建！', 'success');
       }
 
@@ -127,7 +127,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
 
     try {
       console.log('用户确认删除，正在调用API...');
-      const response = await apiService.delete(`/api/todos/${id}`);
+      const response = await apiService.delete(`/todos/${id}`);
       console.log('删除API响应:', response);
       
       // 如果删除的是最后一页的最后一条，跳转到上一页

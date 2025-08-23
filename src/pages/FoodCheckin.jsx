@@ -21,7 +21,7 @@ export default function FoodCheckin() {
     try {
       setLoading(true)
       setError(null)
-      const { data } = await apiService.get('/api/food')
+      const { data } = await apiService.get('/food')
       setCheckins(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
