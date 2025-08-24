@@ -5,19 +5,41 @@ import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 
-export default function AdminAlbums() {
-  const [albums, setAlbums] = useState([])
+// 定义相册图片接口
+interface AlbumPhoto {
+  url: string;
+  caption?: string;
+  sort_order?: number;
+}
+
+// 定义相册接口
+interface Album {
+  id: string;
+  name: string;
+  description?: string;
+  photos?: AlbumPhoto[];
+}
+
+// 定义表单数据接口
+interface FormData {
+  name: string;
+  description: string;
+  images: string[];
+}
+
+const AdminAlbums: React.FC = () => {
+  const [albums, setAlbums] = useState<Album[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [editingAlbum, setEditingAlbum] = useState(null)
+  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
   const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     images: []
   })
-  const [selectedImages, setSelectedImages] = useState([])
-  const [previewImage, setPreviewImage] = useState(null)
-  const [draggedIndex, setDraggedIndex] = useState(null)
+  const [selectedImages, setSelectedImages] = useState<number[]>([])
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [showBatchActions, setShowBatchActions] = useState(false)
 
   useEffect(() => {
@@ -34,7 +56,7 @@ export default function AdminAlbums() {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim()) {
@@ -70,11 +92,11 @@ export default function AdminAlbums() {
       await showAlert('成功', '相册保存成功！', 'success')
     } catch (error) {
       console.error('保存相册失败:', error)
-      await showAlert('错误', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error')
+      await showAlert('错误', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error')
     }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     const confirmed = await showConfirm('确认删除', '确定要删除这个相册吗？此操作不可恢复！', '删除')
     if (!confirmed) return
 
@@ -86,7 +108,7 @@ export default function AdminAlbums() {
     }
   }
 
-  const handleEdit = (album) => {
+  const handleEdit = (album: Album) => {
     setEditingAlbum(album)
     setFormData({
       name: album.name,
@@ -98,14 +120,14 @@ export default function AdminAlbums() {
     setShowForm(true)
   }
 
-  const handleImagesUploaded = (urls) => {
+  const handleImagesUploaded = (urls: string[]) => {
     setFormData(prev => ({
       ...prev,
       images: [...prev.images, ...urls]
     }))
   }
 
-  const removeImage = async (index) => {
+  const removeImage = async (index: number) => {
     const confirmed = await showConfirm('确认删除', '确定要删除这张图片吗？', '删除')
     if (!confirmed) return
     
@@ -122,7 +144,7 @@ export default function AdminAlbums() {
     deleteImageFromR2(imageUrl)
   }
 
-  const deleteImageFromR2 = async (imageUrl) => {
+  const deleteImageFromR2 = async (imageUrl: string) => {
     try {
       // 从URL中提取文件名 - 处理R2 URL格式
       let filename = ''
@@ -157,15 +179,15 @@ export default function AdminAlbums() {
     }
   }
 
-  const handleDragStart = (index) => {
+  const handleDragStart = (index: number) => {
     setDraggedIndex(index)
   }
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
   }
 
-  const handleDrop = (e, dropIndex) => {
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault()
     if (draggedIndex === null || draggedIndex === dropIndex) return
 
@@ -178,7 +200,7 @@ export default function AdminAlbums() {
     setDraggedIndex(null)
   }
 
-  const toggleImageSelection = (index) => {
+  const toggleImageSelection = (index: number) => {
     setSelectedImages(prev => 
       prev.includes(index) 
         ? prev.filter(i => i !== index)
@@ -397,7 +419,7 @@ export default function AdminAlbums() {
                   取消
                 </button>
                 <button
-                  type="submit"
+                    type="submit"
                   className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
                 >
                   {editingAlbum ? '更新相册' : '创建相册'}
@@ -490,3 +512,5 @@ export default function AdminAlbums() {
     </div>
   )
 }
+
+export default AdminAlbums

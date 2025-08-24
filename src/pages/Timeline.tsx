@@ -1,17 +1,40 @@
 import { useState, useEffect } from 'react'
-import { Calendar, MapPin, Tag, Plus, Heart, Camera, Star, Clock, Clock as TimelineIcon } from 'lucide-react'
+import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3 } from 'lucide-react'
+import { Clock3 as TimelineIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
-import { formatDate, LoadingSpinner } from '../utils/common.js'
+import { formatDate } from '../utils/common'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
+
+// 定义时间轴事件接口
+interface TimelineEvent {
+  id: number
+  title: string
+  description: string
+  date: string
+  category: string
+  location?: string
+  images?: string[]
+}
+
+// 定义分类颜色映射接口
+interface CategoryColors {
+  [key: string]: string
+}
+
+// 定义分类图标映射接口
+interface CategoryIcons {
+  [key: string]: React.ComponentType<any>
+}
 
 export default function Timeline() {
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState<TimelineEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [currentImages, setCurrentImages] = useState([])
+  const [currentImages, setCurrentImages] = useState<string[]>([])
 
   useEffect(() => {
     fetchEvents()
@@ -35,14 +58,14 @@ export default function Timeline() {
     ? events 
     : events.filter(event => event.category === filter)
 
-  const categoryColors = {
+  const categoryColors: CategoryColors = {
     '约会': 'from-rose-50 to-rose-100 text-rose-700 border-rose-200',
     '旅行': 'from-sky-50 to-sky-100 text-sky-700 border-sky-200',
     '节日': 'from-amber-50 to-amber-100 text-amber-700 border-amber-200',
     '日常': 'from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200'
   }
 
-  const categoryIcons = {
+  const categoryIcons: CategoryIcons = {
     '约会': Heart,
     '旅行': Camera,
     '节日': Star,
@@ -149,7 +172,7 @@ export default function Timeline() {
                             {event.images.map((image, imgIndex) => (
                               <div key={imgIndex} className="relative group overflow-hidden rounded-xl cursor-pointer"
                                    onClick={() => {
-                                     setCurrentImages(event.images)
+                                     setCurrentImages(event.images || [])
                                      setCurrentImageIndex(imgIndex)
                                      setImageModalOpen(true)
                                    }}>
@@ -198,7 +221,7 @@ export default function Timeline() {
         images={currentImages}
         currentIndex={currentImageIndex}
         onNext={() => setCurrentImageIndex((prev) => (prev + 1) % currentImages.length)}
-        onPrev={() => setCurrentImageIndex((prev) => (prev - 1 + currentImages.length) % currentImages.length)}
+        onPrevious={() => setCurrentImageIndex((prev) => (prev - 1 + currentImages.length) % currentImages.length)}
       />
     </div>
   )

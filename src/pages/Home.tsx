@@ -5,8 +5,22 @@ import StickyNotes from '../components/StickyNotes'
 import { apiService } from '../services/apiService.js'
 import { formatDate } from '../utils/common.js'
 
+// 定义配置接口
+interface Config {
+  coupleName1: string;
+  coupleName2: string;
+  anniversaryDate: string;
+}
+
+// 定义TimeCard组件的props接口
+interface TimeCardProps {
+  value: string | number;
+  label: string;
+  color?: 'rose' | 'amber' | 'slate' | 'emerald' | 'violet' | 'stone';
+}
+
 export default function Home() {
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<Config>({
     coupleName1: '包包',
     coupleName2: '恺恺',
     anniversaryDate: '2023-10-08'
@@ -28,7 +42,7 @@ export default function Home() {
       })
     } catch (error) {
       console.error('获取配置失败:', error)
-      const defaultConfig = {
+      const defaultConfig: Config = {
         coupleName1: '包包',
         coupleName2: '恺恺',
         anniversaryDate: '2023-10-08'
@@ -37,7 +51,7 @@ export default function Home() {
     }
   }
 
-  const TimeCard = ({ value, label, color = 'rose' }) => {
+  const TimeCard = ({ value, label, color = 'rose' }: TimeCardProps) => {
     const colorClasses = {
       rose: 'from-rose-50/80 to-rose-100/80 text-rose-700 border-rose-200/30',
       amber: 'from-amber-50/80 to-amber-100/80 text-amber-700 border-amber-200/30',
@@ -61,7 +75,7 @@ export default function Home() {
     )
   }
 
-  const colors = ['rose', 'amber', 'slate', 'emerald', 'violet', 'stone']
+  const colors: Array<'rose' | 'amber' | 'slate' | 'emerald' | 'violet' | 'stone'> = ['rose', 'amber', 'slate', 'emerald', 'violet', 'stone']
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">

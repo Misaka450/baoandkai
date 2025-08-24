@@ -3,29 +3,54 @@ import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Rotate
 import { apiService } from '../services/apiService'
 import { formatDate, LoadingSpinner } from '../utils/common.js'
 
+// 定义照片接口
+interface Photo {
+  id: string;
+  url: string;
+  caption?: string;
+}
+
+// 定义相册接口
+interface Album {
+  id: string;
+  name: string;
+  description?: string;
+  photos?: Photo[];
+}
+
+// 定义ImageViewer组件的props接口
+interface ImageViewerProps {
+  photo: Photo;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 // 图片查看器组件 - 带防下载保护
-function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
+function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }: ImageViewerProps) {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const containerRef = useRef(null)
-  const imageRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const imageRef = useRef<HTMLImageElement>(null)
 
   // 防下载：禁用右键菜单
-  const preventContextMenu = useCallback((e) => {
+  const preventContextMenu = useCallback((e: MouseEvent) => {
     e.preventDefault()
     return false
   }, [])
 
   // 防下载：禁用拖拽
-  const preventDrag = useCallback((e) => {
+  const preventDrag = useCallback((e: DragEvent) => {
     e.preventDefault()
     return false
   }, [])
 
   // 防下载：禁用键盘保存快捷键
-  const preventSaveShortcuts = useCallback((e) => {
+  const preventSaveShortcuts = useCallback((e: KeyboardEvent) => {
     if (
       e.key === 's' && (e.ctrlKey || e.metaKey) ||
       e.key === 'F12' ||
@@ -44,7 +69,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   }, [])
 
   // 处理滚轮缩放
-  const handleWheel = useCallback((e) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? -0.1 : 0.1
     const newScale = Math.max(0.5, Math.min(3, scale + delta))
@@ -52,7 +77,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   }, [scale])
 
   // 处理键盘事件
-  const handleKeyDown = useCallback((e) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     preventSaveShortcuts(e)
     
     switch (e.key) {
@@ -73,14 +98,14 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
   }, [onClose, onPrev, onNext, hasPrev, hasNext, resetView, preventSaveShortcuts])
 
   // 处理拖拽
-  const handleMouseDown = useCallback((e) => {
+  const handleMouseDown = useCallback((e: MouseEvent) => {
     if (scale > 1) {
       setIsDragging(true)
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
     }
   }, [scale, position])
 
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging && scale > 1) {
       setPosition({
         x: e.clientX - dragStart.x,
@@ -100,33 +125,33 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
     
     if (container) {
       container.addEventListener('wheel', handleWheel, { passive: false })
-      container.addEventListener('contextmenu', preventContextMenu)
-      container.addEventListener('dragstart', preventDrag)
+      container.addEventListener('contextmenu', preventContextMenu as EventListener)
+      container.addEventListener('dragstart', preventDrag as EventListener)
     }
     
     if (image) {
-      image.addEventListener('contextmenu', preventContextMenu)
-      image.addEventListener('dragstart', preventDrag)
+      image.addEventListener('contextmenu', preventContextMenu as EventListener)
+      image.addEventListener('dragstart', preventDrag as EventListener)
     }
     
     window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMove as EventListener)
     window.addEventListener('mouseup', handleMouseUp)
 
     return () => {
       if (container) {
         container.removeEventListener('wheel', handleWheel)
-        container.removeEventListener('contextmenu', preventContextMenu)
-        container.removeEventListener('dragstart', preventDrag)
+        container.removeEventListener('contextmenu', preventContextMenu as EventListener)
+        container.removeEventListener('dragstart', preventDrag as EventListener)
       }
       
       if (image) {
-        image.removeEventListener('contextmenu', preventContextMenu)
-        image.removeEventListener('dragstart', preventDrag)
+        image.removeEventListener('contextmenu', preventContextMenu as EventListener)
+        image.removeEventListener('dragstart', preventDrag as EventListener)
       }
       
       window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mousemove', handleMouseMove as EventListener)
       window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp, preventContextMenu, preventDrag])
@@ -150,7 +175,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      onContextMenu={preventContextMenu}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* 顶部工具栏 */}
       <div className="absolute top-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-4 flex items-center justify-between z-10">
@@ -231,12 +256,12 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }) {
 }
 
 export default function Albums() {
-  const [albums, setAlbums] = useState([])
-  const [selectedAlbum, setSelectedAlbum] = useState(null)
-  const [photos, setPhotos] = useState([])
+  const [albums, setAlbums] = useState<Album[]>([])
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+  const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState('grid')
-  const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [photoIndex, setPhotoIndex] = useState(0)
 
   useEffect(() => {
@@ -256,7 +281,7 @@ export default function Albums() {
   }
 
   // 修改fetchPhotos函数，使用正确的API路径
-  const fetchPhotos = async (albumId) => {
+  const fetchPhotos = async (albumId: string) => {
     try {
       const { data } = await apiService.get(`/albums/${albumId}`)
       setPhotos(Array.isArray(data.photos) ? data.photos : [])
@@ -266,14 +291,14 @@ export default function Albums() {
     }
   }
 
-  const handleAlbumSelect = async (album) => {
+  const handleAlbumSelect = async (album: Album) => {
     setSelectedAlbum(album)
     setLoading(true)
     await fetchPhotos(album.id)
     setLoading(false)
   }
 
-  const openPhoto = (photo, index) => {
+  const openPhoto = (photo: Photo, index: number) => {
     setSelectedPhoto(photo)
     setPhotoIndex(index)
   }
@@ -342,8 +367,9 @@ export default function Albums() {
                         alt={album.name}
                         className="w-full h-full object-cover rounded-xl"
                         onError={(e) => {
-                          e.target.style.display = 'none'
-                          e.target.parentElement.innerHTML = '<svg class="h-12 w-12 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = '<svg class="h-12 w-12 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
                         }}
                       />
                     ) : (
@@ -419,12 +445,12 @@ export default function Albums() {
               </div>
             ) : (
               <div className="text-center py-16">
-                  <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                    <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-light text-stone-700 mb-2">暂无照片</h3>
-                    <p className="text-sm text-stone-500 font-light">这个相册还没有照片</p>
-                  </div>
+                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+                  <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-light text-stone-700 mb-2">暂无照片</h3>
+                  <p className="text-sm text-stone-500 font-light">这个相册还没有照片</p>
                 </div>
+              </div>
             )}
           </div>
         )}
@@ -443,26 +469,4 @@ export default function Albums() {
       )}
     </div>
   )
-}
-
-// 统一配色风格 - 使用stone色系
-const TimeCard = ({ value, label, color = 'stone' }) => {
-const colorClasses = {
-stone: 'from-stone-50/80 to-stone-100/80 text-stone-700 border-stone-200/30',
-rose: 'from-rose-50/80 to-rose-100/80 text-rose-700 border-rose-200/30',
-amber: 'from-amber-50/80 to-amber-100/80 text-amber-700 border-amber-200/30',
-emerald: 'from-emerald-50/80 to-emerald-100/80 text-emerald-700 border-emerald-200/30',
-violet: 'from-violet-50/80 to-violet-100/80 text-violet-700 border-violet-200/30'
-}
-
-return (
-<div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-4 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)]`}>
-<div className="text-2xl font-light mb-1 font-mono tracking-wider">
-{String(value).padStart(2, '0')}
-</div>
-<div className="text-xs font-light opacity-80">
-{label}
-</div>
-</div>
-)
 }

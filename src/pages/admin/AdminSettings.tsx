@@ -3,8 +3,15 @@ import { apiService } from '../../services/apiService.js'
 import { Heart, Upload } from 'lucide-react'
 import { LoadingSpinner } from '../../utils/common.js'
 
-export default function AdminSettings() {
-  const [settings, setSettings] = useState({
+// 定义设置接口
+interface Settings {
+  site_name: string;
+  site_description: string;
+  theme: string;
+}
+
+const AdminSettings: React.FC = () => {
+  const [settings, setSettings] = useState<Settings>({
     site_name: '包包和恺恺的故事',
     site_description: '记录我们的点点滴滴',
     theme: 'light'
@@ -40,7 +47,7 @@ export default function AdminSettings() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage('');
@@ -138,3 +145,5 @@ export default function AdminSettings() {
     </div>
   )
 }
+
+export default AdminSettings
