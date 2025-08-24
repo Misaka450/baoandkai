@@ -6,6 +6,7 @@ import Albums from './pages/Albums'
 import Todos from './pages/Todos'
 // 日记功能已移除
 import FoodCheckin from './pages/FoodCheckin'
+import ErrorDemo from './pages/ErrorDemo'
 import Admin from './pages/Admin'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="todos" element={<Todos />} />
         {/* 日记功能已移除 */}
         <Route path="food" element={<FoodCheckin />} />
+        <Route path="error-demo" element={<ErrorDemo />} />
         <Route path="admin/*" element={<Admin />} />
         </Route>
       </Routes>

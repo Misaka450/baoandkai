@@ -55,7 +55,7 @@ class R2UploadManager {
     });
   }
 
-  // 上传图片到R2 - 修复：使用正确的API路径
+  // 上传图片到R2
   async uploadToR2(file, folder = 'images') {
     try {
       const filename = this.generateUniqueFilename(file.name);
@@ -65,7 +65,7 @@ class R2UploadManager {
       formData.append('file', compressedFile, filename);
       formData.append('folder', folder);
 
-      // 修复：使用正确的API路径 /api/upload
+      // 使用正确的API路径上传
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
@@ -76,6 +76,7 @@ class R2UploadManager {
       }
 
       const result = await response.json();
+      // 使用R2公共URL，支持多文件
       return result.urls || [result.url];
     } catch (error) {
       console.error('上传图片失败:', error);
@@ -83,11 +84,11 @@ class R2UploadManager {
     }
   }
 
-  // 删除图片 - 修复：使用正确的API路径
+  // 删除图片
   async deleteFromR2(url) {
     try {
       const filename = url.split('/').pop();
-      // 修复：使用正确的API路径 /api/delete
+      // 使用正确的API路径删除
       const response = await fetch('/api/delete', {
         method: 'DELETE',
         headers: {

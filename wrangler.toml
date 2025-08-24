@@ -14,3 +14,8 @@ bucket_name = "our"
 
 [vars]
 ENVIRONMENT = "production"
+
+# 环境变量配置说明：
+# ADMIN_TOKEN - 管理员认证token，建议使用随机生成的UUID
+# DEFAULT_PASSWORD_HASH - 默认密码的bcrypt哈希值（可选）
+# 这些变量需要在Cloudflare Pages的环境变量设置中配置

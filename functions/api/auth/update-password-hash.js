@@ -16,8 +16,8 @@ export async function onRequestPost(context) {
   }
 
   try {
-    // baobao123的正确bcrypt哈希值
-    const bcryptHash = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+    // 从环境变量获取密码哈希值，如果没有则使用默认值（仅用于演示）
+    const bcryptHash = env.DEFAULT_PASSWORD_HASH || '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
 
     // 1. 检查用户是否存在
     const user = await env.DB.prepare(`
@@ -47,10 +47,9 @@ export async function onRequestPost(context) {
 
     return new Response(JSON.stringify({
       success: true,
-      message: '密码已更新为baobao123的bcrypt哈希值',
+      message: '密码已更新为bcrypt哈希值',
       username: 'baobao',
-      password: 'baobao123',
-      bcrypt_hash: bcryptHash,
+      bcrypt_hash: '已设置（出于安全原因不显示）',
       action: user ? 'updated' : 'created'
     }), {
       headers: corsHeaders
@@ -91,14 +90,14 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({
         success: false,
         message: '用户不存在',
-        expected_hash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-        correct_password: 'baobao123'
+        expected_hash: '已设置（出于安全原因不显示）',
+        correct_password: '已设置（出于安全原因不显示）'
       }), {
         headers: corsHeaders
       });
     }
 
-    const expectedHash = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+    const expectedHash = env.DEFAULT_PASSWORD_HASH || '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
     const isCorrect = user.password_hash === expectedHash;
 
     return new Response(JSON.stringify({
@@ -111,8 +110,8 @@ export async function onRequestGet(context) {
         is_correct_hash: isCorrect
       },
       expected: {
-        password: 'baobao123',
-        bcrypt_hash: expectedHash,
+        password: '已设置（出于安全原因不显示）',
+        bcrypt_hash: '已设置（出于安全原因不显示）',
         matches: isCorrect
       },
       action_needed: !isCorrect ? '请调用POST方法更新密码' : '密码已正确设置'
