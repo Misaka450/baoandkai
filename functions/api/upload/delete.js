@@ -32,8 +32,8 @@ export async function onRequestPost(context) {
     const folder = urlParts[urlParts.length - 2];
     const key = `${folder}/${filename}`;
 
-    // 从R2存储中删除文件
-    await env.ouralbum.delete(key);
+    // 修复：使用正确的R2存储桶绑定名称
+    await env.IMAGES.delete(key);
 
     return new Response(JSON.stringify({ 
       success: true,

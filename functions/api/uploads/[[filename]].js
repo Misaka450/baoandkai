@@ -9,7 +9,8 @@ export async function onRequestGet(context) {
       return new Response('未找到文件', { status: 404 });
     }
 
-    const object = await env.ouralbum.get(filename);
+    // 修复：使用正确的R2存储桶绑定名称
+    const object = await env.IMAGES.get(filename);
     
     if (!object) {
       return new Response('文件不存在', { status: 404 });
