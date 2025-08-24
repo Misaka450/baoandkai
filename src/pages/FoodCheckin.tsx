@@ -1,17 +1,34 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { MapPin, Star, Utensils, DollarSign, Calendar, Smile, Coffee, Heart, Utensils as FoodIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 
-export default function FoodCheckin() {
-  const [checkins, setCheckins] = useState([])
+// 定义美食打卡数据的接口
+interface FoodCheckin {
+  id: string;
+  restaurant_name: string;
+  address?: string;
+  cuisine?: string;
+  overall_rating?: number;
+  taste_rating?: number;
+  environment_rating?: number;
+  service_rating?: number;
+  price_range?: string;
+  recommended_dishes?: string[] | string;
+  description?: string;
+  date?: string;
+  images?: string[];
+}
+
+const FoodCheckin: React.FC = () => {
+  const [checkins, setCheckins] = useState<FoodCheckin[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date')
-  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [allImages, setAllImages] = useState([])
+  const [allImages, setAllImages] = useState<string[]>([])
 
   useEffect(() => {
     fetchCheckins()
@@ -25,7 +42,7 @@ export default function FoodCheckin() {
       setCheckins(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
-      setError('获取美食打卡失败: ' + error.message)
+      setError('获取美食打卡失败: ' + (error as Error).message)
       setCheckins([])
     } finally {
       setLoading(false)
@@ -38,14 +55,14 @@ export default function FoodCheckin() {
     .filter(checkin => filter === 'all' || checkin.cuisine === filter)
     .sort((a, b) => {
       if (sortBy === 'date') {
-        return new Date(b.date || 0) - new Date(a.date || 0)
+        return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
       } else if (sortBy === 'rating') {
         return (b.overall_rating || 0) - (a.overall_rating || 0)
       }
       return 0
     })
 
-  const renderStars = (rating, label = null) => {
+  const renderStars = (rating: number | undefined, label: string | null = null) => {
     const numRating = Number(rating) || 0
     return (
       <div className="flex items-center space-x-1">
@@ -63,8 +80,8 @@ export default function FoodCheckin() {
     )
   }
 
-  const getCategoryColor = (category) => {
-    const colors = {
+  const getCategoryColor = (category: string | undefined) => {
+    const colors: Record<string, string> = {
       '中餐': 'bg-amber-100 text-amber-800 border-amber-200',
       '西餐': 'bg-stone-100 text-stone-800 border-stone-200',
       '日料': 'bg-slate-100 text-slate-800 border-slate-200',
@@ -75,11 +92,11 @@ export default function FoodCheckin() {
       '甜品': 'bg-pink-100 text-pink-800 border-pink-200',
       '其他': 'bg-stone-100 text-stone-800 border-stone-200'
     }
-    return colors[category] || colors['其他']
+    return colors[category || '其他'] || colors['其他']
   }
 
   // 处理图片点击放大
-  const handleImageClick = (images, currentIndex = 0) => {
+  const handleImageClick = (images: string[] | undefined, currentIndex: number = 0) => {
     setAllImages(images || [])
     setCurrentImageIndex(currentIndex)
     setSelectedImage(images?.[currentIndex] || null)
@@ -135,7 +152,7 @@ export default function FoodCheckin() {
         </div>
       </div>
     )
-}
+  }
 
   if (error) {
     return (
@@ -318,10 +335,8 @@ export default function FoodCheckin() {
                   </div>
                 )}
                 
-
-                
                 <div className="text-xs text-stone-500 font-light">
-                  {new Date(checkin.date).toLocaleDateString('zh-CN')}
+                  {new Date(checkin.date || '').toLocaleDateString('zh-CN')}
                 </div>
               </div>
             </div>
@@ -356,3 +371,5 @@ export default function FoodCheckin() {
     </div>
   )
 }
+
+export default FoodCheckin

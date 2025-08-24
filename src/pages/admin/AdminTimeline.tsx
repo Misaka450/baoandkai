@@ -5,12 +5,33 @@ import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import ImageUploader from '../../components/ImageUploader'
 
-export default function AdminTimeline() {
-  const [events, setEvents] = useState([])
+// 定义时间轴事件接口
+interface TimelineEvent {
+  id?: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  category: string;
+  images: string[];
+}
+
+// 定义表单数据接口
+interface FormData {
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  category: string;
+  images: string[];
+}
+
+const AdminTimeline: React.FC = () => {
+  const [events, setEvents] = useState<TimelineEvent[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [editingEvent, setEditingEvent] = useState(null)
+  const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null)
   const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     date: '',
@@ -38,7 +59,7 @@ export default function AdminTimeline() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 验证必填字段
@@ -47,7 +68,7 @@ export default function AdminTimeline() {
       return;
     }
 
-    const eventData = {
+    const eventData: TimelineEvent = {
       title: formData.title,
       description: formData.description,
       date: formData.date,
@@ -71,11 +92,11 @@ export default function AdminTimeline() {
       await showAlert('成功', '保存成功！', 'success');
     } catch (error) {
       console.error('保存时间节点失败:', error);
-      await showAlert('错误', '保存失败: ' + error.message, 'error');
+      await showAlert('错误', '保存失败: ' + (error as Error).message, 'error');
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     const confirmed = await showConfirm('确认删除', '确定要删除这个时间节点吗？', '删除');
     if (!confirmed) return;
 
@@ -118,7 +139,7 @@ export default function AdminTimeline() {
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 极简优雅的配色方案，统一使用莫兰迪色系0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -263,7 +284,7 @@ export default function AdminTimeline() {
                   <Edit className="h-4 w-4 transition-transform duration-200 hover:rotate-12" />
                 </button>
                 <button
-                  onClick={() => handleDelete(event.id)}
+                  onClick={() => handleDelete(event.id!)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded transform transition-all duration-200 hover:scale-110 hover:bg-red-100"
                 >
                   <Trash2 className="h-4 w-4 transition-transform duration-200 hover:rotate-12" />
@@ -287,3 +308,5 @@ export default function AdminTimeline() {
     </div>
   )
 }
+
+export default AdminTimeline

@@ -3,8 +3,13 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import Layout from '@/components/Layout';
 import { AlertTriangle, Code, Play, Shield } from 'lucide-react';
 
+// 定义ErrorProneComponent的props接口
+interface ErrorProneComponentProps {
+  shouldThrow: boolean;
+}
+
 // 会抛出错误的演示组件
-const ErrorProneComponent = ({ shouldThrow }) => {
+const ErrorProneComponent: React.FC<ErrorProneComponentProps> = ({ shouldThrow }) => {
   if (shouldThrow) {
     throw new Error('这是一个演示错误！');
   }
@@ -19,7 +24,7 @@ const ErrorProneComponent = ({ shouldThrow }) => {
 };
 
 // 错误边界演示组件
-const ErrorBoundaryDemo = () => {
+const ErrorBoundaryDemo: React.FC = () => {
   const [shouldThrow, setShouldThrow] = useState(false);
 
   return (
@@ -48,7 +53,7 @@ const ErrorBoundaryDemo = () => {
   );
 };
 
-const ErrorDemo = () => {
+const ErrorDemo: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto p-6">

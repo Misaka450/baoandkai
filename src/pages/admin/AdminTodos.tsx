@@ -5,16 +5,47 @@ import ImageUploader from '../../components/ImageUploader';
 import AdminModal from '../../components/AdminModal';
 import { useAdminModal } from '../../hooks/useAdminModal';
 
-export default function AdminTodos() {const [todos, setTodos] = useState([]);
+// 定义待办事项接口
+interface Todo {
+  id?: string;
+  title: string;
+  description: string;
+  priority: number;
+  category: string;
+  due_date: string;
+  status: string;
+  completion_notes?: string;
+  completion_photos?: string[];
+}
+
+// 定义表单数据接口
+interface FormData {
+  title: string;
+  description: string;
+  priority: number;
+  category: string;
+  due_date: string;
+  status: string;
+}
+
+// 定义完成数据接口
+interface CompletionData {
+  notes: string;
+  photos: string[];
+}
+
+const AdminTodos: React.FC = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingTodo, setEditingTodo] = useState(null);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 10;const { modalState, showAlert, showConfirm, closeModal } = useAdminModal();
-  const [formData, setFormData] = useState({
+  const itemsPerPage = 10;
+  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal();
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     priority: 3,
@@ -22,11 +53,10 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     due_date: '',
     status: 'pending'
   });
-  const [completionData, setCompletionData] = useState({
+  const [completionData, setCompletionData] = useState<CompletionData>({
     notes: '',
     photos: []
   });
-
 
   useEffect(() => {
     fetchTodos(currentPage);
@@ -50,7 +80,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -58,7 +88,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title.trim()) {
@@ -67,11 +97,11 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     }
     
     // 映射管理员字段到数据库字段
-    const todoData = {
+    const todoData: Partial<Todo> = {
       title: formData.title,
       description: formData.description,
       status: formData.status,
-      priority: formData.priority,
+      priority: Number(formData.priority),
       category: formData.category,
       due_date: formData.due_date,
       ...(formData.status === 'completed' ? {
@@ -95,7 +125,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
       fetchTodos(currentPage);
     } catch (error) {
       console.error('保存待办事项失败:', error);
-      await showAlert('❌ 保存失败', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error');
+      await showAlert('❌ 保存失败', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error');
     }
   };
 
@@ -111,7 +141,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     setCompletionData({ notes: '', photos: [] });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     console.log('开始删除待办事项，ID:', id);
     
     // 找到对应的待办事项标题，用于更友好的提示
@@ -120,7 +150,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     
     const confirmed = await showConfirm(
       '⚠️ 确认删除', 
-      `确定要删除 “${todoTitle}” 吗？此操作不可恢复！`,
+      `确定要删除 "${todoTitle}" 吗？此操作不可恢复！`,
       '删除'
     );
     if (!confirmed) return;
@@ -137,13 +167,11 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
       await showAlert('✅ 删除成功', '待办事项删除成功！', 'success');
     } catch (error) {
       console.error('删除失败:', error);
-      await showAlert('❌ 删除失败', `删除失败: ${error.message || '请重试'}`, 'error');
+      await showAlert('❌ 删除失败', `删除失败: ${(error as Error).message || '请重试'}`, 'error');
     }
   };
 
-
-
-  const handleEdit = (todo) => {
+  const handleEdit = (todo: Todo) => {
     setEditingTodo(todo);
     setFormData({
       title: todo.title || '',
@@ -170,7 +198,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
     setShowForm(true);
   };
 
-  const removePhoto = (index) => {
+  const removePhoto = (index: number) => {
     setCompletionData(prev => ({
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index)
@@ -201,8 +229,6 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
         </button>
       </div>
 
-
-
       {/* 分页信息 */}
       <div className="mb-4 text-sm text-gray-600">
         共 {totalCount} 个待办事项，第 {currentPage} 页 / 共 {totalPages} 页
@@ -230,12 +256,12 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
                   }`}>
                     {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
                   </span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  <span className={`inline-flex px-2 py-1 text-xs font-sem极简优雅的配色方案，统一使用莫兰迪色系ibold rounded-full ${
                     todo.priority >= 3 
                       ? 'bg-red-100 text-red-800' 
                       : todo.priority >= 2
                       ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
+                      : 'bg-green-极简优雅的配色方案，统一使用莫兰迪色系兰迪色系100 text-green-800'
                   }`}>
                     {todo.priority >= 3 ? '高优先级' : todo.priority >= 2 ? '中优先级' : '低优先级'}
                   </span>
@@ -253,11 +279,10 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(todo.id)}
+                  onClick={() => handleDelete(todo.id!)}
                   className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md"
                   title="删除待办"
-                >
-                  <Trash2 className="w-4 h-4" />
+                >\极简优雅的配色方案，统一使用莫兰迪色系n                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -470,7 +495,7 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
       {/* 空状态提示 */}
       {todos.length === 0 && !showForm && (
         <div className="glass-card p-12 text-center">
-          <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <CheckSquare className="w极简优雅的配色方案，统一使用莫兰迪色系-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无待办事项</h3>
           <p className="text-gray-600">点击上方按钮创建第一个待办事项吧</p>
         </div>
@@ -489,4 +514,6 @@ export default function AdminTodos() {const [todos, setTodos] = useState([]);
       />
     </div>
   );
-}
+};
+
+export default AdminTodos

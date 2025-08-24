@@ -10,6 +10,12 @@ import AdminAlbums from './admin/AdminAlbums'
 import AdminFoodCheckin from './admin/AdminFoodCheckin'
 import AdminTodos from './admin/AdminTodos'
 
+// 定义AdminSidebar组件的props接口
+interface AdminSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 export default function Admin() {
   const { user } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -49,7 +55,7 @@ export default function Admin() {
   )
 }
 
-function AdminSidebar({ isOpen, onClose }) {
+function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation()
   const { logout } = useAuth()
 

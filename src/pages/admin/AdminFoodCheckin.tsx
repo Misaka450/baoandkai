@@ -5,12 +5,46 @@ import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 
-export default function AdminFoodCheckin() {
-  const [checkins, setCheckins] = useState([])
+// 定义美食打卡接口
+interface FoodCheckin {
+  id: string;
+  restaurant_name: string;
+  description?: string;
+  date: string;
+  address?: string;
+  cuisine?: string;
+  price_range?: string;
+  overall_rating: number;
+  taste_rating: number;
+  environment_rating: number;
+  service_rating: number;
+  recommended_dishes?: string;
+  images: string[];
+  recommended?: boolean;
+}
+
+// 定义表单数据接口
+interface FormData {
+  restaurant_name: string;
+  description: string;
+  date: string;
+  address: string;
+  cuisine: string;
+  price_range: string;
+  overall_rating: number;
+  taste_rating: number;
+  environment_rating: number;
+  service_rating: number;
+  recommended_dishes: string;
+  images: string[];
+}
+
+const AdminFoodCheckin: React.FC = () => {
+  const [checkins, setCheckins] = useState<FoodCheckin[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [editingCheckin, setEditingCheckin] = useState(null)
+  const [editingCheckin, setEditingCheckin] = useState<FoodCheckin | null>(null)
   const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     restaurant_name: '',
     description: '',
     date: '',
@@ -41,7 +75,7 @@ export default function AdminFoodCheckin() {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.restaurant_name.trim()) {
@@ -84,7 +118,7 @@ export default function AdminFoodCheckin() {
       await showAlert('成功', '美食打卡保存成功！', 'success')
     } catch (error) {
       console.error('保存美食打卡失败:', error)
-      await showAlert('错误', `保存失败: ${error.message || '请检查网络连接后重试'}`, 'error')
+      await showAlert('错误', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error')
     }
   }
 
@@ -105,7 +139,7 @@ export default function AdminFoodCheckin() {
     })
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     const confirmed = await showConfirm('确认删除', '确定要删除这条美食打卡吗？此操作不可恢复！', '删除')
     if (!confirmed) return
 
@@ -117,7 +151,7 @@ export default function AdminFoodCheckin() {
     }
   }
 
-  const handleEdit = (checkin) => {
+  const handleEdit = (checkin: FoodCheckin) => {
     setEditingCheckin(checkin)
     setFormData({
       restaurant_name: checkin.restaurant_name || '',
@@ -136,28 +170,28 @@ export default function AdminFoodCheckin() {
     setShowForm(true)
   }
 
-  const handleImagesUploaded = (urls) => {
+  const handleImagesUploaded = (urls: string[]) => {
     setFormData(prev => ({
       ...prev,
       images: [...prev.images, ...urls]
     }))
   }
 
-  const removeImage = (index) => {
-    setFormData(prev => ({
+  const removeImage = (index: number) => {
+     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }))
   }
 
-  const renderStars = (rating, onRate) => {
+  const renderStars = (rating: number, onRate?: (rating: number) => void) => {
     return (
       <div className="flex space-x-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
-            onClick={() => onRate(star)}
+            onClick={() => onRate?.(star)}
             className="focus:outline-none"
           >
             <Star
@@ -171,7 +205,7 @@ export default function AdminFoodCheckin() {
     )
   }
 
-  const getCategoryColor = (cuisine) => {
+  const getCategoryColor = (cuisine: string) => {
     const colors = {
       '中餐': 'bg-red-100 text-red-800',
       '西餐': 'bg-blue-100 text-blue-800',
@@ -206,10 +240,10 @@ export default function AdminFoodCheckin() {
       {/* 弹窗编辑模式 - 页面中央弹出 */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-极简优雅的配色方案，统一使用莫兰迪色系2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
               <h2 className="text-2xl font-light text-gray-800">
-                {editingCheckin ? '编辑美食打卡' : '添加美食打卡'}
+                {editingCheckin ? '编辑美食打卡极简优雅的配色方案，统一使用莫兰迪色系' : '添加美食打卡'}
               </h2>
               <button
                 type="button"
@@ -224,7 +258,7 @@ export default function AdminFoodCheckin() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6极简优雅的配色方案，统一使用莫极简优雅的配色方案，统一使用莫兰迪色系兰迪色系">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">餐厅名称 *</label>
@@ -239,7 +273,7 @@ export default function AdminFoodCheckin() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">打卡日期 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb极简优雅的配色方案，统一使用莫兰迪色系-2">打卡日期 *</label>
                   <input
                     type="date"
                     value={formData.date}
@@ -267,7 +301,7 @@ export default function AdminFoodCheckin() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">价格区间</label>
-                  <input
+                 极简优雅的配色方案，统一使用莫兰迪色系 <input
                     type="text"
                     value={formData.price_range}
                     onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
@@ -404,7 +438,7 @@ export default function AdminFoodCheckin() {
               {checkin.images?.[0] ? (
                 <img
                   src={checkin.images[0]}
-                  alt={checkin.dish}
+                  alt={checkin.restaurant_name}
                   className="w-full h-48 object-cover"
                 />
               ) : (
@@ -483,3 +517,5 @@ export default function AdminFoodCheckin() {
     </div>
   )
 }
+
+export default AdminFoodCheckin

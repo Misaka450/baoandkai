@@ -4,13 +4,43 @@ import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common.js'
 
+// 定义待办事项接口
+interface Todo {
+  id: number
+  title: string
+  description?: string
+  priority: number
+  status: 'pending' | 'completed'
+  due_date?: string
+  created_at: string
+  updated_at: string
+  category?: string
+  images?: string[]
+  completion_photos?: string[] | string
+  completion_notes?: string
+}
+
+// 定义API响应接口
+interface TodosResponse {
+  data: Todo[]
+  totalPages: number
+  totalCount: number
+  currentPage: number
+}
+
+// 定义前端映射后的待办事项接口
+interface MappedTodo extends Todo {
+  completed: boolean
+  priority: 'high' | 'medium' | 'low'
+}
+
 export default function Todos() {
-  const [todos, setTodos] = useState([])
+  const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
   const [priorityFilter, setPriorityFilter] = useState('all') // all, high, medium, low
-  const [expandedTodos, setExpandedTodos] = useState(new Set()) // 记录展开的待办ID
-  const [selectedImage, setSelectedImage] = useState(null) // 当前选中的放大图片
+  const [expandedTodos, setExpandedTodos] = useState<Set<number>>(new Set()) // 记录展开的待办ID
+  const [selectedImage, setSelectedImage] = useState<string | null>(null) // 当前选中的放大图片
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -22,7 +52,7 @@ export default function Todos() {
   
   // 使用公共防抖函数
   const debouncedFetchTodos = useCallback(
-    debounce((page) => {
+    debounce((page: number) => {
       fetchTodos(page)
     }, 300),
     []
@@ -48,9 +78,9 @@ export default function Todos() {
 // 只读模式，移除所有添加、编辑、删除功能
 
   // 映射数据库字段到前端字段 - 简化为三种优先级
-  const mapTodoFields = (todo) => {
+  const mapTodoFields = (todo: Todo): MappedTodo => {
     // 将数据库的1-5优先级映射为三种：高(3)、中(2)、低(1)
-    let priority = 'medium'; // 默认中优先级
+    let priority: 'high' | 'medium' | 'low' = 'medium'; // 默认中优先级
     if (todo.priority >= 3) {
       priority = 'high';
     } else if (todo.priority <= 1) {
@@ -64,7 +94,7 @@ export default function Todos() {
     }
   }
 
-  const getFilteredTodos = () => {
+  const getFilteredTodos = (): MappedTodo[] => {
     const mappedTodos = todos.map(mapTodoFields)
     
     // 先按完成状态筛选
@@ -87,7 +117,7 @@ export default function Todos() {
 
   // 移除 priorityColors 和 formatDate 的重复定义
   
-  const toggleTodoExpand = (todoId) => {
+  const toggleTodoExpand = (todoId: number) => {
     setExpandedTodos(prev => {
       const newSet = new Set(prev)
       if (newSet.has(todoId)) {
@@ -99,13 +129,13 @@ export default function Todos() {
     })
   }
 
-  const isTodoExpanded = (todoId) => expandedTodos.has(todoId)
+  const isTodoExpanded = (todoId: number) => expandedTodos.has(todoId)
 
   // 使用统一的加载组件
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="max极简优雅的配色方案，统一使用莫兰迪色系-w-4xl mx-auto px-4 py-12">
           <div className="text-center">
             <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
             <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
@@ -124,7 +154,7 @@ export default function Todos() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
+          <h1 className="text-4xl font-light text-stone-800 mb-4极简优雅的配色方案，统一使用莫兰迪色系">我们的待办事项</h1>
           <p className="text-stone-600 font-light">一起完成的小目标，记录我们的点点滴滴</p>
         </div>
 
@@ -277,7 +307,7 @@ export default function Todos() {
                               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                 {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
                                   (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
-                                ).map((photo, index) => (
+                                ).map((photo: string, index: number) => (
                                   <div 
                                     key={index} 
                                     className="relative group cursor-pointer"

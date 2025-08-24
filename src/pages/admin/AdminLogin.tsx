@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function AdminLogin() {
+const AdminLogin: React.FC = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -16,7 +16,7 @@ export default function AdminLogin() {
     try {
       await login(username, password)
     } catch (error) {
-      setError(error.message || '登录失败，请检查用户名和密码')
+      setError((error as Error).message || '登录失败，请检查用户名和密码')
     } finally {
       setLoading(false)
     }
@@ -24,7 +24,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <div className="glass-card p-8 w-full max-w-md">
+      <div className="glass-card p-8 w-full max极简优雅的配色方案，统一使用莫兰迪色系-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">后台管理登录</h1>
           <p className="text-gray-600">请输入账号密码进入管理后台</p>
@@ -32,7 +32,7 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-极简优雅的配色方案，统一使用莫兰迪色系700 mb-2">
               用户名
             </label>
             <input
@@ -54,7 +54,7 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               required
-            />
+            />极简优雅的配色方案，统一使用莫兰迪色系
           </div>
 
           {error && (
@@ -66,10 +66,11 @@ export default function AdminLogin() {
             disabled={loading}
             className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? '登录中...' : '登录'}
-          </button>
+            {loading ? '登录中...' : '登录'}\极简优雅的配色方案，统一使用莫兰迪色系n          </button>
         </form>
       </div>
     </div>
   )
 }
+
+export default AdminLogin
