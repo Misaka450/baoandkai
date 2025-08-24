@@ -10,7 +10,7 @@ import ErrorDemo from './pages/ErrorDemo'
 import Admin from './pages/Admin'
 import { AuthProvider } from './contexts/AuthContext'
 
-function App() {
+function App(): JSX.Element {
   return (
     <AuthProvider>
       <Routes>

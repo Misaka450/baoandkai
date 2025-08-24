@@ -1,5 +1,17 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import * as Sentry from '@sentry/react';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
+}
 
 /**
  * 错误边界组件 - 捕获并显示React组件树中的JavaScript错误
@@ -9,7 +21,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
  *   <YourComponent />
  * </ErrorBoundary>
  */
-class ErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props) {
     super(props);
     this.state = { 
@@ -24,7 +36,7 @@ class ErrorBoundary extends React.Component {
    * @param {Error} error - 捕获的错误对象
    * @returns {Object} 更新state的对象
    */
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     // 当发生错误时更新state，触发重新渲染显示降级UI
     return { hasError: true };
   }
@@ -34,7 +46,7 @@ class ErrorBoundary extends React.Component {
    * @param {Error} error - 被抛出的错误
    * @param {Object} errorInfo - 包含组件栈信息的对象
    */
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // 你可以在这里记录错误信息到错误报告服务
     console.error('组件错误:', error, errorInfo);
     
@@ -48,19 +60,22 @@ class ErrorBoundary extends React.Component {
   }
 
   /**
-   * 报告错误到监控服务（可扩展）
+   * 报告错误到监控服务（集成Sentry）
    * @param {Error} error - 错误对象
    * @param {Object} errorInfo - 错误信息
    */
-  reportError(error, errorInfo) {
-    // 这里可以集成错误监控服务，如Sentry、LogRocket等
-    if (process.env.NODE_ENV === 'production') {
-      // 生产环境错误上报逻辑
-      console.log('生产环境错误上报:', {
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack
+  reportError(error: Error, errorInfo: React.ErrorInfo) {
+    // 集成Sentry错误监控
+    if (import.meta.env.PROD) {
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack
+          }
+        }
       });
+    } else {
+      console.error('开发环境错误:', error, errorInfo);
     }
   }
 
@@ -170,8 +185,11 @@ class ErrorBoundary extends React.Component {
 }
 
 // 高阶组件：包装组件提供错误边界保护
-export const withErrorBoundary = (Component, fallback) => {
-  return (props) => (
+export const withErrorBoundary = <P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: React.ReactNode
+): React.ComponentType<P> => {
+  return (props: P) => (
     <ErrorBoundary fallback={fallback}>
       <Component {...props} />
     </ErrorBoundary>
@@ -180,15 +198,15 @@ export const withErrorBoundary = (Component, fallback) => {
 
 // 自定义hook：在函数组件中捕获错误
 export const useErrorBoundary = () => {
-  const [error, setError] = React.useState(null);
+  const [error, setError] = React.useState<Error | null>(null);
 
-  const handleError = React.useCallback((error) => {
+  const handleError = React.useCallback((error: Error) => {
     console.error('useErrorBoundary捕获错误:', error);
     setError(error);
     
-    // 可选：上报错误
-    if (process.env.NODE_ENV === 'production') {
-      console.log('上报错误到监控服务:', error);
+    // 集成Sentry错误监控
+    if (import.meta.env.PROD) {
+      Sentry.captureException(error);
     }
   }, []);
 
