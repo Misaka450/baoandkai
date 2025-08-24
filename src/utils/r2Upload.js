@@ -55,7 +55,7 @@ class R2UploadManager {
     });
   }
 
-  // 上传图片到R2
+  // 上传图片到R2 - 修复：使用正确的API路径
   async uploadToR2(file, folder = 'images') {
     try {
       const filename = this.generateUniqueFilename(file.name);
@@ -65,7 +65,8 @@ class R2UploadManager {
       formData.append('file', compressedFile, filename);
       formData.append('folder', folder);
 
-      const response = await fetch('/upload', {
+      // 修复：使用正确的API路径 /api/upload
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -75,7 +76,6 @@ class R2UploadManager {
       }
 
       const result = await response.json();
-      // 使用R2公共URL，支持多文件
       return result.urls || [result.url];
     } catch (error) {
       console.error('上传图片失败:', error);
@@ -83,22 +83,12 @@ class R2UploadManager {
     }
   }
 
-  // 批量上传图片
-  async uploadMultipleFiles(files, folder = 'images') {
-    const uploadPromises = Array.from(files).map(file => 
-      this.uploadToR2(file, folder)
-    );
-    
-    const results = await Promise.all(uploadPromises);
-    // 扁平化数组，因为每个uploadToR2返回URL数组
-    return results.flat();
-  }
-
-  // 删除图片
+  // 删除图片 - 修复：使用正确的API路径
   async deleteFromR2(url) {
     try {
       const filename = url.split('/').pop();
-      const response = await fetch('/delete', {
+      // 修复：使用正确的API路径 /api/delete
+      const response = await fetch('/api/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -115,6 +105,17 @@ class R2UploadManager {
       console.error('删除图片失败:', error);
       return false;
     }
+  }
+
+  // 批量上传图片
+  async uploadMultipleFiles(files, folder = 'images') {
+    const uploadPromises = Array.from(files).map(file => 
+      this.uploadToR2(file, folder)
+    );
+    
+    const results = await Promise.all(uploadPromises);
+    // 扁平化数组，因为每个uploadToR2返回URL数组
+    return results.flat();
   }
 }
 
