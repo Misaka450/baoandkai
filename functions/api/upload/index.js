@@ -61,7 +61,8 @@ export async function onRequestPost(context) {
       const extension = file.name.split('.').pop().toLowerCase();
       const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
       
-      await env.ouralbum.put(filename, file.stream(), {
+      // 修复：使用正确的R2存储桶绑定名称
+      await env.IMAGES.put(filename, file.stream(), {
         httpMetadata: {
           contentType: file.type,
           cacheControl: 'public, max-age=31536000',
