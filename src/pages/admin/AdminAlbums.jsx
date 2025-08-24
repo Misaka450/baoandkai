@@ -144,7 +144,8 @@ export default function AdminAlbums() {
       if (filename) {
         console.log('准备删除R2图片:', filename)
         
-        const response = await apiService.delete('/delete', { filename })
+        // 修复：使用正确的API路径 /api/delete
+        const response = await apiService.delete('/api/delete', { filename })
         
         if (response.success) {
           console.log('图片已从R2删除:', filename)

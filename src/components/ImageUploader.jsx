@@ -101,8 +101,9 @@ const ImageUploader = ({
         xhr.onerror = () => reject(new Error('网络连接失败，请检查网络后重试'));
         xhr.ontimeout = () => reject(new Error('上传超时，请重试'));
         
-        // 使用修正后的API路径
-        xhr.open('POST', '/upload');
+        // 使用正确的API路径上传图片
+        // 修复：使用正确的API路径 /api/upload
+        xhr.open('POST', '/api/upload')
         xhr.timeout = 60000; // 60秒超时
         xhr.send(formData);
       });
