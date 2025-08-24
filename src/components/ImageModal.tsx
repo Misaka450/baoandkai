@@ -1,8 +1,27 @@
 import { useState, useEffect } from 'react'
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 
+// 定义图片模态框组件的属性接口
+interface ImageModalProps {
+  isOpen: boolean
+  onClose: () => void
+  imageUrl?: string
+  images?: string[]
+  currentIndex?: number
+  onPrevious?: () => void
+  onNext?: () => void
+}
+
 // 图片放大模态框组件 - 支持单图和多图切换
-export default function ImageModal({ isOpen, onClose, imageUrl, images = [], currentIndex = 0, onPrevious, onNext }) {
+export default function ImageModal({ 
+  isOpen, 
+  onClose, 
+  imageUrl, 
+  images = [], 
+  currentIndex = 0, 
+  onPrevious, 
+  onNext 
+}: ImageModalProps) {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
@@ -10,7 +29,7 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
 
   // 键盘事件和滚轮缩放
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose()
       } else if (event.key === 'ArrowLeft' && images.length > 1 && onPrevious) {
@@ -20,7 +39,7 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
       }
     }
 
-    const handleWheel = (event) => {
+    const handleWheel = (event: WheelEvent) => {
       event.preventDefault()
       // 使用超平滑的乘法缩放，根据滚轮速度调整缩放幅度
       const isCtrlPressed = event.ctrlKey || event.metaKey
@@ -64,14 +83,14 @@ export default function ImageModal({ isOpen, onClose, imageUrl, images = [], cur
   }
 
   // 拖拽功能
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     if (scale > 1) {
       setIsDragging(true)
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
     }
   }
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging) {
       setPosition({
         x: e.clientX - dragStart.x,

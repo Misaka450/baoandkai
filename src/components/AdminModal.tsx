@@ -1,6 +1,27 @@
 import React from 'react'
 
-const AdminModal = ({ isOpen, onClose, title, message, type = 'info', onConfirm, showCancel = false, confirmText = '确定' }) => {
+// 定义模态框组件的属性接口
+interface AdminModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  message: string
+  type?: 'info' | 'warning' | 'error' | 'success'
+  onConfirm?: () => void
+  showCancel?: boolean
+  confirmText?: string
+}
+
+const AdminModal: React.FC<AdminModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  message,
+  type = 'info',
+  onConfirm,
+  showCancel = false,
+  confirmText = '确定'
+}) => {
   if (!isOpen) return null
 
   // 极简优雅的配色方案，统一使用莫兰迪色系

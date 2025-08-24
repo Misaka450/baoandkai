@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react'
 
-export function useLoveTimer(anniversaryDate) {
-  const [timeTogether, setTimeTogether] = useState({
+// 定义时间对象接口
+interface TimeTogether {
+  years: number
+  months: number
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+  totalDays: number
+}
+
+export function useLoveTimer(anniversaryDate: string | null): TimeTogether {
+  const [timeTogether, setTimeTogether] = useState<TimeTogether>({
     years: 0,
     months: 0,
     days: 0,
@@ -11,12 +22,12 @@ export function useLoveTimer(anniversaryDate) {
     totalDays: 0
   })
 
-  const calculateTime = () => {
+  const calculateTime = (): void => {
     if (!anniversaryDate) return
 
     const now = new Date()
     const anniversary = new Date(anniversaryDate)
-    const diff = now - anniversary
+    const diff = now.getTime() - anniversary.getTime()
 
     if (diff < 0) {
       setTimeTogether({

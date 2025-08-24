@@ -1,17 +1,24 @@
 import { Loader2 } from 'lucide-react'
 
+// 定义组件属性接口
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg'
+  text?: string
+  className?: string
+}
+
 /**
  * 统一的加载动画组件
- * @param {Object} props
- * @param {string} props.size - 尺寸: 'sm' | 'md' | 'lg'
- * @param {string} props.text - 加载文字
- * @param {string} props.className - 额外样式类
+ * @param props - 组件属性
+ * @param props.size - 尺寸: 'sm' | 'md' | 'lg'
+ * @param props.text - 加载文字
+ * @param props.className - 额外样式类
  */
 export default function LoadingSpinner({ 
   size = 'md', 
   text = '加载中...', 
   className = '' 
-}) {
+}: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-8 w-8',

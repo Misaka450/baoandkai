@@ -1,13 +1,40 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-const AuthContext = createContext()
-
-export function useAuth() {
-  return useContext(AuthContext)
+// 定义用户接口
+interface User {
+  token: string
+  username?: string
+  role: string
 }
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+// 定义认证上下文接口
+interface AuthContextType {
+  user: User | null
+  login: (username: string, password: string) => Promise<any>
+  logout: () => void
+  loading: boolean
+  isAdmin: boolean
+  isLoggedIn: boolean
+  token: string | null
+}
+
+// 定义Provider属性接口
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth必须在AuthProvider中使用')
+  }
+  return context
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,7 +47,7 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }, [])
 
-  const login = async (username, password) => {
+  const login = async (username: string, password: string): Promise<any> => {
     try {
       // 使用后端API进行真正的数据库验证
       const response = await fetch('/api/auth/login', {
@@ -46,19 +73,19 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const logout = () => {
+  const logout = (): void => {
     localStorage.removeItem('token')
     setUser(null)
   }
 
-  const value = {
+  const value: AuthContextType = {
     user,
     login,
     logout,
     loading,
     isAdmin: user?.role === 'admin',
     isLoggedIn: !!user,
-    token: user?.token,
+    token: user?.token || null,
   }
 
   return (
