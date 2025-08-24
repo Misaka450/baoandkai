@@ -27,7 +27,8 @@ export async function onRequestDelete(context) {
     }
 
     // 从R2存储桶中删除文件
-    const bucket = env.ouralbum;
+    // 修复：使用正确的R2存储桶绑定名称
+    const bucket = env.IMAGES;
     
     if (!bucket) {
       console.error('R2存储桶未配置，可用绑定:', Object.keys(env));
