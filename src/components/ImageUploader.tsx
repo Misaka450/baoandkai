@@ -1,7 +1,27 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image, CheckCircle, AlertCircle } from 'lucide-react';
 
-const ImageUploader = ({ 
+// 定义图片上传组件的属性接口
+interface ImageUploaderProps {
+  onImagesUploaded: (urls: string[]) => void;
+  maxImages?: number;
+  folder?: string;
+  existingImages?: string[];
+  onRemoveImage?: (index: number) => void;
+  maxFileSize?: number; // 默认20MB 支持更大的相机照片
+}
+
+// 定义上传文件的状态接口
+interface UploadFile {
+  file: File;
+  id: string;
+  progress: number;
+  status: 'uploading' | 'success' | 'error';
+  url: string | null;
+  error: string | null;
+}
+
+const ImageUploader: React.FC<ImageUploaderProps> = ({ 
   onImagesUploaded, 
   maxImages = 20, 
   folder = 'images',
@@ -9,14 +29,14 @@ const ImageUploader = ({
   onRemoveImage,
   maxFileSize = 20 * 1024 * 1024 // 20MB 支持更大的相机照片
 }) => {
-  const [uploadingFiles, setUploadingFiles] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 确保existingImages是数组
   const safeExistingImages = Array.isArray(existingImages) ? existingImages : [];
 
-  const formatFileSize = (bytes) => {
+  const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -24,7 +44,9 @@ const ImageUploader = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleFileSelect = async (files) => {
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files) return;
+    
     const validFiles = Array.from(files).filter(file => {
       if (!file.type.startsWith('image/')) {
         alert(`${file.name} 不是图片文件`);
@@ -45,7 +67,7 @@ const ImageUploader = ({
         file,
         id: Math.random().toString(36).substr(2, 9),
         progress: 0,
-        status: 'uploading',
+        status: 'uploading' as const,
         url: null,
         error: null
       }))
@@ -57,7 +79,7 @@ const ImageUploader = ({
     }
   };
 
-  const uploadSingleFile = async (file) => {
+  const uploadSingleFile = async (file: File): Promise<void> => {
     const uploadId = Math.random().toString(36).substr(2, 9);
     
     try {
@@ -83,12 +105,16 @@ const ImageUploader = ({
       };
 
       // 使用 Promise 包装 XMLHttpRequest
-      const result = await new Promise((resolve, reject) => {
+      const result = await new Promise<string>((resolve, reject) => {
         xhr.onload = () => {
           if (xhr.status === 200) {
-            const result = JSON.parse(xhr.responseText);
-            const url = result.urls ? result.urls[0] : result.url;
-            resolve(url);
+            try {
+              const result = JSON.parse(xhr.responseText);
+              const url = result.urls ? result.urls[0] : result.url;
+              resolve(url);
+            } catch (error) {
+              reject(new Error('服务器响应格式错误'));
+            }
           } else {
             try {
               const errorData = JSON.parse(xhr.responseText);
@@ -102,7 +128,7 @@ const ImageUploader = ({
         xhr.ontimeout = () => reject(new Error('上传超时，请重试'));
         
         // 使用正确的API路径上传图片
-        xhr.open('POST', '/api/upload')
+        xhr.open('POST', '/api/upload');
         xhr.timeout = 60000; // 60秒超时
         xhr.send(formData);
       });
@@ -117,19 +143,23 @@ const ImageUploader = ({
 
     } catch (error) {
       setUploadingFiles(prev => prev.map(item => 
-        item.file === file ? { ...item, status: 'error', error: error.message } : item
+        item.file === file ? { 
+          ...item, 
+          status: 'error' as const, 
+          error: error instanceof Error ? error.message : '上传失败'
+        } : item
       ));
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
     handleFileSelect(files);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(true);
   };
@@ -138,11 +168,11 @@ const ImageUploader = ({
     setDragOver(false);
   };
 
-  const removeUploadingFile = (id) => {
+  const removeUploadingFile = (id: string) => {
     setUploadingFiles(prev => prev.filter(item => item.id !== id));
   };
 
-  const retryUpload = (file) => {
+  const retryUpload = (file: File) => {
     uploadSingleFile(file);
   };
 
@@ -199,23 +229,31 @@ const ImageUploader = ({
                     {formatFileSize(item.file.size)}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {item.status === 'uploading' && (
-                    <span className="text-xs text-blue-600">{item.progress}%</span>
-                  )}
-                  {item.status === 'success' && (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  )}
-                  {item.status === 'error' && (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  )}
+                
+                {item.status === 'uploading' && (
                   <button
                     onClick={() => removeUploadingFile(item.id)}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
                   </button>
-                </div>
+                )}
+                
+                {item.status === 'success' && (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                )}
+                
+                {item.status === 'error' && (
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <button
+                      onClick={() => retryUpload(item.file)}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      重试
+                    </button>
+                  </div>
+                )}
               </div>
               
               {item.status === 'uploading' && (
@@ -226,49 +264,8 @@ const ImageUploader = ({
                   />
                 </div>
               )}
-              
-              {item.status === 'error' && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-red-600">{item.error}</span>
-                  <button
-                    onClick={() => retryUpload(item.file)}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    重试
-                  </button>
-                </div>
-              )}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* 已上传图片预览 */}
-      {safeExistingImages.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">已上传图片</h4>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {safeExistingImages.map((url, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={url}
-                  alt=""
-                  className="w-full h-20 object-cover rounded-lg"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/80x80';
-                  }}
-                />
-                {onRemoveImage && (
-                  <button
-                    onClick={() => onRemoveImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>

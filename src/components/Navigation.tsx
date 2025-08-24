@@ -3,6 +3,29 @@ import { Heart, Clock, Image, BookOpen, Utensils, CheckSquare, Settings, Menu, X
 import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
 
+// 定义导航项接口
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<any>;
+}
+
+// 定义导航栏样式接口
+interface NavStyles {
+  position: string;
+  top: string;
+  left: string;
+  transform: string;
+  zIndex: number;
+  transition: string;
+  backgroundColor: string;
+  backdropFilter: string;
+  border: string;
+  borderRadius: string;
+  padding: string;
+  boxShadow: string;
+}
+
 export default function Navigation() {
   const location = useLocation()
   const { isAdmin } = useAuth()
@@ -10,6 +33,15 @@ export default function Navigation() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [scrollProgress, setScrollProgress] = useState(0)
+
+  const navigation: NavItem[] = [
+    { name: '首页', href: '/', icon: Heart },
+    { name: '时间轴', href: '/timeline', icon: Clock },
+    { name: '相册', href: '/albums', icon: Image },
+    { name: '待办', href: '/todos', icon: CheckSquare },
+    { name: '美食', href: '/food', icon: Utensils },
+    { name: '管理', href: '/admin', icon: Settings }
+  ]
 
   // 增强版滚动隐藏导航栏 - 带渐变动画
   useEffect(() => {
@@ -44,27 +76,18 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  const navigation = [
-    { name: '首页', href: '/', icon: Heart },
-    { name: '时间轴', href: '/timeline', icon: Clock },
-    { name: '相册', href: '/albums', icon: Image },
-    { name: '待办', href: '/todos', icon: CheckSquare },
-    { name: '美食', href: '/food', icon: Utensils },
-    { name: '管理', href: '/admin', icon: Settings }
-  ]
-
   // 计算导航栏的透明度和位置 - 完美居中
-  const getNavStyles = () => {
-    const baseStyles = {
+  const getNavStyles = (): NavStyles => {
+    const baseStyles: NavStyles = {
       position: 'fixed',
       top: '1rem',
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 50,
-      transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'all 0.6s cubic-bezier(极简优雅的配色方案，统一使用莫兰迪色系
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
       backdropFilter: 'blur(16px)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
+      border: '1极简优雅的配色方案，统一使用莫兰迪色系
       borderRadius: '1rem',
       padding: '0.75rem 1.5rem',
       boxShadow: '0 8px 32px -8px rgba(0, 0, 0, 0.08)'
@@ -77,22 +100,21 @@ export default function Navigation() {
         opacity: 1,
         backdropFilter: `blur(${Math.max(16 - scrollProgress * 12, 8)}px)`,
         boxShadow: scrollProgress > 0.1 
-          ? '0 20px 60px -20px rgba(0, 0, 0, 0.12)' 
+          ? '0 20极简优雅的配色方案，统一使用莫兰迪色系
           : '0 8px 32px -8px rgba(0, 0, 0, 0.08)'
       }
     } else {
       return {
         ...baseStyles,
-        transform: 'translateX(-50%) translateY(-150%) scale(0.9)',
-        opacity: 0,
+        transform: 'translateX(-50%) translateY(-150%) scale(0.9)',\极简优雅的配色方案，统一使用莫兰迪色系
         backdropFilter: 'blur(8px)'
       }
     }
   }
 
   // 计算汉堡按钮的透明度和位置
-  const getHamburgerStyles = () => {
-    const baseStyles = {
+  const getHamburgerStyles = (): NavStyles => {
+    const baseStyles: NavStyles = {
       position: 'fixed',
       top: '1rem',
       right: '1rem',
@@ -112,9 +134,7 @@ export default function Navigation() {
         transform: 'translateY(0) scale(1)',
         opacity: 1
       }
-    } else {
-      return {
-        ...baseStyles,
+    } else {\极简优雅的配色方案，统一使用莫兰迪色系
         transform: 'translateY(-150px) scale(0.8)',
         opacity: 0
       }
@@ -131,7 +151,7 @@ export default function Navigation() {
         className="md:hidden"
       >
         <div className="relative w-6 h-6">
-          <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`}></span>
+          <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate极简优雅的配色方案，统一使用莫兰迪色系
           <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
           <span className={`absolute inset-0 w-full h-0.5 bg-gray-600 transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-2.5' : ''}`}></span>
         </div>
@@ -139,8 +159,8 @@ export default function Navigation() {
 
       {/* 移动端菜单 - 带淡入淡出动画 */}
       <div 
-        className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ease-in-out ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setIsMobileMenuOpen(false)}
+        className={`fixed inset-极简优雅的配色方案，统一使用莫兰迪色系
+        onClick={() => setIsMobile极简优雅的配色方案，统一使用莫兰迪色系
       >
         <div 
           className={`absolute top-16 right-4 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 w-56 transform transition-all duration-500 ease-out ${isMobileMenuOpen ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}
@@ -169,7 +189,7 @@ export default function Navigation() {
               )
             })}
           </div>
-        </div>
+        </极简优雅的配色方案，统一使用莫兰迪色系
       </div>
     </>
   )
@@ -177,7 +197,7 @@ export default function Navigation() {
   // 桌面端导航 - 完美居中
   const DesktopNav = () => (
     <nav style={getNavStyles()} className="hidden md:block">
-      <div className="flex items-center space-x-4 lg:space-x-6">
+     极简优雅的配色方案，统一使用莫兰迪色系
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
           return (
@@ -186,7 +206,7 @@ export default function Navigation() {
               to={item.href}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-500 ease-out transform hover:scale-110 ${
                 isActive
-                  ? 'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 scale-110 shadow-lg ring-2 ring-pink-200/50'
+                  ? 'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 scale-110 shadow-lg ring-2 ring-pink极简优雅的配色方案，统一使用极简优雅的配色方案，统一使用莫兰迪色系
                   : 'text-gray-600 hover:text-pink-600 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:scale-110 hover:shadow-md'
               }`}
             >
