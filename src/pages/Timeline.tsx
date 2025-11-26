@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3 } from 'lucide-react'
+import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Clock3 as TimelineIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
@@ -35,15 +35,30 @@ export default function Timeline() {
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const ITEMS_PER_PAGE = 10
 
   useEffect(() => {
     fetchEvents()
   }, [])
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (page = 1) => {
     try {
-      const { data } = await apiService.get('/timeline')
+      setLoading(true)
+      const response = await apiService.get(`/timeline?page=${page}&limit=${ITEMS_PER_PAGE}`)
+
+      if (response.error) {
+        throw new Error(response.error)
+      }
+
+      const { data, pagination } = response.data
       setEvents(Array.isArray(data) ? data : [])
+
+      if (pagination) {
+        setCurrentPage(pagination.page)
+        setTotalPages(pagination.totalPages)
+      }
     } catch (error) {
       console.error('获取时间轴事件失败:', error)
       setEvents([])
@@ -52,10 +67,17 @@ export default function Timeline() {
     }
   }
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchEvents(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
   const categories = ['all', '约会', '旅行', '节日', '日常']
 
-  const filteredEvents = filter === 'all' 
-    ? events 
+  const filteredEvents = filter === 'all'
+    ? events
     : events.filter(event => event.category === filter)
 
   const categoryColors: CategoryColors = {
@@ -104,11 +126,10 @@ export default function Timeline() {
               <button
                 key={category}
                 onClick={() => setFilter(category)}
-                className={`flex items-center px-4 py-2 rounded-full text-sm font-light transition-all duration-300 ${
-                  filter === category
-                    ? 'bg-stone-800 text-white shadow-lg'
-                    : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md'
-                }`}
+                className={`flex items-center px-4 py-2 rounded-full text-sm font-light transition-all duration-300 ${filter === category
+                  ? 'bg-stone-800 text-white shadow-lg'
+                  : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md'
+                  }`}
               >
                 <Icon className="h-4 w-4 mr-2" />
                 {category === 'all' ? '全部' : category}
@@ -125,7 +146,7 @@ export default function Timeline() {
             {filteredEvents.map((event, index) => {
               const Icon = categoryIcons[event.category] || Tag
               const colorClass = categoryColors[event.category] || 'from-stone-50 to-stone-100 text-stone-700 border-stone-200'
-              
+
               return (
                 <div key={event.id} className="relative">
                   {/* 时间点 - 调整位置 */}
@@ -146,9 +167,9 @@ export default function Timeline() {
                               </div>
                               <span className="text-xs font-medium tracking-wide uppercase opacity-75">{event.category}</span>
                             </div>
-                            
+
                             <h3 className="text-lg font-light text-stone-800 mb-3 leading-relaxed tracking-wide">{event.title}</h3>
-                            
+
                             <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
                               <span className="flex items-center">
                                 <Calendar className="h-3.5 w-3.5 mr-1.5" />
@@ -164,18 +185,18 @@ export default function Timeline() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <p className="text-stone-700 mb-5 font-light leading-relaxed text-sm opacity-90">{event.description}</p>
-                        
+
                         {event.images && event.images.length > 0 && (
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                             {event.images.map((image, imgIndex) => (
                               <div key={imgIndex} className="relative group overflow-hidden rounded-xl cursor-pointer"
-                                   onClick={() => {
-                                     setCurrentImages(event.images || [])
-                                     setCurrentImageIndex(imgIndex)
-                                     setImageModalOpen(true)
-                                   }}>
+                                onClick={() => {
+                                  setCurrentImages(event.images || [])
+                                  setCurrentImageIndex(imgIndex)
+                                  setImageModalOpen(true)
+                                }}>
                                 <img
                                   src={image}
                                   alt={`${event.title} - ${imgIndex + 1}`}
@@ -209,6 +230,37 @@ export default function Timeline() {
               <h3 className="text-lg font-light text-stone-700 mb-2">暂无记录</h3>
               <p className="text-sm text-stone-500 font-light">还没有添加任何时间轴事件，让我们开始记录美好时光吧！</p>
             </div>
+          </div>
+        )}
+
+        {/* 分页控件 */}
+        {totalPages > 1 && filter === 'all' && (
+          <div className="flex justify-center items-center mt-12 space-x-4">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-full transition-colors ${currentPage === 1
+                ? 'text-stone-300 cursor-not-allowed'
+                : 'text-stone-600 hover:bg-stone-200'
+                }`}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+
+            <span className="text-stone-600 font-light">
+              {currentPage} / {totalPages}
+            </span>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-full transition-colors ${currentPage === totalPages
+                ? 'text-stone-300 cursor-not-allowed'
+                : 'text-stone-600 hover:bg-stone-200'
+                }`}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
           </div>
         )}
 
