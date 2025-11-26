@@ -1,5 +1,4 @@
 // Cloudflare Pages Functions - 相册列表API (优化版)
-import { handleError } from '../../middleware/errorHandler.js';
 
 export async function onRequestGet(context) {
   const { env } = context;
@@ -59,7 +58,20 @@ export async function onRequestGet(context) {
       }
     });
   } catch (error) {
-    return handleError(error, env);
+    console.error('Albums API Error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: env?.ENVIRONMENT === 'development' ? error.message : '服务器内部错误,请稍后重试'
+      }
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   }
 }
 
@@ -123,10 +135,11 @@ export async function onRequestPost(context) {
       }
     });
   } catch (error) {
+    console.error('Upload Error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: '上传失败',
-      message: process.env.ENVIRONMENT === 'development' ? error.message : '图片上传失败，请重试'
+      message: env?.ENVIRONMENT === 'development' ? error.message : '图片上传失败，请重试'
     }), {
       status: 500,
       headers: {
