@@ -2,8 +2,6 @@
 // 使用bcryptjs进行真正的密码哈希验证
 
 import bcrypt from 'bcryptjs';
-import { handleError, ErrorTypes } from '../../middleware/errorHandler.js';
-import { CORS_HEADERS } from '../../middleware/cors.js';
 
 /**
  * 真正的bcrypt密码验证
@@ -121,7 +119,7 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({
       success: false,
       error: '登录失败',
-      message: process.env.ENVIRONMENT === 'development' ? error.message : '登录失败，请稍后重试'
+      message: env?.ENVIRONMENT === 'development' ? error.message : '登录失败，请稍后重试'
     }), {
       status: 500,
       headers: {
