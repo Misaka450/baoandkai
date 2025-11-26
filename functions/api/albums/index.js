@@ -1,72 +1,100 @@
-const formData = await request.formData();
-const file = formData.get('file');
-const description = formData.get('description') || '';
+// Cloudflare Pages Functions - 相册列表API
+export async function onRequestGet(context) {
+  const { env } = context;
 
-if (!file) {
-  return new Response(JSON.stringify({ error: '请选择要上传的图片' }), {
-    status: 400,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+  try {
+    const url = new URL(context.request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '12');
+    const offset = (page - 1) * limit;
 
-// 验证文件类型
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-if (!allowedTypes.includes(file.type)) {
-  return new Response(JSON.stringify({ error: '请上传 JPG、PNG、WebP 或 GIF 格式的图片' }), {
-    status: 400,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+    // 获取总数
+    const countResult = await env.DB.prepare(`
+      SELECT COUNT(*) as total FROM albums
+    `).first();
+    const total = countResult.total;
+    const totalPages = Math.ceil(total / limit);
 
-// 验证文件大小 (5MB)
-const maxSize = 5 * 1024 * 1024;
-if (file.size > maxSize) {
-  return new Response(JSON.stringify({ error: '图片大小不能超过 5MB' }), {
-    status: 400,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+    // 获取分页数据
+    // 同时获取每个相册的第一张照片作为封面
+    const albums = await env.DB.prepare(`
+      SELECT a.*, 
+        (SELECT url FROM photos WHERE album_id = a.id ORDER BY sort_order ASC LIMIT 1) as cover_url,
+        (SELECT COUNT(*) FROM photos WHERE album_id = a.id) as photo_count
+      FROM albums a
+      ORDER BY a.created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(limit, offset).all();
 
-const key = `albums/${Date.now()}-${file.name}`;
-await env.IMAGES.put(key, file.stream(), {
-  httpMetadata: {
-    contentType: file.type,
-    cacheControl: 'public, max-age=31536000'
+    // 处理结果，构建符合前端预期的结构
+    const results = albums.results.map(album => ({
+      id: album.id,
+      name: album.name,
+      description: album.description,
+      created_at: album.created_at,
+      photos: album.cover_url ? [{ url: album.cover_url }] : [] // 模拟 photos 数组用于封面显示
+    }));
+
+    return new Response(JSON.stringify({
+      data: results,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    }), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (error) {
+    console.error('获取相册列表失败:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
-});
+}
 
-// 获取文件URL
-const url = `https://images.baoandkai.com/${key}`;
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-const result = await env.DB.prepare(`
-      INSERT INTO photos (url, description, created_at) 
-      VALUES (?, ?, datetime('now'))
-    `).bind(url, description).run();
+  try {
+    const body = await request.json();
+    const { name, description } = body;
 
-const newPhoto = await env.DB.prepare(`
-      SELECT * FROM photos WHERE id = ?
+    if (!name || !name.trim()) {
+      return new Response(JSON.stringify({ error: '相册名称不能为空' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const result = await env.DB.prepare(`
+      INSERT INTO albums (name, description, created_at, updated_at) 
+      VALUES (?, ?, datetime('now'), datetime('now'))
+    `).bind(name.trim(), description?.trim() || '').run();
+
+    const newAlbum = await env.DB.prepare(`
+      SELECT * FROM albums WHERE id = ?
     `).bind(result.meta.last_row_id).first();
 
-return new Response(JSON.stringify(newPhoto), {
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
-  }
-});
+    return new Response(JSON.stringify(newAlbum), {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   } catch (error) {
-  console.error('Upload Error:', error);
-  return new Response(JSON.stringify({
-    success: false,
-    error: '上传失败',
-    message: env?.ENVIRONMENT === 'development' ? error.message : '图片上传失败，请重试'
-  }), {
-    status: 500,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  });
-}
+    console.error('创建相册失败:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }
 
 export async function onRequestOptions() {
