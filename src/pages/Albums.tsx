@@ -267,9 +267,12 @@ export default function Albums() {
   const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery({
     queryKey: ['albums'],
     queryFn: async () => {
-      const response = await apiService.get('/albums')
-      if (response.error) throw new Error(response.error)
-      return response.data
+      // 直接使用fetch API而不是apiService，避免额外的封装层
+      const response = await fetch('/api/albums')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
     }
   })
   const albums = Array.isArray(albumsData?.data) ? albumsData.data : Array.isArray(albumsData) ? albumsData : []
@@ -278,9 +281,12 @@ export default function Albums() {
     queryKey: ['album', selectedAlbum?.id],
     queryFn: async () => {
       if (!selectedAlbum) return { photos: [] }
-      const response = await apiService.get(`/albums/${selectedAlbum.id}`)
-      if (response.error) throw new Error(response.error)
-      return response.data
+      // 直接使用fetch API而不是apiService，避免额外的封装层
+      const response = await fetch(`/api/albums/${selectedAlbum.id}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
     },
     enabled: !!selectedAlbum
   })
