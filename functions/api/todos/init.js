@@ -1,7 +1,9 @@
+import { jsonResponse, errorResponse } from '../../utils/response';
+
 // 待办事项数据库初始化端点
 export async function onRequestGet(context) {
   const { env } = context;
-  
+
   try {
     // 创建todos表（如果不存在）
     await env.DB.prepare(`
@@ -29,33 +31,16 @@ export async function onRequestGet(context) {
 
     // 检查是否已有数据
     const result = await env.DB.prepare(`SELECT COUNT(*) as count FROM todos`).first();
-    
-    return new Response(JSON.stringify({
+
+    return jsonResponse({
       success: true,
       message: 'todos表已初始化',
       hasData: result.count > 0,
       count: result.count
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return errorResponse(error.message, 500);
   }
 }
 

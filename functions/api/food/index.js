@@ -1,3 +1,5 @@
+import { jsonResponse, errorResponse } from '../../utils/response';
+
 // Cloudflare Pages Functions - 美食API
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -28,7 +30,7 @@ export async function onRequestGet(context) {
       images: food.images ? food.images.split(',') : []
     }));
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       data: foodsWithImages,
       pagination: {
         page,
@@ -36,19 +38,9 @@ export async function onRequestGet(context) {
         total,
         totalPages
       }
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse(error.message, 500);
   }
 }
 
@@ -73,10 +65,7 @@ export async function onRequestPost(context) {
     } = body;
 
     if (!restaurant_name || !date) {
-      return new Response(JSON.stringify({ error: '餐厅名称和日期不能为空' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('餐厅名称和日期不能为空', 400);
     }
 
     const result = await env.DB.prepare(`
@@ -97,108 +86,11 @@ export async function onRequestPost(context) {
         SELECT * FROM food_checkins WHERE id = ?
       `).bind(foodId).first();
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       ...newFood,
       images: newFood.images ? newFood.images.split(',') : []
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse(error.message, 500);
   }
-}
-
-export async function onRequestPut(context) {
-  const { request, env } = context;
-
-  try {
-    const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
-    const body = await request.json();
-    const {
-      restaurant_name,
-      description,
-      date,
-      address,
-      cuisine,
-      price_range,
-      overall_rating,
-      taste_rating,
-      environment_rating,
-      service_rating,
-      recommended_dishes,
-      images = []
-    } = body;
-
-    await env.DB.prepare(`
-      UPDATE food_checkins 
-      SET restaurant_name = ?, description = ?, date = ?, address = ?, cuisine = ?, price_range = ?,
-          overall_rating = ?, taste_rating = ?, environment_rating = ?, service_rating = ?,
-          recommended_dishes = ?, images = ?, updated_at = datetime('now') 
-      WHERE id = ?
-    `).bind(
-      restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
-      overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
-      Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
-      Array.isArray(images) ? images.join(',') : images, id
-    ).run();
-
-    const updatedFood = await env.DB.prepare(`
-      SELECT * FROM food_checkins WHERE id = ?
-    `).bind(id).first();
-
-    return new Response(JSON.stringify({
-      ...updatedFood,
-      images: updatedFood.images ? updatedFood.images.split(',') : []
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
-
-export async function onRequestDelete(context) {
-  const { env } = context;
-
-  try {
-    const url = new URL(context.request.url);
-    const id = url.pathname.split('/').pop();
-
-    await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?').bind(id).run();
-
-    return new Response(JSON.stringify({ success: true }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
-
-export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
-  });
 }

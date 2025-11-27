@@ -18,18 +18,31 @@ class ApiService {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`
-    
+
+    // 获取Token
+    const token = localStorage.getItem('token');
+
     const config = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options.headers,
       },
     }
 
     try {
       const response = await fetch(url, config)
-      
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return { data: null, error: 'Unauthorized' };
+      }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -81,12 +94,25 @@ class ApiService {
    */
   async upload(endpoint, formData) {
     const url = `${this.baseURL}${endpoint}`
-    
+    const token = localStorage.getItem('token');
+
     try {
       const response = await fetch(url, {
         method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: formData,
       })
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return { data: null, error: 'Unauthorized' };
+      }
 
       if (!response.ok) {
         throw new Error(`Upload failed! status: ${response.status}`)
@@ -109,15 +135,15 @@ export const notesService = {
   async getAll() {
     return apiService.get('/notes')
   },
-  
+
   async create(note) {
     return apiService.post('/notes', note)
   },
-  
+
   async update(id, note) {
     return apiService.put(`/notes/${id}`, note)
   },
-  
+
   async delete(id) {
     return apiService.delete(`/notes/${id}`)
   }
@@ -127,15 +153,15 @@ export const todosService = {
   async getAll() {
     return apiService.get('/todos')
   },
-  
+
   async create(todo) {
     return apiService.post('/todos', todo)
   },
-  
+
   async update(id, todo) {
     return apiService.put(`/todos/${id}`, todo)
   },
-  
+
   async delete(id) {
     return apiService.delete(`/todos/${id}`)
   }
@@ -145,7 +171,7 @@ export const albumsService = {
   async getAll() {
     return apiService.get('/albums')
   },
-  
+
   async create(album) {
     return apiService.post('/albums', album)
   }
