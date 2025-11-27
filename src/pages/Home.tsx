@@ -34,11 +34,13 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const data = await apiService.get('/config')
+      const result = await apiService.get('/config')
+      // apiService返回{ data, error }格式，需要访问result.data
+      const data = result.data || {}
       setConfig({
         coupleName1: data.coupleName1 || '包包',
         coupleName2: data.coupleName2 || '恺恺',
-        anniversaryDate: data.anniversaryDate || '2024-01-01'
+        anniversaryDate: data.anniversaryDate || '2023-10-08'
       })
     } catch (error) {
       console.error('获取配置失败:', error)

@@ -8,12 +8,16 @@ import Todos from './pages/Todos'
 import FoodCheckin from './pages/FoodCheckin'
 import ErrorDemo from './pages/ErrorDemo'
 import Admin from './pages/Admin'
+import Login from './pages/Login'
 import { AuthProvider } from './contexts/AuthContext'
 
 function App(): JSX.Element {
   return (
     <AuthProvider>
       <Routes>
+        {/* 登录页面 - 顶级路由 */}
+        <Route path="/login" element={<Login />} />
+        {/* 主应用布局 */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
         <Route path="timeline" element={<Timeline />} />
