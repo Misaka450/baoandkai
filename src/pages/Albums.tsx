@@ -264,7 +264,7 @@ export default function Albums() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [photoIndex, setPhotoIndex] = useState(0)
 
-  const { data: albumsData, isLoading: albumsLoading } = useQuery({
+  const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery({
     queryKey: ['albums'],
     queryFn: async () => {
       const response = await apiService.get('/albums')
@@ -395,7 +395,7 @@ export default function Albums() {
             <button
               onClick={() => {
                 setSelectedAlbum(null)
-                setPhotos([])
+                setSelectedPhoto(null)
               }}
               className="flex items-center mb-6 text-stone-600 hover:text-stone-800 transition-colors"
             >
