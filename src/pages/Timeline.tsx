@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Clock3 as TimelineIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
@@ -28,48 +29,32 @@ interface CategoryIcons {
 }
 
 export default function Timeline() {
-  const [events, setEvents] = useState<TimelineEvent[]>([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const ITEMS_PER_PAGE = 10
 
-  useEffect(() => {
-    fetchEvents()
-  }, [])
-
-  const fetchEvents = async (page = 1) => {
-    try {
-      setLoading(true)
-      const response = await apiService.get(`/timeline?page=${page}&limit=${ITEMS_PER_PAGE}`)
-
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['timeline', currentPage],
+    queryFn: async () => {
+      const response = await apiService.get(`/timeline?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
       if (response.error) {
         throw new Error(response.error)
       }
+      return response.data
+    },
+    placeholderData: keepPreviousData,
+  })
 
-      const { data, pagination } = response.data
-      setEvents(Array.isArray(data) ? data : [])
-
-      if (pagination) {
-        setCurrentPage(pagination.page)
-        setTotalPages(pagination.totalPages)
-      }
-    } catch (error) {
-      console.error('获取时间轴事件失败:', error)
-      setEvents([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const events: TimelineEvent[] = Array.isArray(data?.data) ? data.data : []
+  const totalPages = data?.pagination?.totalPages || 1
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      fetchEvents(newPage)
+      setCurrentPage(newPage)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -95,7 +80,7 @@ export default function Timeline() {
   }
 
   // 使用统一的加载组件
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
         <div className="max-w-4xl mx-auto px-4 py-12">

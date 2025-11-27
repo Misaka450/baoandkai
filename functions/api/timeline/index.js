@@ -1,3 +1,5 @@
+import { jsonResponse, errorResponse } from '../../utils/response';
+
 // Cloudflare Pages Functions - 时间轴API
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -28,7 +30,7 @@ export async function onRequestGet(context) {
       images: event.images ? event.images.split(',') : []
     }));
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       data: eventsWithImages,
       pagination: {
         page,
@@ -36,19 +38,9 @@ export async function onRequestGet(context) {
         total,
         totalPages
       }
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse(error.message, 500);
   }
 }
 
@@ -65,10 +57,7 @@ export async function onRequestPost(context) {
 
     if (!title || !date) {
       console.log('验证失败: 标题或日期为空');
-      return new Response(JSON.stringify({ error: '标题和日期不能为空' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('标题和日期不能为空', 400);
     }
 
     console.log('正在插入数据到数据库...');
@@ -88,35 +77,12 @@ export async function onRequestPost(context) {
 
     console.log('查询新记录成功:', newEvent);
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       ...newEvent,
       images: newEvent.images ? newEvent.images.split(',') : []
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
     });
   } catch (error) {
     console.error('时间轴创建失败:', error);
-    return new Response(JSON.stringify({
-      error: '数据库错误: ' + error.message,
-      stack: error.stack
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse('数据库错误: ' + error.message, 500);
   }
-}
-
-// 移除PUT和DELETE方法，由[id].js处理单个事件的操作
-
-export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
-  });
 }
