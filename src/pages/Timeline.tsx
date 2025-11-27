@@ -6,6 +6,7 @@ import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
 import { formatDate } from '../utils/common'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { getThumbnailUrl } from '../utils/imageUtils'
 
 // 定义时间轴事件接口
 interface TimelineEvent {
@@ -183,8 +184,9 @@ export default function Timeline() {
                                   setImageModalOpen(true)
                                 }}>
                                 <img
-                                  src={image}
+                                  src={getThumbnailUrl(image, 300)}
                                   alt={`${event.title} - ${imgIndex + 1}`}
+                                  loading="lazy"
                                   className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

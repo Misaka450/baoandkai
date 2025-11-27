@@ -55,18 +55,22 @@
 }
 
 @layer components {
-  /* 毛玻璃卡片 */
+  /* 毛玻璃卡片 - 性能优化：减少模糊半径，使用rgba代替 */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl;
+    @apply bg-white/90 border border-white/20 rounded-2xl shadow-lg;
+    /* 仅在支持的设备上启用 backdrop-filter */
+    @supports (backdrop-filter: blur(8px)) {
+      @apply bg-white/80 backdrop-blur-md;
+    }
   }
   
   /* 渐变按钮 */
   .btn-gradient {
-    @apply px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-0.5 hover:scale-105 transition-all duration-300;
+    @apply px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-2xl font-semibold shadow-md hover:shadow-xl hover:shadow-purple-500/20 transform hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300;
   }
   
   .btn-gradient-outline {
-    @apply px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
+    @apply px-6 py-3 bg-white/90 border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
   }
   
   /* 渐变文字 */
@@ -74,14 +78,14 @@
     @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-semibold;
   }
   
-  /* 卡片悬停效果 */
+  /* 卡片悬停效果 - 性能优化：减少阴影扩散 */
   .card-hover {
-    @apply transform transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-2xl;
+    @apply transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
   }
   
   /* 输入框样式 */
   .input-modern {
-    @apply w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400 font-normal;
+    @apply w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400 font-normal;
   }
   
   /* 页面标题 */
@@ -94,21 +98,25 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  /* 动画效果 */
+  /* 动画效果 - 使用 transform 和 opacity 优化性能 */
   .animate-fade-in {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.5s ease-out;
+    will-change: opacity;
   }
   
   .animate-slide-up {
-    animation: slideUp 0.6s ease-out;
+    animation: slideUp 0.5s ease-out;
+    will-change: transform, opacity;
   }
   
   .animate-slide-in-left {
-    animation: slideInLeft 0.6s ease-out;
+    animation: slideInLeft 0.5s ease-out;
+    will-change: transform, opacity;
   }
   
   .animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out both;
+    animation: fadeInUp 0.5s ease-out both;
+    will-change: transform, opacity;
   }
   
   @keyframes fadeIn {
@@ -119,7 +127,7 @@
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(20px);
     }
     to { 
       opacity: 1;
@@ -130,7 +138,7 @@
   @keyframes slideInLeft {
     from {
       opacity: 0;
-      transform: translateX(-30px);
+      transform: translateX(-20px);
     }
     to {
       opacity: 1;
@@ -141,7 +149,7 @@
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(15px);
     }
     to {
       opacity: 1;
