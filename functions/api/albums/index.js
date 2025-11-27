@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
 
         const result = await env.DB.prepare(`
       INSERT INTO albums (name, description, created_at, updated_at) 
-      VALUES (?, ?, datetime('now'), datetime('now'))
+      VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `).bind(name, description || '').run();
 
         const newAlbum = await env.DB.prepare(`
