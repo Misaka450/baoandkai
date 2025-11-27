@@ -42,15 +42,12 @@ CREATE TABLE IF NOT EXISTS timeline_events (
 );
 
 -- 相册表（如果还不存在）
--- 相册表（如果还不存在）
 CREATE TABLE IF NOT EXISTS albums (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
   cover_image TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -104,7 +101,7 @@ INSERT OR IGNORE INTO users (id, username, password_hash, email, couple_name1, c
 VALUES (1, 'baobao', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'baobao@example.com', '包包', '恺恺', '2023-10-08');
 
 -- 更新密码为 baobao123（正确的bcrypt哈希）
-UPDATE users SET password_hash = '$2y$10$8Z8pJ4v4F8rK9m2N3k8M8uL9x7y6w5v4' WHERE username = 'baobao';
+UPDATE users SET password_hash = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' WHERE username = 'baobao';
 
 -- 插入默认碎碎念（如果不存在）
 INSERT OR IGNORE INTO notes (id, content, color, user_id) VALUES 
