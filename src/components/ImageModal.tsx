@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Loader2 } from 'lucide-react'
+import { preloadImage } from '../utils/imageUtils'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -13,19 +14,39 @@ interface ImageModalProps {
 }
 
 // 图片放大模态框组件 - 支持单图和多图切换
-export default function ImageModal({ 
-  isOpen, 
-  onClose, 
-  imageUrl, 
-  images = [], 
-  currentIndex = 0, 
-  onPrevious, 
-  onNext 
+export default function ImageModal({
+  isOpen,
+  onClose,
+  imageUrl,
+  images = [],
+  currentIndex = 0,
+  onPrevious,
+  onNext
 }: ImageModalProps) {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  // 确定当前显示的图片
+  const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
+
+  // 重置加载状态
+  useEffect(() => {
+    setIsLoaded(false)
+  }, [currentImage])
+
+  // 预加载相邻图片
+  useEffect(() => {
+    if (!images || images.length <= 1) return
+
+    const nextIndex = (currentIndex + 1) % images.length
+    const prevIndex = (currentIndex - 1 + images.length) % images.length
+
+    if (images[nextIndex]) preloadImage(images[nextIndex]).catch(() => { })
+    if (images[prevIndex]) preloadImage(images[prevIndex]).catch(() => { })
+  }, [currentIndex, images])
 
   // 键盘事件和滚轮缩放
   useEffect(() => {
@@ -55,7 +76,7 @@ export default function ImageModal({
       window.addEventListener('wheel', handleWheel, { passive: false })
       document.body.style.overflow = 'hidden'
     }
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('wheel', handleWheel)
@@ -71,8 +92,7 @@ export default function ImageModal({
 
   if (!isOpen) return null
 
-  // 确定当前显示的图片
-  const currentImage = images.length > 0 ? images[currentIndex] : imageUrl
+
 
   // 缩放控制函数 - 使用平滑的乘法缩放
   const handleZoomIn = () => setScale(prev => Math.min(4, prev * 1.1)) // 放大10%
@@ -104,14 +124,14 @@ export default function ImageModal({
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div 
+      <div
         className="relative w-full h-full"
         onClick={(e) => e.stopPropagation()}
       >
@@ -151,7 +171,7 @@ export default function ImageModal({
             {Math.round(scale * 100)}%
           </span>
         </div>
-        
+
         {/* 图片容器 - 全屏显示 */}
         <div
           className="absolute inset-0 flex items-center justify-center"
@@ -171,23 +191,32 @@ export default function ImageModal({
               <ChevronLeft className="w-6 h-6" />
             </button>
           )}
-          
+
+          {/* 加载指示器 */}
+          {!isLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center z-0">
+              <Loader2 className="w-10 h-10 text-white animate-spin" />
+            </div>
+          )}
+
           <img
             src={currentImage}
             alt="图片"
-            className="select-none"
+            className="select-none transition-opacity duration-300"
             style={{
               transform: `scale(${scale}) translate(${position.x}px, ${position.y}px)`,
               transition: isDragging ? 'none' : 'transform 0.2s ease-out',
               maxWidth: '90vw',
               maxHeight: '90vh',
               width: 'auto',
-              height: 'auto'
+              height: 'auto',
+              opacity: isLoaded ? 1 : 0
             }}
+            onLoad={() => setIsLoaded(true)}
             onClick={(e) => e.stopPropagation()}
             draggable={false}
           />
-          
+
           {/* 下一张按钮 */}
           {images.length > 1 && (
             <button
@@ -199,16 +228,15 @@ export default function ImageModal({
             </button>
           )}
         </div>
-        
+
         {/* 图片指示器 */}
         {images.length > 1 && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 bg-black bg-opacity-30 backdrop-blur-sm rounded-full px-3 py-2">
             {images.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentIndex ? 'bg-white scale-125' : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                }`}
+                className={`w-2 h-2 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125' : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                  }`}
               />
             ))}
           </div>

@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import { formatDate, LoadingSpinner } from '../utils/common.js'
+import { getThumbnailUrl, getOptimizedImageUrl } from '../utils/imageUtils'
+import ImageModal from '../components/ImageModal'
 
 // 定义照片接口
 interface Photo {
@@ -18,246 +20,6 @@ interface Album {
   description?: string;
   photos?: Photo[];
 }
-
-// 定义ImageViewer组件的props接口
-interface ImageViewerProps {
-  photo: Photo;
-  onClose: () => void;
-  onPrev: () => void;
-  onNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
-}
-
-// 图片查看器组件 - 带防下载保护
-function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }: ImageViewerProps) {
-  const [scale, setScale] = useState(1)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const containerRef = useRef<HTMLDivElement>(null)
-  const imageRef = useRef<HTMLImageElement>(null)
-
-  // 防下载：禁用右键菜单
-  const preventContextMenu = useCallback((e: MouseEvent) => {
-    e.preventDefault()
-    return false
-  }, [])
-
-  // 防下载：禁用拖拽
-  const preventDrag = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    return false
-  }, [])
-
-  // 防下载：禁用键盘保存快捷键
-  const preventSaveShortcuts = useCallback((e: KeyboardEvent) => {
-    if (
-      e.key === 's' && (e.ctrlKey || e.metaKey) ||
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-      (e.ctrlKey && e.key === 'u')
-    ) {
-      e.preventDefault()
-      return false
-    }
-  }, [])
-
-  // 重置缩放和位置
-  const resetView = useCallback(() => {
-    setScale(1)
-    setPosition({ x: 0, y: 0 })
-  }, [])
-
-  // 处理滚轮缩放
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? -0.1 : 0.1
-    const newScale = Math.max(0.5, Math.min(3, scale + delta))
-    setScale(newScale)
-  }, [scale])
-
-  // 处理键盘事件
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    preventSaveShortcuts(e)
-
-    switch (e.key) {
-      case 'Escape':
-        onClose()
-        break
-      case 'ArrowLeft':
-        if (hasPrev) onPrev()
-        break
-      case 'ArrowRight':
-        if (hasNext) onNext()
-        break
-      case 'r':
-      case 'R':
-        resetView()
-        break
-    }
-  }, [onClose, onPrev, onNext, hasPrev, hasNext, resetView, preventSaveShortcuts])
-
-  // 处理拖拽
-  const handleMouseDown = useCallback((e: MouseEvent) => {
-    if (scale > 1) {
-      setIsDragging(true)
-      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
-    }
-  }, [scale, position])
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging && scale > 1) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      })
-    }
-  }, [isDragging, dragStart, scale])
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false)
-  }, [])
-
-  // 添加防下载事件监听
-  useEffect(() => {
-    const container = containerRef.current
-    const image = imageRef.current
-
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false })
-      container.addEventListener('contextmenu', preventContextMenu as EventListener)
-      container.addEventListener('dragstart', preventDrag as EventListener)
-    }
-
-    if (image) {
-      image.addEventListener('contextmenu', preventContextMenu as EventListener)
-      image.addEventListener('dragstart', preventDrag as EventListener)
-      image.addEventListener('mousedown', handleMouseDown as EventListener)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('mousemove', handleMouseMove as EventListener)
-    window.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      if (container) {
-        container.removeEventListener('wheel', handleWheel)
-        container.removeEventListener('contextmenu', preventContextMenu as EventListener)
-        container.removeEventListener('dragstart', preventDrag as EventListener)
-      }
-
-      if (image) {
-        image.removeEventListener('contextmenu', preventContextMenu as EventListener)
-        image.removeEventListener('dragstart', preventDrag as EventListener)
-        image.removeEventListener('mousedown', handleMouseDown as EventListener)
-      }
-
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('mousemove', handleMouseMove as EventListener)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp, handleMouseDown, preventContextMenu, preventDrag])
-
-  // 计算图片样式
-  const imageStyle = {
-    transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-    cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-    transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-    maxWidth: '100%',
-    maxHeight: '100%',
-    objectFit: 'contain' as const,
-    userSelect: 'none' as const,
-    pointerEvents: 'auto' as const
-  }
-
-  return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 bg-black/95 z-[70] flex items-center justify-center"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-4 flex items-center justify-between z-10">
-        <div className="text-white">
-          <p className="text-sm opacity-75">{photo.caption || '图片预览'}</p>
-          <p className="text-xs opacity-50">缩放: {(scale * 100).toFixed(0)}%</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setScale(Math.min(3, scale + 0.2))}
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
-            title="放大"
-          >
-            <ZoomIn className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => setScale(Math.max(0.5, scale - 0.2))}
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
-            title="缩小"
-          >
-            <ZoomOut className="h-5 w-5" />
-          </button>
-          <button
-            onClick={resetView}
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
-            title="重置视图 (R)"
-          >
-            <RotateCcw className="h-5 w-5" />
-          </button>
-          <button
-            onClick={onClose}
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
-            title="关闭 (ESC)"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* 图片导航按钮 */}
-      {hasPrev && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onPrev()
-          }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-colors"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-      )}
-
-      {hasNext && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onNext()
-          }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-colors"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* 图片容器 */}
-      <div className="relative flex items-center justify-center w-full h-full px-20">
-        <img
-          ref={imageRef}
-          src={photo.url}
-          alt={photo.caption || '图片'}
-          style={imageStyle}
-          className="max-w-full max-h-full object-contain select-none"
-          draggable={false}
-        />
-      </div>
-    </div>
-  )
-}
-
 export default function Albums() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
   const [viewMode, setViewMode] = useState('grid')
@@ -267,12 +29,11 @@ export default function Albums() {
   const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery({
     queryKey: ['albums'],
     queryFn: async () => {
-      // 直接使用fetch API而不是apiService，避免额外的封装层
-      const response = await fetch('/api/albums')
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      const response = await apiService.get('/albums')
+      if (response.error) {
+        throw new Error(response.error)
       }
-      return response.json()
+      return response.data
     }
   })
   const albums = Array.isArray(albumsData?.data) ? albumsData.data : Array.isArray(albumsData) ? albumsData : []
@@ -281,12 +42,11 @@ export default function Albums() {
     queryKey: ['album', selectedAlbum?.id],
     queryFn: async () => {
       if (!selectedAlbum) return { photos: [] }
-      // 直接使用fetch API而不是apiService，避免额外的封装层
-      const response = await fetch(`/api/albums/${selectedAlbum.id}`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      const response = await apiService.get(`/albums/${selectedAlbum.id}`)
+      if (response.error) {
+        throw new Error(response.error)
       }
-      return response.json()
+      return response.data
     },
     enabled: !!selectedAlbum
   })
@@ -363,8 +123,9 @@ export default function Albums() {
                   <div className="aspect-video bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl mb-4 flex items-center justify-center">
                     {Array.isArray(album.photos) && album.photos.length > 0 ? (
                       <img
-                        src={album.photos[0]?.url}
+                        src={getThumbnailUrl(album.photos[0]?.url, 400)}
                         alt={album.name}
+                        loading="lazy"
                         className="w-full h-full object-cover rounded-xl"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
@@ -428,7 +189,7 @@ export default function Albums() {
                     className="group relative aspect-square bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1"
                   >
                     <img
-                      src={photo.url}
+                      src={getThumbnailUrl(photo.url, 300)}
                       alt={photo.caption || '照片'}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
@@ -457,16 +218,14 @@ export default function Albums() {
       </div>
 
       {/* 图片查看器 */}
-      {selectedPhoto && (
-        <ImageViewer
-          photo={selectedPhoto}
-          onClose={closePhoto}
-          onPrev={prevPhoto}
-          onNext={nextPhoto}
-          hasPrev={photoIndex > 0}
-          hasNext={photoIndex < photos.length - 1}
-        />
-      )}
+      <ImageModal
+        isOpen={!!selectedPhoto}
+        onClose={closePhoto}
+        images={photos.map(p => getOptimizedImageUrl(p.url, { quality: 90 }))}
+        currentIndex={photoIndex}
+        onPrevious={prevPhoto}
+        onNext={nextPhoto}
+      />
     </div>
   )
 }
