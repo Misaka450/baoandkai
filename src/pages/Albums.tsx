@@ -133,6 +133,7 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }: Image
     if (image) {
       image.addEventListener('contextmenu', preventContextMenu as EventListener)
       image.addEventListener('dragstart', preventDrag as EventListener)
+      image.addEventListener('mousedown', handleMouseDown as EventListener)
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -149,13 +150,14 @@ function ImageViewer({ photo, onClose, onPrev, onNext, hasPrev, hasNext }: Image
       if (image) {
         image.removeEventListener('contextmenu', preventContextMenu as EventListener)
         image.removeEventListener('dragstart', preventDrag as EventListener)
+        image.removeEventListener('mousedown', handleMouseDown as EventListener)
       }
 
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('mousemove', handleMouseMove as EventListener)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp, preventContextMenu, preventDrag])
+  }, [handleWheel, handleKeyDown, handleMouseMove, handleMouseUp, handleMouseDown, preventContextMenu, preventDrag])
 
   // 计算图片样式
   const imageStyle = {
@@ -462,3 +464,5 @@ export default function Albums() {
     </div>
   )
 }
+
+
