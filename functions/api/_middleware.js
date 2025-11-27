@@ -19,12 +19,6 @@ export async function onRequest(context) {
     const publicPaths = [
         '/api/auth/login',
         '/api/auth/check-token',
-        '/api/config',
-        '/api/notes',
-        '/api/timeline',
-        '/api/todos',
-        '/api/food',
-        '/api/albums',
         '/api/uploads/', // Allow public access to uploaded files
     ];
 
