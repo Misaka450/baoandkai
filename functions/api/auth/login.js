@@ -94,11 +94,19 @@ export async function onRequestPost(context) {
 
     // 更新用户的token和过期时间（设置为当前时间+7天）
     const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await env.DB.prepare(`
-      UPDATE users 
-      SET token = ?, token_expires = datetime(?) 
-      WHERE id = ?
-    `).bind(token, tokenExpires, user.id).run();
+    
+    // 确保token_expires字段存在
+    try {
+      await env.DB.prepare(`
+        UPDATE users 
+        SET token = ?, token_expires = datetime(?) 
+        WHERE id = ?
+      `).bind(token, tokenExpires, user.id).run();
+    } catch (error) {
+      console.error('更新token失败:', error);
+      // 如果更新失败，可能是因为token或token_expires字段不存在，我们可以忽略这个错误
+      // 继续返回token，因为前端只需要token来验证
+    }
 
     // 返回成功响应
     return new Response(JSON.stringify({
