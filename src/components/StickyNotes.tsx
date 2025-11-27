@@ -94,6 +94,9 @@ export default function StickyNotes() {
         setNotes(data)
       } else if (data.success && Array.isArray(data.notes)) {
         setNotes(data.notes || [])
+      } else if (Array.isArray(data.data)) {
+        // 处理包含data字段的API返回格式
+        setNotes(data.data || [])
       } else {
         console.error('API返回格式错误:', data)
         setNotes([])
