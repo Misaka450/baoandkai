@@ -7,13 +7,13 @@ export async function onRequestGet(context) {
     try {
         // 获取所有相册
         const albums = await env.DB.prepare(`
-      SELECT * FROM albums ORDER BY created_at DESC
+      SELECT * FROM albums ORDER BY id DESC
     `).all();
 
         // 为每个相册获取第一张照片作为封面
         const albumsWithPhotos = await Promise.all(albums.results.map(async (album) => {
             const photos = await env.DB.prepare(`
-        SELECT * FROM photos WHERE album_id = ? ORDER BY created_at DESC LIMIT 1
+        SELECT * FROM photos WHERE album_id = ? ORDER BY id DESC LIMIT 1
       `).bind(album.id).all();
             return { ...album, photos: photos.results };
         }));
@@ -40,8 +40,8 @@ export async function onRequestPost(context) {
         }
 
         const result = await env.DB.prepare(`
-      INSERT INTO albums (name, description, created_at, updated_at) 
-      VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      INSERT INTO albums (name, description) 
+      VALUES (?, ?)
     `).bind(name, description || '').run();
 
         const newAlbum = await env.DB.prepare(`
