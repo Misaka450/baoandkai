@@ -37,17 +37,50 @@ class ApiService {
       if (response.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        if (window.location.pathname !== '/login') {
+        
+        // 只有需要认证的API才会重定向
+        // 公开API（如/config、/notes等）不需要重定向
+        const publicEndpoints = ['/config', '/notes', '/todos', '/albums', '/timeline', '/food'];
+        const isPublicEndpoint = publicEndpoints.some(publicEndpoint => 
+          endpoint.startsWith(publicEndpoint) && endpoint.split('/').length <= publicEndpoint.split('/').length + 1
+        );
+        
+        if (!isPublicEndpoint && window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
         return { data: null, error: 'Unauthorized' };
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        // 对于非200响应，尝试获取错误信息，但不强制要求JSON格式
+        let errorData = null;
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+          }
+        } catch (e) {
+          // 忽略JSON解析错误
+        }
+        const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`;
+        return { data: null, error: errorMessage };
       }
 
-      const data = await response.json()
+      // 检查响应是否为JSON格式
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return { data: null, error: 'Response is not JSON format' };
+      }
+
+      // 尝试解析JSON，添加错误处理
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error(`JSON解析失败: ${endpoint}`, jsonError);
+        return { data: null, error: 'Failed to parse JSON response' };
+      }
+
       return { data, error: null }
     } catch (error) {
       console.error(`API请求失败: ${endpoint}`, error)
@@ -108,6 +141,8 @@ class ApiService {
       if (response.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        
+        // 上传API通常需要认证，所以直接重定向
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }

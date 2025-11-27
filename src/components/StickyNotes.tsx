@@ -62,7 +62,32 @@ export default function StickyNotes() {
     try {
       setLoading(true)
       const response = await fetch(`${API_BASE}/notes`)
-      const data = await response.json()
+      
+      // 检查响应是否成功
+      if (!response.ok) {
+        console.error('API请求失败:', response.status)
+        setNotes([])
+        return
+      }
+      
+      // 检查响应体是否为空
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('API返回非JSON格式:', contentType)
+        setNotes([])
+        return
+      }
+      
+      // 尝试解析JSON
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('JSON解析失败:', jsonError)
+        setNotes([])
+        return
+      }
+      
       console.log('获取到的碎碎念数据:', data)
       
       if (Array.isArray(data)) {
