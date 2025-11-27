@@ -95,6 +95,26 @@ export default function Albums() {
     )
   }
 
+  if (albumsError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-red-100">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-stone-800 mb-2">加载失败</h2>
+          <p className="text-stone-600 mb-6">{(albumsQueryError as Error)?.message || '无法加载相册数据'}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-stone-800 text-white rounded-xl hover:bg-stone-700 transition-colors"
+          >
+            重试
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
       <div className="max-w-7xl mx-auto px-4 py-12">
