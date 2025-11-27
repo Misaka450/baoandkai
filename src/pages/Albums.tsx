@@ -272,7 +272,7 @@ export default function Albums() {
       return response.data
     }
   })
-  const albums = Array.isArray(albumsData?.data) ? albumsData.data : []
+  const albums = Array.isArray(albumsData?.data) ? albumsData.data : Array.isArray(albumsData) ? albumsData : []
 
   const { data: photosData, isLoading: photosLoading } = useQuery({
     queryKey: ['album', selectedAlbum?.id],

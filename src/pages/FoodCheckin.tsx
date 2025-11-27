@@ -38,8 +38,12 @@ const FoodCheckin: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-      const { data } = await apiService.get('/food')
-      setCheckins(Array.isArray(data) ? data : [])
+      const response = await apiService.get('/food')
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      const data = response.data
+      setCheckins(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取美食打卡失败:', error)
       setError('获取美食打卡失败: ' + (error as Error).message)
