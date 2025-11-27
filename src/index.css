@@ -10,7 +10,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   body {
     @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
     min-height: 100vh;
@@ -27,11 +27,11 @@
   .font-normal {
     font-weight: 400;
   }
-  
+
   .font-medium {
     font-weight: 500;
   }
-  
+
   .font-semibold {
     font-weight: 600;
   }
@@ -40,193 +40,184 @@
   ::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-gray-100 rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-gradient-to-b from-pink-300 to-purple-300 rounded-full;
   }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply from-pink-400 to-purple-400;
+
+}
+
+.btn-gradient-outline {
+  @apply px-6 py-3 bg-white/90 border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
+}
+
+/* 渐变文字 */
+.text-gradient {
+  @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-semibold;
+}
+
+/* 卡片悬停效果 - 性能优化：减少阴影扩散 */
+.card-hover {
+  @apply transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+}
+
+/* 输入框样式 */
+.input-modern {
+  @apply w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400 font-normal;
+}
+
+/* 页面标题 */
+.page-title {
+  @apply text-4xl font-bold text-gradient mb-8 text-center;
+}
+
+/* 容器样式 */
+.container-modern {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* 动画效果 - 使用 transform 和 opacity 优化性能 */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+  will-change: opacity;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+  will-change: transform, opacity;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+  will-change: transform, opacity;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 
-@layer components {
-  /* 毛玻璃卡片 - 性能优化：减少模糊半径，使用rgba代替 */
-  .glass-card {
-    @apply bg-white/90 border border-white/20 rounded-2xl shadow-lg;
-    /* 仅在支持的设备上启用 backdrop-filter */
-    @supports (backdrop-filter: blur(8px)) {
-      @apply bg-white/80 backdrop-blur-md;
-    }
-  }
-  
-  /* 渐变按钮 */
-  .btn-gradient {
-    @apply px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-2xl font-semibold shadow-md hover:shadow-xl hover:shadow-purple-500/20 transform hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300;
-  }
-  
-  .btn-gradient-outline {
-    @apply px-6 py-3 bg-white/90 border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
-  }
-  
-  /* 渐变文字 */
-  .text-gradient {
-    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-semibold;
-  }
-  
-  /* 卡片悬停效果 - 性能优化：减少阴影扩散 */
-  .card-hover {
-    @apply transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
-  }
-  
-  /* 输入框样式 */
-  .input-modern {
-    @apply w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-300 placeholder-gray-400 font-normal;
-  }
-  
-  /* 页面标题 */
-  .page-title {
-    @apply text-4xl font-bold text-gradient mb-8 text-center;
-  }
-  
-  /* 容器样式 */
-  .container-modern {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-  
-  /* 动画效果 - 使用 transform 和 opacity 优化性能 */
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-    will-change: opacity;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.5s ease-out;
-    will-change: transform, opacity;
-  }
-  
-  .animate-slide-in-left {
-    animation: slideInLeft 0.5s ease-out;
-    will-change: transform, opacity;
-  }
-  
-  .animate-fade-in-up {
-    animation: fadeInUp 0.5s ease-out both;
-    will-change: transform, opacity;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideUp {
-    from { 
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes slideInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(15px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* 分隔线 */
-  .divider-modern {
-    @apply h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent;
-  }
-  
-  /* 状态徽章 */
-  .badge-modern {
-    @apply px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 rounded-full text-sm font-medium;
-  }
-  
-  /* 加载动画 */
-  .loading-spinner {
-    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500;
-  }
-  
-  /* 空状态 */
-  .empty-state {
-    @apply text-center py-16;
-  }
-  
-  .empty-icon {
-    @apply inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full mb-4;
-  }
-  
-  .empty-title {
-    @apply text-gray-500 text-lg font-medium mb-2;
-  }
-  
-  .empty-subtitle {
-    @apply text-gray-400 text-sm;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
 
-  /* 字体优化类 */
-  .text-readable {
-    font-weight: 450;
-    letter-spacing: 0.025em;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .text-strong {
-    font-weight: 600;
-    letter-spacing: 0.01em;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
   }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 分隔线 */
+.divider-modern {
+  @apply h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent;
+}
+
+/* 状态徽章 */
+.badge-modern {
+  @apply px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 rounded-full text-sm font-medium;
+}
+
+/* 加载动画 */
+.loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500;
+}
+
+/* 空状态 */
+.empty-state {
+  @apply text-center py-16;
+}
+
+.empty-icon {
+  @apply inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full mb-4;
+}
+
+.empty-title {
+  @apply text-gray-500 text-lg font-medium mb-2;
+}
+
+.empty-subtitle {
+  @apply text-gray-400 text-sm;
+}
+
+/* 字体优化类 */
+.text-readable {
+  font-weight: 450;
+  letter-spacing: 0.025em;
+}
+
+.text-strong {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
 }
 
 @layer utilities {
+
   /* 渐变背景 */
   .bg-gradient-primary {
     @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
   }
-  
+
   .bg-gradient-card-1 {
     @apply bg-gradient-to-br from-yellow-50 to-amber-50 border-amber-200;
   }
-  
+
   .bg-gradient-card-2 {
     @apply bg-gradient-to-br from-pink-50 to-rose-50 border-rose-200;
   }
-  
+
   .bg-gradient-card-3 {
     @apply bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-200;
   }
-  
+
   .bg-gradient-card-4 {
     @apply bg-gradient-to-br from-green-50 to-emerald-50 border-emerald-200;
   }
-  
+
   .bg-gradient-card-5 {
     @apply bg-gradient-to-br from-purple-50 to-violet-50 border-violet-200;
   }
-  
+
   .bg-gradient-card-6 {
     @apply bg-gradient-to-br from-orange-50 to-red-50 border-red-200;
   }
@@ -285,9 +276,17 @@ img[draggable="false"] {
 
 /* 禁用右键菜单动画 */
 @keyframes flash-warning {
-  0% { background-color: transparent; }
-  50% { background-color: rgba(239, 68, 68, 0.1); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+
+  100% {
+    background-color: transparent;
+  }
 }
 
 .protected-image-container:active {
