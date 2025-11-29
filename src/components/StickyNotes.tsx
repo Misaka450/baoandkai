@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Heart, Trash2, Plus, Loader2, MessageSquare, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { apiService } from '../services/apiService'
 
 const API_BASE = '/api'
 
@@ -61,46 +62,15 @@ export default function StickyNotes() {
   const fetchNotes = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_BASE}/notes`)
-      
-      // 检查响应是否成功
-      if (!response.ok) {
-        console.error('API请求失败:', response.status)
-        setNotes([])
-        return
-      }
-      
-      // 检查响应体是否为空
-      const contentType = response.headers.get('content-type')
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('API返回非JSON格式:', contentType)
-        setNotes([])
-        return
-      }
-      
-      // 尝试解析JSON
-      let data
-      try {
-        data = await response.json()
-      } catch (jsonError) {
-        console.error('JSON解析失败:', jsonError)
-        setNotes([])
-        return
-      }
-      
-      console.log('获取到的碎碎念数据:', data)
-      
-      if (Array.isArray(data)) {
-        setNotes(data)
-      } else if (data.success && Array.isArray(data.notes)) {
-        setNotes(data.notes || [])
-      } else if (Array.isArray(data.data)) {
-        // 处理包含data字段的API返回格式
-        setNotes(data.data || [])
-      } else {
-        console.error('API返回格式错误:', data)
-        setNotes([])
-      }
+      const response = await apiService.get('/notes')
+
+      console.log('获取到的碎碎念响应:', response)
+
+      // API返回格式: { data: [...], pagination: {...} }
+      const notesData = response.data?.data || response.data || []
+      console.log('解析后的碎碎念数据:', notesData)
+
+      setNotes(Array.isArray(notesData) ? notesData : [])
     } catch (error) {
       console.error('获取碎碎念失败:', error)
       setNotes([])
@@ -119,7 +89,7 @@ export default function StickyNotes() {
     setAddLoading(true)
     try {
       const randomColor = getRandomColor()
-      
+
       const response = await fetch(`${API_BASE}/notes`, {
         method: 'POST',
         headers: {
@@ -134,7 +104,7 @@ export default function StickyNotes() {
 
       const data = await response.json()
       console.log('添加碎碎念返回:', data)
-      
+
       if (response.ok) {
         await fetchNotes()
         setNewNote('')
@@ -216,7 +186,7 @@ export default function StickyNotes() {
     if (colorSchemes.some(scheme => scheme.name === noteColor)) {
       return getColorScheme(noteColor)
     }
-    
+
     const colorMapping: Record<string, ColorScheme> = {
       'bg-yellow-100 border-yellow-200': colorSchemes[1],
       'bg-pink-100 border-pink-200': colorSchemes[0],
@@ -225,7 +195,7 @@ export default function StickyNotes() {
       'bg-purple-100 border-purple-200': colorSchemes[4],
       'bg-orange-100 border-orange-200': colorSchemes[1]
     }
-    
+
     return colorMapping[noteColor] || getRandomColor()
   }
 
@@ -295,7 +265,7 @@ export default function StickyNotes() {
                 <div className={`${colorScheme.text} text-sm leading-relaxed mb-4`}>
                   {note.content}
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <button className="flex items-center text-stone-500 hover:text-rose-500 transition-colors">
@@ -307,7 +277,7 @@ export default function StickyNotes() {
                       <span className="ml-1 text-xs">0</span>
                     </button>
                   </div>
-                  
+
                   {isAdmin && (
                     <button
                       onClick={() => openDeleteModal(note)}
@@ -348,14 +318,14 @@ export default function StickyNotes() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="写下你的碎碎念..."
                 className="w-full h-32 p-3 border border-stone-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-stone-300"
               />
-              
+
               <div className="flex justify-end space-x-3 mt-4">
                 <button
                   onClick={closeAddModal}
@@ -392,15 +362,15 @@ export default function StickyNotes() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <p className="text-stone-600 mb-4">
                 确定要删除这条碎碎念吗？此操作不可撤销。
               </p>
-              
+
               <div className="bg-stone-50 rounded-lg p-4 mb-4">
                 <p className="text-stone-800 text-sm">{noteToDelete.content}</p>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={closeDeleteModal}
