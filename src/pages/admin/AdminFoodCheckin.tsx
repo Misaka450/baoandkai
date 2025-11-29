@@ -68,7 +68,8 @@ const AdminFoodCheckin: React.FC = () => {
   const fetchCheckins = async () => {
     try {
       const { data } = await apiService.get('/food')
-      setCheckins(Array.isArray(data) ? data : [])
+      const checkinsData = data?.data || data || [];
+      setCheckins(Array.isArray(checkinsData) ? checkinsData : []);
     } catch (error) {
       console.error('获取美食打卡失败:', error)
       setCheckins([])
@@ -77,12 +78,12 @@ const AdminFoodCheckin: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.restaurant_name.trim()) {
       await showAlert('提示', '请输入餐厅名称', 'warning')
       return
     }
-    
+
     if (!formData.date) {
       await showAlert('提示', '请选择日期', 'warning')
       return
@@ -109,12 +110,12 @@ const AdminFoodCheckin: React.FC = () => {
       } else {
         await apiService.post('/food', checkinData)
       }
-      
+
       setShowForm(false)
       setEditingCheckin(null)
       resetForm()
       fetchCheckins()
-      
+
       await showAlert('成功', '美食打卡保存成功！', 'success')
     } catch (error) {
       console.error('保存美食打卡失败:', error)
@@ -178,7 +179,7 @@ const AdminFoodCheckin: React.FC = () => {
   }
 
   const removeImage = (index: number) => {
-     setFormData(prev => ({
+    setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }))
@@ -195,9 +196,8 @@ const AdminFoodCheckin: React.FC = () => {
             className="focus:outline-none"
           >
             <Star
-              className={`h-5 w-5 ${
-                star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-              }`}
+              className={`h-5 w-5 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                }`}
             />
           </button>
         ))}
@@ -257,7 +257,7 @@ const AdminFoodCheckin: React.FC = () => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-6极简优雅的配色方案，统一使用莫极简优雅的配色方案，统一使用莫兰迪色系兰迪色系">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -271,7 +271,7 @@ const AdminFoodCheckin: React.FC = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb极简优雅的配色方案，统一使用莫兰迪色系-2">打卡日期 *</label>
                   <input
@@ -298,10 +298,10 @@ const AdminFoodCheckin: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">价格区间</label>
-                 极简优雅的配色方案，统一使用莫兰迪色系 <input
+                  极简优雅的配色方案，统一使用莫兰迪色系 <input
                     type="text"
                     value={formData.price_range}
                     onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
@@ -343,17 +343,17 @@ const AdminFoodCheckin: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-600 mb-2">综合评分</label>
                     {renderStars(formData.overall_rating, (rating) => setFormData({ ...formData, overall_rating: rating }))}
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">口味评分</label>
                     {renderStars(formData.taste_rating, (rating) => setFormData({ ...formData, taste_rating: rating }))}
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">环境评分</label>
                     {renderStars(formData.environment_rating, (rating) => setFormData({ ...formData, environment_rating: rating }))}
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">服务评分</label>
                     {renderStars(formData.service_rating, (rating) => setFormData({ ...formData, service_rating: rating }))}
@@ -366,11 +366,11 @@ const AdminFoodCheckin: React.FC = () => {
                 <ImageUploader
                   onImagesUploaded={handleImagesUploaded}
                   existingImages={[]}
-                  onRemoveImage={() => {}}
+                  onRemoveImage={() => { }}
                   folder="food"
                   maxImages={9}
                 />
-                
+
                 {formData.images.length > 0 && (
                   <div className="mt-4">
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
@@ -456,26 +456,26 @@ const AdminFoodCheckin: React.FC = () => {
                   </span>
                 )}
               </div>
-              
+
               {checkin.description && (
                 <p className="text-gray-600 text-sm mb-2">{checkin.description}</p>
               )}
-              
+
               {checkin.cuisine && (
                 <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${getCategoryColor(checkin.cuisine)}`}>
                   {checkin.cuisine}
                 </span>
               )}
-              
+
               <div className="flex items-center mb-2">
-                {renderStars(checkin.overall_rating, () => {})}
+                {renderStars(checkin.overall_rating, () => { })}
                 <span className="ml-2 text-sm text-gray-600">{checkin.overall_rating}分</span>
               </div>
-              
+
               {checkin.price_range && (
                 <p className="text-sm text-gray-500 mb-2">{checkin.price_range}</p>
               )}
-              
+
               <div className="flex space-x-2 mt-3">
                 <button
                   onClick={() => handleEdit(checkin)}
