@@ -49,7 +49,8 @@ const AdminAlbums: React.FC = () => {
   const fetchAlbums = async () => {
     try {
       const { data } = await apiService.get('/albums')
-      setAlbums(Array.isArray(data) ? data : [])
+      const albumsData = data?.data || data || [];
+      setAlbums(Array.isArray(albumsData) ? albumsData : [])
     } catch (error) {
       console.error('获取相册失败:', error)
       setAlbums([])
@@ -58,17 +59,17 @@ const AdminAlbums: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name.trim()) {
       await showAlert('提示', '请输入相册名称', 'warning')
       return
     }
-    
+
     const albumData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || '',
-      photos: formData.images.map((url, index) => ({ 
-        url, 
+      photos: formData.images.map((url, index) => ({
+        url,
         caption: '',
         sort_order: index  // 保存图片顺序，index即为排序值
       }))
@@ -76,19 +77,19 @@ const AdminAlbums: React.FC = () => {
 
     try {
       console.log('提交相册数据:', albumData)
-      
+
       if (editingAlbum) {
         await apiService.put(`/albums/${editingAlbum.id}`, albumData)
       } else {
         await apiService.post('/albums', albumData)
       }
-      
+
       setShowForm(false)
       setEditingAlbum(null)
       setFormData({ name: '', description: '', images: [] })
       setSelectedImages([])
       fetchAlbums()
-      
+
       await showAlert('成功', '相册保存成功！', 'success')
     } catch (error) {
       console.error('保存相册失败:', error)
@@ -130,16 +131,16 @@ const AdminAlbums: React.FC = () => {
   const removeImage = async (index: number) => {
     const confirmed = await showConfirm('确认删除', '确定要删除这张图片吗？', '删除')
     if (!confirmed) return
-    
+
     const imageUrl = formData.images[index]
-    
+
     // 从表单数据中移除图片
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }))
     setSelectedImages(prev => prev.filter(i => i !== index))
-    
+
     // 调用删除API从R2中删除图片
     deleteImageFromR2(imageUrl)
   }
@@ -148,11 +149,11 @@ const AdminAlbums: React.FC = () => {
     try {
       // 从URL中提取文件名 - 处理R2 URL格式
       let filename = ''
-      
+
       // 处理 https://baoandkai.pages.dev/uploads/filename.jpg 格式
       if (imageUrl.includes('/uploads/')) {
         filename = imageUrl.split('/uploads/')[1]
-      } 
+      }
       // 处理 https://pub-xxx.r2.dev/filename.jpg 格式
       else if (imageUrl.includes('r2.dev/')) {
         filename = imageUrl.split('r2.dev/')[1]
@@ -162,12 +163,12 @@ const AdminAlbums: React.FC = () => {
         const urlParts = imageUrl.split('/')
         filename = urlParts[urlParts.length - 1]
       }
-      
+
       if (filename) {
         console.log('准备删除R2图片:', filename)
-        
+
         const response = await apiService.delete('/api/delete', { filename })
-        
+
         if (response.success) {
           console.log('图片已从R2删除:', filename)
         } else {
@@ -201,8 +202,8 @@ const AdminAlbums: React.FC = () => {
   }
 
   const toggleImageSelection = (index: number) => {
-    setSelectedImages(prev => 
-      prev.includes(index) 
+    setSelectedImages(prev =>
+      prev.includes(index)
         ? prev.filter(i => i !== index)
         : [...prev, index]
     )
@@ -210,18 +211,18 @@ const AdminAlbums: React.FC = () => {
 
   const batchDeleteImages = async () => {
     if (selectedImages.length === 0) return
-    
+
     const confirmed = await showConfirm('确认删除', `确定要删除选中的 ${selectedImages.length} 张图片吗？此操作不可恢复！`, '删除')
     if (!confirmed) return
 
     const imagesToDelete = selectedImages.map(index => formData.images[index])
-    
+
     // 从表单数据中移除选中的图片
     const newImages = formData.images.filter((_, index) => !selectedImages.includes(index))
     setFormData(prev => ({ ...prev, images: newImages }))
     setSelectedImages([])
     setShowBatchActions(false)
-    
+
     // 批量删除R2中的图片
     imagesToDelete.forEach(deleteImageFromR2)
   }
@@ -261,7 +262,7 @@ const AdminAlbums: React.FC = () => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -275,7 +276,7 @@ const AdminAlbums: React.FC = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">相册描述</label>
                   <textarea
@@ -326,15 +327,15 @@ const AdminAlbums: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <ImageUploader
                   onImagesUploaded={handleImagesUploaded}
                   existingImages={[]}
-                  onRemoveImage={() => {}}
+                  onRemoveImage={() => { }}
                   folder="albums"
                   maxImages={50}
                 />
-                
+
                 {formData.images.length > 0 && (
                   <div className="mt-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -345,9 +346,8 @@ const AdminAlbums: React.FC = () => {
                           onDragStart={() => handleDragStart(index)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, index)}
-                          className={`relative group cursor-move ${
-                            selectedImages.includes(index) ? 'ring-2 ring-blue-500 rounded-lg' : ''
-                          }`}
+                          className={`relative group cursor-move ${selectedImages.includes(index) ? 'ring-2 ring-blue-500 rounded-lg' : ''
+                            }`}
                         >
                           {showBatchActions && (
                             <button
@@ -355,13 +355,13 @@ const AdminAlbums: React.FC = () => {
                               onClick={() => toggleImageSelection(index)}
                               className="absolute top-1 left-1 z-10 bg-white rounded-full p-1 shadow-md transition-all duration-200 hover:scale-110"
                             >
-                              {selectedImages.includes(index) ? 
-                                <CheckSquare className="h-4 w-4 text-blue-500" /> : 
+                              {selectedImages.includes(index) ?
+                                <CheckSquare className="h-4 w-4 text-blue-500" /> :
                                 <Square className="h-4 w-4 text-gray-400" />
                               }
                             </button>
                           )}
-                          
+
                           <button
                             type="button"
                             onClick={() => setPreviewImage(url)}
@@ -369,7 +369,7 @@ const AdminAlbums: React.FC = () => {
                           >
                             <Eye className="h-4 w-4 text-gray-600" />
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => {
@@ -382,7 +382,7 @@ const AdminAlbums: React.FC = () => {
                           >
                             <X className="h-3 w-3" />
                           </button>
-                          
+
                           <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden">
                             <img
                               src={url}
@@ -390,7 +390,7 @@ const AdminAlbums: React.FC = () => {
                               className="w-full h-32 object-cover"
                             />
                           </div>
-                          
+
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
                             <GripVertical className="h-6 w-6 text-white" />
                           </div>
@@ -419,7 +419,7 @@ const AdminAlbums: React.FC = () => {
                   取消
                 </button>
                 <button
-                    type="submit"
+                  type="submit"
                   className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
                 >
                   {editingAlbum ? '更新相册' : '创建相册'}
@@ -485,20 +485,20 @@ const AdminAlbums: React.FC = () => {
 
       {/* 图片预览模态框 */}
       {previewImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
           onClick={() => setPreviewImage(null)}
         >
           <div className="max-w-4xl max-h-screen p-4">
-            <img 
-              src={previewImage} 
-              alt="预览" 
+            <img
+              src={previewImage}
+              alt="预览"
               className="max-w-full max-h-full object-contain rounded-lg"
             />
           </div>
         </div>
       )}
-      
+
       <AdminModal
         isOpen={modalState.isOpen}
         onClose={closeModal}

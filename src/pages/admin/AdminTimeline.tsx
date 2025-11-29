@@ -52,7 +52,8 @@ const AdminTimeline: React.FC = () => {
         setEvents([]);
         return;
       }
-      setEvents(Array.isArray(data) ? data : []);
+      const eventsData = data?.data || data || [];
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (error) {
       console.error('获取时间轴事件失败:', error);
       setEvents([]);
@@ -83,12 +84,12 @@ const AdminTimeline: React.FC = () => {
       } else {
         await apiService.post('/timeline', eventData)
       }
-      
+
       await loadEvents();
       setShowForm(false);
       setEditingEvent(null);
       setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] });
-      
+
       await showAlert('成功', '保存成功！', 'success');
     } catch (error) {
       console.error('保存时间节点失败:', error);
@@ -144,7 +145,7 @@ const AdminTimeline: React.FC = () => {
                 </svg>
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">标题 *</label>
@@ -252,8 +253,8 @@ const AdminTimeline: React.FC = () => {
 
       <div className="space-y-4">
         {events.map((event, index) => (
-          <div 
-            key={event.id} 
+          <div
+            key={event.id}
             className="glass-card p-4 transform transition-all duration-300 hover:shadow-lg hover:scale-[1.02] animate-fade-in-up"
             style={{ animationDelay: `${index * 100}ms` }}
           >
@@ -294,7 +295,7 @@ const AdminTimeline: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       <AdminModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
