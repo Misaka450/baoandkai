@@ -240,10 +240,10 @@ const AdminFoodCheckin: React.FC = () => {
       {/* 弹窗编辑模式 - 页面中央弹出 */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-极简优雅的配色方案，统一使用莫兰迪色系2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
               <h2 className="text-2xl font-light text-gray-800">
-                {editingCheckin ? '编辑美食打卡极简优雅的配色方案，统一使用莫兰迪色系' : '添加美食打卡'}
+                {editingCheckin ? '编辑美食打卡' : '添加美食打卡'}
               </h2>
               <button
                 type="button"
@@ -258,7 +258,7 @@ const AdminFoodCheckin: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6极简优雅的配色方案，统一使用莫极简优雅的配色方案，统一使用莫兰迪色系兰迪色系">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">餐厅名称 *</label>
@@ -273,7 +273,7 @@ const AdminFoodCheckin: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb极简优雅的配色方案，统一使用莫兰迪色系-2">打卡日期 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">打卡日期 *</label>
                   <input
                     type="date"
                     value={formData.date}
@@ -301,7 +301,7 @@ const AdminFoodCheckin: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">价格区间</label>
-                  极简优雅的配色方案，统一使用莫兰迪色系 <input
+                   <input
                     type="text"
                     value={formData.price_range}
                     onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
