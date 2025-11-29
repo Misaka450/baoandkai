@@ -49,7 +49,7 @@ export default function Todos() {
   useEffect(() => {
     fetchTodos(currentPage)
   }, [currentPage])
-  
+
   // 使用公共防抖函数
   const debouncedFetchTodos = useCallback(
     debounce((page: number) => {
@@ -75,7 +75,7 @@ export default function Todos() {
     }
   }
 
-// 只读模式，移除所有添加、编辑、删除功能
+  // 只读模式，移除所有添加、编辑、删除功能
 
   // 映射数据库字段到前端字段 - 简化为三种优先级
   const mapTodoFields = (todo: Todo): MappedTodo => {
@@ -86,7 +86,7 @@ export default function Todos() {
     } else if (todo.priority <= 1) {
       priority = 'low';
     }
-    
+
     return {
       ...todo,
       completed: todo.status === 'completed',
@@ -96,7 +96,7 @@ export default function Todos() {
 
   const getFilteredTodos = (): MappedTodo[] => {
     const mappedTodos = todos.map(mapTodoFields)
-    
+
     // 先按完成状态筛选
     let filtered = mappedTodos
     if (filter !== 'all') {
@@ -106,17 +106,17 @@ export default function Todos() {
         return true
       })
     }
-    
+
     // 再按优先级筛选
     if (priorityFilter !== 'all') {
       filtered = filtered.filter(todo => todo.priority === priorityFilter)
     }
-    
+
     return filtered
   }
 
   // 移除 priorityColors 和 formatDate 的重复定义
-  
+
   const toggleTodoExpand = (todoId: number) => {
     setExpandedTodos(prev => {
       const newSet = new Set(prev)
@@ -135,7 +135,7 @@ export default function Todos() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max极简优雅的配色方案，统一使用莫兰迪色系-w-4xl mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="text-center">
             <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
             <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
@@ -154,7 +154,7 @@ export default function Todos() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4极简优雅的配色方案，统一使用莫兰迪色系">我们的待办事项</h1>
+          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
           <p className="text-stone-600 font-light">一起完成的小目标，记录我们的点点滴滴</p>
         </div>
 
@@ -168,11 +168,10 @@ export default function Todos() {
             <button
               key={filterItem.value}
               onClick={() => setFilter(filterItem.value)}
-              className={`px-4 py-2 rounded-full text-sm font-light transition-all ${
-                filter === filterItem.value
+              className={`px-4 py-2 rounded-full text-sm font-light transition-all ${filter === filterItem.value
                   ? 'bg-stone-800 text-white shadow-lg'
                   : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md border border-white/20'
-              }`}
+                }`}
             >
               {filterItem.label}
             </button>
@@ -185,15 +184,14 @@ export default function Todos() {
             <button
               key={priority}
               onClick={() => setPriorityFilter(priority)}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                priorityFilter === priority
+              className={`px-4 py-2 rounded-lg text-sm transition-colors ${priorityFilter === priority
                   ? 'bg-stone-800 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-              }`}
+                }`}
             >
-              {priority === 'all' ? '全部' : 
-               priority === 'high' ? '高' :
-               priority === 'medium' ? '中' : '低'}
+              {priority === 'all' ? '全部' :
+                priority === 'high' ? '高' :
+                  priority === 'medium' ? '中' : '低'}
             </button>
           ))}
         </div>
@@ -221,27 +219,23 @@ export default function Todos() {
             filteredTodos.map(todo => (
               <div
                 key={todo.id}
-                className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 ${
-                  todo.completed 
-                    ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50' 
+                className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 ${todo.completed
+                    ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50'
                     : 'bg-white/60 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-3">
-                      <div className={`p-2.5 rounded-xl mr-3 shadow-sm ${
-                        todo.completed ? 'bg-gradient-to-br from-green-100 to-emerald-100 ring-1 ring-green-200' : 'bg-stone-100'
-                      }`}>
-                        <CheckSquare className={`w-4 h-4 ${
-                          todo.completed ? 'text-green-600' : 'text-stone-700'
-                        }`} />
+                      <div className={`p-2.5 rounded-xl mr-3 shadow-sm ${todo.completed ? 'bg-gradient-to-br from-green-100 to-emerald-100 ring-1 ring-green-200' : 'bg-stone-100'
+                        }`}>
+                        <CheckSquare className={`w-4 h-4 ${todo.completed ? 'text-green-600' : 'text-stone-700'
+                          }`} />
                       </div>
-                      <h3 className={`text-lg font-light ${
-                        todo.completed 
-                          ? 'text-green-800 font-medium' 
+                      <h3 className={`text-lg font-light ${todo.completed
+                          ? 'text-green-800 font-medium'
                           : 'text-stone-800'
-                      }`}>
+                        }`}>
                         {todo.title}
                         {todo.completed && (
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -250,7 +244,7 @@ export default function Todos() {
                         )}
                       </h3>
                     </div>
-                    
+
                     {todo.description && (
                       <p className="text-stone-600 text-sm font-light mb-3 leading-relaxed">
                         {todo.description}
@@ -258,20 +252,19 @@ export default function Todos() {
                     )}
 
                     <div className="flex items-center space-x-3 text-sm">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-light ${
-                        priorityColors[todo.priority] || priorityColors.medium
-                      }`}>
-                        {todo.priority === 'high' ? '高' : 
-                         todo.priority === 'medium' ? '中' : '低'}
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-light ${priorityColors[todo.priority] || priorityColors.medium
+                        }`}>
+                        {todo.priority === 'high' ? '高' :
+                          todo.priority === 'medium' ? '中' : '低'}
                       </span>
-                      
+
                       {todo.due_date && (
                         <span className="inline-flex items-center text-stone-600 font-light">
                           <Calendar className="w-3 h-3 mr-1" />
                           {formatDate(todo.due_date)}
                         </span>
                       )}
-                      
+
                       <span className="inline-flex items-center text-stone-600 font-light">
                         <Clock className="w-3 h-3 mr-1" />
                         {new Date(todo.created_at).toLocaleDateString('zh-CN')}
@@ -290,26 +283,24 @@ export default function Todos() {
                           <span className="text-green-700 font-medium group-hover:text-green-800">
                             {isTodoExpanded(todo.id) ? '收起记录' : '查看完成记录'}
                           </span>
-                          <ChevronDown 
-                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${
-                              isTodoExpanded(todo.id) ? 'rotate-180' : ''
-                            }`} 
+                          <ChevronDown
+                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${isTodoExpanded(todo.id) ? 'rotate-180' : ''
+                              }`}
                           />
                         </button>
-                        
+
                         {/* 折叠内容 */}
-                        <div className={`overflow-hidden transition-all duration-300 ${
-                          isTodoExpanded(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
-                        }`}>
+                        <div className={`overflow-hidden transition-all duration-300 ${isTodoExpanded(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
+                          }`}>
                           {/* 完成照片 */}
                           {todo.completion_photos && (
                             <div className="mb-4">
                               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                {(Array.isArray(todo.completion_photos) ? todo.completion_photos : 
+                                {(Array.isArray(todo.completion_photos) ? todo.completion_photos :
                                   (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
                                 ).map((photo: string, index: number) => (
-                                  <div 
-                                    key={index} 
+                                  <div
+                                    key={index}
                                     className="relative group cursor-pointer"
                                     onClick={(e) => {
                                       console.log('图片区域被点击:', photo);
@@ -317,8 +308,8 @@ export default function Todos() {
                                       setSelectedImage(photo);
                                     }}
                                   >
-                                    <img 
-                                      src={photo} 
+                                    <img
+                                      src={photo}
                                       alt={`完成照片 ${index + 1}`}
                                       className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all pointer-events-none"
                                     />
@@ -356,55 +347,54 @@ export default function Todos() {
           )}
         </div>
 
-          {/* 分页控件 */}
-          {totalPages > 1 && (
-            <div className="flex justify-center space-x-2 mt-8">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                上一页
-              </button>
-              
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-stone-800 text-white'
-                        : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
+        {/* 分页控件 */}
+        {totalPages > 1 && (
+          <div className="flex justify-center space-x-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              上一页
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
+                      ? 'bg-stone-800 text-white'
+                      : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
                     }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                下一页
-              </button>
-            </div>
-          )}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              下一页
+            </button>
+          </div>
+        )}
       </div>
-      
+
       {/* 图片放大模态框 */}
       <ImageModal
         isOpen={selectedImage !== null}

@@ -24,7 +24,7 @@ const AdminModal: React.FC<AdminModalProps> = ({
 }) => {
   if (!isOpen) return null
 
-  // 极简优雅的配色方案，统一使用莫兰迪色系
+
   const typeStyles = {
     info: {
       icon: 'ℹ️',

@@ -24,7 +24,7 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <div className="glass-card p-8 w-full max极简优雅的配色方案，统一使用莫兰迪色系-w-md">
+      <div className="glass-card p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">后台管理登录</h1>
           <p className="text-gray-600">请输入账号密码进入管理后台</p>
@@ -32,7 +32,7 @@ const AdminLogin: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-极简优雅的配色方案，统一使用莫兰迪色系700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               用户名
             </label>
             <input
@@ -54,7 +54,7 @@ const AdminLogin: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               required
-            />极简优雅的配色方案，统一使用莫兰迪色系
+            />
           </div>
 
           {error && (
@@ -66,7 +66,7 @@ const AdminLogin: React.FC = () => {
             disabled={loading}
             className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? '登录中...' : '登录'}\极简优雅的配色方案，统一使用莫兰迪色系n          </button>
+            {loading ? '登录中...' : '登录'}\n          </button>
         </form>
       </div>
     </div>

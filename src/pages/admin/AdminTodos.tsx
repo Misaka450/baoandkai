@@ -256,12 +256,12 @@ const AdminTodos: React.FC = () => {
                   }`}>
                     {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
                   </span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-sem极简优雅的配色方案，统一使用莫兰迪色系ibold rounded-full ${
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     todo.priority >= 3 
                       ? 'bg-red-100 text-red-800' 
                       : todo.priority >= 2
                       ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-极简优雅的配色方案，统一使用莫兰迪色系兰迪色系100 text-green-800'
+                      : 'bg-green-100 text-green-800'
                   }`}>
                     {todo.priority >= 3 ? '高优先级' : todo.priority >= 2 ? '中优先级' : '低优先级'}
                   </span>
@@ -282,7 +282,7 @@ const AdminTodos: React.FC = () => {
                   onClick={() => handleDelete(todo.id!)}
                   className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md"
                   title="删除待办"
-                >\极简优雅的配色方案，统一使用莫兰迪色系n                  <Trash2 className="w-4 h-4" />
+                >\n                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -495,7 +495,7 @@ const AdminTodos: React.FC = () => {
       {/* 空状态提示 */}
       {todos.length === 0 && !showForm && (
         <div className="glass-card p-12 text-center">
-          <CheckSquare className="w极简优雅的配色方案，统一使用莫兰迪色系-12 h-12 text-gray-400 mx-auto mb-4" />
+          <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无待办事项</h3>
           <p className="text-gray-600">点击上方按钮创建第一个待办事项吧</p>
         </div>
