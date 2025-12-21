@@ -2,50 +2,37 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
+import { Album, Photo } from '../types'
 import { formatDate, LoadingSpinner } from '../utils/common'
 import { getThumbnailUrl, getOptimizedImageUrl } from '../utils/imageUtils'
 import ImageModal from '../components/ImageModal'
 
-// 定义照片接口
-interface Photo {
-  id: string;
-  url: string;
-  caption?: string;
-}
-
-// 定义相册接口
-interface Album {
-  id: string;
-  name: string;
-  description?: string;
-  photos?: Photo[];
-  photo_count?: number;  // 后端返回的照片总数
-}
+// 类型已移动到 src/types/models.ts
 export default function Albums() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
   const [viewMode, setViewMode] = useState('grid')
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [photoIndex, setPhotoIndex] = useState(0)
 
-  const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery({
+  const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery<{ data: Album[] }>({
     queryKey: ['albums'],
     queryFn: async () => {
-      const response = await apiService.get('/albums')
-      if (response.error) {
-        throw new Error(response.error)
+      const response = await apiService.get<{ data: Album[] }>('/albums')
+      if (response.error || !response.data) {
+        throw new Error(response.error || '无法加载相册')
       }
       return response.data
     }
   })
   const albums = Array.isArray(albumsData?.data) ? albumsData.data : Array.isArray(albumsData) ? albumsData : []
 
-  const { data: photosData, isLoading: photosLoading } = useQuery({
+  const { data: photosData, isLoading: photosLoading } = useQuery<{ photos: Photo[] }>({
     queryKey: ['album', selectedAlbum?.id],
     queryFn: async () => {
       if (!selectedAlbum) return { photos: [] }
-      const response = await apiService.get(`/albums/${selectedAlbum.id}`)
-      if (response.error) {
-        throw new Error(response.error)
+      const response = await apiService.get<{ photos: Photo[] }>(`/albums/${selectedAlbum.id}`)
+      if (response.error || !response.data) {
+        throw new Error(response.error || '无法加载照片')
       }
       return response.data
     },

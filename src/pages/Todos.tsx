@@ -2,25 +2,11 @@ import { useState, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiService } from '../services/apiService'
+import { Todo } from '../types'
 import ImageModal from '../components/ImageModal'
 import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common'
 
-// 定义待办事项接口
-interface Todo {
-  id: number
-  title: string
-  description?: string
-  priority: number
-  status: 'pending' | 'completed'
-  due_date?: string
-  created_at: string
-  updated_at: string
-  category?: string
-  images?: string[]
-  completion_photos?: string[] | string
-  completion_notes?: string
-}
-
+// 类型已移动到 src/types/models.ts
 // 定义API响应接口
 interface TodosResponse {
   data: Todo[]
@@ -64,10 +50,11 @@ export default function Todos() {
   // 映射数据库字段到前端字段 - 简化为三种优先级
   const mapTodoFields = (todo: Todo): MappedTodo => {
     // 将数据库的1-5优先级映射为三种：高(3)、中(2)、低(1)
-    let priority: 'high' | 'medium' | 'low' = 'medium'; // 默认中优先级
-    if (todo.priority >= 3) {
+    let priority: 'high' | 'medium' | 'low' = 'medium';
+    const pValue = Number(todo.priority);
+    if (pValue >= 3) {
       priority = 'high';
-    } else if (todo.priority <= 1) {
+    } else if (pValue <= 1) {
       priority = 'low';
     }
 
@@ -101,19 +88,19 @@ export default function Todos() {
 
   // 移除 priorityColors 和 formatDate 的重复定义
 
-  const toggleTodoExpand = (todoId: number) => {
+  const toggleTodoExpand = (todoId: number | string) => {
     setExpandedTodos(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(todoId)) {
-        newSet.delete(todoId)
+      if (newSet.has(todoId as any)) {
+        newSet.delete(todoId as any)
       } else {
-        newSet.add(todoId)
+        newSet.add(todoId as any)
       }
       return newSet
     })
   }
 
-  const isTodoExpanded = (todoId: number) => expandedTodos.has(todoId)
+  const isTodoExpandable = (todoId: number | string) => expandedTodos.has(todoId as any)
 
   // 使用统一的加载组件
   if (loading) {
@@ -265,16 +252,16 @@ export default function Todos() {
                         >
                           <Camera className="w-3 h-3 mr-1.5 text-green-600 group-hover:text-green-700 transition-transform group-hover:scale-110" />
                           <span className="text-green-700 font-medium group-hover:text-green-800">
-                            {isTodoExpanded(todo.id) ? '收起记录' : '查看完成记录'}
+                            {isTodoExpandable(todo.id) ? '收起记录' : '查看完成记录'}
                           </span>
                           <ChevronDown
-                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${isTodoExpanded(todo.id) ? 'rotate-180' : ''
+                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${isTodoExpandable(todo.id) ? 'rotate-180' : ''
                               }`}
                           />
                         </button>
 
                         {/* 折叠内容 */}
-                        <div className={`overflow-hidden transition-all duration-300 ${isTodoExpanded(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
+                        <div className={`overflow-hidden transition-all duration-300 ${isTodoExpandable(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
                           }`}>
                           {/* 完成照片 */}
                           {todo.completion_photos && (

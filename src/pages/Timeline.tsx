@@ -3,21 +3,13 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Clock3 as TimelineIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
+import { TimelineEvent } from '../types'
 import ImageModal from '../components/ImageModal'
 import { formatDate } from '../utils/common'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { getThumbnailUrl } from '../utils/imageUtils'
 
-// 定义时间轴事件接口
-interface TimelineEvent {
-  id: number
-  title: string
-  description: string
-  date: string
-  category: string
-  location?: string
-  images?: string[]
-}
+// 类型已移动到 src/types/models.ts
 
 // 定义分类颜色映射接口
 interface CategoryColors {
@@ -38,10 +30,10 @@ export default function Timeline() {
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 10
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery<{ data: TimelineEvent[], pagination: { totalPages: number } }>({
     queryKey: ['timeline', currentPage],
     queryFn: async () => {
-      const response = await apiService.get(`/timeline?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
+      const response = await apiService.get<{ data: TimelineEvent[], pagination: { totalPages: number } }>(`/timeline?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
       if (response.error) {
         throw new Error(response.error)
       }

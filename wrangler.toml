@@ -8,6 +8,10 @@ binding = "DB"
 database_name = "oursql"
 database_id = "5867481e-ae09-485a-b866-0f453a6e0131"
 
+[[kv_namespaces]]
+binding = "KV"
+id = "6b6661a353a54cf3989ef0d5827e9f8a"
+
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "our"

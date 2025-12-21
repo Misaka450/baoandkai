@@ -1,12 +1,7 @@
+import * as Sentry from "@sentry/react"
 import { API_BASE } from '../config/api'
 
-/**
- * API响应接口
- */
-export interface ApiResponse<T = unknown> {
-    data: T | null
-    error: string | null
-}
+import { ApiResponse, Note, Todo, Album } from '../types'
 
 /**
  * 请求配置接口
@@ -70,6 +65,16 @@ class ApiService {
                     // 忽略JSON解析错误
                 }
                 const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`
+
+                // 上报异常到 Sentry
+                Sentry.captureException(new Error(errorMessage), {
+                    extra: {
+                        url,
+                        status: response.status,
+                        endpoint
+                    }
+                })
+
                 return { data: null, error: errorMessage }
             }
 
@@ -89,6 +94,10 @@ class ApiService {
 
             return { data, error: null }
         } catch (error) {
+            // 捕获网络或其他运行时错误
+            Sentry.captureException(error, {
+                extra: { url, endpoint }
+            })
             const errorMessage = error instanceof Error ? error.message : 'Unknown error'
             return { data: null, error: errorMessage }
         }
@@ -170,29 +179,7 @@ class ApiService {
 // 创建单例实例
 export const apiService = new ApiService()
 
-// Note类型定义
-interface Note {
-    id?: number | string
-    content: string
-    color?: string
-}
-
-// Todo类型定义
-interface Todo {
-    id?: number | string
-    title: string
-    description?: string
-    priority?: number
-    status?: string
-    due_date?: string
-}
-
-// Album类型定义
-interface Album {
-    id?: number | string
-    name: string
-    description?: string
-}
+// 类型已移动到 src/types/models.ts
 
 // 专用API服务
 export const notesService = {

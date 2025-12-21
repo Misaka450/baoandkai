@@ -1,6 +1,9 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 
-// Cloudflare Pages Functions - 相册单个资源API
+/**
+ * 获取单个相册详情及其包含的所有照片
+ * @param {import('@cloudflare/workers-types').EventContext} context 
+ */
 export async function onRequestGet(context) {
   const { env, request } = context;
 
@@ -34,6 +37,10 @@ export async function onRequestGet(context) {
   }
 }
 
+/**
+ * 更新相册基本信息及照片列表
+ * @param {import('@cloudflare/workers-types').EventContext} context 
+ */
 export async function onRequestPut(context) {
   const { request, env } = context;
 
@@ -97,6 +104,10 @@ export async function onRequestPut(context) {
   }
 }
 
+/**
+ * 删除相册及其关联的所有照片
+ * @param {import('@cloudflare/workers-types').EventContext} context 
+ */
 export async function onRequestDelete(context) {
   const { env, request } = context;
 
