@@ -5,6 +5,7 @@ import { apiService } from '../services/apiService'
 import { Todo } from '../types'
 import ImageModal from '../components/ImageModal'
 import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common'
+import { getThumbnailUrl } from '../utils/imageUtils'
 
 // 类型已移动到 src/types/models.ts
 // 定义API响应接口
@@ -280,7 +281,7 @@ export default function Todos() {
                                     }}
                                   >
                                     <img
-                                      src={photo}
+                                      src={getThumbnailUrl(photo, 300)}
                                       alt={`完成照片 ${index + 1}`}
                                       className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all"
                                       draggable="false"
