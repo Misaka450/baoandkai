@@ -3,8 +3,7 @@
  */
 
 // 检查是否支持 Cloudflare Image Resizing
-// 在实际生产环境中,这通常由环境变量控制
-const ENABLE_IMAGE_RESIZING = false; // 不使用 Cloudflare Image Resizing，直接使用原图
+const ENABLE_IMAGE_RESIZING = true; // 开启 Cloudflare Image Resizing，利用边缘处理能力
 
 interface ImageOptions {
     width?: number;

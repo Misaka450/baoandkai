@@ -197,10 +197,10 @@ export default function Albums() {
                     className="group relative aspect-square bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1"
                   >
                     <img
-                      src={getThumbnailUrl(photo.url, 300)}
+                      src={getThumbnailUrl(photo.url, 600)}
                       alt={photo.caption || '照片'}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-0 left-0 right-0 p-3">
