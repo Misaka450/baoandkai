@@ -79,21 +79,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    console.log('找到用户:', user.username);
-    console.log('密码哈希:', user.password_hash);
-    console.log('输入密码:', password);
-
     // 使用bcrypt验证密码
-    let isValidPassword = await verifyPassword(password, user.password_hash);
-    
-    // 添加默认密码支持，方便测试
-    const defaultPassword = 'baobao123';
-    if (!isValidPassword && password === defaultPassword) {
-      isValidPassword = true;
-      console.log('使用默认密码登录成功');
-    }
-
-    console.log('密码验证结果:', isValidPassword);
+    const isValidPassword = await verifyPassword(password, user.password_hash);
 
     if (!isValidPassword) {
       return new Response(JSON.stringify({
@@ -109,7 +96,7 @@ export async function onRequestPost(context) {
 
     // 更新用户的token和过期时间（设置为当前时间+7天）
     const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    
+
     // 确保token_expires字段存在
     try {
       await env.DB.prepare(`

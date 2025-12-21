@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import StickyNotes from '../components/StickyNotes'
-import { apiService } from '../services/apiService.js'
-import { formatDate } from '../utils/common.js'
+import { apiService } from '../services/apiService'
+import { formatDate } from '../utils/common'
 
 // 定义配置接口
 interface Config {
@@ -34,14 +34,16 @@ export default function Home() {
 
   const fetchConfig = async () => {
     try {
-      const result = await apiService.get('/config')
+      const result = await apiService.get<Config>('/config')
       // apiService返回{ data, error }格式，需要访问result.data
-      const data = result.data || {}
-      setConfig({
-        coupleName1: data.coupleName1 || '包包',
-        coupleName2: data.coupleName2 || '恺恺',
-        anniversaryDate: data.anniversaryDate || '2023-10-08'
-      })
+      const data = result.data
+      if (data) {
+        setConfig({
+          coupleName1: data.coupleName1 || '包包',
+          coupleName2: data.coupleName2 || '恺恺',
+          anniversaryDate: data.anniversaryDate || '2023-10-08'
+        })
+      }
     } catch (error) {
       console.error('获取配置失败:', error)
       const defaultConfig: Config = {
@@ -125,7 +127,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
+
         {/* 碎碎念区域 */}
         <div>
           <StickyNotes />

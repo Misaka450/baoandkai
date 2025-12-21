@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { apiService } from '../../services/apiService.js'
+import { apiService } from '../../services/apiService'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
@@ -46,7 +46,7 @@ const AdminTimeline: React.FC = () => {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await apiService.get('/timeline');
+      const { data, error } = await apiService.get<{ data?: TimelineEvent[] }>('/timeline');
       if (error) {
         console.error('获取时间轴事件失败:', error);
         setEvents([]);

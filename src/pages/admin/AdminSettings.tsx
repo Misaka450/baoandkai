@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { apiService } from '../../services/apiService.js'
+import { apiService } from '../../services/apiService'
 import { Heart, Upload } from 'lucide-react'
-import { LoadingSpinner } from '../../utils/common.js'
+import { LoadingSpinner } from '../../utils/common'
 
 // 定义设置接口
 interface Settings {
@@ -26,15 +26,13 @@ const AdminSettings: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const { data, error } = await apiService.get('/settings');
+      const { data, error } = await apiService.get<Settings>('/settings');
       if (error) {
         throw error;
       }
-      setSettings(data || {
-        site_name: '包包和恺恺的故事',
-        site_description: '记录我们的点点滴滴',
-        theme: 'light'
-      });
+      if (data) {
+        setSettings(data);
+      }
     } catch (error) {
       console.error('加载设置失败:', error);
       setSettings({
@@ -96,28 +94,28 @@ const AdminSettings: React.FC = () => {
                 <input
                   type="text"
                   value={settings.site_name}
-                  onChange={(e) => setSettings({...settings, site_name: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 backdrop-blur-sm"
                   placeholder="请输入网站名称"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-purple-800 mb-2">网站描述</label>
                 <textarea
                   value={settings.site_description}
-                  onChange={(e) => setSettings({...settings, site_description: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, site_description: e.target.value })}
                   rows={4}
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 backdrop-blur-sm"
                   placeholder="请输入网站描述"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-purple-800 mb-2">主题风格</label>
                 <select
                   value={settings.theme}
-                  onChange={(e) => setSettings({...settings, theme: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/50 backdrop-blur-sm"
                 >
                   <option value="light">浅色主题</option>
