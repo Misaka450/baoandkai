@@ -18,6 +18,7 @@ interface Album {
   name: string;
   description?: string;
   photos?: AlbumPhoto[];
+  photo_count?: number;
 }
 
 // 定义表单数据接口
@@ -230,10 +231,10 @@ const AdminAlbums: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">相册管理</h1>
+        <h1 className="text-2xl font-semibold text-stone-800">相册管理</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg"
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-stone-700 to-stone-800 text-white rounded-xl hover:from-stone-800 hover:to-stone-900 transition-all shadow-lg"
         >
           <Plus className="h-4 w-4 mr-2" />
           创建相册
@@ -420,7 +421,7 @@ const AdminAlbums: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
+                  className="px-5 py-2.5 bg-gradient-to-r from-stone-700 to-stone-800 text-white rounded-xl hover:from-stone-800 hover:to-stone-900 transition-all duration-200 font-medium shadow-lg"
                 >
                   {editingAlbum ? '更新相册' : '创建相册'}
                 </button>
@@ -453,7 +454,7 @@ const AdminAlbums: React.FC = () => {
                 {album.description || '暂无描述'}
               </p>
               <p className="text-sm text-gray-500 mb-3">
-                {album.photos?.length || 0} 张照片
+                {album.photo_count ?? (album.photos?.length || 0)} 张照片
               </p>
               <div className="flex space-x-2">
                 <button

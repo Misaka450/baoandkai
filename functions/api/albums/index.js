@@ -10,12 +10,23 @@ export async function onRequestGet(context) {
       SELECT * FROM albums ORDER BY id DESC
     `).all();
 
-        // 为每个相册获取第一张照片作为封面
+        // 为每个相册获取封面照片和照片总数
         const albumsWithPhotos = await Promise.all(albums.results.map(async (album) => {
-            const photos = await env.DB.prepare(`
-        SELECT * FROM photos WHERE album_id = ? ORDER BY id DESC LIMIT 1
+            // 获取第一张照片作为封面
+            const coverPhoto = await env.DB.prepare(`
+        SELECT * FROM photos WHERE album_id = ? ORDER BY sort_order ASC, id ASC LIMIT 1
       `).bind(album.id).all();
-            return { ...album, photos: photos.results };
+
+            // 统计相册照片总数
+            const countResult = await env.DB.prepare(`
+        SELECT COUNT(*) as count FROM photos WHERE album_id = ?
+      `).bind(album.id).first();
+
+            return {
+                ...album,
+                photos: coverPhoto.results,
+                photo_count: countResult?.count || 0
+            };
         }));
 
         return jsonResponse({

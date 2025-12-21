@@ -19,6 +19,7 @@ interface Album {
   name: string;
   description?: string;
   photos?: Photo[];
+  photo_count?: number;  // 后端返回的照片总数
 }
 export default function Albums() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
@@ -159,7 +160,7 @@ export default function Albums() {
                   </div>
                   <h3 className="text-lg font-light text-stone-800 mb-2">{album.name}</h3>
                   <p className="text-sm text-stone-600 font-light">
-                    {Array.isArray(album.photos) ? album.photos.length : 0} 张照片
+                    {album.photo_count ?? (Array.isArray(album.photos) ? album.photos.length : 0)} 张照片
                   </p>
                 </div>
               ))}
