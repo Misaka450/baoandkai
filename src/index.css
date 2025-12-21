@@ -12,7 +12,8 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
+    /* 统一使用stone色调作为主背景 */
+    @apply bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50;
     min-height: 100vh;
     overflow-x: hidden;
     line-height: 1.6;
@@ -46,7 +47,11 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-pink-300 to-purple-300 rounded-full;
+    @apply bg-gradient-to-b from-stone-300 to-stone-400 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gradient-to-b from-stone-400 to-stone-500;
   }
 
 }
@@ -66,18 +71,27 @@
     }
   }
 
-  /* 渐变按钮 */
+  /* 渐变按钮 - stone主题 */
   .btn-gradient {
-    @apply px-6 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-2xl font-semibold shadow-md hover:shadow-xl hover:shadow-purple-500/20 transform hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300;
+    @apply px-6 py-3 bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 text-white rounded-2xl font-semibold shadow-md hover:shadow-xl hover:shadow-stone-500/20 transform hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300;
   }
 
   .btn-gradient-outline {
-    @apply px-6 py-3 bg-white/90 border-2 border-pink-200 text-pink-600 rounded-2xl font-semibold hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-all duration-300;
+    @apply px-6 py-3 bg-white/90 border-2 border-stone-200 text-stone-700 rounded-2xl font-semibold hover:bg-stone-50 hover:border-stone-300 hover:text-stone-800 transition-all duration-300;
+  }
+
+  /* 粉色强调按钮 - 用于重要操作 */
+  .btn-accent {
+    @apply px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-2xl font-semibold shadow-md hover:shadow-xl hover:shadow-rose-500/20 transform hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300;
   }
 
   /* 渐变文字 */
   .text-gradient {
-    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-semibold;
+    @apply bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 bg-clip-text text-transparent font-semibold;
+  }
+
+  .text-gradient-accent {
+    @apply bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 bg-clip-text text-transparent font-semibold;
   }
 
   /* 卡片悬停效果 - 性能优化：减少阴影扩散 */
@@ -179,7 +193,23 @@
 
   /* 加载动画 */
   .loading-spinner {
-    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500;
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-stone-600;
+  }
+
+  /* 骨架屏shimmer动画 */
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, #e7e5e4 25%, #f5f5f4 50%, #e7e5e4 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
   }
 
   /* 空状态 */
