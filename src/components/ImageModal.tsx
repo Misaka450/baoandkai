@@ -138,7 +138,7 @@ export default function ImageModal({
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute -top-2 -right-2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-colors z-20"
+          className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-colors z-20"
           aria-label="关闭"
         >
           <X className="w-5 h-5" />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
-import { formatDate, LoadingSpinner } from '../utils/common.js'
+import { formatDate, LoadingSpinner } from '../utils/common'
 import { getThumbnailUrl, getOptimizedImageUrl } from '../utils/imageUtils'
 import ImageModal from '../components/ImageModal'
 

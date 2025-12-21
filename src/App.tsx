@@ -1,35 +1,53 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Outlet } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import Layout from './components/Layout'
-import Home from './pages/Home'
-import Timeline from './pages/Timeline'
-import Albums from './pages/Albums'
-import Todos from './pages/Todos'
-// 日记功能已移除
-import FoodCheckin from './pages/FoodCheckin'
-import ErrorDemo from './pages/ErrorDemo'
-import Admin from './pages/Admin'
-import Login from './pages/Login'
 import { AuthProvider } from './contexts/AuthContext'
+import ErrorBoundary from './components/ErrorBoundary'
+
+// 懒加载页面组件 - 优化首屏加载性能
+const Home = lazy(() => import('./pages/Home'))
+const Timeline = lazy(() => import('./pages/Timeline'))
+const Albums = lazy(() => import('./pages/Albums'))
+const Todos = lazy(() => import('./pages/Todos'))
+const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
+const ErrorDemo = lazy(() => import('./pages/ErrorDemo'))
+const Admin = lazy(() => import('./pages/Admin'))
+const Login = lazy(() => import('./pages/Login'))
+
+// 加载占位组件
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+        <p className="text-stone-600">加载中...</p>
+      </div>
+    </div>
+  )
+}
 
 function App(): JSX.Element {
   return (
-    <AuthProvider>
-      <Routes>
-        {/* 登录页面 - 顶级路由 */}
-        <Route path="/login" element={<Login />} />
-        {/* 主应用布局 */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-        <Route path="timeline" element={<Timeline />} />
-        <Route path="albums" element={<Albums />} />
-        <Route path="todos" element={<Todos />} />
-        {/* 日记功能已移除 */}
-        <Route path="food" element={<FoodCheckin />} />
-        <Route path="error-demo" element={<ErrorDemo />} />
-        <Route path="admin/*" element={<Admin />} />
-        </Route>
-      </Routes>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* 登录页面 - 顶级路由 */}
+            <Route path="/login" element={<Login />} />
+            {/* 主应用布局 */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="timeline" element={<Timeline />} />
+              <Route path="albums" element={<Albums />} />
+              <Route path="todos" element={<Todos />} />
+              <Route path="food" element={<FoodCheckin />} />
+              <Route path="error-demo" element={<ErrorDemo />} />
+              <Route path="admin/*" element={<Admin />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

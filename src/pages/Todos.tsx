@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import ImageModal from '../components/ImageModal'
-import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common.js'
+import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common'
 
 // 定义待办事项接口
 interface Todo {
@@ -29,51 +30,34 @@ interface TodosResponse {
 }
 
 // 定义前端映射后的待办事项接口
-interface MappedTodo extends Todo {
+interface MappedTodo extends Omit<Todo, 'priority'> {
   completed: boolean
   priority: 'high' | 'medium' | 'low'
 }
 
 export default function Todos() {
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, completed
   const [priorityFilter, setPriorityFilter] = useState('all') // all, high, medium, low
   const [expandedTodos, setExpandedTodos] = useState<Set<number>>(new Set()) // 记录展开的待办ID
   const [selectedImage, setSelectedImage] = useState<string | null>(null) // 当前选中的放大图片
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const itemsPerPage = 10
 
-  useEffect(() => {
-    fetchTodos(currentPage)
-  }, [currentPage])
+  // 使用React Query获取待办事项
+  const { data: todosData, isLoading: loading } = useQuery({
+    queryKey: ['todos', currentPage, itemsPerPage],
+    queryFn: async () => {
+      const { data, error } = await apiService.get<TodosResponse>(`/todos?page=${currentPage}&limit=${itemsPerPage}`)
+      if (error) throw new Error(error)
+      return data
+    },
+    staleTime: 5 * 60 * 1000, // 5分钟缓存
+  })
 
-  // 使用公共防抖函数
-  const debouncedFetchTodos = useCallback(
-    debounce((page: number) => {
-      fetchTodos(page)
-    }, 300),
-    []
-  )
-
-  const fetchTodos = async (page = 1) => {
-    try {
-      console.log('正在获取待办事项...')
-      const { data } = await apiService.get(`/todos?page=${page}&limit=${itemsPerPage}`)
-      console.log('获取到的待办事项:', data)
-      setTodos(data.data || [])
-      setTotalPages(data.totalPages || 1)
-      setTotalCount(data.totalCount || 0)
-      setCurrentPage(data.currentPage || 1)
-    } catch (error) {
-      console.error('获取待办事项失败:', error)
-      setTodos([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  // 从查询结果中提取数据
+  const todos = todosData?.data || []
+  const totalPages = todosData?.totalPages || 1
+  const totalCount = todosData?.totalCount || 0
 
   // 只读模式，移除所有添加、编辑、删除功能
 
@@ -169,8 +153,8 @@ export default function Todos() {
               key={filterItem.value}
               onClick={() => setFilter(filterItem.value)}
               className={`px-4 py-2 rounded-full text-sm font-light transition-all ${filter === filterItem.value
-                  ? 'bg-stone-800 text-white shadow-lg'
-                  : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md border border-white/20'
+                ? 'bg-stone-800 text-white shadow-lg'
+                : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md border border-white/20'
                 }`}
             >
               {filterItem.label}
@@ -185,8 +169,8 @@ export default function Todos() {
               key={priority}
               onClick={() => setPriorityFilter(priority)}
               className={`px-4 py-2 rounded-lg text-sm transition-colors ${priorityFilter === priority
-                  ? 'bg-stone-800 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                ? 'bg-stone-800 text-white'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
             >
               {priority === 'all' ? '全部' :
@@ -220,8 +204,8 @@ export default function Todos() {
               <div
                 key={todo.id}
                 className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 ${todo.completed
-                    ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50'
-                    : 'bg-white/60 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]'
+                  ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50'
+                  : 'bg-white/60 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]'
                   }`}
               >
                 <div className="flex items-start justify-between">
@@ -233,8 +217,8 @@ export default function Todos() {
                           }`} />
                       </div>
                       <h3 className={`text-lg font-light ${todo.completed
-                          ? 'text-green-800 font-medium'
-                          : 'text-stone-800'
+                        ? 'text-green-800 font-medium'
+                        : 'text-stone-800'
                         }`}>
                         {todo.title}
                         {todo.completed && (
@@ -375,8 +359,8 @@ export default function Todos() {
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
                   className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
-                      ? 'bg-stone-800 text-white'
-                      : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
+                    ? 'bg-stone-800 text-white'
+                    : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
                     }`}
                 >
                   {pageNum}
@@ -399,8 +383,7 @@ export default function Todos() {
       <ImageModal
         isOpen={selectedImage !== null}
         onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage}
-        alt="完成照片"
+        imageUrl={selectedImage || undefined}
       />
     </div>
   )

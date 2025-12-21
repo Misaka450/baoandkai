@@ -3,8 +3,6 @@ import { Heart, Trash2, Plus, Loader2, MessageSquare, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiService } from '../services/apiService'
 
-const API_BASE = '/api'
-
 // 定义颜色方案接口
 interface ColorScheme {
   name: string
@@ -22,14 +20,7 @@ interface Note {
   likes?: number
 }
 
-// 莫兰迪色系配色方案 - 与时间轴统一
-const colors = [
-  'bg-pink-100 border-pink-200 text-pink-800',
-  'bg-blue-100 border-blue-200 text-blue-800',
-  'bg-green-100 border-green-200 text-green-800',
-  'bg-yellow-100 border-yellow-200 text-yellow-800',
-  'bg-purple-100 border-purple-200 text-purple-800',
-]
+// 莫兰迪色系配色方案
 const colorSchemes: ColorScheme[] = [
   { name: 'rose', gradient: 'bg-gradient-to-br from-rose-50/80 to-rose-100/80', border: 'border-rose-200/30', text: 'text-rose-800' },
   { name: 'amber', gradient: 'bg-gradient-to-br from-amber-50/80 to-amber-100/80', border: 'border-amber-200/30', text: 'text-amber-800' },
@@ -81,7 +72,7 @@ export default function StickyNotes() {
 
   const addNote = async () => {
     if (!newNote.trim()) return
-    if (!isAdmin) { // 改为检查isAdmin
+    if (!isAdmin) {
       alert('只有管理员才能添加碎碎念！')
       return
     }
@@ -90,27 +81,17 @@ export default function StickyNotes() {
     try {
       const randomColor = getRandomColor()
 
-      const response = await fetch(`${API_BASE}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          content: newNote,
-          color: randomColor.name
-        })
+      const { data, error } = await apiService.post('/notes', {
+        content: newNote,
+        color: randomColor.name
       })
 
-      const data = await response.json()
-      console.log('添加碎碎念返回:', data)
-
-      if (response.ok) {
+      if (!error) {
         await fetchNotes()
         setNewNote('')
         setShowAddModal(false)
       } else {
-        console.error('添加失败:', data)
+        console.error('添加失败:', error)
       }
     } catch (error) {
       console.error('添加碎碎念失败:', error)
@@ -120,29 +101,22 @@ export default function StickyNotes() {
   }
 
   const deleteNote = async (id: number) => {
-    if (!isAdmin) { // 改为检查isAdmin
+    if (!isAdmin) {
       alert('只有管理员才能删除碎碎念！')
       return
     }
 
     setDeleteLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/notes/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const { error } = await apiService.delete(`/notes/${id}`)
 
-      const data = await response.json()
-      if (response.ok) {
+      if (!error) {
         await fetchNotes()
         setShowDeleteModal(false)
         setNoteToDelete(null)
       } else {
-        // 添加错误提示
-        alert(data.error || '删除失败，请重试')
-        console.error('删除失败:', data)
+        alert(error || '删除失败，请重试')
+        console.error('删除失败:', error)
       }
     } catch (error) {
       console.error('删除碎碎念失败:', error)
