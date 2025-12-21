@@ -42,6 +42,7 @@ const AdminAlbums: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [showBatchActions, setShowBatchActions] = useState(false)
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
 
   useEffect(() => {
     fetchAlbums()
@@ -49,9 +50,21 @@ const AdminAlbums: React.FC = () => {
 
   const fetchAlbums = async () => {
     try {
-      const { data } = await apiService.get('/albums')
-      const albumsData = data?.data || data || [];
-      setAlbums(Array.isArray(albumsData) ? albumsData : [])
+      const { data, error } = await apiService.get<{ data: Album[] } | Album[]>('/albums')
+      if (error) {
+        console.error('获取相册失败:', error)
+        setAlbums([])
+        return
+      }
+
+      const albumsData = data;
+      if (Array.isArray(albumsData)) {
+        setAlbums(albumsData)
+      } else if (albumsData && Array.isArray(albumsData.data)) {
+        setAlbums(albumsData.data)
+      } else {
+        setAlbums([])
+      }
     } catch (error) {
       console.error('获取相册失败:', error)
       setAlbums([])
@@ -110,16 +123,34 @@ const AdminAlbums: React.FC = () => {
     }
   }
 
-  const handleEdit = (album: Album) => {
-    setEditingAlbum(album)
-    setFormData({
-      name: album.name,
-      description: album.description || '',
-      images: album.photos?.map(p => p.url) || []
-    })
-    setSelectedImages([])
-    setShowBatchActions(false)
-    setShowForm(true)
+  const handleEdit = async (album: Album) => {
+    setIsDetailLoading(true)
+    try {
+      // 这里的 album 默认是从列表获取的，可能只包含一张封面图
+      // 我们需要通过详情接口获取完整图片列表
+      const { data, error } = await apiService.get<Album>(`/albums/${album.id}`)
+
+      if (error || !data) {
+        throw new Error(error || '无法加载数据')
+      }
+
+      const fullAlbum = data
+
+      setEditingAlbum(fullAlbum)
+      setFormData({
+        name: fullAlbum.name,
+        description: fullAlbum.description || '',
+        images: fullAlbum.photos?.map((p: AlbumPhoto) => p.url) || []
+      })
+      setSelectedImages([])
+      setShowBatchActions(false)
+      setShowForm(true)
+    } catch (error) {
+      console.error('获取相册详情失败:', error)
+      await showAlert('错误', '无法加载相册详细信息', 'error')
+    } finally {
+      setIsDetailLoading(false)
+    }
   }
 
   const handleImagesUploaded = (urls: string[]) => {
@@ -168,12 +199,13 @@ const AdminAlbums: React.FC = () => {
       if (filename) {
         console.log('准备删除R2图片:', filename)
 
-        const response = await apiService.delete('/api/delete', { filename })
+        // 修改为使用 post 或其他方式，如果 apiService.delete 不支持 body
+        const { error } = await apiService.post('/delete', { filename })
 
-        if (response.success) {
+        if (!error) {
           console.log('图片已从R2删除:', filename)
         } else {
-          console.error('删除R2图片失败:', response.error)
+          console.error('删除R2图片失败:', error)
         }
       }
     } catch (error) {
@@ -284,7 +316,7 @@ const AdminAlbums: React.FC = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
-                    rows="3"
+                    rows={3}
                     placeholder="请输入相册描述"
                   />
                 </div>
@@ -459,9 +491,14 @@ const AdminAlbums: React.FC = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEdit(album)}
-                  className="flex items-center px-3 py-1 text-sm bg-blue-500 text-white rounded"
+                  disabled={isDetailLoading}
+                  className="flex items-center px-3 py-1 text-sm bg-blue-500 text-white rounded disabled:opacity-50"
                 >
-                  <Edit2 className="h-3 w-3 mr-1" />
+                  {isDetailLoading && editingAlbum?.id === album.id ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Edit2 className="h-3 w-3 mr-1" />
+                  )}
                   编辑
                 </button>
                 <button
