@@ -19,11 +19,16 @@ export async function onRequest(context) {
     const publicPaths = [
         '/api/auth/login',
         '/api/auth/check-token',
+        '/api/config',  // 公开配置API给首页使用
         '/api/uploads/', // Allow public access to uploaded files
     ];
 
-    // Check if current path is public
-    const isPublic = publicPaths.some(path => url.pathname.startsWith(path));
+    // Check if current path is public - 使用精确匹配或前缀匹配
+    const pathname = url.pathname;
+    const isPublic = publicPaths.some(path => {
+        // 精确匹配或前缀匹配（对于目录路径）
+        return pathname === path || pathname.startsWith(path + '/') || (path.endsWith('/') && pathname.startsWith(path));
+    });
 
     // 3. Auth check for non-public paths
     if (!isPublic) {
