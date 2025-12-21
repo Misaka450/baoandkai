@@ -44,30 +44,27 @@ export default {
         'bold': 700,
         'extrabold': 800,
       },
-      // 添加动画优化
+      // 动画已在 index.css 中定义，这里保留引用
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
+        'fade-in-up': 'fadeInUp 0.5s ease-out',
       },
     },
   },
-  // 优化未使用样式的移除
+  // 保护动态生成的类名不被清除
   safelist: [
-    'bg-pink-500',
-    'bg-pink-600',
-    'hover:bg-pink-600',
-    'text-pink-500',
-    'border-pink-500',
+    // 颜色类
+    'bg-pink-500', 'bg-pink-600', 'hover:bg-pink-600',
+    'text-pink-500', 'border-pink-500',
+    'bg-stone-100', 'bg-stone-200', 'text-stone-600', 'text-stone-800',
+    'bg-rose-50', 'bg-amber-50', 'bg-green-50', 'bg-blue-50',
+    // 优先级颜色
+    'bg-red-100', 'text-red-700', 'border-red-200',
+    'bg-yellow-100', 'text-yellow-700', 'border-yellow-200',
+    'bg-green-100', 'text-green-700', 'border-green-200',
+    // 动画类
+    'animate-fade-in', 'animate-slide-up', 'animate-fade-in-up',
   ],
   plugins: [],
 }
