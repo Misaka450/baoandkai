@@ -22,8 +22,19 @@ async function verifyPassword(plainPassword, hashedPassword) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  // CORS headers will be handled by middleware in most cases, 
+  // but for safety in direct calls or specific environments:
+  const origin = request.headers.get('Origin');
+  const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : [];
+  let corsOrigin = '*';
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes('*'))) {
+    corsOrigin = origin;
+  } else if (allowedOrigins.length > 0) {
+    corsOrigin = allowedOrigins[0];
+  }
+
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json'
@@ -104,10 +115,21 @@ export async function onRequestPost(context) {
         SET token = ?, token_expires = datetime(?) 
         WHERE id = ?
       `).bind(token, tokenExpires, user.id).run();
+
+      // 4. 将用户信息缓存到 KV 中 (优化中间件验证性能)
+      if (env.KV) {
+        const cacheUser = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          token_expires: tokenExpires
+        };
+        // KV 设置过期时间 (秒)
+        const ttl = 7 * 24 * 60 * 60;
+        await env.KV.put(`token:${token}`, JSON.stringify(cacheUser), { expirationTtl: ttl });
+      }
     } catch (error) {
-      console.error('更新token失败:', error);
-      // 如果更新失败，可能是因为token或token_expires字段不存在，我们可以忽略这个错误
-      // 继续返回token，因为前端只需要token来验证
+      console.error('更新token或写入KV失败:', error);
     }
 
     // 返回成功响应
@@ -132,21 +154,29 @@ export async function onRequestPost(context) {
       message: env?.ENVIRONMENT === 'development' ? error.message : '登录失败，请稍后重试'
     }), {
       status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers: corsHeaders
     });
   }
 }
 
 // 处理OPTIONS请求
-export async function onRequestOptions() {
+export async function onRequestOptions(context) {
+  const { request, env } = context;
+  const origin = request.headers.get('Origin');
+  const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : [];
+  let corsOrigin = '*';
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes('*'))) {
+    corsOrigin = origin;
+  } else if (allowedOrigins.length > 0) {
+    corsOrigin = allowedOrigins[0];
+  }
+
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
     }
   });
 }

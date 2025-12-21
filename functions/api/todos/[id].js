@@ -2,6 +2,10 @@ import { jsonResponse, errorResponse } from '../../utils/response';
 
 // Cloudflare Pages Functions - 单个待办事项API
 // PUT /api/todos/:id - 更新待办事项
+/**
+ * 更新单个待办事项的状态或内容
+ * @param {import('@cloudflare/workers-types').EventContext} context 
+ */
 export async function onRequestPut(context) {
   const { request, env } = context;
 

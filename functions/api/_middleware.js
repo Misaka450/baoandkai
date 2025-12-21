@@ -1,16 +1,36 @@
 import { errorResponse } from '../utils/response';
 
+/**
+ * 全局中间件：处理 CORS、公共路径验证以及 Token 鉴权逻辑
+ * @param {import('@cloudflare/workers-types').EventContext} context 
+ */
 export async function onRequest(context) {
     const { request, env, next } = context;
     const url = new URL(request.url);
 
-    // 1. Handle CORS for OPTIONS requests immediately
+    // 1. Handle CORS
+    const origin = request.headers.get('Origin');
+    const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : [];
+
+    // Determine if the current origin is allowed
+    let corsOrigin = '*'; // Default for dev or if not configured
+    if (origin) {
+        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            corsOrigin = origin;
+        } else if (allowedOrigins.length > 0) {
+            // If specific origins are defined but don't match, still default to first one for preflight
+            // but in production we should be stricter.
+            corsOrigin = allowedOrigins[0];
+        }
+    }
+
     if (request.method === 'OPTIONS') {
         return new Response(null, {
             headers: {
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': corsOrigin,
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'Access-Control-Max-Age': '86400',
             },
         });
     }
@@ -40,12 +60,34 @@ export async function onRequest(context) {
 
             const token = authHeader.split(' ')[1];
 
-            // Verify token
-            const user = await env.DB.prepare(`
-        SELECT id, username, email, token_expires
-        FROM users
-        WHERE token = ? AND token_expires > datetime('now')
-      `).bind(token).first();
+            // 1. Try to get from KV first
+            let user = null;
+            if (env.KV) {
+                const cached = await env.KV.get(`token:${token}`, 'json');
+                if (cached) {
+                    // Check if expired (just in case)
+                    if (new Date(cached.token_expires) > new Date()) {
+                        user = cached;
+                    }
+                }
+            }
+
+            // 2. Fallback to DB if not in KV or KV not available
+            if (!user) {
+                user = await env.DB.prepare(`
+                    SELECT id, username, email, token_expires
+                    FROM users
+                    WHERE token = ? AND token_expires > datetime('now')
+                `).bind(token).first();
+
+                // If found in DB, sync back to KV (if available)
+                if (user && env.KV) {
+                    const ttl = Math.floor((new Date(user.token_expires).getTime() - Date.now()) / 1000);
+                    if (ttl > 0) {
+                        await env.KV.put(`token:${token}`, JSON.stringify(user), { expirationTtl: ttl });
+                    }
+                }
+            }
 
             if (!user) {
                 return errorResponse('Token无效或已过期', 401);
@@ -65,9 +107,8 @@ export async function onRequest(context) {
         const response = await next();
 
         // 5. Add CORS headers to all responses
-        // Clone response to ensure we can modify headers (in case original is immutable)
         const newResponse = new Response(response.body, response);
-        newResponse.headers.set('Access-Control-Allow-Origin', '*');
+        newResponse.headers.set('Access-Control-Allow-Origin', corsOrigin);
         newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
