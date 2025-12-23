@@ -3,10 +3,13 @@
  */
 
 // 检查是否支持 Cloudflare Image Resizing
-const ENABLE_IMAGE_RESIZING = import.meta.env.PROD; // 仅在生产环境开启，避免本地 404
+const ENABLE_IMAGE_RESIZING = import.meta.env.PROD; // 仅在生产环境开启
 
-// R2 资源基础域名 (从 r2Upload.ts 参考)
-const R2_BASE_URL = 'https://1eaf793b.baoandkai.pages.dev';
+// 代理端点：通过 Functions 访问 R2 资源，解决同源和权限问题
+const ASSETS_PROXY = '/api/uploads';
+
+// 旧数据的 R2 域名，用于自动转换
+const OLD_R2_DOMAIN = 'pub-f3abc7adae724902b344281ec73f700c.r2.dev';
 
 interface ImageOptions {
     width?: number;
@@ -18,24 +21,31 @@ interface ImageOptions {
 
 /**
  * 生成优化后的图片 URL
- * 如果支持 Cloudflare Image Resizing,则返回处理后的 URL
- * 否则返回原始 URL
  */
 export function getOptimizedImageUrl(url: string, options: ImageOptions = {}): string {
     if (!url) return '';
 
-    // 如果是开发环境或不支持 Image Resizing，直接返回
-    if (!ENABLE_IMAGE_RESIZING || url.startsWith('data:') || url.startsWith('blob:')) {
-        // 如果是开发环境下的 R2 相对路径，仍需补全域名才能在本地预览
-        if (!url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('blob:')) {
-            return `${R2_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
-        }
-        return url;
+    // 1. 处理原始 URL，统一转化为本地代理路径
+    let processedUrl = url;
+
+    // 如果是完整的 R2 域名 URL，提取路径部分并转化为本地代理
+    if (url.includes(OLD_R2_DOMAIN)) {
+        const parts = url.split(OLD_R2_DOMAIN);
+        const path = parts[parts.length - 1] || '';
+        processedUrl = `${ASSETS_PROXY}${path.startsWith('/') ? path : `/${path}`}`;
+    }
+    // 如果是普通相对路径（不含 http）
+    else if (!url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+        processedUrl = `${ASSETS_PROXY}${url.startsWith('/') ? url : `/${url}`}`;
     }
 
-    // 构建 Cloudflare Image Resizing 参数
-    const params: string[] = [];
+    // 2. 如果是开发环境或不支持 Resizing，直接返回处理后的 URL
+    if (!ENABLE_IMAGE_RESIZING || processedUrl.startsWith('data:') || processedUrl.startsWith('blob:')) {
+        return processedUrl;
+    }
 
+    // 3. 构建 Cloudflare Image Resizing 参数
+    const params: string[] = [];
     if (options.width) params.push(`width=${options.width}`);
     if (options.height) params.push(`height=${options.height}`);
     if (options.quality) params.push(`quality=${options.quality}`);
@@ -46,19 +56,11 @@ export function getOptimizedImageUrl(url: string, options: ImageOptions = {}): s
     if (!options.format) params.push('format=auto');
     if (!options.quality) params.push('quality=80');
 
-    // 构造 CDN URL
-    // Cloudflare Image Resizing 格式: /cdn-cgi/image/<options>/<url>
     const paramString = params.join(',');
 
-    // 如果是完整 URL，CDN 会尝试抓取该地址
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-        return `/cdn-cgi/image/${paramString}/${url}`;
-    }
-
-    // 对于相对路径（R2 资源），需要补全为完整的 R2 URL
-    // 这样 Cloudflare Resizing 才知道去哪里拉取图片资源
-    const fullUrl = `${R2_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
-    return `/cdn-cgi/image/${paramString}/${fullUrl}`;
+    // 4. 返回同源 Resizing URL
+    // 因为 processedUrl 已经是 /api/uploads/... 格式，属于同源资源
+    return `/cdn-cgi/image/${paramString}${processedUrl.startsWith('/') ? processedUrl : `/${processedUrl}`}`;
 }
 
 /**
