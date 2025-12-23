@@ -2,8 +2,8 @@
  * 图片优化工具函数
  */
 
-// 检查是否支持 Cloudflare Image Resizing
-const ENABLE_IMAGE_RESIZING = import.meta.env.PROD; // 仅在生产环境开启
+// 禁用 Cloudflare Image Resizing (按用户要求)
+const ENABLE_IMAGE_RESIZING = false;
 
 // 代理端点：通过 Functions 访问 R2 资源，解决同源和权限问题
 const ASSETS_PROXY = '/api/uploads';
