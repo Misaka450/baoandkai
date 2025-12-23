@@ -32,7 +32,8 @@ const colorSchemes: ColorScheme[] = [
 
 // 获取随机颜色
 const getRandomColor = (): ColorScheme => {
-  return colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
+  const index = Math.floor(Math.random() * colorSchemes.length)
+  return colorSchemes[index] ?? colorSchemes[0]!
 }
 
 export default function StickyNotes() {
@@ -53,15 +54,20 @@ export default function StickyNotes() {
   const fetchNotes = async () => {
     try {
       setLoading(true)
-      const response = await apiService.get('/notes')
-
-      console.log('获取到的碎碎念响应:', response)
+      const response = await apiService.get<{ data: Note[] } | Note[]>('/notes')
 
       // API返回格式: { data: [...], pagination: {...} }
-      const notesData = response.data?.data || response.data || []
-      console.log('解析后的碎碎念数据:', notesData)
+      const responseData = response.data
+      let notesData: Note[] = []
+      if (responseData) {
+        if (Array.isArray(responseData)) {
+          notesData = responseData
+        } else if ('data' in responseData && Array.isArray(responseData.data)) {
+          notesData = responseData.data
+        }
+      }
 
-      setNotes(Array.isArray(notesData) ? notesData : [])
+      setNotes(notesData)
     } catch (error) {
       console.error('获取碎碎念失败:', error)
       setNotes([])
@@ -152,7 +158,8 @@ export default function StickyNotes() {
   }
 
   const getColorScheme = (colorName: string): ColorScheme => {
-    return colorSchemes.find(scheme => scheme.name === colorName) || getRandomColor()
+    const found = colorSchemes.find(scheme => scheme.name === colorName)
+    return found ?? getRandomColor()
   }
 
   // 兼容旧的颜色格式
@@ -162,12 +169,12 @@ export default function StickyNotes() {
     }
 
     const colorMapping: Record<string, ColorScheme> = {
-      'bg-yellow-100 border-yellow-200': colorSchemes[1],
-      'bg-pink-100 border-pink-200': colorSchemes[0],
-      'bg-blue-100 border-blue-200': colorSchemes[2],
-      'from-green-50 to-emerald-50 border-emerald-200': colorSchemes[3],
-      'bg-purple-100 border-purple-200': colorSchemes[4],
-      'bg-orange-100 border-orange-200': colorSchemes[1]
+      'bg-yellow-100 border-yellow-200': colorSchemes[1]!,
+      'bg-pink-100 border-pink-200': colorSchemes[0]!,
+      'bg-blue-100 border-blue-200': colorSchemes[2]!,
+      'from-green-50 to-emerald-50 border-emerald-200': colorSchemes[3]!,
+      'bg-purple-100 border-purple-200': colorSchemes[4]!,
+      'bg-orange-100 border-orange-200': colorSchemes[1]!
     }
 
     return colorMapping[noteColor] || getRandomColor()

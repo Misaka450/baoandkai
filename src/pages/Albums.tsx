@@ -57,14 +57,20 @@ export default function Albums() {
 
   const prevPhoto = () => {
     const newIndex = photoIndex > 0 ? photoIndex - 1 : photos.length - 1
-    setSelectedPhoto(photos[newIndex])
-    setPhotoIndex(newIndex)
+    const photo = photos[newIndex]
+    if (photo) {
+      setSelectedPhoto(photo)
+      setPhotoIndex(newIndex)
+    }
   }
 
   const nextPhoto = () => {
     const newIndex = photoIndex < photos.length - 1 ? photoIndex + 1 : 0
-    setSelectedPhoto(photos[newIndex])
-    setPhotoIndex(newIndex)
+    const photo = photos[newIndex]
+    if (photo) {
+      setSelectedPhoto(photo)
+      setPhotoIndex(newIndex)
+    }
   }
 
   // 使用统一加载组件

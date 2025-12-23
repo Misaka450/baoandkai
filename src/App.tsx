@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import ProtectedRoute from './components/ProtectedRoute'
 
 // 懒加载页面组件 - 优化首屏加载性能
 const Home = lazy(() => import('./pages/Home'))
@@ -42,7 +43,11 @@ function App(): JSX.Element {
               <Route path="todos" element={<Todos />} />
               <Route path="food" element={<FoodCheckin />} />
               <Route path="error-demo" element={<ErrorDemo />} />
-              <Route path="admin/*" element={<Admin />} />
+              <Route path="admin/*" element={
+                <ProtectedRoute requireAdmin>
+                  <Admin />
+                </ProtectedRoute>
+              } />
             </Route>
           </Routes>
         </Suspense>

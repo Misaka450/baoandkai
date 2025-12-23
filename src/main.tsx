@@ -16,11 +16,16 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 5 * 60 * 1000, // 5分钟内数据被视为新鲜，不会重新请求
+      gcTime: 30 * 60 * 1000,   // 30分钟后清理缓存
     },
   },
 })
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('Root element not found')
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

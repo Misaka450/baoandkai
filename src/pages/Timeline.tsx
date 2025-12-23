@@ -34,8 +34,8 @@ export default function Timeline() {
     queryKey: ['timeline', currentPage],
     queryFn: async () => {
       const response = await apiService.get<{ data: TimelineEvent[], pagination: { totalPages: number } }>(`/timeline?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
-      if (response.error) {
-        throw new Error(response.error)
+      if (response.error || !response.data) {
+        throw new Error(response.error || 'Failed to fetch timeline')
       }
       return response.data
     },

@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Heart, Clock, Image, BookOpen, Utensils, CheckSquare, Settings, Menu, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 // 定义导航项接口
 interface NavItem {
@@ -17,7 +17,7 @@ export default function Navigation() {
   const { isAdmin } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
+  const lastScrollYRef = useRef(0)
   const [scrollProgress, setScrollProgress] = useState(0)
 
   const navigation: NavItem[] = [
@@ -29,7 +29,7 @@ export default function Navigation() {
     { name: '管理', href: '/admin', icon: Settings }
   ]
 
-  // 增强版滚动隐藏导航栏 - 带渐变动画
+  // 增强版滚动隐藏导航栏 - 使用 useRef 优化性能
   useEffect(() => {
     let ticking = false
 
@@ -37,6 +37,7 @@ export default function Navigation() {
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = window.scrollY
+          const lastScrollY = lastScrollYRef.current
 
           // 计算滚动进度用于渐变效果
           const progress = Math.min(currentScrollY / 100, 1)
@@ -51,7 +52,7 @@ export default function Navigation() {
             setIsVisible(true)
           }
 
-          setLastScrollY(currentScrollY)
+          lastScrollYRef.current = currentScrollY
           ticking = false
         })
         ticking = true
@@ -60,7 +61,7 @@ export default function Navigation() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
+  }, []) // 空依赖数组 - 事件监听器只创建一次
 
   // 计算导航栏的透明度和位置 - 完美居中
   const getNavStyles = (): React.CSSProperties => {

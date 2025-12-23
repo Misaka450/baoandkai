@@ -38,12 +38,20 @@ const FoodCheckin: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await apiService.get('/food')
+      const response = await apiService.get<{ data: FoodCheckin[] } | FoodCheckin[]>('/food')
       if (response.error) {
         throw new Error(response.error)
       }
-      const data = response.data
-      setCheckins(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [])
+      const responseData = response.data
+      let checkinsData: FoodCheckin[] = []
+      if (responseData) {
+        if (Array.isArray(responseData)) {
+          checkinsData = responseData
+        } else if ('data' in responseData && Array.isArray(responseData.data)) {
+          checkinsData = responseData.data
+        }
+      }
+      setCheckins(checkinsData)
     } catch (error) {
       console.error('获取美食打卡失败:', error)
       setError('获取美食打卡失败: ' + (error as Error).message)
@@ -73,9 +81,8 @@ const FoodCheckin: React.FC = () => {
         {Array.from({ length: 5 }, (_, i) => (
           <Star
             key={i}
-            className={`h-3.5 w-3.5 ${
-              i < numRating ? 'text-amber-500 fill-amber-500' : 'text-stone-300'
-            }`}
+            className={`h-3.5 w-3.5 ${i < numRating ? 'text-amber-500 fill-amber-500' : 'text-stone-300'
+              }`}
           />
         ))}
         {label && <span className="text-xs text-stone-600 ml-1 font-light">{label}</span>}
@@ -117,14 +124,14 @@ const FoodCheckin: React.FC = () => {
   const goToPreviousImage = () => {
     const newIndex = currentImageIndex > 0 ? currentImageIndex - 1 : allImages.length - 1
     setCurrentImageIndex(newIndex)
-    setSelectedImage(allImages[newIndex])
+    setSelectedImage(allImages[newIndex] ?? null)
   }
 
   // 切换到下一张图片
   const goToNextImage = () => {
     const newIndex = currentImageIndex < allImages.length - 1 ? currentImageIndex + 1 : 0
     setCurrentImageIndex(newIndex)
-    setSelectedImage(allImages[newIndex])
+    setSelectedImage(allImages[newIndex] ?? null)
   }
 
   if (loading) {
@@ -164,7 +171,7 @@ const FoodCheckin: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center">
             <div className="text-red-500 mb-4">⚠️ {error}</div>
-            <button 
+            <button
               onClick={fetchCheckins}
               className="px-4 py-2 bg-stone-200 text-stone-700 rounded-full hover:bg-stone-300 transition-colors"
             >
@@ -191,17 +198,16 @@ const FoodCheckin: React.FC = () => {
               <button
                 key={cuisine}
                 onClick={() => setFilter(cuisine)}
-                className={`px-4 py-2 rounded-full text-sm font-light transition-colors ${
-                  filter === cuisine
-                    ? 'bg-stone-800 text-white'
-                    : 'bg-white/60 text-stone-700 hover:bg-white/80 border border-white/20'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-light transition-colors ${filter === cuisine
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-white/60 text-stone-700 hover:bg-white/80 border border-white/20'
+                  }`}
               >
                 {cuisine === 'all' ? '全部' : cuisine}
               </button>
             ))}
           </div>
-          
+
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -221,21 +227,23 @@ const FoodCheckin: React.FC = () => {
               {checkin.images && checkin.images.length > 0 && (
                 <div className="space-y-3">
                   {/* 主图显示 - 使用压缩后的缩略图 */}
-                  <div 
+                  <div
                     className="aspect-video rounded-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => handleImageClick(checkin.images, 0)}
                   >
                     <img
-                      src={checkin.images[0].replace('/upload/', '/upload/w_400,h_300,c_fill/')}
+                      src={checkin.images[0]?.replace('/upload/', '/upload/w_400,h_300,c_fill/') ?? ''}
                       alt={checkin.restaurant_name || '餐厅图片'}
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.target.src = checkin.images[0]
+                        const target = e.target as HTMLImageElement
+                        const firstImg = checkin.images?.[0]
+                        if (firstImg) target.src = firstImg
                       }}
                     />
                   </div>
-                  
+
                   {/* 多张图片时的缩略图预览 */}
                   {checkin.images.length > 1 && (
                     <div className="grid grid-cols-4 gap-2">
@@ -251,7 +259,8 @@ const FoodCheckin: React.FC = () => {
                             className="w-full h-full object-cover"
                             loading="lazy"
                             onError={(e) => {
-                              e.target.src = img
+                              const target = e.target as HTMLImageElement
+                              target.src = img
                             }}
                           />
                         </div>
@@ -260,13 +269,13 @@ const FoodCheckin: React.FC = () => {
                   )}
                 </div>
               )}
-              
+
               <div className="space-y-3">
                 <div>
                   <h3 className="text-xl font-light text-stone-800">{checkin.restaurant_name || '未知餐厅'}</h3>
                   <p className="text-sm text-stone-600 font-light">{checkin.address || ''}</p>
                 </div>
-                
+
                 {/* 评分区域 */}
                 <div className="space-y-2 bg-stone-50/50 rounded-xl p-3">
                   <div className="flex items-center justify-between">
@@ -276,7 +285,7 @@ const FoodCheckin: React.FC = () => {
                     </div>
                     {renderStars(checkin.overall_rating)}
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Smile className="h-3.5 w-3.5 text-amber-400" />
@@ -284,7 +293,7 @@ const FoodCheckin: React.FC = () => {
                     </div>
                     {renderStars(checkin.taste_rating)}
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Coffee className="h-3.5 w-3.5 text-emerald-400" />
@@ -292,7 +301,7 @@ const FoodCheckin: React.FC = () => {
                     </div>
                     {renderStars(checkin.environment_rating)}
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Star className="h-3.5 w-3.5 text-violet-400" />
@@ -301,7 +310,7 @@ const FoodCheckin: React.FC = () => {
                     {renderStars(checkin.service_rating)}
                   </div>
                 </div>
-                
+
                 {checkin.cuisine && (
                   <div className="flex flex-wrap gap-2">
                     <span
@@ -311,25 +320,25 @@ const FoodCheckin: React.FC = () => {
                     </span>
                   </div>
                 )}
-                
+
                 {checkin.price_range && (
                   <div className="flex items-center text-sm text-stone-600 font-light">
                     <DollarSign className="h-4 w-4 mr-1" />
                     <span>{checkin.price_range}</span>
                   </div>
                 )}
-                
+
                 {checkin.recommended_dishes && (
                   <div className="mt-3">
                     <span className="text-sm font-medium text-stone-700">推荐菜品:</span>
                     <p className="text-sm text-stone-600 mt-1">
-                      {Array.isArray(checkin.recommended_dishes) 
-                        ? checkin.recommended_dishes.join('、') 
+                      {Array.isArray(checkin.recommended_dishes)
+                        ? checkin.recommended_dishes.join('、')
                         : checkin.recommended_dishes}
                     </p>
                   </div>
                 )}
-                
+
                 {checkin.description && (
                   <div className="mt-3">
                     <span className="text-sm font-medium text-stone-700">评价:</span>
@@ -338,7 +347,7 @@ const FoodCheckin: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 <div className="text-xs text-stone-500 font-light">
                   {new Date(checkin.date || '').toLocaleDateString('zh-CN')}
                 </div>
@@ -361,12 +370,12 @@ const FoodCheckin: React.FC = () => {
           </div>
         )}
       </div>
-      
+
       {/* 图片查看器模态框 - 放在组件最后，确保始终可用 */}
       <ImageModal
         isOpen={selectedImage !== null}
         onClose={closeImageModal}
-        imageUrl={selectedImage}
+        imageUrl={selectedImage ?? undefined}
         images={allImages}
         currentIndex={currentImageIndex}
         onPrevious={goToPreviousImage}

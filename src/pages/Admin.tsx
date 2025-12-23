@@ -1,13 +1,27 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Settings, Clock, Image, Utensils, CheckSquare, LogOut, Menu, X, Home } from 'lucide-react'
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import AdminLogin from './admin/AdminLogin'
-import AdminSettings from './admin/AdminSettings'
-import AdminTimeline from './admin/AdminTimeline'
-import AdminAlbums from './admin/AdminAlbums'
-import AdminFoodCheckin from './admin/AdminFoodCheckin'
-import AdminTodos from './admin/AdminTodos'
+
+// 懒加载 Admin 子页面组件 - 减小初始包大小
+const AdminSettings = lazy(() => import('./admin/AdminSettings'))
+const AdminTimeline = lazy(() => import('./admin/AdminTimeline'))
+const AdminAlbums = lazy(() => import('./admin/AdminAlbums'))
+const AdminFoodCheckin = lazy(() => import('./admin/AdminFoodCheckin'))
+const AdminTodos = lazy(() => import('./admin/AdminTodos'))
+
+// Admin 页面加载占位组件
+function AdminLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-stone-600 mx-auto mb-4"></div>
+        <p className="text-stone-500 text-sm">加载中...</p>
+      </div>
+    </div>
+  )
+}
 
 // 定义AdminSidebar组件的props接口
 interface AdminSidebarProps {
@@ -41,14 +55,16 @@ export default function Admin() {
 
       {/* 主要内容区域 */}
       <div className={`p-4 lg:p-8 pt-24 lg:pt-8 transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'} lg:ml-72`}>
-        <Routes>
-          <Route path="/" element={<AdminSettings />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="timeline" element={<AdminTimeline />} />
-          <Route path="albums" element={<AdminAlbums />} />
-          <Route path="food" element={<AdminFoodCheckin />} />
-          <Route path="todos" element={<AdminTodos />} />
-        </Routes>
+        <Suspense fallback={<AdminLoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<AdminSettings />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="timeline" element={<AdminTimeline />} />
+            <Route path="albums" element={<AdminAlbums />} />
+            <Route path="food" element={<AdminFoodCheckin />} />
+            <Route path="todos" element={<AdminTodos />} />
+          </Routes>
+        </Suspense>
       </div>
     </div>
   )
@@ -121,8 +137,8 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                   to={item.path}
                   onClick={onClose}
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
-                      ? 'bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-lg shadow-stone-300/30'
-                      : 'text-stone-600 hover:text-stone-800 hover:bg-stone-100/80'
+                    ? 'bg-gradient-to-r from-stone-800 to-stone-700 text-white shadow-lg shadow-stone-300/30'
+                    : 'text-stone-600 hover:text-stone-800 hover:bg-stone-100/80'
                     }`}
                 >
                   <Icon className={`h-5 w-5 mr-3 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-white' : 'text-stone-400 group-hover:text-stone-600'

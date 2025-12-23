@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react'
+import React from 'react'
 
 // Sentry错误监控配置
 export const initSentry = (): void => {

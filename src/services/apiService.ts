@@ -1,24 +1,50 @@
 import * as Sentry from "@sentry/react"
 import { API_BASE } from '../config/api'
 
-import { ApiResponse, Note, Todo, Album } from '../types'
+import { ApiResponse, Note, Todo, Album, TimelineEvent } from '../types'
 
 /**
  * 请求配置接口
  */
-interface RequestConfig extends RequestInit {
+interface RequestConfig extends Omit<RequestInit, 'signal'> {
     headers?: Record<string, string>
+    signal?: AbortSignal
+    timeout?: number // 超时时间（毫秒）
 }
 
 /**
  * 统一的API服务类
- * 提供统一的错误处理和请求封装
+ * 提供统一的错误处理、请求取消和超时处理
  */
 class ApiService {
     private baseURL: string
+    private defaultTimeout: number = 30000 // 默认30秒超时
 
     constructor() {
         this.baseURL = API_BASE
+    }
+
+    /**
+     * 创建带超时的 AbortController
+     */
+    private createTimeoutController(timeout: number, externalSignal?: AbortSignal): { controller: AbortController; cleanup: () => void } {
+        const controller = new AbortController()
+
+        // 超时自动取消
+        const timeoutId = setTimeout(() => {
+            controller.abort(new DOMException('Request timeout', 'TimeoutError'))
+        }, timeout)
+
+        // 如果传入外部 signal，当外部取消时也取消此请求
+        if (externalSignal) {
+            externalSignal.addEventListener('abort', () => {
+                controller.abort(externalSignal.reason)
+            })
+        }
+
+        const cleanup = () => clearTimeout(timeoutId)
+
+        return { controller, cleanup }
     }
 
     /**
@@ -26,12 +52,17 @@ class ApiService {
      */
     async request<T = unknown>(endpoint: string, options: RequestConfig = {}): Promise<ApiResponse<T>> {
         const url = `${this.baseURL}${endpoint}`
+        const timeout = options.timeout ?? this.defaultTimeout
+
+        // 创建超时控制器
+        const { controller, cleanup } = this.createTimeoutController(timeout, options.signal)
 
         // 获取Token
         const token = localStorage.getItem('token')
 
-        const config: RequestConfig = {
+        const config: RequestInit = {
             ...options,
+            signal: controller.signal,
             headers: {
                 'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -41,6 +72,7 @@ class ApiService {
 
         try {
             const response = await fetch(url, config)
+            cleanup() // 清理超时定时器
 
             if (response.status === 401) {
                 localStorage.removeItem('token')
@@ -94,6 +126,13 @@ class ApiService {
 
             return { data, error: null }
         } catch (error) {
+            cleanup() // 确保清理超时定时器
+
+            // 处理请求取消
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                return { data: null, error: 'Request cancelled' }
+            }
+
             // 捕获网络或其他运行时错误
             Sentry.captureException(error, {
                 extra: { url, endpoint }
@@ -223,7 +262,45 @@ export const albumsService = {
         return apiService.get<{ data: Album[] }>('/albums')
     },
 
+    async getById(id: string) {
+        return apiService.get<Album & { photos: { id: string; url: string; caption?: string }[] }>(`/albums/${id}`)
+    },
+
     async create(album: Omit<Album, 'id'>) {
         return apiService.post<Album>('/albums', album)
+    },
+
+    async update(id: string, album: Partial<Album>) {
+        return apiService.put<Album>(`/albums/${id}`, album)
+    },
+
+    async delete(id: string) {
+        return apiService.delete(`/albums/${id}`)
     }
+}
+
+export const timelineService = {
+    async getAll(page: number = 1, limit: number = 10) {
+        return apiService.get<{ data: TimelineEvent[]; pagination: { totalPages: number } }>(`/timeline?page=${page}&limit=${limit}`)
+    },
+
+    async create(event: Omit<TimelineEvent, 'id'>) {
+        return apiService.post<TimelineEvent>('/timeline', event)
+    },
+
+    async update(id: number | string, event: Partial<TimelineEvent>) {
+        return apiService.put<TimelineEvent>(`/timeline/${id}`, event)
+    },
+
+    async delete(id: number | string) {
+        return apiService.delete(`/timeline/${id}`)
+    }
+}
+
+/**
+ * 创建可取消的请求 Hook 辅助函数
+ * 用于 React 组件中管理请求生命周期
+ */
+export function createAbortController(): AbortController {
+    return new AbortController()
 }
