@@ -3,7 +3,10 @@
  */
 
 // 检查是否支持 Cloudflare Image Resizing
-const ENABLE_IMAGE_RESIZING = true; // 开启 Cloudflare Image Resizing，利用边缘处理能力
+const ENABLE_IMAGE_RESIZING = import.meta.env.PROD; // 仅在生产环境开启，避免本地 404
+
+// R2 资源基础域名 (从 r2Upload.ts 参考)
+const R2_BASE_URL = 'https://1eaf793b.baoandkai.pages.dev';
 
 interface ImageOptions {
     width?: number;
@@ -21,9 +24,12 @@ interface ImageOptions {
 export function getOptimizedImageUrl(url: string, options: ImageOptions = {}): string {
     if (!url) return '';
 
-    // 如果是本地开发环境或不支持 Image Resizing,直接返回原图
-    // 注意:这里简单判断是否为相对路径或非 http 开头来排除一些特殊情况
+    // 如果是开发环境或不支持 Image Resizing，直接返回
     if (!ENABLE_IMAGE_RESIZING || url.startsWith('data:') || url.startsWith('blob:')) {
+        // 如果是开发环境下的 R2 相对路径，仍需补全域名才能在本地预览
+        if (!url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+            return `${R2_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+        }
         return url;
     }
 
@@ -44,14 +50,15 @@ export function getOptimizedImageUrl(url: string, options: ImageOptions = {}): s
     // Cloudflare Image Resizing 格式: /cdn-cgi/image/<options>/<url>
     const paramString = params.join(',');
 
-    // 对于完整 URL,直接拼接
+    // 如果是完整 URL，CDN 会尝试抓取该地址
     if (url.startsWith('http://') || url.startsWith('https://')) {
         return `/cdn-cgi/image/${paramString}/${url}`;
     }
 
-    // 对于相对路径,需要确保以 / 开头
-    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-    return `/cdn-cgi/image/${paramString}${cleanUrl}`;
+    // 对于相对路径（R2 资源），需要补全为完整的 R2 URL
+    // 这样 Cloudflare Resizing 才知道去哪里拉取图片资源
+    const fullUrl = `${R2_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+    return `/cdn-cgi/image/${paramString}/${fullUrl}`;
 }
 
 /**
