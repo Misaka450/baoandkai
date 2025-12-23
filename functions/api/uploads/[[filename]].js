@@ -11,13 +11,16 @@ export async function onRequestGet(context) {
   const { env, params } = context;
 
   try {
-    const filename = params.filename;
+    // 处理 catch-all 参数可能为数组的情况（多级路径如 albums/xxx.jpg）
+    const filename = Array.isArray(params.filename)
+      ? params.filename.join('/')
+      : params.filename;
 
     if (!filename) {
       return new Response('未找到文件', { status: 404 });
     }
 
-    // 修复：使用正确的R2存储桶绑定名称
+    // 从 R2 存储桶中获取文件
     const object = await env.IMAGES.get(filename);
 
     if (!object) {
