@@ -109,12 +109,17 @@ export default function ImageModal({
   // 处理手势切换
   const handleTouchStart = (e: React.TouchEvent) => {
     if (scale > 1) return // 缩放时禁用滑动切换
-    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    const touch = e.touches[0]
+    if (touch) {
+      touchStart.current = { x: touch.clientX, y: touch.clientY }
+    }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (scale > 1) return
-    const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY }
+    const touch = e.changedTouches[0]
+    if (!touch) return
+    const touchEnd = { x: touch.clientX, y: touch.clientY }
     const deltaX = touchEnd.x - touchStart.current.x
     const deltaY = Math.abs(touchEnd.y - touchStart.current.y)
 
@@ -265,8 +270,8 @@ export default function ImageModal({
                   }
                 }}
                 className={`relative h-16 w-16 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 border-2 ${idx === currentIndex
-                    ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.4)] z-10'
-                    : 'border-transparent opacity-40 hover:opacity-100'
+                  ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.4)] z-10'
+                  : 'border-transparent opacity-40 hover:opacity-100'
                   }`}
               >
                 <img
