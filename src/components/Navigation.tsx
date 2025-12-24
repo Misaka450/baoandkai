@@ -70,7 +70,7 @@ export default function Navigation() {
       top: '1rem',
       left: '50%',
       transform: 'translateX(-50%)',
-      zIndex: 50,
+      zIndex: 100,
       transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
       backdropFilter: 'blur(16px)',
@@ -106,7 +106,7 @@ export default function Navigation() {
       top: '1rem',
       right: '1rem',
       transform: 'translateY(0)',
-      zIndex: 50,
+      zIndex: 100,
       transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
       backdropFilter: 'blur(16px)',
@@ -149,7 +149,7 @@ export default function Navigation() {
 
       {/* 移动端菜单 - 带淡入淡出动画 */}
       <div
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm transition-all duration-500 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm transition-all duration-500 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsMobileMenuOpen(false)}
       >
         <div
