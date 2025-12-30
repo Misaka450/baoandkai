@@ -73,12 +73,11 @@ export async function onRequestPost(context) {
     }
 
     // 查询数据库中的用户
-    // 允许使用多个用户名登录
     const user = await env.DB.prepare(`
       SELECT id, username, password_hash, email 
       FROM users 
-      WHERE username = ? OR username = ?
-    `).bind(username, 'admin').first();
+      WHERE username = ?
+    `).bind(username).first();
 
     if (!user) {
       console.error('用户不存在:', username);

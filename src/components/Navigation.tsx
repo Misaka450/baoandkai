@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Heart, Clock, Image, BookOpen, Utensils, CheckSquare, Settings, Menu, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 
 // 定义导航项接口
 interface NavItem {
@@ -63,8 +63,8 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, []) // 空依赖数组 - 事件监听器只创建一次
 
-  // 计算导航栏的透明度和位置 - 完美居中
-  const getNavStyles = (): React.CSSProperties => {
+  // 使用 useMemo 缓存导航栏样式计算
+  const navStyles = useMemo((): React.CSSProperties => {
     const baseStyles: React.CSSProperties = {
       position: 'fixed',
       top: '1rem',
@@ -97,10 +97,10 @@ export default function Navigation() {
         backdropFilter: 'blur(8px)'
       }
     }
-  }
+  }, [isVisible, scrollProgress])
 
-  // 计算汉堡按钮的透明度和位置
-  const getHamburgerStyles = (): React.CSSProperties => {
+  // 使用 useMemo 缓存汉堡按钮样式计算
+  const hamburgerStyles = useMemo((): React.CSSProperties => {
     const baseStyles: React.CSSProperties = {
       position: 'fixed',
       top: '1rem',
@@ -129,7 +129,7 @@ export default function Navigation() {
         opacity: 0
       }
     }
-  }
+  }, [isVisible])
 
   // 移动端汉堡菜单
   const MobileMenu = () => (
@@ -137,7 +137,7 @@ export default function Navigation() {
       {/* 汉堡按钮 */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        style={getHamburgerStyles()}
+        style={hamburgerStyles}
         className="md:hidden"
       >
         <div className="relative w-6 h-6">
@@ -185,7 +185,7 @@ export default function Navigation() {
 
   // 桌面端导航 - 完美居中
   const DesktopNav = () => (
-    <nav style={getNavStyles()} className="hidden md:block">
+    <nav style={navStyles} className="hidden md:block">
       <div className="flex items-center space-x-1">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href

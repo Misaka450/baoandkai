@@ -81,10 +81,42 @@ export function useLoveTimer(anniversaryDate: string | null): TimeTogether {
   useEffect(() => {
     if (!anniversaryDate) return
 
-    calculateTime()
-    const interval = setInterval(calculateTime, 1000)
+    let interval: ReturnType<typeof setInterval> | null = null
 
-    return () => clearInterval(interval)
+    const startTimer = () => {
+      if (interval) return
+      calculateTime()
+      interval = setInterval(calculateTime, 1000)
+    }
+
+    const stopTimer = () => {
+      if (interval) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    // 页面可见性变化处理
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        startTimer()
+      } else {
+        stopTimer()
+      }
+    }
+
+    // 初始启动
+    if (document.visibilityState === 'visible') {
+      startTimer()
+    }
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      stopTimer()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [anniversaryDate])
 
   return timeTogether

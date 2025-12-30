@@ -29,6 +29,8 @@ export default defineConfig({
         manualChunks: {
           // 代码分割
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query'],
+          sentry: ['@sentry/react', '@sentry/browser'],
           ui: ['lucide-react'],
           utils: ['date-fns'],
         },
