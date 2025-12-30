@@ -4,7 +4,7 @@ import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } f
 import { apiService } from '../services/apiService'
 import { Todo } from '../types'
 import ImageModal from '../components/ImageModal'
-import { debounce, formatDate, mapPriority, priorityColors, LoadingSpinner } from '../utils/common'
+import { formatDate, priorityColors, LoadingSpinner } from '../utils/common'
 import { getThumbnailUrl } from '../utils/imageUtils'
 
 // 类型已移动到 src/types/models.ts

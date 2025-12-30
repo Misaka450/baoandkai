@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, Grid, Play, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Image as ImageIcon } from 'lucide-react'
+import { Plus, Grid, X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
 import { Album, Photo } from '../types'
 import { formatDate, LoadingSpinner } from '../utils/common'

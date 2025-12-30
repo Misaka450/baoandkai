@@ -38,13 +38,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 检查本地存储中的登录状态
-    const token = localStorage.getItem('token')
-    if (token) {
-      // 验证token有效性
-      setUser({ token, role: 'admin' })
+    // 检查本地存储中的登录状态并验证 token
+    const validateToken = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        // 调用后端验证 token 有效性
+        const response = await fetch('/api/auth/check-token', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+
+        if (data.valid && data.user) {
+          setUser({
+            token,
+            username: data.user.username,
+            role: 'admin'
+          })
+        } else {
+          // Token 无效，清除本地存储
+          localStorage.removeItem('token')
+        }
+      } catch (error) {
+        console.error('Token 验证失败:', error)
+        // 网络错误时保留 token，允许继续使用
+        setUser({ token, role: 'admin' })
+      }
+
+      setLoading(false)
     }
-    setLoading(false)
+
+    validateToken()
   }, [])
 
   const login = async (username: string, password: string): Promise<any> => {
@@ -59,7 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       const data = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(data.error || '登录失败')
       }

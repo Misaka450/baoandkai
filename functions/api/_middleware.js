@@ -98,7 +98,8 @@ export async function onRequest(context) {
 
         } catch (err) {
             console.error('Middleware Auth Error:', err);
-            return errorResponse('服务器内部错误: ' + err.message, 500);
+            const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '认证失败';
+            return errorResponse('服务器内部错误: ' + errorMessage, 500);
         }
     }
 
@@ -115,6 +116,7 @@ export async function onRequest(context) {
         return newResponse;
     } catch (err) {
         console.error('Middleware Next Error:', err);
-        return errorResponse('服务器内部错误: ' + err.message, 500);
+        const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '请稍后重试';
+        return errorResponse('服务器内部错误: ' + errorMessage, 500);
     }
 }
