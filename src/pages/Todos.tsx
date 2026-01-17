@@ -275,7 +275,6 @@ export default function Todos() {
                                     key={index}
                                     className="relative group cursor-pointer"
                                     onClick={(e) => {
-                                      console.log('图片区域被点击:', photo);
                                       e.stopPropagation();
                                       setSelectedImage(photo);
                                     }}

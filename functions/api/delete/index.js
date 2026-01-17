@@ -23,8 +23,6 @@ export async function onRequestDelete(context) {
     // 删除文件
     await bucket.delete(filename);
 
-    console.log('R2文件删除成功:', filename);
-
     return jsonResponse({ success: true, message: '文件删除成功' });
   } catch (error) {
     console.error('R2文件删除失败:', error);

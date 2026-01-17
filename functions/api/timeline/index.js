@@ -48,19 +48,13 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    console.log('收到时间轴创建请求');
-
     const body = await request.json();
-    console.log('请求数据:', body);
-
     const { title, description, date, location, category, images = [] } = body;
 
     if (!title || !date) {
-      console.log('验证失败: 标题或日期为空');
       return errorResponse('标题和日期不能为空', 400);
     }
 
-    console.log('正在插入数据到数据库...');
 
     const result = await env.DB.prepare(`
         INSERT INTO timeline_events (title, description, date, location, category, images, created_at) 
@@ -74,8 +68,6 @@ export async function onRequestPost(context) {
     const newEvent = await env.DB.prepare(`
         SELECT * FROM timeline_events WHERE id = ?
       `).bind(eventId).first();
-
-    console.log('查询新记录成功:', newEvent);
 
     return jsonResponse({
       ...newEvent,

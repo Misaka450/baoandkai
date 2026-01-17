@@ -65,11 +65,19 @@ const AdminTodos: React.FC = () => {
   const fetchTodos = async (page = 1) => {
     try {
       setLoading(true);
-      const { data } = await apiService.get(`/todos?page=${page}&limit=${itemsPerPage}`);
-      setTodos(Array.isArray(data.data) ? data.data : []);
-      setTotalPages(data.totalPages || 1);
-      setTotalCount(data.totalCount || 0);
-      setCurrentPage(data.currentPage || 1);
+      interface TodosApiResponse {
+        data: Todo[];
+        totalPages: number;
+        totalCount: number;
+        currentPage: number;
+      }
+      const { data } = await apiService.get<TodosApiResponse>(`/todos?page=${page}&limit=${itemsPerPage}`);
+      if (data) {
+        setTodos(Array.isArray(data.data) ? data.data : []);
+        setTotalPages(data.totalPages || 1);
+        setTotalCount(data.totalCount || 0);
+        setCurrentPage(data.currentPage || 1);
+      }
       setError(null);
     } catch (err) {
       setError('获取待办事项失败');
@@ -90,12 +98,12 @@ const AdminTodos: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
       await showAlert('提示', '请输入待办事项标题', 'warning');
       return;
     }
-    
+
     // 映射管理员字段到数据库字段
     const todoData: Partial<Todo> = {
       title: formData.title,
@@ -142,28 +150,24 @@ const AdminTodos: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    console.log('开始删除待办事项，ID:', id);
-    
     // 找到对应的待办事项标题，用于更友好的提示
     const todoToDelete = todos.find(todo => todo.id === id);
     const todoTitle = todoToDelete?.title || '这个待办事项';
-    
+
     const confirmed = await showConfirm(
-      '⚠️ 确认删除', 
+      '⚠️ 确认删除',
       `确定要删除 "${todoTitle}" 吗？此操作不可恢复！`,
       '删除'
     );
     if (!confirmed) return;
 
     try {
-      console.log('用户确认删除，正在调用API...');
-      const response = await apiService.delete(`/todos/${id}`);
-      console.log('删除API响应:', response);
-      
+      await apiService.delete(`/todos/${id}`);
+
       // 如果删除的是最后一页的最后一条，跳转到上一页
       const newCurrentPage = todos.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
       await fetchTodos(newCurrentPage);
-      
+
       await showAlert('✅ 删除成功', '待办事项删除成功！', 'success');
     } catch (error) {
       console.error('删除失败:', error);
@@ -245,24 +249,22 @@ const AdminTodos: React.FC = () => {
                   <p className="text-gray-600 text-sm mb-3">{todo.description}</p>
                 )}
                 <div className="flex items-center space-x-4 text-sm">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    todo.status === 'completed' 
-                      ? 'bg-green-100 text-green-800' 
-                      : todo.status === 'pending'
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${todo.status === 'completed'
+                    ? 'bg-green-100 text-green-800'
+                    : todo.status === 'pending'
                       ? 'bg-yellow-100 text-yellow-800'
                       : todo.status === 'cancelled'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
                   </span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    todo.priority >= 3 
-                      ? 'bg-red-100 text-red-800' 
-                      : todo.priority >= 2
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${todo.priority >= 3
+                    ? 'bg-red-100 text-red-800'
+                    : todo.priority >= 2
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-green-100 text-green-800'
-                  }`}>
+                    }`}>
                     {todo.priority >= 3 ? '高优先级' : todo.priority >= 2 ? '中优先级' : '低优先级'}
                   </span>
                   <span className="text-gray-500">
@@ -300,7 +302,7 @@ const AdminTodos: React.FC = () => {
           >
             上一页
           </button>
-          
+
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             let pageNum;
             if (totalPages <= 5) {
@@ -312,22 +314,21 @@ const AdminTodos: React.FC = () => {
             } else {
               pageNum = currentPage - 2 + i;
             }
-            
+
             return (
               <button
                 key={pageNum}
                 onClick={() => setCurrentPage(pageNum)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  currentPage === pageNum
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 {pageNum}
               </button>
             );
           })}
-          
+
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
@@ -356,7 +357,7 @@ const AdminTodos: React.FC = () => {
                 </svg>
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">标题 *</label>
@@ -379,7 +380,7 @@ const AdminTodos: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
                   placeholder="详细描述这个待办事项的内容和要求..."
-                  rows="3"
+                  rows={3}
                 />
               </div>
 
@@ -449,7 +450,7 @@ const AdminTodos: React.FC = () => {
                       onChange={(e) => setCompletionData(prev => ({ ...prev, notes: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
                       placeholder="分享完成这个待办的心得体会和经验..."
-                      rows="2"
+                      rows={2}
                     />
                   </div>
 
@@ -508,7 +509,7 @@ const AdminTodos: React.FC = () => {
         title={modalState.title}
         message={modalState.message}
         type={modalState.type}
-        onConfirm={modalState.onConfirm}
+        onConfirm={modalState.onConfirm ?? undefined}
         showCancel={modalState.showCancel}
         confirmText={modalState.confirmText}
       />
