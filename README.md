@@ -42,7 +42,7 @@
 3. **本地开发**
    ```bash
    npm run dev
-   # 访问 http://localhost:5173
+   # 访问 http://localhost:3000
    ```
 
 ### 🚀 生产部署
@@ -81,16 +81,24 @@ wrangler pages deploy dist
 
 #### 创建D1数据库
 ```bash
-# 创建数据库
-wrangler d1 create baoandkai-db
+# 创建数据库（名称可自定义）
+wrangler d1 create oursql
 
 # 获取数据库ID，填入wrangler.toml
 ```
 
 #### 创建R2存储桶
 ```bash
-# 创建存储桶
-wrangler r2 bucket create baoandkai-images
+# 创建存储桶（名称可自定义）
+wrangler r2 bucket create our
+```
+
+#### 创建KV命名空间（用于Token缓存）
+```bash
+# 创建KV命名空间
+wrangler kv:namespace create "KV"
+
+# 获取命名空间ID，填入wrangler.toml
 ```
 
 ### 2. 配置文件设置
@@ -104,15 +112,20 @@ pages_build_output_dir = "dist"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "baoandkai-db"  # 替换为你的数据库名
+database_name = "oursql"  # 替换为你的数据库名
 database_id = "your-database-id"  # 替换为你的数据库ID
 
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-namespace-id"  # 替换为你的KV命名空间ID
+
 [[r2_buckets]]
-binding = "ouralbum"
-bucket_name = "baoandkai-images"  # 替换为你的存储桶名
+binding = "IMAGES"
+bucket_name = "our"  # 替换为你的存储桶名
 
 [vars]
 ENVIRONMENT = "production"
+# ALLOWED_ORIGINS = "https://your-domain.com"  # 生产环境建议设置
 ```
 
 ### 3. 数据库初始化
@@ -123,10 +136,10 @@ ENVIRONMENT = "production"
 #### 手动初始化
 ```bash
 # 本地测试数据库
-wrangler d1 execute baoandkai-db --local --file=./migrations/init.sql
+wrangler d1 execute oursql --local --file=./migrations/complete_setup.sql
 
-# 生产数据库
-wrangler d1 execute baoandkai-db --file=./migrations/init.sql
+# 生产数据库（使用 --remote 标志）
+wrangler d1 execute oursql --remote --file=./migrations/complete_setup.sql
 ```
 
 #### 更新管理员密码

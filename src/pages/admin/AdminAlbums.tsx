@@ -90,8 +90,6 @@ const AdminAlbums: React.FC = () => {
     }
 
     try {
-      console.log('提交相册数据:', albumData)
-
       if (editingAlbum) {
         await apiService.put(`/albums/${editingAlbum.id}`, albumData)
       } else {
@@ -174,7 +172,9 @@ const AdminAlbums: React.FC = () => {
     setSelectedImages(prev => prev.filter(i => i !== index))
 
     // 调用删除API从R2中删除图片
-    deleteImageFromR2(imageUrl)
+    if (imageUrl) {
+      deleteImageFromR2(imageUrl)
+    }
   }
 
   const deleteImageFromR2 = async (imageUrl: string) => {
@@ -184,27 +184,23 @@ const AdminAlbums: React.FC = () => {
 
       // 处理 https://baoandkai.pages.dev/uploads/filename.jpg 格式
       if (imageUrl.includes('/uploads/')) {
-        filename = imageUrl.split('/uploads/')[1]
+        filename = imageUrl.split('/uploads/')[1] || ''
       }
       // 处理 https://pub-xxx.r2.dev/filename.jpg 格式
       else if (imageUrl.includes('r2.dev/')) {
-        filename = imageUrl.split('r2.dev/')[1]
+        filename = imageUrl.split('r2.dev/')[1] || ''
       }
       // 处理其他格式
       else {
         const urlParts = imageUrl.split('/')
-        filename = urlParts[urlParts.length - 1]
+        filename = urlParts[urlParts.length - 1] || ''
       }
 
       if (filename) {
-        console.log('准备删除R2图片:', filename)
-
         // 修改为使用 post 或其他方式，如果 apiService.delete 不支持 body
         const { error } = await apiService.post('/delete', { filename })
 
-        if (!error) {
-          console.log('图片已从R2删除:', filename)
-        } else {
+        if (error) {
           console.error('删除R2图片失败:', error)
         }
       }
@@ -226,6 +222,8 @@ const AdminAlbums: React.FC = () => {
     if (draggedIndex === null || draggedIndex === dropIndex) return
 
     const draggedImage = formData.images[draggedIndex]
+    if (!draggedImage) return
+
     const newImages = [...formData.images]
     newImages.splice(draggedIndex, 1)
     newImages.splice(dropIndex, 0, draggedImage)
@@ -257,7 +255,9 @@ const AdminAlbums: React.FC = () => {
     setShowBatchActions(false)
 
     // 批量删除R2中的图片
-    imagesToDelete.forEach(deleteImageFromR2)
+    imagesToDelete.forEach(url => {
+      if (url) deleteImageFromR2(url)
+    })
   }
 
   return (
@@ -543,7 +543,7 @@ const AdminAlbums: React.FC = () => {
         title={modalState.title}
         message={modalState.message}
         type={modalState.type}
-        onConfirm={modalState.onConfirm}
+        onConfirm={modalState.onConfirm ?? undefined}
         showCancel={modalState.showCancel}
         confirmText={modalState.confirmText}
       />

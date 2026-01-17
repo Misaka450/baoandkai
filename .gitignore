@@ -101,3 +101,7 @@ temp/
 # Cloudflare
 .wrangler/
 .dev.vars
+
+# Temporary debug files
+tsc_errors.txt
+*.log
