@@ -79,7 +79,10 @@ export default function StickyNotes() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {notes.map((note, idx) => {
-        const style = colorMap[note.color] || colorMap.pink!
+        // 按索引轮换颜色，确保五颜六色
+        const colorKeys = Object.keys(colorMap)
+        const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
+        const style = colorMap[colorKey]!
         return (
           <div key={note.id} className={`${style.bg} p-8 rounded-[2.5rem] border ${style.border} flex flex-col justify-between hover:rotate-1 transition-transform cursor-default group`}>
             <p className={`${style.text} text-lg leading-relaxed mb-8 italic`}>“{note.content}”</p>

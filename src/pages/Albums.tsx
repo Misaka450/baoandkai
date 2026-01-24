@@ -74,7 +74,7 @@ export default function Albums() {
   if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">开启回忆相框...</div>
 
   return (
-    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
+    <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="max-w-6xl mx-auto px-4 pb-20 pt-32">
         <header className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">我们的时光画册</h1>
