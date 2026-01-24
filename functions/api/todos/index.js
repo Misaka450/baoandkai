@@ -18,15 +18,20 @@ export async function onRequestGet(context) {
     `).first();
     const total = countResult.total;
 
-    // 获取分页数据
     const todos = await env.DB.prepare(`
       SELECT * FROM todos 
       ORDER BY created_at DESC 
       LIMIT ? OFFSET ?
     `).bind(limit, offset).all();
 
+    const formattedTodos = todos.results.map(todo => ({
+      ...todo,
+      images: todo.images ? JSON.parse(todo.images) : [],
+      completion_photos: todo.completion_photos ? JSON.parse(todo.completion_photos) : []
+    }));
+
     return jsonResponse({
-      data: todos.results,
+      data: formattedTodos,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalCount: total,
@@ -43,15 +48,15 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.json();
-    const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
+    const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
     if (!title) {
       return errorResponse('标题不能为空', 400);
     }
 
     const result = await env.DB.prepare(`
-      INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, images, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
       title,
       description || '',
@@ -60,7 +65,8 @@ export async function onRequestPost(context) {
       category || 'general',
       due_date || null,
       completion_notes || null,
-      completion_photos ? JSON.stringify(completion_photos) : null
+      completion_photos ? JSON.stringify(completion_photos) : null,
+      images ? JSON.stringify(images) : null
     ).run();
 
     const todoId = result.meta.last_row_id;
@@ -68,7 +74,11 @@ export async function onRequestPost(context) {
       SELECT * FROM todos WHERE id = ?
     `).bind(todoId).first();
 
-    return jsonResponse(newTodo);
+    return jsonResponse({
+      ...newTodo,
+      images: newTodo.images ? JSON.parse(newTodo.images) : [],
+      completion_photos: newTodo.completion_photos ? JSON.parse(newTodo.completion_photos) : []
+    });
   } catch (error) {
     return errorResponse(error.message, 500);
   }

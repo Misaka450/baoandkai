@@ -1,521 +1,186 @@
-import React, { useState, useEffect } from 'react'
-import { Plus, X, Trash2, Edit2, Star, MapPin, Utensils } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { apiService } from '../../services/apiService'
-import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
+import Icon from '../../components/icons/Icons'
 
-// 定义美食打卡接口
 interface FoodCheckin {
-  id: string;
-  restaurant_name: string;
-  description?: string;
-  date: string;
-  address?: string;
-  cuisine?: string;
-  price_range?: string;
-  overall_rating: number;
-  taste_rating: number;
-  environment_rating: number;
-  service_rating: number;
-  recommended_dishes?: string;
-  images: string[];
-  recommended?: boolean;
+    id: number
+    restaurant_name: string
+    description: string
+    date: string
+    address: string
+    cuisine: string
+    price_range: string
+    overall_rating: number
+    recommended_dishes: string[]
+    images: string[]
 }
 
-// 定义表单数据接口
 interface FormData {
-  restaurant_name: string;
-  description: string;
-  date: string;
-  address: string;
-  cuisine: string;
-  price_range: string;
-  overall_rating: number;
-  taste_rating: number;
-  environment_rating: number;
-  service_rating: number;
-  recommended_dishes: string;
-  images: string[];
+    restaurant_name: string
+    description: string
+    date: string
+    address: string
+    cuisine: string
+    price_range: string
+    overall_rating: number
+    recommended_dishes: string
+    images: string[]
 }
 
-const AdminFoodCheckin: React.FC = () => {
-  const [checkins, setCheckins] = useState<FoodCheckin[]>([])
-  const [showForm, setShowForm] = useState(false)
-  const [editingCheckin, setEditingCheckin] = useState<FoodCheckin | null>(null)
-  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
-  const [formData, setFormData] = useState<FormData>({
-    restaurant_name: '',
-    description: '',
-    date: '',
-    address: '',
-    cuisine: '',
-    price_range: '',
-    overall_rating: 5,
-    taste_rating: 5,
-    environment_rating: 5,
-    service_rating: 5,
-    recommended_dishes: '',
-    images: []
-  })
+const cuisines = ['中餐', '日料', '韩餐', '西餐', '泰餐', '火锅', '烧烤', '甜品', '其他']
+const priceRanges = ['¥', '¥¥', '¥¥¥', '¥¥¥¥']
 
-  const cuisines = ['中餐', '西餐', '日料', '韩料', '火锅', '烧烤', '烤肉', '甜品', '其他']
-
-  useEffect(() => {
-    fetchCheckins()
-  }, [])
-
-  const fetchCheckins = async () => {
-    try {
-      const { data } = await apiService.get('/food')
-      const checkinsData = data?.data || data || [];
-      setCheckins(Array.isArray(checkinsData) ? checkinsData : []);
-    } catch (error) {
-      console.error('获取美食打卡失败:', error)
-      setCheckins([])
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.restaurant_name.trim()) {
-      await showAlert('提示', '请输入餐厅名称', 'warning')
-      return
-    }
-
-    if (!formData.date) {
-      await showAlert('提示', '请选择日期', 'warning')
-      return
-    }
-
-    const checkinData = {
-      restaurant_name: formData.restaurant_name.trim(),
-      description: formData.description?.trim() || '',
-      date: formData.date,
-      address: formData.address?.trim() || '',
-      cuisine: formData.cuisine,
-      price_range: formData.price_range?.trim() || '',
-      overall_rating: Number(formData.overall_rating),
-      taste_rating: Number(formData.taste_rating),
-      environment_rating: Number(formData.environment_rating),
-      service_rating: Number(formData.service_rating),
-      recommended_dishes: formData.recommended_dishes?.trim() || '',
-      images: formData.images
-    }
-
-    try {
-      if (editingCheckin) {
-        await apiService.put(`/food/${editingCheckin.id}`, checkinData)
-      } else {
-        await apiService.post('/food', checkinData)
-      }
-
-      setShowForm(false)
-      setEditingCheckin(null)
-      resetForm()
-      fetchCheckins()
-
-      await showAlert('成功', '美食打卡保存成功！', 'success')
-    } catch (error) {
-      console.error('保存美食打卡失败:', error)
-      await showAlert('错误', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error')
-    }
-  }
-
-  const resetForm = () => {
-    setFormData({
-      restaurant_name: '',
-      description: '',
-      date: '',
-      address: '',
-      cuisine: '',
-      price_range: '',
-      overall_rating: 5,
-      taste_rating: 5,
-      environment_rating: 5,
-      service_rating: 5,
-      recommended_dishes: '',
-      images: []
+const AdminFoodCheckin = () => {
+    const [checkins, setCheckins] = useState<FoodCheckin[]>([])
+    const [loading, setLoading] = useState(true)
+    const [showForm, setShowForm] = useState(false)
+    const [editingId, setEditingId] = useState<number | null>(null)
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [formData, setFormData] = useState<FormData>({
+        restaurant_name: '', description: '', date: '', address: '',
+        cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: []
     })
-  }
+    const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
-  const handleDelete = async (id: string) => {
-    const confirmed = await showConfirm('确认删除', '确定要删除这条美食打卡吗？此操作不可恢复！', '删除')
-    if (!confirmed) return
+    useEffect(() => { loadCheckins() }, [])
 
-    try {
-      await apiService.delete(`/food/${id}`)
-      fetchCheckins()
-    } catch (error) {
-      console.error('删除美食打卡失败:', error)
+    const loadCheckins = async () => {
+        try {
+            const { data, error } = await apiService.get<{ data: FoodCheckin[] }>('/food?limit=100')
+            if (error) throw new Error(error)
+            setCheckins(data?.data || [])
+        } catch (e) { console.error(e) } finally { setLoading(false) }
     }
-  }
 
-  const handleEdit = (checkin: FoodCheckin) => {
-    setEditingCheckin(checkin)
-    setFormData({
-      restaurant_name: checkin.restaurant_name || '',
-      description: checkin.description || '',
-      date: checkin.date || '',
-      address: checkin.address || '',
-      cuisine: checkin.cuisine || '',
-      price_range: checkin.price_range || '',
-      overall_rating: checkin.overall_rating || 5,
-      taste_rating: checkin.taste_rating || 5,
-      environment_rating: checkin.environment_rating || 5,
-      service_rating: checkin.service_rating || 5,
-      recommended_dishes: checkin.recommended_dishes || '',
-      images: checkin.images || []
-    })
-    setShowForm(true)
-  }
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.length) return
+        setUploading(true)
+        const newImages: string[] = []
+        for (const file of Array.from(e.target.files)) {
+            try {
+                const fd = new FormData()
+                fd.append('file', file)
+                const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
+                if (error) throw new Error(error)
+                if (data?.url) newImages.push(data.url)
+            } catch (err) { console.error(err) }
+        }
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
+        setUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
 
-  const handleImagesUploaded = (urls: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...urls]
-    }))
-  }
+    const removeImage = (index: number) => {
+        setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+    }
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
-  }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            const payload = { ...formData, recommended_dishes: formData.recommended_dishes.split('，').map(d => d.trim()).filter(Boolean) }
+            if (editingId) {
+                const { error } = await apiService.put(`/food/${editingId}`, payload)
+                if (error) throw new Error(error)
+                await showAlert('成功', '美食打卡已更新！', 'success')
+            } else {
+                const { error } = await apiService.post('/food', payload)
+                if (error) throw new Error(error)
+                await showAlert('成功', '美食打卡已创建！', 'success')
+            }
+            resetForm(); loadCheckins()
+        } catch { await showAlert('错误', '保存失败', 'error') }
+    }
 
-  const renderStars = (rating: number, onRate?: (rating: number) => void) => {
+    const handleEdit = (c: FoodCheckin) => {
+        setEditingId(c.id)
+        setFormData({ restaurant_name: c.restaurant_name, description: c.description, date: c.date, address: c.address, cuisine: c.cuisine, price_range: c.price_range, overall_rating: c.overall_rating, recommended_dishes: c.recommended_dishes?.join('，') || '', images: c.images || [] })
+        setShowForm(true)
+    }
+
+    const handleDelete = async (id: number) => {
+        if (!await showConfirm('删除打卡', '确定要删除这个美食打卡吗？')) return
+        try {
+            const { error } = await apiService.delete(`/food/${id}`)
+            if (error) throw new Error(error)
+            await showAlert('成功', '已删除！', 'success'); loadCheckins()
+        } catch { await showAlert('错误', '删除失败', 'error') }
+    }
+
+    const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ restaurant_name: '', description: '', date: '', address: '', cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: [] }) }
+
+    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+
     return (
-      <div className="flex space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onRate?.(star)}
-            className="focus:outline-none"
-          >
-            <Star
-              className={`h-5 w-5 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                }`}
-            />
-          </button>
-        ))}
-      </div>
-    )
-  }
-
-  const getCategoryColor = (cuisine: string) => {
-    const colors = {
-      '中餐': 'bg-red-100 text-red-800',
-      '西餐': 'bg-blue-100 text-blue-800',
-      '日料': 'bg-pink-100 text-pink-800',
-      '韩料': 'bg-purple-100 text-purple-800',
-      '火锅': 'bg-red-300 text-red-900',
-      '烧烤': 'bg-orange-200 text-orange-900',
-      '烤肉': 'bg-red-200 text-red-900',
-      '甜品': 'bg-yellow-100 text-yellow-800',
-      '其他': 'bg-gray-100 text-gray-800'
-    }
-    return colors[cuisine] || 'bg-gray-100 text-gray-800'
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">美食打卡管理</h1>
-        <button
-          onClick={() => {
-            resetForm()
-            setEditingCheckin(null)
-            setShowForm(true)
-          }}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          添加美食
-        </button>
-      </div>
-
-      {/* 弹窗编辑模式 - 页面中央弹出 */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-light text-gray-800">
-                {editingCheckin ? '编辑美食打卡' : '添加美食打卡'}
-              </h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false)
-                  setEditingCheckin(null)
-                  resetForm()
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">餐厅名称 *</label>
-                  <input
-                    type="text"
-                    value={formData.restaurant_name}
-                    onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                    placeholder="请输入餐厅名称"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">打卡日期 *</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">菜系分类</label>
-                  <select
-                    value={formData.cuisine}
-                    onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                  >
-                    <option value="">选择菜系</option>
-                    {cuisines.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">价格区间</label>
-                   <input
-                    type="text"
-                    value={formData.price_range}
-                    onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                    placeholder="如：人均100-200"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">餐厅地址</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                    placeholder="请输入餐厅地址"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">美食体验描述</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
-                  rows="4"
-                  placeholder="分享你的美食体验、环境氛围、服务感受..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">评分</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">综合评分</label>
-                    {renderStars(formData.overall_rating, (rating) => setFormData({ ...formData, overall_rating: rating }))}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">口味评分</label>
-                    {renderStars(formData.taste_rating, (rating) => setFormData({ ...formData, taste_rating: rating }))}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">环境评分</label>
-                    {renderStars(formData.environment_rating, (rating) => setFormData({ ...formData, environment_rating: rating }))}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">服务评分</label>
-                    {renderStars(formData.service_rating, (rating) => setFormData({ ...formData, service_rating: rating }))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">美食图片</label>
-                <ImageUploader
-                  onImagesUploaded={handleImagesUploaded}
-                  existingImages={[]}
-                  onRemoveImage={() => { }}
-                  folder="food"
-                  maxImages={9}
-                />
-
-                {formData.images.length > 0 && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                      {formData.images.map((url, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`美食图片 ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
+        <div className="animate-fade-in text-slate-700">
+            <header className="flex items-center justify-between mb-8">
+                <div><h1 className="text-2xl font-bold text-slate-800 mb-1">美食打卡</h1><p className="text-sm text-slate-400">记录我们的美食探店</p></div>
+                <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Icon name="add" size={20} />新增打卡</button>
+            </header>
+            {showForm && (
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
+                    <h2 className="text-lg font-bold mb-6 text-slate-800">{editingId ? '编辑打卡' : '新增打卡'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" placeholder="餐厅名称" value={formData.restaurant_name} onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
+                            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">推荐菜品</label>
-                <input
-                  type="text"
-                  value={formData.recommended_dishes}
-                  onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                  placeholder="请输入推荐菜品，多个用逗号分隔"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false)
-                    setEditingCheckin(null)
-                    resetForm()
-                  }}
-                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 font-medium shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30"
-                >
-                  {editingCheckin ? '更新美食' : '添加美食'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 美食打卡列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {checkins.map(checkin => (
-          <div key={checkin.id} className="glass-card overflow-hidden">
-            <div className="aspect-w-16 aspect-h-9 bg-gray-100">
-              {checkin.images?.[0] ? (
-                <img
-                  src={checkin.images[0]}
-                  alt={checkin.restaurant_name}
-                  className="w-full h-48 object-cover"
-                />
-              ) : (
-                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-r from-orange-100 to-red-100">
-                  <Utensils className="h-12 w-12 text-gray-400" />
+                        <input type="text" placeholder="地址" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <select value={formData.cuisine} onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{cuisines.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                            <select value={formData.price_range} onChange={(e) => setFormData({ ...formData, price_range: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{priceRanges.map(p => <option key={p} value={p}>{p}</option>)}</select>
+                            <div className="flex items-center gap-2"><span className="text-sm text-slate-500">评分：</span>{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" onClick={() => setFormData({ ...formData, overall_rating: n })} className={`text-xl ${n <= formData.overall_rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</button>)}</div>
+                        </div>
+                        <textarea placeholder="用餐体验" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
+                        <input type="text" placeholder="推荐菜品（用中文逗号分隔）" value={formData.recommended_dishes} onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-600">美食照片</label>
+                            <div className="flex flex-wrap gap-3">
+                                {formData.images.map((img, i) => (
+                                    <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden group">
+                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
+                                    </div>
+                                ))}
+                                <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                    {uploading ? <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={24} className="text-slate-400" /><span className="text-xs text-slate-400 mt-1">上传</span></>}
+                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button type="submit" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">{editingId ? '更新' : '创建'}</button>
+                            <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                        </div>
+                    </form>
                 </div>
-              )}
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {checkins.length === 0 ? <div className="col-span-full text-center py-12 text-slate-400"><Icon name="restaurant" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有美食打卡，记录第一次探店吧！</p></div> : checkins.map((c) => (
+                    <div key={c.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="flex items-start justify-between mb-3">
+                            <div><h3 className="font-bold text-slate-800">{c.restaurant_name}</h3><p className="text-xs text-slate-400">{c.date} · {c.cuisine} · {c.price_range}</p></div>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleEdit(c)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"><Icon name="edit" size={18} /></button>
+                                <button onClick={() => handleDelete(c.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Icon name="delete" size={18} /></button>
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-500 mb-3">{c.description}</p>
+                        {c.images && c.images.length > 0 && (
+                            <div className="flex gap-2 mb-3">{c.images.slice(0, 3).map((img, i) => <img key={i} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />)}{c.images.length > 3 && <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-sm text-slate-500">+{c.images.length - 3}</div>}</div>
+                        )}
+                        <div className="flex items-center gap-4">
+                            <div className="text-yellow-400">{'★'.repeat(c.overall_rating)}{'☆'.repeat(5 - c.overall_rating)}</div>
+                            {c.address && <span className="text-xs text-slate-400 flex items-center gap-1"><Icon name="location_on" size={14} />{c.address}</span>}
+                        </div>
+                    </div>
+                ))}
             </div>
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg">{checkin.restaurant_name}</h3>
-                {checkin.recommended && (
-                  <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                    推荐
-                  </span>
-                )}
-              </div>
-
-              {checkin.description && (
-                <p className="text-gray-600 text-sm mb-2">{checkin.description}</p>
-              )}
-
-              {checkin.cuisine && (
-                <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${getCategoryColor(checkin.cuisine)}`}>
-                  {checkin.cuisine}
-                </span>
-              )}
-
-              <div className="flex items-center mb-2">
-                {renderStars(checkin.overall_rating, () => { })}
-                <span className="ml-2 text-sm text-gray-600">{checkin.overall_rating}分</span>
-              </div>
-
-              {checkin.price_range && (
-                <p className="text-sm text-gray-500 mb-2">{checkin.price_range}</p>
-              )}
-
-              <div className="flex space-x-2 mt-3">
-                <button
-                  onClick={() => handleEdit(checkin)}
-                  className="flex items-center px-3 py-1 text-sm bg-blue-500 text-white rounded"
-                >
-                  <Edit2 className="h-3 w-3 mr-1" />
-                  编辑
-                </button>
-                <button
-                  onClick={() => handleDelete(checkin.id)}
-                  className="flex items-center px-3 py-1 text-sm bg-red-500 text-white rounded"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  删除
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {checkins.length === 0 && (
-        <div className="text-center py-12">
-          <Utensils className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">暂无美食打卡，点击右上角添加第一个美食吧！</p>
+            <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>
-      )}
-
-      <AdminModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        onConfirm={modalState.onConfirm}
-        showCancel={modalState.showCancel}
-        confirmText={modalState.confirmText}
-      />
-    </div>
-  )
+    )
 }
 
 export default AdminFoodCheckin

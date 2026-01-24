@@ -1,195 +1,179 @@
 import { useState, useEffect } from 'react'
 import { apiService } from '../../services/apiService'
-import { Heart, Calendar, User, Save, Loader2, CheckCircle } from 'lucide-react'
-import { LoadingSpinner } from '../../utils/common'
+import AdminModal from '../../components/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
+import Icon from '../../components/icons/Icons'
 
-// 定义配置接口
 interface SiteConfig {
-  coupleName1: string;
-  coupleName2: string;
-  anniversaryDate: string;
+    coupleName1: string
+    coupleName2: string
+    anniversaryDate: string
 }
 
-const AdminSettings: React.FC = () => {
-  const [config, setConfig] = useState<SiteConfig>({
-    coupleName1: '包包',
-    coupleName2: '恺恺',
-    anniversaryDate: '2023-10-08'
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+const AdminSettings = () => {
+    const [config, setConfig] = useState<SiteConfig>({
+        coupleName1: '',
+        coupleName2: '',
+        anniversaryDate: ''
+    })
+    const [saving, setSaving] = useState(false)
+    const { modalState, showAlert, closeModal } = useAdminModal()
 
-  useEffect(() => {
-    loadConfig();
-  }, []);
+    useEffect(() => {
+        loadConfig()
+    }, [])
 
-  const loadConfig = async () => {
-    try {
-      const { data, error } = await apiService.get<SiteConfig>('/config');
-      if (error) {
-        throw new Error(error);
-      }
-      if (data) {
-        setConfig({
-          coupleName1: data.coupleName1 || '包包',
-          coupleName2: data.coupleName2 || '恺恺',
-          anniversaryDate: data.anniversaryDate || '2023-10-08'
-        });
-      }
-    } catch (error) {
-      console.error('加载配置失败:', error);
-    } finally {
-      setLoading(false);
+    const loadConfig = async () => {
+        try {
+            const { data, error } = await apiService.get<SiteConfig>('/config')
+            if (error) throw new Error(error)
+            if (data) setConfig(data)
+        } catch (error) {
+            console.error('加载配置失败:', error)
+        }
     }
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setMessage('');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setSaving(true)
 
-    try {
-      const { error } = await apiService.put('/config', config);
-      if (error) {
-        throw new Error(error);
-      }
-      setMessage('配置保存成功！首页将显示新的设置');
-      setMessageType('success');
-    } catch (error) {
-      console.error('保存配置失败:', error);
-      setMessage('保存失败，请稍后重试');
-      setMessageType('error');
-    } finally {
-      setSaving(false);
-      // 3秒后清除消息
-      setTimeout(() => setMessage(''), 3000);
+        try {
+            const { error } = await apiService.put('/config', config)
+            if (error) throw new Error(error)
+            await showAlert('成功', '设置已保存，我们的小窝又更新啦！', 'success')
+        } catch (error) {
+            await showAlert('错误', '保存设置时遇到了一点小问题', 'error')
+        } finally {
+            setSaving(false)
+        }
     }
-  };
 
-  if (loading) {
+    const daysCount = config.anniversaryDate
+        ? Math.floor((new Date().getTime() - new Date(config.anniversaryDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="正在加载配置..." />
-      </div>
-    )
-  }
+        <div className="animate-fade-in text-slate-700">
+            <header className="mb-10">
+                <h1 className="text-2xl font-bold text-slate-800 mb-1">小窝设置</h1>
+                <p className="text-sm text-slate-400">管理我们的个人信息和小窝配置</p>
+            </header>
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      {/* 页面标题 */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl mb-4 shadow-lg">
-          <Heart className="w-8 h-8 text-rose-500" />
-        </div>
-        <h1 className="text-2xl font-semibold text-stone-800 mb-2">首页配置</h1>
-        <p className="text-stone-600 text-sm">设置首页显示的情侣名称和纪念日</p>
-      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
+                            <Icon name="favorite" size={20} className="text-primary" />
+                            基本信息
+                        </h2>
 
-      <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-stone-100">
-        <div className="space-y-6">
-          {/* 情侣名称区域 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-medium text-stone-700">
-                <User className="w-4 h-4 mr-2 text-rose-500" />
-                第一个人的名字
-              </label>
-              <input
-                type="text"
-                value={config.coupleName1}
-                onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
-                className="w-full px-4 py-3 bg-stone-50/80 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-300 transition-all duration-200 placeholder:text-stone-400"
-                placeholder="例如：包包"
-                required
-              />
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">TA的昵称</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Icon name="female" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={config.coupleName1}
+                                        onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
+                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        placeholder="例如：包包"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">你的昵称</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Icon name="male" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={config.coupleName2}
+                                        onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
+                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        placeholder="例如：恺恺"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">纪念日</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Icon name="calendar_month" size={20} />
+                                    </div>
+                                    <input
+                                        type="date"
+                                        value={config.anniversaryDate}
+                                        onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
+                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8">
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Icon name="auto_awesome" size={20} />
+                                {saving ? '保存中...' : '保存设置'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center">
+                        <div className="text-6xl font-bold text-primary mb-2">{daysCount}</div>
+                        <p className="text-slate-400 text-sm">我们已经相爱的天数</p>
+                        <div className="mt-6 pt-6 border-t border-dashed border-slate-100">
+                            <h2 className="font-display text-2xl mb-2 text-slate-800">{config.coupleName1} 和 {config.coupleName2} 的小窝</h2>
+                            <p className="text-xs text-slate-400">自 {config.anniversaryDate || '---'} 起</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
+                            <Icon name="auto_fix_high" size={20} className="text-primary" />
+                            小提示
+                        </h2>
+                        <ul className="space-y-3 text-sm text-slate-500">
+                            <li className="flex items-start gap-2">
+                                <Icon name="favorite" size={16} className="text-primary shrink-0 mt-0.5" />
+                                <span>昵称会显示在首页和各个页面的欢迎语中</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <Icon name="calendar_month" size={16} className="text-primary shrink-0 mt-0.5" />
+                                <span>纪念日用于计算我们在一起的天数</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <Icon name="auto_awesome" size={16} className="text-primary shrink-0 mt-0.5" />
+                                <span>所有设置都会实时同步到全站</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-medium text-stone-700">
-                <User className="w-4 h-4 mr-2 text-blue-500" />
-                第二个人的名字
-              </label>
-              <input
-                type="text"
-                value={config.coupleName2}
-                onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
-                className="w-full px-4 py-3 bg-stone-50/80 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-300 transition-all duration-200 placeholder:text-stone-400"
-                placeholder="例如：恺恺"
-                required
-              />
-            </div>
-          </div>
-
-          {/* 纪念日 */}
-          <div className="space-y-2">
-            <label className="flex items-center text-sm font-medium text-stone-700">
-              <Calendar className="w-4 h-4 mr-2 text-purple-500" />
-              在一起的日期
-            </label>
-            <input
-              type="date"
-              value={config.anniversaryDate}
-              onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
-              className="w-full px-4 py-3 bg-stone-50/80 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-300 transition-all duration-200"
-              required
+            <AdminModal
+                isOpen={modalState.isOpen}
+                onClose={closeModal}
+                title={modalState.title}
+                message={modalState.message}
+                type={modalState.type}
+                onConfirm={modalState.onConfirm || undefined}
+                showCancel={modalState.showCancel}
+                confirmText={modalState.confirmText}
             />
-            <p className="text-xs text-stone-500 mt-1">
-              这个日期将用于计算首页的"在一起 X 天"
-            </p>
-          </div>
-
-          {/* 预览卡片 */}
-          <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl p-4 border border-rose-100">
-            <p className="text-sm text-stone-600 mb-2">预览效果：</p>
-            <p className="text-lg font-medium text-stone-800">
-              💕 {config.coupleName1} & {config.coupleName2} 的故事
-            </p>
-            <p className="text-sm text-stone-500 mt-1">
-              纪念日：{new Date(config.anniversaryDate).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-
-          {/* 消息提示 */}
-          {message && (
-            <div className={`flex items-center px-4 py-3 rounded-xl text-sm ${messageType === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
-              }`}>
-              {messageType === 'success' ? (
-                <CheckCircle className="w-5 h-5 mr-2" />
-              ) : (
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              )}
-              {message}
-            </div>
-          )}
-
-          {/* 保存按钮 */}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full py-4 px-6 bg-gradient-to-r from-stone-700 to-stone-800 text-white rounded-xl font-medium hover:from-stone-800 hover:to-stone-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                保存中...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                保存配置
-              </>
-            )}
-          </button>
         </div>
-      </form>
-    </div>
-  )
+    )
 }
 
 export default AdminSettings

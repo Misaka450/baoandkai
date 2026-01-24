@@ -10,10 +10,9 @@ export async function onRequestPut(context) {
   const { request, env } = context;
 
   try {
-    const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const id = context.params.id;
     const body = await request.json();
-    const { title, description, status, priority, category, due_date, completion_notes, completion_photos } = body;
+    const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
     if (!id || isNaN(id)) {
       return errorResponse('无效的ID', 400);
@@ -25,7 +24,7 @@ export async function onRequestPut(context) {
 
     const result = await env.DB.prepare(`
       UPDATE todos 
-      SET title = ?, description = ?, status = ?, priority = ?, category = ?, due_date = ?, completion_notes = ?, completion_photos = ?, updated_at = datetime('now')
+      SET title = ?, description = ?, status = ?, priority = ?, category = ?, due_date = ?, completion_notes = ?, completion_photos = ?, images = ?, updated_at = datetime('now')
       WHERE id = ?
     `).bind(
       title.trim(),
@@ -36,6 +35,7 @@ export async function onRequestPut(context) {
       due_date || null,
       completion_notes || null,
       completion_photos ? JSON.stringify(completion_photos) : null,
+      images ? JSON.stringify(images) : null,
       parseInt(id)
     ).run();
 
@@ -49,7 +49,11 @@ export async function onRequestPut(context) {
 
     return jsonResponse({
       success: true,
-      data: updatedTodo,
+      data: {
+        ...updatedTodo,
+        images: updatedTodo.images ? JSON.parse(updatedTodo.images) : [],
+        completion_photos: updatedTodo.completion_photos ? JSON.parse(updatedTodo.completion_photos) : []
+      },
       message: '更新成功'
     });
   } catch (error) {

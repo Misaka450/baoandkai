@@ -1,520 +1,280 @@
-import React, { useState, useEffect } from 'react';
-import { apiService } from '../../services/apiService';
-import { Plus, X, Trash2, Edit2, Upload, Calendar, CheckSquare } from 'lucide-react';
-import ImageUploader from '../../components/ImageUploader';
-import AdminModal from '../../components/AdminModal';
-import { useAdminModal } from '../../hooks/useAdminModal';
+import { useState, useEffect, useRef } from 'react'
+import { apiService } from '../../services/apiService'
+import AdminModal from '../../components/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
+import Icon from '../../components/icons/Icons'
 
-// 定义待办事项接口
 interface Todo {
-  id?: string;
-  title: string;
-  description: string;
-  priority: number;
-  category: string;
-  due_date: string;
-  status: string;
-  completion_notes?: string;
-  completion_photos?: string[];
+    id: number
+    title: string
+    description: string
+    priority: number
+    status: string
+    due_date: string
+    category: string
+    images: string[]
+    completion_photos: string[]
+    completion_notes: string
 }
 
-// 定义表单数据接口
 interface FormData {
-  title: string;
-  description: string;
-  priority: number;
-  category: string;
-  due_date: string;
-  status: string;
+    title: string
+    description: string
+    priority: number
+    status: string
+    due_date: string
+    category: string
+    images: string[]
 }
 
-// 定义完成数据接口
-interface CompletionData {
-  notes: string;
-  photos: string[];
-}
+const priorities = [
+    { value: 1, label: '低', color: 'bg-green-100 text-green-600' },
+    { value: 2, label: '中', color: 'bg-yellow-100 text-yellow-600' },
+    { value: 3, label: '高', color: 'bg-red-100 text-red-600' }
+]
+const categories = ['旅行', '居家', '购物', '约会', '其他']
 
-const AdminTodos: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 10;
-  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal();
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    description: '',
-    priority: 3,
-    category: 'general',
-    due_date: '',
-    status: 'pending'
-  });
-  const [completionData, setCompletionData] = useState<CompletionData>({
-    notes: '',
-    photos: []
-  });
+const AdminTodos = () => {
+    const [todos, setTodos] = useState<Todo[]>([])
+    const [loading, setLoading] = useState(true)
+    const [showForm, setShowForm] = useState(false)
+    const [editingId, setEditingId] = useState<number | null>(null)
+    const [completingTodo, setCompletingTodo] = useState<Todo | null>(null)
+    const [completionPhotos, setCompletionPhotos] = useState<string[]>([])
+    const [completionNotes, setCompletionNotes] = useState('')
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const completionFileRef = useRef<HTMLInputElement>(null)
+    const [formData, setFormData] = useState<FormData>({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] })
+    const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
-  useEffect(() => {
-    fetchTodos(currentPage);
-  }, [currentPage]);
+    useEffect(() => { loadTodos() }, [])
 
-  const fetchTodos = async (page = 1) => {
-    try {
-      setLoading(true);
-      interface TodosApiResponse {
-        data: Todo[];
-        totalPages: number;
-        totalCount: number;
-        currentPage: number;
-      }
-      const { data } = await apiService.get<TodosApiResponse>(`/todos?page=${page}&limit=${itemsPerPage}`);
-      if (data) {
-        setTodos(Array.isArray(data.data) ? data.data : []);
-        setTotalPages(data.totalPages || 1);
-        setTotalCount(data.totalCount || 0);
-        setCurrentPage(data.currentPage || 1);
-      }
-      setError(null);
-    } catch (err) {
-      setError('获取待办事项失败');
-      console.error('获取待办事项失败:', err);
-      setTodos([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) {
-      await showAlert('提示', '请输入待办事项标题', 'warning');
-      return;
+    const loadTodos = async () => {
+        try {
+            const { data, error } = await apiService.get<{ data: Todo[] }>('/todos?limit=100')
+            if (error) throw new Error(error)
+            setTodos(data?.data || [])
+        } catch (e) { console.error(e) } finally { setLoading(false) }
     }
 
-    // 映射管理员字段到数据库字段
-    const todoData: Partial<Todo> = {
-      title: formData.title,
-      description: formData.description,
-      status: formData.status,
-      priority: Number(formData.priority),
-      category: formData.category,
-      due_date: formData.due_date,
-      ...(formData.status === 'completed' ? {
-        completion_notes: completionData.notes,
-        completion_photos: completionData.photos
-      } : {})
-    };
-
-    try {
-      if (editingTodo) {
-        await apiService.put(`/todos/${editingTodo.id}`, todoData);
-        await showAlert('✅ 更新成功', '待办事项已更新！', 'success');
-      } else {
-        await apiService.post('/todos', todoData);
-        await showAlert('✅ 创建成功', '待办事项已创建！', 'success');
-      }
-
-      setShowForm(false);
-      setEditingTodo(null);
-      resetForm();
-      fetchTodos(currentPage);
-    } catch (error) {
-      console.error('保存待办事项失败:', error);
-      await showAlert('❌ 保存失败', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error');
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCompletion = false) => {
+        if (!e.target.files?.length) return
+        setUploading(true)
+        const newImages: string[] = []
+        for (const file of Array.from(e.target.files)) {
+            try {
+                const fd = new FormData()
+                fd.append('file', file)
+                const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
+                if (error) throw new Error(error)
+                if (data?.url) newImages.push(data.url)
+            } catch (err) { console.error(err) }
+        }
+        if (isCompletion) {
+            setCompletionPhotos(prev => [...prev, ...newImages])
+        } else {
+            setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
+        }
+        setUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        if (completionFileRef.current) completionFileRef.current.value = ''
     }
-  };
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      priority: 3,
-      category: 'general',
-      due_date: '',
-      status: 'pending'
-    });
-    setCompletionData({ notes: '', photos: [] });
-  };
-
-  const handleDelete = async (id: string) => {
-    // 找到对应的待办事项标题，用于更友好的提示
-    const todoToDelete = todos.find(todo => todo.id === id);
-    const todoTitle = todoToDelete?.title || '这个待办事项';
-
-    const confirmed = await showConfirm(
-      '⚠️ 确认删除',
-      `确定要删除 "${todoTitle}" 吗？此操作不可恢复！`,
-      '删除'
-    );
-    if (!confirmed) return;
-
-    try {
-      await apiService.delete(`/todos/${id}`);
-
-      // 如果删除的是最后一页的最后一条，跳转到上一页
-      const newCurrentPage = todos.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
-      await fetchTodos(newCurrentPage);
-
-      await showAlert('✅ 删除成功', '待办事项删除成功！', 'success');
-    } catch (error) {
-      console.error('删除失败:', error);
-      await showAlert('❌ 删除失败', `删除失败: ${(error as Error).message || '请重试'}`, 'error');
+    const removeImage = (index: number, isCompletion = false) => {
+        if (isCompletion) {
+            setCompletionPhotos(prev => prev.filter((_, i) => i !== index))
+        } else {
+            setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+        }
     }
-  };
 
-  const handleEdit = (todo: Todo) => {
-    setEditingTodo(todo);
-    setFormData({
-      title: todo.title || '',
-      description: todo.description || '',
-      priority: todo.priority || 3,
-      category: todo.category || 'general',
-      due_date: todo.due_date || '',
-      status: todo.status || 'pending'
-    });
-    if (todo.status === 'completed') {
-      setCompletionData({
-        notes: todo.completion_notes || '',
-        photos: Array.isArray(todo.completion_photos) ? todo.completion_photos : []
-      });
-    } else {
-      setCompletionData({ notes: '', photos: [] });
-    }
-    setShowForm(true);
-  };
-
-  const openCreateModal = () => {
-    setEditingTodo(null);
-    resetForm();
-    setShowForm(true);
-  };
-
-  const removePhoto = (index: number) => {
-    setCompletionData(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
-    }));
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">加载待办事项中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-light text-gray-800">待办事项管理</h1>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          新建待办
-        </button>
-      </div>
-
-      {/* 分页信息 */}
-      <div className="mb-4 text-sm text-gray-600">
-        共 {totalCount} 个待办事项，第 {currentPage} 页 / 共 {totalPages} 页
-      </div>
-
-      {/* 待办事项列表 */}
-      <div className="grid gap-4">
-        {todos.map((todo) => (
-          <div key={todo.id} className="glass-card p-6">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{todo.title}</h3>
-                {todo.description && (
-                  <p className="text-gray-600 text-sm mb-3">{todo.description}</p>
-                )}
-                <div className="flex items-center space-x-4 text-sm">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${todo.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : todo.status === 'pending'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : todo.status === 'cancelled'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                    {todo.status === 'completed' ? '已完成' : todo.status === 'pending' ? '待办' : todo.status === 'cancelled' ? '已取消' : '未知'}
-                  </span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${todo.priority >= 3
-                    ? 'bg-red-100 text-red-800'
-                    : todo.priority >= 2
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                    }`}>
-                    {todo.priority >= 3 ? '高优先级' : todo.priority >= 2 ? '中优先级' : '低优先级'}
-                  </span>
-                  <span className="text-gray-500">
-                    截止：{todo.due_date ? new Date(todo.due_date).toLocaleDateString('zh-CN') : '无'}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-1 ml-4">
-                <button
-                  onClick={() => handleEdit(todo)}
-                  className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md"
-                  title="编辑待办"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(todo.id!)}
-                  className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md"
-                  title="删除待办"
-                >\n                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 分页控件 */}
-      {totalPages > 1 && (
-        <div className="flex justify-center space-x-2 mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            上一页
-          </button>
-
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            let pageNum;
-            if (totalPages <= 5) {
-              pageNum = i + 1;
-            } else if (currentPage <= 3) {
-              pageNum = i + 1;
-            } else if (currentPage >= totalPages - 2) {
-              pageNum = totalPages - 4 + i;
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            if (editingId) {
+                const { error } = await apiService.put(`/todos/${editingId}`, formData)
+                if (error) throw new Error(error)
+                await showAlert('成功', '心愿已更新！', 'success')
             } else {
-              pageNum = currentPage - 2 + i;
+                const { error } = await apiService.post('/todos', formData)
+                if (error) throw new Error(error)
+                await showAlert('成功', '心愿已创建！', 'success')
             }
+            resetForm(); loadTodos()
+        } catch { await showAlert('错误', '保存失败', 'error') }
+    }
 
-            return (
-              <button
-                key={pageNum}
-                onClick={() => setCurrentPage(pageNum)}
-                className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
+    const handleEdit = (t: Todo) => {
+        setEditingId(t.id)
+        setFormData({ title: t.title, description: t.description, priority: t.priority, status: t.status, due_date: t.due_date, category: t.category, images: t.images || [] })
+        setShowForm(true)
+    }
 
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            下一页
-          </button>
-        </div>
-      )}
+    const handleDelete = async (id: number) => {
+        if (!await showConfirm('删除心愿', '确定要删除这个心愿吗？')) return
+        try {
+            const { error } = await apiService.delete(`/todos/${id}`)
+            if (error) throw new Error(error)
+            await showAlert('成功', '已删除！', 'success'); loadTodos()
+        } catch { await showAlert('错误', '删除失败', 'error') }
+    }
 
-      {/* 新建/编辑模态框 - 页面中央弹出 */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-light text-gray-800">
-                {editingTodo ? '编辑待办事项' : '创建新的待办'}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+    const openCompleteModal = (todo: Todo) => {
+        setCompletingTodo(todo)
+        setCompletionPhotos(todo.completion_photos || [])
+        setCompletionNotes(todo.completion_notes || '')
+    }
+
+    const handleComplete = async () => {
+        if (!completingTodo) return
+        try {
+            const { error } = await apiService.put(`/todos/${completingTodo.id}`, {
+                ...completingTodo,
+                status: 'completed',
+                completion_photos: completionPhotos,
+                completion_notes: completionNotes
+            })
+            if (error) throw new Error(error)
+            await showAlert('成功', '心愿已完成！恭喜你们！🎉', 'success')
+            setCompletingTodo(null)
+            setCompletionPhotos([])
+            setCompletionNotes('')
+            loadTodos()
+        } catch { await showAlert('错误', '更新失败', 'error') }
+    }
+
+    const toggleStatus = async (t: Todo) => {
+        if (t.status !== 'completed') {
+            openCompleteModal(t)
+        } else {
+            try {
+                const { error } = await apiService.put(`/todos/${t.id}`, { ...t, status: 'pending', completion_photos: [], completion_notes: '' })
+                if (error) throw new Error(error)
+                loadTodos()
+            } catch { await showAlert('错误', '更新失败', 'error') }
+        }
+    }
+
+    const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] }) }
+
+    const getPriorityStyle = (p: number) => priorities.find(x => x.value === p)?.color || ''
+
+    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+
+    return (
+        <div className="animate-fade-in text-slate-700">
+            <header className="flex items-center justify-between mb-8">
+                <div><h1 className="text-2xl font-bold text-slate-800 mb-1">心愿清单</h1><p className="text-sm text-slate-400">管理我们想做的事情</p></div>
+                <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Icon name="add" size={20} />新增心愿</button>
+            </header>
+
+            {showForm && (
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
+                    <h2 className="text-lg font-bold mb-6 text-slate-800">{editingId ? '编辑心愿' : '新增心愿'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" placeholder="想做什么？" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{priorities.map(p => <option key={p.value} value={p.value}>{p.label}优先级</option>)}</select>
+                            <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                            <input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
+                        <textarea placeholder="详细描述（可选）" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-600">相关图片</label>
+                            <div className="flex flex-wrap gap-3">
+                                {formData.images.map((img, i) => (
+                                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
+                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
+                                    </div>
+                                ))}
+                                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                    {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>}
+                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e)} className="hidden" disabled={uploading} />
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button type="submit" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">{editingId ? '更新' : '创建'}</button>
+                            <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* 完成心愿弹窗 */}
+            {completingTodo && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">🎉 完成心愿</h2>
+                        <p className="text-slate-500 mb-6">恭喜！记录下这个美好时刻吧~</p>
+                        <div className="mb-4 p-4 bg-primary/5 rounded-2xl">
+                            <h3 className="font-bold text-slate-800">{completingTodo.title}</h3>
+                            <p className="text-sm text-slate-500">{completingTodo.description}</p>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-600">完成照片</label>
+                                <div className="flex flex-wrap gap-3">
+                                    {completionPhotos.map((img, i) => (
+                                        <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
+                                            <img src={img} alt="" className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeImage(i, true)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
+                                        </div>
+                                    ))}
+                                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                        {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>}
+                                        <input ref={completionFileRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e, true)} className="hidden" disabled={uploading} />
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-600">完成感言</label>
+                                <textarea value={completionNotes} onChange={(e) => setCompletionNotes(e.target.value)} placeholder="记录一下这次经历的感受..." className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button onClick={handleComplete} className="flex-1 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">完成心愿</button>
+                            <button onClick={() => { setCompletingTodo(null); setCompletionPhotos([]); setCompletionNotes('') }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-4">
+                {todos.length === 0 ? <div className="text-center py-12 text-slate-400"><Icon name="checklist" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有心愿，添加第一个吧！</p></div> : todos.map((t) => (
+                    <div key={t.id} className={`bg-white p-6 rounded-2xl shadow-sm border border-slate-100 ${t.status === 'completed' ? 'opacity-70' : ''}`}>
+                        <div className="flex items-start gap-4">
+                            <button onClick={() => toggleStatus(t)} className={`w-6 h-6 mt-1 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${t.status === 'completed' ? 'bg-primary border-primary text-white' : 'border-slate-300 hover:border-primary'}`}>{t.status === 'completed' && <Icon name="check" size={14} />}</button>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-1 flex-wrap">
+                                    <h3 className={`font-bold text-slate-800 ${t.status === 'completed' ? 'line-through' : ''}`}>{t.title}</h3>
+                                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${getPriorityStyle(t.priority)}`}>{priorities.find(p => p.value === t.priority)?.label}</span>
+                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full">{t.category}</span>
+                                </div>
+                                {t.description && <p className="text-sm text-slate-500 mb-2">{t.description}</p>}
+                                {t.due_date && <p className="text-xs text-slate-400 mb-2">截止日期：{t.due_date}</p>}
+                                {t.images && t.images.length > 0 && <div className="flex gap-2 mb-2">{t.images.slice(0, 4).map((img, i) => <img key={i} src={img} alt="" className="w-12 h-12 rounded-lg object-cover" />)}</div>}
+                                {t.status === 'completed' && t.completion_photos && t.completion_photos.length > 0 && (
+                                    <div className="mt-3 p-3 bg-green-50 rounded-xl">
+                                        <p className="text-xs text-green-600 font-bold mb-2">✨ 已完成</p>
+                                        <div className="flex gap-2">{t.completion_photos.slice(0, 4).map((img, i) => <img key={i} src={img} alt="" className="w-12 h-12 rounded-lg object-cover" />)}</div>
+                                        {t.completion_notes && <p className="text-sm text-green-700 mt-2">{t.completion_notes}</p>}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                                <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"><Icon name="edit" size={18} /></button>
+                                <button onClick={() => handleDelete(t.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Icon name="delete" size={18} /></button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">标题 *</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                  placeholder="给待办事项起个名字"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">详细描述</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
-                  placeholder="详细描述这个待办事项的内容和要求..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">优先级</label>
-                  <select
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                  >
-                    <option value={1}>🟢 低优先级</option>
-                    <option value={2}>🟡 中优先级</option>
-                    <option value={3}>🔴 高优先级</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">分类</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                  >
-                    <option value="general">📋 通用</option>
-                    <option value="work">💼 工作</option>
-                    <option value="life">🏠 生活</option>
-                    <option value="study">📚 学习</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                  >
-                    <option value="pending">⏳ 待办</option>
-                    <option value="completed">✅ 已完成</option>
-                    <option value="cancelled">❌ 已取消</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">截止日期</label>
-                  <input
-                    type="date"
-                    name="due_date"
-                    value={formData.due_date}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200"
-                  />
-                </div>
-              </div>
-
-              {formData.status === 'completed' && (
-                <div className="space-y-4 border-t border-gray-100 pt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">完成备注</label>
-                    <textarea
-                      name="notes"
-                      value={completionData.notes}
-                      onChange={(e) => setCompletionData(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
-                      placeholder="分享完成这个待办的心得体会和经验..."
-                      rows={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">完成照片</label>
-                    <ImageUploader
-                      existingImages={completionData.photos || []}
-                      onImagesUploaded={(urls) => {
-                        setCompletionData(prev => ({
-                          ...prev,
-                          photos: [...(prev.photos || []), ...urls]
-                        }));
-                      }}
-                      onRemoveImage={removePhoto}
-                      maxImages={10}
-                      folder="todos"
-                      maxFileSize={5 * 1024 * 1024} // 5MB限制
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 font-medium shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30"
-                >
-                  {editingTodo ? '更新待办' : '创建待办'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>
-      )}
-
-      {/* 空状态提示 */}
-      {todos.length === 0 && !showForm && (
-        <div className="glass-card p-12 text-center">
-          <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">暂无待办事项</h3>
-          <p className="text-gray-600">点击上方按钮创建第一个待办事项吧</p>
-        </div>
-      )}
-
-      {/* 模态框组件 - 用于确认删除和提示信息 */}
-      <AdminModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        onConfirm={modalState.onConfirm ?? undefined}
-        showCancel={modalState.showCancel}
-        confirmText={modalState.confirmText}
-      />
-    </div>
-  );
-};
+    )
+}
 
 export default AdminTodos

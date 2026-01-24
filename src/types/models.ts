@@ -57,3 +57,19 @@ export interface Album {
     photo_count?: number;
     created_at?: string;
 }
+
+export interface FoodCheckin {
+    id: string;
+    restaurant_name: string;
+    description?: string;
+    date: string;
+    address?: string;
+    cuisine?: string;
+    price_range?: string;
+    overall_rating: number;
+    taste_rating?: number;
+    environment_rating?: number;
+    service_rating?: number;
+    recommended_dishes?: string;
+    images: string[];
+}

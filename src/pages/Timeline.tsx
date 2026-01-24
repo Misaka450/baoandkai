@@ -1,258 +1,183 @@
-import { useState } from 'react'
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { Calendar, MapPin, Tag, Heart, Camera, Star, Clock, Clock3, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Clock3 as TimelineIcon } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
-import { TimelineEvent } from '../types'
+import type { TimelineEvent } from '../types'
 import ImageModal from '../components/ImageModal'
-import { formatDate } from '../utils/common'
-import LoadingSpinner from '../components/ui/LoadingSpinner'
-import { getThumbnailUrl } from '../utils/imageUtils'
+import Icon, { IconName } from '../components/icons/Icons'
 
-// 类型已移动到 src/types/models.ts
-
-// 定义分类颜色映射接口
-interface CategoryColors {
-  [key: string]: string
+interface TimelineResponse {
+  data: TimelineEvent[]
+  totalPages: number
+  totalCount: number
+  currentPage: number
 }
 
-// 定义分类图标映射接口
-interface CategoryIcons {
-  [key: string]: React.ComponentType<any>
+interface CategoryConfig {
+  icon: IconName
+  color: string
+}
+
+const categoryConfigs: Record<string, CategoryConfig> = {
+  '生活': { icon: 'favorite', color: 'pink-400' },
+  '旅行': { icon: 'flight', color: 'blue-400' },
+  '美食': { icon: 'restaurant', color: 'orange-400' },
+  '纪念': { icon: 'star', color: 'purple-400' },
+  'default': { icon: 'auto_awesome', color: 'primary' }
 }
 
 export default function Timeline() {
-  const [filter, setFilter] = useState('all')
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [imageModalOpen, setImageModalOpen] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [currentImages, setCurrentImages] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 10
+  const [filter, setFilter] = useState('all')
+  const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [currentImages, setCurrentImages] = useState<string[]>([])
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const { data, isLoading, isError, error } = useQuery<{ data: TimelineEvent[], pagination: { totalPages: number } }>({
-    queryKey: ['timeline', currentPage],
+  const { data: timelineData, isLoading: loading } = useQuery({
+    queryKey: ['timeline', currentPage, filter],
     queryFn: async () => {
-      const response = await apiService.get<{ data: TimelineEvent[], pagination: { totalPages: number } }>(`/timeline?page=${currentPage}&limit=${ITEMS_PER_PAGE}`)
-      if (response.error || !response.data) {
-        throw new Error(response.error || 'Failed to fetch timeline')
-      }
+      const response = await apiService.get<TimelineResponse>(`/timeline?page=${currentPage}&limit=10&category=${filter === 'all' ? '' : filter}`)
       return response.data
-    },
-    placeholderData: keepPreviousData,
+    }
   })
 
-  const events: TimelineEvent[] = Array.isArray(data?.data) ? data.data : []
-  const totalPages = data?.pagination?.totalPages || 1
+  const events = timelineData?.data || []
+  const totalPages = timelineData?.totalPages || 0
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const categories = ['all', '约会', '旅行', '节日', '日常']
-
-  const filteredEvents = filter === 'all'
-    ? events
-    : events.filter(event => event.category === filter)
-
-  const categoryColors: CategoryColors = {
-    '约会': 'from-rose-50 to-rose-100 text-rose-700 border-rose-200',
-    '旅行': 'from-sky-50 to-sky-100 text-sky-700 border-sky-200',
-    '节日': 'from-amber-50 to-amber-100 text-amber-700 border-amber-200',
-    '日常': 'from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200'
-  }
-
-  const categoryIcons: CategoryIcons = {
-    '约会': Heart,
-    '旅行': Camera,
-    '节日': Star,
-    '日常': Clock
-  }
-
-  // 使用统一的加载组件
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <TimelineIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的爱情足迹</h1>
-            <p className="text-stone-600 font-light mb-8">记录每一个值得纪念的瞬间</p>
-            <LoadingSpinner message="正在加载时间轴..." />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">穿越时光中...</div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <TimelineIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的爱情足迹</h1>
-          <p className="text-stone-600 font-light">记录每一个值得纪念的瞬间</p>
-        </div>
+    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
+      <main className="max-w-6xl mx-auto px-4 pb-20 pt-32">
+        <header className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">我们的时光长廊</h1>
+          <p className="text-slate-500 max-w-2xl mx-auto">碎碎平淡的生活，也是我们闪闪发光的瞬间。</p>
 
-        <div className="mb-8 flex flex-wrap gap-3 justify-center">
-          {categories.map(category => {
-            const Icon = categoryIcons[category] || Tag
-            return (
+          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            {['all', '生活', '旅行', '美食', '纪念'].map((cat) => (
               <button
-                key={category}
-                onClick={() => setFilter(category)}
-                className={`flex items-center px-4 py-2 rounded-full text-sm font-light transition-all duration-300 ${filter === category
-                  ? 'bg-stone-800 text-white shadow-lg'
-                  : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md'
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${filter === cat
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  : 'bg-white text-gray-400 hover:text-primary'
                   }`}
               >
-                <Icon className="h-4 w-4 mr-2" />
-                {category === 'all' ? '全部' : category}
+                {cat === 'all' ? '全部' : cat}
               </button>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+        </header>
 
-        <div className="relative max-w-6xl mx-auto">
-          {/* 时间轴线 - 调整位置 */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-stone-200 via-stone-300 to-stone-200"></div>
+        <div className="relative">
+          {/* 时光轴主体连线 */}
+          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 md:-translate-x-1/2 timeline-line opacity-20 hidden md:block"></div>
 
-          <div className="space-y-16">
-            {filteredEvents.map((event, index) => {
-              const Icon = categoryIcons[event.category] || Tag
-              const colorClass = categoryColors[event.category] || 'from-stone-50 to-stone-100 text-stone-700 border-stone-200'
+          <div className="space-y-12 md:space-y-24">
+            {events.map((event, idx) => {
+              const isEven = idx % 2 === 0
+              const config = categoryConfigs[event.category] || categoryConfigs.default!
 
               return (
-                <div key={event.id} className="relative">
-                  {/* 时间点 - 调整位置 */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-0.5 z-10">
-                    <div className={`w-5 h-5 rounded-full bg-white border-2 ${filter === event.category || filter === 'all' ? 'border-stone-600' : 'border-stone-300'} shadow-lg transition-all duration-300 hover:scale-110`}></div>
+                <div key={event.id} className={`relative flex flex-col md:flex-row items-center ${isEven ? 'md:flex-row-reverse' : ''}`}>
+                  {/* 内容卡片 */}
+                  <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
+                    <div className="bg-white/60 p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group w-full max-w-lg">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
+                          {event.date ? new Date(event.date).toLocaleDateString() : '未知日期'}
+                        </span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-${config.color?.split('-')[0]}-100 text-${config.color}`}>
+                          {event.category}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">{event.title}</h3>
+                      <p className="text-slate-500 text-sm leading-relaxed mb-4">{event.description}</p>
+                      {event.location && (
+                        <div className="flex items-center gap-2 text-primary">
+                          <Icon name="location_on" size={14} />
+                          <span className="text-xs font-medium">{event.location}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* 卡片容器 - 增加间距 */}
-                  <div className={`flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`w-full md:w-[calc(50%-3rem)] ${index % 2 === 0 ? 'md:pr-8 pr-0' : 'md:pl-8 pl-0'}`}>
-                      {/* 卡片 */}
-                      <div className={`backdrop-blur-sm ${colorClass} border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]`}>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center mb-3">
-                              <div className={`p-2.5 rounded-xl bg-white/60 backdrop-blur-sm mr-3 shadow-sm`}>
-                                <Icon className="h-4 w-4" />
-                              </div>
-                              <span className="text-xs font-medium tracking-wide uppercase opacity-75">{event.category}</span>
-                            </div>
+                  {/* 中间圆圈 */}
+                  <div className="hidden md:absolute md:left-1/2 md:-translate-x-1/2 md:flex items-center justify-center w-12 h-12 bg-white border-4 rounded-full z-10 shadow-lg" style={{ borderColor: `var(--tw-colors-${config.color})` }}>
+                    <Icon name={config.icon} size={20} style={{ color: `var(--tw-colors-${config.color})` }} />
+                  </div>
 
-                            <h3 className="text-lg font-light text-stone-800 mb-3 leading-relaxed tracking-wide">{event.title}</h3>
-
-                            <div className="flex items-center text-xs text-stone-600 space-x-4 font-light">
-                              <span className="flex items-center">
-                                <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                                {/* 使用公共日期格式化函数 */}
-                                {formatDate(event.date)}
-                              </span>
-                              {event.location && (
-                                <span className="flex items-center">
-                                  <MapPin className="h-3.5 w-3.5 mr-1.5" />
-                                  {event.location}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-stone-700 mb-5 font-light leading-relaxed text-sm opacity-90">{event.description}</p>
-
-                        {event.images && event.images.length > 0 && (
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                            {event.images.map((image, imgIndex) => (
-                              <div key={imgIndex} className="relative group overflow-hidden rounded-xl cursor-pointer"
-                                onClick={() => {
-                                  setCurrentImages(event.images || [])
-                                  setCurrentImageIndex(imgIndex)
-                                  setImageModalOpen(true)
-                                }}>
-                                <img
-                                  src={getThumbnailUrl(image, 300)}
-                                  alt={`${event.title} - ${imgIndex + 1}`}
-                                  loading="lazy"
-                                  className="rounded-xl object-cover h-28 w-full transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                  <div className="bg-black/50 backdrop-blur-sm text-white rounded-full p-2">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                  {/* 图片展示 */}
+                  <div className={`w-full md:w-[45%] mt-6 md:mt-0 ${isEven ? 'md:pl-8' : 'md:pr-8'}`}>
+                    {event.images && event.images.length > 0 && (
+                      <div
+                        className={`rounded-2xl overflow-hidden shadow-lg border-4 border-white transform transition-transform duration-300 group-hover:rotate-0 cursor-pointer ${isEven ? 'rotate-2' : '-rotate-3'}`}
+                        onClick={() => {
+                          setCurrentImages(event.images || [])
+                          setCurrentImageIndex(0)
+                          setImageModalOpen(true)
+                        }}
+                      >
+                        <img
+                          alt={event.title}
+                          className="w-full h-48 object-cover"
+                          src={event.images[0] || ''}
+                        />
+                        {event.images.length > 1 && (
+                          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">
+                            +{event.images.length - 1}张
                           </div>
                         )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )
             })}
           </div>
-        </div>
 
-        {filteredEvents.length === 0 && (
-          <div className="text-center py-16">
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-              <Calendar className="w-16 h-16 text-stone-400 mx-auto mb-4" />
-              <h3 className="text-lg font-light text-stone-700 mb-2">暂无记录</h3>
-              <p className="text-sm text-stone-500 font-light">还没有添加任何时间轴事件，让我们开始记录美好时光吧！</p>
+          <div className="relative flex flex-col items-center justify-center py-16">
+            <div className="w-4 h-4 bg-primary rounded-full shadow-lg shadow-primary/50 animate-pulse"></div>
+            <div className="mt-8 flex gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all"
+              >
+                <Icon name="chevron_left" size={20} />
+              </button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handlePageChange(i + 1)}
+                  className={`w-10 h-10 rounded-full transition-all text-sm font-bold ${currentPage === i + 1
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    : 'bg-white text-gray-400 hover:text-primary'
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all"
+              >
+                <Icon name="chevron_right" size={20} />
+              </button>
             </div>
           </div>
-        )}
-
-        {/* 分页控件 */}
-        {totalPages > 1 && filter === 'all' && (
-          <div className="flex justify-center items-center mt-12 space-x-4">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`p-2 rounded-full transition-colors ${currentPage === 1
-                ? 'text-stone-300 cursor-not-allowed'
-                : 'text-stone-600 hover:bg-stone-200'
-                }`}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-
-            <span className="text-stone-600 font-light">
-              {currentPage} / {totalPages}
-            </span>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`p-2 rounded-full transition-colors ${currentPage === totalPages
-                ? 'text-stone-300 cursor-not-allowed'
-                : 'text-stone-600 hover:bg-stone-200'
-                }`}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
-        )}
-
-      </div>
+        </div>
+      </main>
 
       <ImageModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
         imageUrl={currentImages[currentImageIndex]}
-        images={currentImages}
-        currentIndex={currentImageIndex}
-        onNext={() => setCurrentImageIndex((prev) => (prev + 1) % currentImages.length)}
-        onPrevious={() => setCurrentImageIndex((prev) => (prev - 1 + currentImages.length) % currentImages.length)}
       />
     </div>
   )
