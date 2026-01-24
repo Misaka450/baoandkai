@@ -8,7 +8,7 @@ export type IconName =
     | 'receipt' | 'location_on' | 'chevron_left' | 'chevron_right' | 'folder_special'
     | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search'
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
-    | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate';
+    | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu';
 
 interface IconProps {
     name: IconName;
@@ -61,7 +61,8 @@ const iconPaths: Record<IconName, string> = {
     add: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
     edit: "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
     check: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z",
-    add_photo_alternate: "M21 6h-3.17L16 4h-6v2h5.12l1.83 2H21v12H5v-9H3v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM8 14c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5-5 2.24-5 5zm5-3c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3zM5 6h3V4H5V1H3v3H0v2h3v3h2V6z"
+    add_photo_alternate: "M21 6h-3.17L16 4h-6v2h5.12l1.83 2H21v12H5v-9H3v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM8 14c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5-5 2.24-5 5zm5-3c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3zM5 6h3V4H5V1H3v3H0v2h3v3h2V6z",
+    menu: "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {

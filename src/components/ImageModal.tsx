@@ -11,6 +11,7 @@ interface ImageModalProps {
   currentIndex?: number
   onPrevious?: () => void
   onNext?: () => void
+  onJumpTo?: (index: number) => void
 }
 
 /**
@@ -27,7 +28,8 @@ export default function ImageModal({
   images = [],
   currentIndex = 0,
   onPrevious,
-  onNext
+  onNext,
+  onJumpTo
 }: ImageModalProps) {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -260,10 +262,10 @@ export default function ImageModal({
                 key={idx}
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (onNext && onPrevious) {
-                    // 这里由于 props 只提供了 onNext 和 onPrevious，
-                    // 我们可能需要修改组件接口支持 goToIndex(idx)
-                    // 暂时通过模拟点击实现切换
+                  if (onJumpTo) {
+                    onJumpTo(idx)
+                  } else if (onNext && onPrevious) {
+                    // Fallback for when onJumpTo is not provided
                     const diff = idx - currentIndex
                     if (diff > 0) for (let i = 0; i < diff; i++) onNext()
                     else if (diff < 0) for (let i = 0; i < Math.abs(diff); i++) onPrevious()

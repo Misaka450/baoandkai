@@ -177,7 +177,11 @@ export default function Timeline() {
       <ImageModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
-        imageUrl={currentImages[currentImageIndex]}
+        images={currentImages}
+        currentIndex={currentImageIndex}
+        onPrevious={() => setCurrentImageIndex(prev => (prev - 1 + currentImages.length) % currentImages.length)}
+        onNext={() => setCurrentImageIndex(prev => (prev + 1) % currentImages.length)}
+        onJumpTo={setCurrentImageIndex}
       />
     </div>
   )
