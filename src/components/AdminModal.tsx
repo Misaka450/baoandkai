@@ -1,4 +1,5 @@
 import React from 'react'
+import Icon, { IconName } from './icons/Icons'
 
 // 定义模态框组件的属性接口
 interface AdminModalProps {
@@ -24,76 +25,76 @@ const AdminModal: React.FC<AdminModalProps> = ({
 }) => {
   if (!isOpen) return null
 
-
-  const typeStyles = {
+  const typeConfig: Record<'info' | 'warning' | 'error' | 'success', {
+    icon: IconName,
+    headerGradient: string,
+    iconColor: string,
+    buttonGradient: string,
+    buttonHover: string
+  }> = {
     info: {
-      icon: 'ℹ️',
-      bg: 'bg-white/95',
-      border: 'border-stone-200/50',
-      titleColor: 'text-stone-800',
-      textColor: 'text-stone-600',
-      button: 'bg-gradient-to-r from-pink-500 to-purple-500',
-      buttonHover: 'hover:from-pink-600 hover:to-purple-600'
+      icon: 'info',
+      headerGradient: 'bg-gradient-to-r from-blue-50 to-indigo-50',
+      iconColor: 'text-blue-500',
+      buttonGradient: 'bg-gradient-to-r from-blue-500 to-indigo-500',
+      buttonHover: 'hover:from-blue-600 hover:to-indigo-600'
     },
     warning: {
-      icon: '⚠️',
-      bg: 'bg-white/95',
-      border: 'border-stone-200/50',
-      titleColor: 'text-stone-800',
-      textColor: 'text-stone-600',
-      button: 'bg-gradient-to-r from-amber-500 to-orange-500',
+      icon: 'warning',
+      headerGradient: 'bg-gradient-to-r from-amber-50 to-orange-50',
+      iconColor: 'text-amber-500',
+      buttonGradient: 'bg-gradient-to-r from-amber-500 to-orange-500',
       buttonHover: 'hover:from-amber-600 hover:to-orange-600'
     },
     error: {
-      icon: '❌',
-      bg: 'bg-white/95',
-      border: 'border-stone-200/50',
-      titleColor: 'text-stone-800',
-      textColor: 'text-stone-600',
-      button: 'bg-gradient-to-r from-red-500 to-rose-500',
-      buttonHover: 'hover:from-red-600 hover:to-rose-600'
+      icon: 'error',
+      headerGradient: 'bg-gradient-to-r from-red-50 to-pink-50',
+      iconColor: 'text-red-500',
+      buttonGradient: 'bg-gradient-to-r from-red-500 to-pink-500',
+      buttonHover: 'hover:from-red-600 hover:to-pink-600'
     },
     success: {
-      icon: '✅',
-      bg: 'bg-white/95',
-      border: 'border-stone-200/50',
-      titleColor: 'text-stone-800',
-      textColor: 'text-stone-600',
-      button: 'bg-gradient-to-r from-emerald-500 to-teal-500',
+      icon: 'check_circle',
+      headerGradient: 'bg-gradient-to-r from-emerald-50 to-teal-50',
+      iconColor: 'text-emerald-500',
+      buttonGradient: 'bg-gradient-to-r from-emerald-500 to-teal-500',
       buttonHover: 'hover:from-emerald-600 hover:to-teal-600'
     }
   }
 
-  const style = typeStyles[type] || typeStyles.info
+  const config = typeConfig[type] || typeConfig.info
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className={`${style.bg} backdrop-blur-md border ${style.border} rounded-2xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300`}>
-        <div className="p-8">
-          <div className="flex items-center mb-4">
-            <span className="text-2xl mr-3">{style.icon}</span>
-            <h3 className={`text-lg font-semibold ${style.titleColor}`}>{title}</h3>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60]" onClick={onClose}>
+      <div
+        className="bg-white/95 backdrop-blur-md border border-white/50 rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 overflow-hidden animate-scale-in"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className={`p-6 ${config.headerGradient} border-b border-slate-100/50 flex items-center gap-4`}>
+          <div className={`w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm ${config.iconColor}`}>
+            <Icon name={config.icon} size={24} />
           </div>
-          
-          <p className={`${style.textColor} leading-relaxed mb-6`}>{message}</p>
-          
+          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+        </div>
+
+        <div className="p-8">
+          <p className="text-slate-600 leading-relaxed mb-8 text-lg">{message}</p>
+
           <div className="flex justify-end space-x-3">
             {showCancel && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl font-medium transition-colors"
+                className="px-6 py-2.5 text-slate-500 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-full font-medium transition-colors"
               >
                 取消
               </button>
             )}
             <button
               onClick={() => {
-                if (onConfirm) {
-                  onConfirm()
-                }
+                if (onConfirm) onConfirm()
                 onClose()
               }}
-              className={`px-5 py-2 ${style.button} ${style.buttonHover} text-white rounded-xl font-medium transition-colors`}
+              className={`px-8 py-2.5 ${config.buttonGradient} ${config.buttonHover} text-white rounded-full font-bold shadow-lg shadow-primary/20 transition-all transform hover:scale-105`}
             >
               {confirmText}
             </button>
