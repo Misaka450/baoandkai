@@ -1,247 +1,88 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, Grid, X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { apiService } from '../services/apiService'
-import { Album, Photo } from '../types'
-import { formatDate, LoadingSpinner } from '../utils/common'
-import { getThumbnailUrl, getOptimizedImageUrl } from '../utils/imageUtils'
-import ImageModal from '../components/ImageModal'
+import type { Album } from '../types'
+import Icon from '../components/icons/Icons'
 
-// 类型已移动到 src/types/models.ts
+interface AlbumsResponse {
+  data: Album[]
+  totalPages: number
+  totalCount: number
+  currentPage: number
+}
+
 export default function Albums() {
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
-  const [viewMode, setViewMode] = useState('grid')
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
-  const [photoIndex, setPhotoIndex] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
 
-  const { data: albumsData, isLoading: albumsLoading, isError: albumsError, error: albumsQueryError } = useQuery<{ data: Album[] }>({
-    queryKey: ['albums'],
+  const { data: albumsData, isLoading: loading } = useQuery({
+    queryKey: ['albums', currentPage, itemsPerPage],
     queryFn: async () => {
-      const response = await apiService.get<{ data: Album[] }>('/albums')
-      if (response.error || !response.data) {
-        throw new Error(response.error || '无法加载相册')
-      }
-      return response.data
+      const { data, error } = await apiService.get<AlbumsResponse>(`/albums?page=${currentPage}&limit=${itemsPerPage}`)
+      if (error) throw new Error(error)
+      return data
     }
   })
-  const albums = Array.isArray(albumsData?.data) ? albumsData.data : Array.isArray(albumsData) ? albumsData : []
 
-  const { data: photosData, isLoading: photosLoading } = useQuery<{ photos: Photo[] }>({
-    queryKey: ['album', selectedAlbum?.id],
-    queryFn: async () => {
-      if (!selectedAlbum) return { photos: [] }
-      const response = await apiService.get<{ photos: Photo[] }>(`/albums/${selectedAlbum.id}`)
-      if (response.error || !response.data) {
-        throw new Error(response.error || '无法加载照片')
-      }
-      return response.data
-    },
-    enabled: !!selectedAlbum
-  })
-  const photos = Array.isArray(photosData?.photos) ? photosData.photos : []
+  const albums = albumsData?.data || []
 
-  const loading = albumsLoading || (!!selectedAlbum && photosLoading)
-
-  const handleAlbumSelect = (album: Album) => {
-    setSelectedAlbum(album)
-  }
-
-  const openPhoto = (photo: Photo, index: number) => {
-    setSelectedPhoto(photo)
-    setPhotoIndex(index)
-  }
-
-  const closePhoto = () => {
-    setSelectedPhoto(null)
-  }
-
-  const prevPhoto = () => {
-    const newIndex = photoIndex > 0 ? photoIndex - 1 : photos.length - 1
-    const photo = photos[newIndex]
-    if (photo) {
-      setSelectedPhoto(photo)
-      setPhotoIndex(newIndex)
-    }
-  }
-
-  const nextPhoto = () => {
-    const newIndex = photoIndex < photos.length - 1 ? photoIndex + 1 : 0
-    const photo = photos[newIndex]
-    if (photo) {
-      setSelectedPhoto(photo)
-      setPhotoIndex(newIndex)
-    }
-  }
-
-  // 使用统一加载组件
-  if (loading && !selectedAlbum) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的相册</h1>
-            <p className="text-stone-600 font-light">收藏每一个美好瞬间</p>
-            <LoadingSpinner message="正在加载相册..." />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (albumsError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-red-100">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <X className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-xl font-semibold text-stone-800 mb-2">加载失败</h2>
-          <p className="text-stone-600 mb-6">{(albumsQueryError as Error)?.message || '无法加载相册数据'}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-stone-800 text-white rounded-xl hover:bg-stone-700 transition-colors"
-          >
-            重试
-          </button>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">开启回忆相框...</div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* 页面标题 */}
-        <div className="text-center mb-12">
-          <ImageIcon className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的相册</h1>
-          <p className="text-stone-600 font-light">收藏每一个美好瞬间</p>
-        </div>
+    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
+      <main className="max-w-6xl mx-auto px-4 pb-20 pt-32">
+        <header className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">我们的时光画册</h1>
+          <p className="text-slate-500">每一张照片，都是一个藏在时光里的故事。</p>
+        </header>
 
-        {!selectedAlbum ? (
-          // 相册列表视图
-          // 相册列表视图 - 统一stone色系
-          <div>
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-light text-stone-800">相册列表</h2>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {albums.map((album) => (
+            <div key={album.id} className="group cursor-pointer">
+              <div className="relative aspect-[4/3] mb-4">
+                {/* 叠层效果 */}
+                <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 rotate-1 group-hover:rotate-3 transition-transform"></div>
+                <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 -rotate-1 group-hover:-rotate-3 transition-transform"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {albums.map(album => (
-                <div
-                  key={album.id}
-                  onClick={() => handleAlbumSelect(album)}
-                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-                >
-                  <div className="aspect-video bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl mb-4 flex items-center justify-center">
-                    {Array.isArray(album.photos) && album.photos.length > 0 ? (
-                      <img
-                        src={getThumbnailUrl(album.photos[0]?.url, 400)}
-                        alt={album.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover rounded-xl"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          target.parentElement!.innerHTML = '<svg class="h-12 w-12 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
-                        }}
-                      />
-                    ) : (
-                      <ImageIcon className="h-12 w-12 text-stone-400" />
-                    )}
-                  </div>
-                  <h3 className="text-lg font-light text-stone-800 mb-2">{album.name}</h3>
-                  <p className="text-sm text-stone-600 font-light">
-                    {album.photo_count ?? (Array.isArray(album.photos) ? album.photos.length : 0)} 张照片
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {albums.length === 0 && (
-              <div className="text-center py-16">
-                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                  <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-light text-stone-700 mb-2">暂无相册</h3>
-                  <p className="text-sm text-stone-500 font-light">还没有创建任何相册</p>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          // 照片列表视图
-          // 照片列表视图 - 统一stone色系
-          <div>
-            <button
-              onClick={() => {
-                setSelectedAlbum(null)
-                setSelectedPhoto(null)
-              }}
-              className="flex items-center mb-6 text-stone-600 hover:text-stone-800 transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5 mr-1" />
-              返回相册列表
-            </button>
-
-            {/* 相册标题 */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-light text-stone-800 mb-2">{selectedAlbum.name}</h2>
-              <p className="text-stone-600 font-light">{selectedAlbum.description || '收藏每一个美好瞬间'}</p>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-16">
-                <LoadingSpinner message="正在加载照片..." />
-              </div>
-            ) : photos.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {photos.map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    onClick={() => openPhoto(photo, index)}
-                    className="group relative aspect-square bg-gradient-to-br from-stone-100 to-stone-50 rounded-xl overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1"
-                  >
+                {/* 封面图 */}
+                <div className="absolute inset-0 bg-slate-50 rounded-3xl shadow-md border-4 border-white overflow-hidden z-10">
+                  {album.photo_count && album.photo_count > 0 ? (
                     <img
-                      src={getThumbnailUrl(photo.url, 600)}
-                      alt={photo.caption || '照片'}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      alt={album.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      src={`https://images.unsplash.com/photo-${1500000000000 + (parseInt(album.id) % 1000)}?q=80&w=800&auto=format&fit=crop`}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="text-white text-sm font-light truncate">
-                          {photo.caption || '未命名照片'}
-                        </p>
-                      </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                      <Icon name="photo_library" size={48} className="mb-2" />
+                      <p className="text-xs font-bold uppercase tracking-widest">还没有照片哦</p>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
+                    <div className="flex items-center gap-2 text-white">
+                      <Icon name="photo_album" size={16} />
+                      <span className="text-xs font-medium">{album.photo_count} 张照片</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                  <ImageIcon className="w-16 h-16 text-stone-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-light text-stone-700 mb-2">暂无照片</h3>
-                  <p className="text-sm text-stone-500 font-light">这个相册还没有照片</p>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* 图片查看器 */}
-      <ImageModal
-        isOpen={!!selectedPhoto}
-        onClose={closePhoto}
-        images={photos.map(p => getOptimizedImageUrl(p.url, { quality: 90 }))}
-        currentIndex={photoIndex}
-        onPrevious={prevPhoto}
-        onNext={nextPhoto}
-      />
+              <div className="px-2">
+                <h3 className="font-bold text-xl text-slate-800 mb-1 group-hover:text-primary transition-colors">{album.name}</h3>
+                <p className="text-slate-400 text-sm line-clamp-1">{album.description || '暂无描述'}</p>
+              </div>
+            </div>
+          ))}
+
+          <div className="group aspect-[4/3] bg-white/40 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center hover:bg-white/60 hover:border-primary/40 transition-all cursor-pointer">
+            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/5 transition-all mb-4">
+              <Icon name="folder_special" size={32} />
+            </div>
+            <p className="text-slate-400 font-bold text-sm tracking-widest uppercase">在后台新建画册</p>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
-
-

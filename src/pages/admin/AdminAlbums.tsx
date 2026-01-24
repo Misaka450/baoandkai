@@ -1,554 +1,191 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Plus, X, Trash2, Edit2, Upload, Loader2, Image, Eye, GripVertical, CheckSquare, Square } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { apiService } from '../../services/apiService'
-import ImageUploader from '../../components/ImageUploader'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
+import Icon from '../../components/icons/Icons'
 
-// 定义相册图片接口
-interface AlbumPhoto {
-  url: string;
-  caption?: string;
-  sort_order?: number;
-}
-
-// 定义相册接口
 interface Album {
-  id: string;
-  name: string;
-  description?: string;
-  photos?: AlbumPhoto[];
-  photo_count?: number;
+    id: number
+    name: string
+    description: string
+    cover_url: string
+    photo_count?: number
 }
 
-// 定义表单数据接口
-interface FormData {
-  name: string;
-  description: string;
-  images: string[];
+interface Photo {
+    id: number
+    url: string
+    caption: string
 }
 
-const AdminAlbums: React.FC = () => {
-  const [albums, setAlbums] = useState<Album[]>([])
-  const [showForm, setShowForm] = useState(false)
-  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
-  const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    description: '',
-    images: []
-  })
-  const [selectedImages, setSelectedImages] = useState<number[]>([])
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [showBatchActions, setShowBatchActions] = useState(false)
-  const [isDetailLoading, setIsDetailLoading] = useState(false)
+const AdminAlbums = () => {
+    const [albums, setAlbums] = useState<Album[]>([])
+    const [loading, setLoading] = useState(true)
+    const [showForm, setShowForm] = useState(false)
+    const [editingId, setEditingId] = useState<number | null>(null)
+    const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+    const [photos, setPhotos] = useState<Photo[]>([])
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [formData, setFormData] = useState({ name: '', description: '' })
+    const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
-  useEffect(() => {
-    fetchAlbums()
-  }, [])
+    useEffect(() => { loadAlbums() }, [])
 
-  const fetchAlbums = async () => {
-    try {
-      const { data, error } = await apiService.get<{ data: Album[] } | Album[]>('/albums')
-      if (error) {
-        console.error('获取相册失败:', error)
-        setAlbums([])
-        return
-      }
-
-      const albumsData = data;
-      if (Array.isArray(albumsData)) {
-        setAlbums(albumsData)
-      } else if (albumsData && Array.isArray(albumsData.data)) {
-        setAlbums(albumsData.data)
-      } else {
-        setAlbums([])
-      }
-    } catch (error) {
-      console.error('获取相册失败:', error)
-      setAlbums([])
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim()) {
-      await showAlert('提示', '请输入相册名称', 'warning')
-      return
+    const loadAlbums = async () => {
+        try {
+            const { data, error } = await apiService.get<{ data: Album[] }>('/albums?limit=100')
+            if (error) throw new Error(error)
+            setAlbums(data?.data || [])
+        } catch (e) { console.error(e) } finally { setLoading(false) }
     }
 
-    const albumData = {
-      name: formData.name.trim(),
-      description: formData.description?.trim() || '',
-      photos: formData.images.map((url, index) => ({
-        url,
-        caption: '',
-        sort_order: index  // 保存图片顺序，index即为排序值
-      }))
+    const loadPhotos = async (albumId: number) => {
+        try {
+            const { data, error } = await apiService.get<{ data: Photo[] }>(`/albums/${albumId}/photos`)
+            if (error) throw new Error(error)
+            setPhotos(data?.data || [])
+        } catch (e) { console.error(e) }
     }
 
-    try {
-      if (editingAlbum) {
-        await apiService.put(`/albums/${editingAlbum.id}`, albumData)
-      } else {
-        await apiService.post('/albums', albumData)
-      }
-
-      setShowForm(false)
-      setEditingAlbum(null)
-      setFormData({ name: '', description: '', images: [] })
-      setSelectedImages([])
-      fetchAlbums()
-
-      await showAlert('成功', '相册保存成功！', 'success')
-    } catch (error) {
-      console.error('保存相册失败:', error)
-      await showAlert('错误', `保存失败: ${(error as Error).message || '请检查网络连接后重试'}`, 'error')
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            if (editingId) {
+                const { error } = await apiService.put(`/albums/${editingId}`, formData)
+                if (error) throw new Error(error)
+                await showAlert('成功', '相册已更新！', 'success')
+            } else {
+                const { error } = await apiService.post('/albums', formData)
+                if (error) throw new Error(error)
+                await showAlert('成功', '相册已创建！', 'success')
+            }
+            resetForm(); loadAlbums()
+        } catch { await showAlert('错误', '保存失败', 'error') }
     }
-  }
 
-  const handleDelete = async (id: string) => {
-    const confirmed = await showConfirm('确认删除', '确定要删除这个相册吗？此操作不可恢复！', '删除')
-    if (!confirmed) return
-
-    try {
-      await apiService.delete(`/albums/${id}`)
-      fetchAlbums()
-    } catch (error) {
-      console.error('删除相册失败:', error)
+    const handleEdit = (album: Album) => {
+        setEditingId(album.id)
+        setFormData({ name: album.name, description: album.description })
+        setShowForm(true)
     }
-  }
 
-  const handleEdit = async (album: Album) => {
-    setIsDetailLoading(true)
-    try {
-      // 这里的 album 默认是从列表获取的，可能只包含一张封面图
-      // 我们需要通过详情接口获取完整图片列表
-      const { data, error } = await apiService.get<Album>(`/albums/${album.id}`)
-
-      if (error || !data) {
-        throw new Error(error || '无法加载数据')
-      }
-
-      const fullAlbum = data
-
-      setEditingAlbum(fullAlbum)
-      setFormData({
-        name: fullAlbum.name,
-        description: fullAlbum.description || '',
-        images: fullAlbum.photos?.map((p: AlbumPhoto) => p.url) || []
-      })
-      setSelectedImages([])
-      setShowBatchActions(false)
-      setShowForm(true)
-    } catch (error) {
-      console.error('获取相册详情失败:', error)
-      await showAlert('错误', '无法加载相册详细信息', 'error')
-    } finally {
-      setIsDetailLoading(false)
+    const handleDelete = async (id: number) => {
+        if (!await showConfirm('删除相册', '确定删除？相册中的所有照片也会被删除。')) return
+        try {
+            const { error } = await apiService.delete(`/albums/${id}`)
+            if (error) throw new Error(error)
+            await showAlert('成功', '已删除！', 'success'); loadAlbums()
+        } catch { await showAlert('错误', '删除失败', 'error') }
     }
-  }
 
-  const handleImagesUploaded = (urls: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...urls]
-    }))
-  }
-
-  const removeImage = async (index: number) => {
-    const confirmed = await showConfirm('确认删除', '确定要删除这张图片吗？', '删除')
-    if (!confirmed) return
-
-    const imageUrl = formData.images[index]
-
-    // 从表单数据中移除图片
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
-    setSelectedImages(prev => prev.filter(i => i !== index))
-
-    // 调用删除API从R2中删除图片
-    if (imageUrl) {
-      deleteImageFromR2(imageUrl)
+    const handleViewAlbum = (album: Album) => {
+        setSelectedAlbum(album)
+        loadPhotos(album.id)
     }
-  }
 
-  const deleteImageFromR2 = async (imageUrl: string) => {
-    try {
-      // 从URL中提取文件名 - 处理R2 URL格式
-      let filename = ''
-
-      // 处理 https://baoandkai.pages.dev/uploads/filename.jpg 格式
-      if (imageUrl.includes('/uploads/')) {
-        filename = imageUrl.split('/uploads/')[1] || ''
-      }
-      // 处理 https://pub-xxx.r2.dev/filename.jpg 格式
-      else if (imageUrl.includes('r2.dev/')) {
-        filename = imageUrl.split('r2.dev/')[1] || ''
-      }
-      // 处理其他格式
-      else {
-        const urlParts = imageUrl.split('/')
-        filename = urlParts[urlParts.length - 1] || ''
-      }
-
-      if (filename) {
-        // 修改为使用 post 或其他方式，如果 apiService.delete 不支持 body
-        const { error } = await apiService.post('/delete', { filename })
-
-        if (error) {
-          console.error('删除R2图片失败:', error)
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!selectedAlbum || !e.target.files?.length) return
+        setUploading(true)
+        for (const file of Array.from(e.target.files)) {
+            try {
+                const formDataUpload = new FormData()
+                formDataUpload.append('file', file)
+                formDataUpload.append('album_id', String(selectedAlbum.id))
+                const { error } = await apiService.upload(`/albums/${selectedAlbum.id}/photos`, formDataUpload)
+                if (error) throw new Error(error)
+            } catch (err) { console.error(err) }
         }
-      }
-    } catch (error) {
-      console.error('删除R2图片失败:', error)
+        setUploading(false)
+        loadPhotos(selectedAlbum.id)
+        loadAlbums()
+        if (fileInputRef.current) fileInputRef.current.value = ''
     }
-  }
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index)
-  }
+    const handleDeletePhoto = async (photoId: number) => {
+        if (!selectedAlbum || !await showConfirm('删除照片', '确定删除这张照片？')) return
+        try {
+            const { error } = await apiService.delete(`/albums/${selectedAlbum.id}/photos/${photoId}`)
+            if (error) throw new Error(error)
+            loadPhotos(selectedAlbum.id); loadAlbums()
+        } catch { await showAlert('错误', '删除失败', 'error') }
+    }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
+    const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ name: '', description: '' }) }
 
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === dropIndex) return
+    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
-    const draggedImage = formData.images[draggedIndex]
-    if (!draggedImage) return
-
-    const newImages = [...formData.images]
-    newImages.splice(draggedIndex, 1)
-    newImages.splice(dropIndex, 0, draggedImage)
-
-    setFormData(prev => ({ ...prev, images: newImages }))
-    setDraggedIndex(null)
-  }
-
-  const toggleImageSelection = (index: number) => {
-    setSelectedImages(prev =>
-      prev.includes(index)
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
-    )
-  }
-
-  const batchDeleteImages = async () => {
-    if (selectedImages.length === 0) return
-
-    const confirmed = await showConfirm('确认删除', `确定要删除选中的 ${selectedImages.length} 张图片吗？此操作不可恢复！`, '删除')
-    if (!confirmed) return
-
-    const imagesToDelete = selectedImages.map(index => formData.images[index])
-
-    // 从表单数据中移除选中的图片
-    const newImages = formData.images.filter((_, index) => !selectedImages.includes(index))
-    setFormData(prev => ({ ...prev, images: newImages }))
-    setSelectedImages([])
-    setShowBatchActions(false)
-
-    // 批量删除R2中的图片
-    imagesToDelete.forEach(url => {
-      if (url) deleteImageFromR2(url)
-    })
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-stone-800">相册管理</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-stone-700 to-stone-800 text-white rounded-xl hover:from-stone-800 hover:to-stone-900 transition-all shadow-lg"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          创建相册
-        </button>
-      </div>
-
-      {/* 弹窗编辑模式 - 页面中央弹出 */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-light text-gray-800">
-                {editingAlbum ? '编辑相册' : '创建新相册'}
-              </h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false)
-                  setEditingAlbum(null)
-                  setFormData({ name: '', description: '', images: [] })
-                  setSelectedImages([])
-                  setShowBatchActions(false)
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">相册名称 *</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400"
-                    placeholder="请输入相册名称"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">相册描述</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-gray-50/50 transition-all duration-200 placeholder-gray-400 resize-none"
-                    rows={3}
-                    placeholder="请输入相册描述"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <label className="block text-sm font-medium text-gray-700">相册图片</label>
-                  {formData.images.length > 0 && (
-                    <div className="flex space-x-2">
-                      {showBatchActions ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={batchDeleteImages}
-                            disabled={selectedImages.length === 0}
-                            className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg disabled:opacity-50 transition-all duration-200"
-                          >
-                            删除选中 ({selectedImages.length})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowBatchActions(false)
-                              setSelectedImages([])
-                            }}
-                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg transition-all duration-200 hover:bg-gray-50"
-                          >
-                            取消
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setShowBatchActions(true)}
-                          className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg transition-all duration-200 hover:bg-blue-600"
-                        >
-                          批量管理
-                        </button>
-                      )}
+    if (selectedAlbum) {
+        return (
+            <div className="animate-fade-in text-slate-700">
+                <header className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setSelectedAlbum(null)} className="p-2 hover:bg-slate-100 rounded-xl"><Icon name="west" size={20} /></button>
+                        <div><h1 className="text-2xl font-bold text-slate-800">{selectedAlbum.name}</h1><p className="text-sm text-slate-400">{photos.length} 张照片</p></div>
                     </div>
-                  )}
-                </div>
-
-                <ImageUploader
-                  onImagesUploaded={handleImagesUploaded}
-                  existingImages={[]}
-                  onRemoveImage={() => { }}
-                  folder="albums"
-                  maxImages={50}
-                />
-
-                {formData.images.length > 0 && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {formData.images.map((url, index) => (
-                        <div
-                          key={index}
-                          draggable
-                          onDragStart={() => handleDragStart(index)}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, index)}
-                          className={`relative group cursor-move ${selectedImages.includes(index) ? 'ring-2 ring-blue-500 rounded-lg' : ''
-                            }`}
-                        >
-                          {showBatchActions && (
-                            <button
-                              type="button"
-                              onClick={() => toggleImageSelection(index)}
-                              className="absolute top-1 left-1 z-10 bg-white rounded-full p-1 shadow-md transition-all duration-200 hover:scale-110"
-                            >
-                              {selectedImages.includes(index) ?
-                                <CheckSquare className="h-4 w-4 text-blue-500" /> :
-                                <Square className="h-4 w-4 text-gray-400" />
-                              }
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => setPreviewImage(url)}
-                            className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
-                          >
-                            <Eye className="h-4 w-4 text-gray-600" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (window.confirm('确定要删除这张图片吗？')) {
-                                removeImage(index)
-                              }
-                            }}
-                            className="absolute bottom-1 right-1 z-10 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:scale-110"
-                            title="删除图片"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-
-                          <div className="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden">
-                            <img
-                              src={url}
-                              alt={`图片 ${index + 1}`}
-                              className="w-full h-32 object-cover"
-                            />
-                          </div>
-
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
-                            <GripVertical className="h-6 w-6 text-white" />
-                          </div>
+                    <label className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                        {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <><Icon name="add_photo_alternate" size={20} />上传照片</>}
+                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
+                    </label>
+                </header>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {photos.map(photo => (
+                        <div key={photo.id} className="relative group aspect-square rounded-2xl overflow-hidden bg-slate-100">
+                            <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button onClick={() => handleDeletePhoto(photo.id)} className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600"><Icon name="delete" size={20} /></button>
+                            </div>
                         </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-3">
-                      拖拽图片可以调整顺序，点击图片预览图标查看大图
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false)
-                    setEditingAlbum(null)
-                    setFormData({ name: '', description: '', images: [] })
-                    setSelectedImages([])
-                    setShowBatchActions(false)
-                  }}
-                  className="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-gradient-to-r from-stone-700 to-stone-800 text-white rounded-xl hover:from-stone-800 hover:to-stone-900 transition-all duration-200 font-medium shadow-lg"
-                >
-                  {editingAlbum ? '更新相册' : '创建相册'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 相册列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {albums.map(album => (
-          <div key={album.id} className="glass-card overflow-hidden">
-            <div className="aspect-w-16 aspect-h-9 bg-gray-100">
-              {album.photos?.[0] ? (
-                <img
-                  src={album.photos[0].url}
-                  alt={album.name}
-                  className="w-full h-48 object-cover"
-                />
-              ) : (
-                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-r from-pink-100 to-purple-100">
-                  <Image className="h-12 w-12 text-gray-400" />
+                    ))}
+                    {photos.length === 0 && <div className="col-span-full text-center py-12 text-slate-400"><Icon name="photo_library" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有照片，上传第一张吧！</p></div>}
                 </div>
-              )}
+                <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-1">{album.name}</h3>
-              <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                {album.description || '暂无描述'}
-              </p>
-              <p className="text-sm text-gray-500 mb-3">
-                {album.photo_count ?? (album.photos?.length || 0)} 张照片
-              </p>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(album)}
-                  disabled={isDetailLoading}
-                  className="flex items-center px-3 py-1 text-sm bg-blue-500 text-white rounded disabled:opacity-50"
-                >
-                  {isDetailLoading && editingAlbum?.id === album.id ? (
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  ) : (
-                    <Edit2 className="h-3 w-3 mr-1" />
-                  )}
-                  编辑
-                </button>
-                <button
-                  onClick={() => handleDelete(album.id)}
-                  className="flex items-center px-3 py-1 text-sm bg-red-500 text-white rounded"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  删除
-                </button>
-              </div>
+        )
+    }
+
+    return (
+        <div className="animate-fade-in text-slate-700">
+            <header className="flex items-center justify-between mb-8">
+                <div><h1 className="text-2xl font-bold text-slate-800 mb-1">相册管理</h1><p className="text-sm text-slate-400">管理我们的照片相册</p></div>
+                <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Icon name="add" size={20} />新建相册</button>
+            </header>
+            {showForm && (
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
+                    <h2 className="text-lg font-bold mb-6 text-slate-800">{editingId ? '编辑相册' : '新建相册'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" placeholder="相册名称" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
+                        <textarea placeholder="相册描述" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[100px]" />
+                        <div className="flex gap-3">
+                            <button type="submit" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">{editingId ? '更新' : '创建'}</button>
+                            <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {albums.length === 0 ? <div className="col-span-full text-center py-12 text-slate-400"><Icon name="photo_library" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有相册，创建第一个相册吧！</p></div> : albums.map((album) => (
+                    <div key={album.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group cursor-pointer" onClick={() => handleViewAlbum(album)}>
+                        <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                            {album.cover_url ? <img src={album.cover_url} alt={album.name} className="w-full h-full object-cover" /> : <Icon name="photo_library" size={48} className="text-primary/50" />}
+                        </div>
+                        <div className="p-4">
+                            <h3 className="font-bold text-slate-800 mb-1">{album.name}</h3>
+                            <p className="text-sm text-slate-500 mb-3 line-clamp-2">{album.description}</p>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-400">{album.photo_count || 0} 张照片</span>
+                                <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => handleEdit(album)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"><Icon name="edit" size={18} /></button>
+                                    <button onClick={() => handleDelete(album.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Icon name="delete" size={18} /></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
-          </div>
-        ))}
-      </div>
-
-      {albums.length === 0 && (
-        <div className="text-center py-12">
-          <Image className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">暂无相册，点击右上角创建第一个相册吧！</p>
+            <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>
-      )}
-
-      {/* 图片预览模态框 */}
-      {previewImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div className="max-w-4xl max-h-screen p-4">
-            <img
-              src={previewImage}
-              alt="预览"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-          </div>
-        </div>
-      )}
-
-      <AdminModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        onConfirm={modalState.onConfirm ?? undefined}
-        showCancel={modalState.showCancel}
-        confirmText={modalState.confirmText}
-      />
-    </div>
-  )
+    )
 }
 
 export default AdminAlbums

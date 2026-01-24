@@ -11,7 +11,7 @@ const Timeline = lazy(() => import('./pages/Timeline'))
 const Albums = lazy(() => import('./pages/Albums'))
 const Todos = lazy(() => import('./pages/Todos'))
 const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
-const ErrorDemo = lazy(() => import('./pages/ErrorDemo'))
+
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 
@@ -42,7 +42,7 @@ function App(): JSX.Element {
               <Route path="albums" element={<Albums />} />
               <Route path="todos" element={<Todos />} />
               <Route path="food" element={<FoodCheckin />} />
-              <Route path="error-demo" element={<ErrorDemo />} />
+
               <Route path="admin/*" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />

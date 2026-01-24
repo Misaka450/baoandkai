@@ -7,64 +7,64 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-        },
-        secondary: {
-          50: '#fdf2f8',
-          100: '#fce7f3',
-          200: '#fbcfe8',
-          300: '#f9a8d4',
-          400: '#f472b6',
-          500: '#ec4899',
-          600: '#db2777',
-          700: '#be185d',
-          800: '#9d174d',
-          900: '#831843',
-        }
+        primary: "#f472b6",
+        "background-light": "#fdfbf7",
+        "background-dark": "#1a1617",
+        "pastel-pink": "#fee2e2",
+        "pastel-yellow": "#fef9c3",
+        "pastel-blue": "#dcfce7",
+        "pastel-purple": "#ede9fe",
+        "pastel-green": "#f0fdf4",
+        "sage": "#A8D5BA",
+        "secondary": "#B0E0E6",
       },
       fontFamily: {
-        'sans': ['Inter', 'Noto Sans SC', 'system-ui', 'sans-serif'],
-        'chinese': ['Noto Sans SC', 'system-ui', 'sans-serif'],
+        'sans': ['Nunito', 'Quicksand', 'Noto Sans SC', 'system-ui', 'sans-serif'],
+        'display': ['"ZCOOL KuaiLe"', 'Quicksand', 'cursive'],
+        'handwriting': ['"Ma Shan Zheng"', 'cursive'],
       },
-      fontWeight: {
-        'light': 300,
-        'normal': 400,
-        'medium': 500,
-        'semibold': 600,
-        'bold': 700,
-        'extrabold': 800,
+      borderRadius: {
+        'large': '2rem',
+        'xlarge': '3rem',
       },
-      // 动画已在 index.css 中定义，这里保留引用
       animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'heart-pop': 'heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'fade-in-up': 'fadeInUp 0.5s ease-out',
       },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-15px)' },
+        },
+        heartPop: {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '50%': { transform: 'scale(1.4)', opacity: '0.8' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeInUp: {
+          from: { opacity: '0', transform: 'translateY(15px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
     },
   },
-  // 保护动态生成的类名不被清除
   safelist: [
-    // 颜色类
-    'bg-pink-500', 'bg-pink-600', 'hover:bg-pink-600',
-    'text-pink-500', 'border-pink-500',
-    'bg-stone-100', 'bg-stone-200', 'text-stone-600', 'text-stone-800',
-    'bg-rose-50', 'bg-amber-50', 'bg-green-50', 'bg-blue-50',
-    // 优先级颜色
-    'bg-red-100', 'text-red-700', 'border-red-200',
-    'bg-yellow-100', 'text-yellow-700', 'border-yellow-200',
-    'bg-green-100', 'text-green-700', 'border-green-200',
-    // 动画类
+    'bg-primary', 'bg-secondary', 'bg-sage',
+    'bg-pastel-pink', 'bg-pastel-yellow', 'bg-pastel-blue', 'bg-pastel-purple', 'bg-pastel-green',
+    'animate-float', 'animate-heart-pop',
     'animate-fade-in', 'animate-slide-up', 'animate-fade-in-up',
+    'rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]'
   ],
   plugins: [],
 }

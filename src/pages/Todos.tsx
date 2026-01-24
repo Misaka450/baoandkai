@@ -1,14 +1,10 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { CheckSquare, Clock, Calendar, Tag, Heart, Camera, Star, ChevronDown } from 'lucide-react'
 import { apiService } from '../services/apiService'
-import { Todo } from '../types'
+import type { Todo } from '../types'
 import ImageModal from '../components/ImageModal'
-import { formatDate, priorityColors, LoadingSpinner } from '../utils/common'
-import { getThumbnailUrl } from '../utils/imageUtils'
+import Icon from '../components/icons/Icons'
 
-// 类型已移动到 src/types/models.ts
-// 定义API响应接口
 interface TodosResponse {
   data: Todo[]
   totalPages: number
@@ -16,358 +12,106 @@ interface TodosResponse {
   currentPage: number
 }
 
-// 定义前端映射后的待办事项接口
-interface MappedTodo extends Omit<Todo, 'priority'> {
-  completed: boolean
-  priority: 'high' | 'medium' | 'low'
-}
+const stickyColors = [
+  { bg: 'bg-pastel-pink', border: 'border-pink-100', text: 'text-pink-700', icon: 'text-primary' },
+  { bg: 'bg-pastel-blue', border: 'border-blue-100', text: 'text-blue-700', icon: 'text-blue-400' },
+  { bg: 'bg-pastel-green', border: 'border-green-100', text: 'text-green-700', icon: 'text-green-400' },
+  { bg: 'bg-pastel-yellow', border: 'border-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-500' },
+  { bg: 'bg-pastel-purple', border: 'border-purple-100', text: 'text-purple-700', icon: 'text-purple-400' },
+]
 
 export default function Todos() {
-  const [filter, setFilter] = useState('all') // all, pending, completed
-  const [priorityFilter, setPriorityFilter] = useState('all') // all, high, medium, low
-  const [expandedTodos, setExpandedTodos] = useState<Set<number>>(new Set()) // 记录展开的待办ID
-  const [selectedImage, setSelectedImage] = useState<string | null>(null) // 当前选中的放大图片
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 12
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  // 使用React Query获取待办事项
   const { data: todosData, isLoading: loading } = useQuery({
     queryKey: ['todos', currentPage, itemsPerPage],
     queryFn: async () => {
       const { data, error } = await apiService.get<TodosResponse>(`/todos?page=${currentPage}&limit=${itemsPerPage}`)
       if (error) throw new Error(error)
       return data
-    },
-    staleTime: 5 * 60 * 1000, // 5分钟缓存
+    }
   })
 
-  // 从查询结果中提取数据
   const todos = todosData?.data || []
-  const totalPages = todosData?.totalPages || 1
   const totalCount = todosData?.totalCount || 0
+  const completedCount = useMemo(() => todos.filter(t => t.status === 'completed').length, [todos])
+  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
-  // 只读模式，移除所有添加、编辑、删除功能
-
-  // 映射数据库字段到前端字段 - 简化为三种优先级
-  const mapTodoFields = (todo: Todo): MappedTodo => {
-    // 将数据库的1-5优先级映射为三种：高(3)、中(2)、低(1)
-    let priority: 'high' | 'medium' | 'low' = 'medium';
-    const pValue = Number(todo.priority);
-    if (pValue >= 3) {
-      priority = 'high';
-    } else if (pValue <= 1) {
-      priority = 'low';
-    }
-
-    return {
-      ...todo,
-      completed: todo.status === 'completed',
-      priority: priority
-    }
-  }
-
-  const getFilteredTodos = (): MappedTodo[] => {
-    const mappedTodos = todos.map(mapTodoFields)
-
-    // 先按完成状态筛选
-    let filtered = mappedTodos
-    if (filter !== 'all') {
-      filtered = filtered.filter(todo => {
-        if (filter === 'pending') return !todo.completed
-        if (filter === 'completed') return todo.completed
-        return true
-      })
-    }
-
-    // 再按优先级筛选
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(todo => todo.priority === priorityFilter)
-    }
-
-    return filtered
-  }
-
-  // 移除 priorityColors 和 formatDate 的重复定义
-
-  const toggleTodoExpand = (todoId: number | string) => {
-    setExpandedTodos(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(todoId as any)) {
-        newSet.delete(todoId as any)
-      } else {
-        newSet.add(todoId as any)
-      }
-      return newSet
-    })
-  }
-
-  const isTodoExpandable = (todoId: number | string) => expandedTodos.has(todoId as any)
-
-  // 使用统一的加载组件
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-            <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
-            <p className="text-stone-600 font-light mb-8">一起完成的小目标，记录我们的点点滴滴</p>
-            <LoadingSpinner message="正在加载待办事项..." />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const filteredTodos = getFilteredTodos()
+  if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">加载小愿望中...</div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <CheckSquare className="w-12 h-12 text-stone-800 mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-stone-800 mb-4">我们的待办事项</h1>
-          <p className="text-stone-600 font-light">一起完成的小目标，记录我们的点点滴滴</p>
-        </div>
-
-        {/* 筛选器 */}
-        <div className="flex justify-center space-x-2 mb-8">
-          {[
-            { value: 'all', label: '全部' },
-            { value: 'pending', label: '待办' },
-            { value: 'completed', label: '已完成' }
-          ].map((filterItem) => (
-            <button
-              key={filterItem.value}
-              onClick={() => setFilter(filterItem.value)}
-              className={`px-4 py-2 rounded-full text-sm font-light transition-all ${filter === filterItem.value
-                ? 'bg-stone-800 text-white shadow-lg'
-                : 'bg-white/70 text-stone-600 hover:bg-white hover:shadow-md border border-white/20'
-                }`}
-            >
-              {filterItem.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 优先级筛选 */}
-        <div className="flex justify-center space-x-2 mb-8">
-          {['all', 'high', 'medium', 'low'].map((priority) => (
-            <button
-              key={priority}
-              onClick={() => setPriorityFilter(priority)}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${priorityFilter === priority
-                ? 'bg-stone-800 text-white'
-                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
-            >
-              {priority === 'all' ? '全部' :
-                priority === 'high' ? '高' :
-                  priority === 'medium' ? '中' : '低'}
-            </button>
-          ))}
-        </div>
-
-
-
-        {/* 分页信息 */}
-        <div className="text-center mb-6">
-          <p className="text-sm text-stone-600">
-            共 {totalCount} 个待办事项，第 {currentPage} 页 / 共 {totalPages} 页
+    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
+      <main className="pt-32 pb-20 px-4 max-w-6xl mx-auto">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">甜蜜共享清单</h1>
+          <p className="text-slate-400 italic font-handwriting text-2xl">
+            记录我们的每一个小愿望，一起去完成它们吧 ✨
           </p>
-        </div>
+        </header>
 
-        {/* 待办事项列表 */}
-        <div className="space-y-4">
-          {filteredTodos.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 max-w-sm mx-auto border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-                <CheckSquare className="w-16 h-16 text-stone-400 mx-auto mb-4" />
-                <h3 className="text-lg font-light text-stone-700 mb-2">暂无待办事项</h3>
-                <p className="text-sm text-stone-500 font-light">让我们从创建第一个待办开始吧！</p>
-              </div>
-            </div>
-          ) : (
-            filteredTodos.map(todo => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+          {todos.map((todo, idx) => {
+            const isCompleted = todo.status === 'completed'
+            const theme = stickyColors[idx % stickyColors.length]!
+            return (
               <div
                 key={todo.id}
-                className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1 ${todo.completed
-                  ? 'bg-gradient-to-br from-green-50/90 via-emerald-50/80 to-teal-50/70 border-green-200/50 shadow-[0_8px_32px_rgba(34,197,94,0.15)] hover:shadow-[0_12px_48px_rgba(34,197,94,0.25)] ring-1 ring-green-100/50'
-                  : 'bg-white/60 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]'
-                  }`}
+                className={`sticky-note group relative ${theme.bg} p-8 rounded-3xl shadow-sm border ${theme.border} flex flex-col min-h-[220px]`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-3">
-                      <div className={`p-2.5 rounded-xl mr-3 shadow-sm ${todo.completed ? 'bg-gradient-to-br from-green-100 to-emerald-100 ring-1 ring-green-200' : 'bg-stone-100'
-                        }`}>
-                        <CheckSquare className={`w-4 h-4 ${todo.completed ? 'text-green-600' : 'text-stone-700'
-                          }`} />
-                      </div>
-                      <h3 className={`text-lg font-light ${todo.completed
-                        ? 'text-green-800 font-medium'
-                        : 'text-stone-800'
-                        }`}>
-                        {todo.title}
-                        {todo.completed && (
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            ✨ 已完成
-                          </span>
-                        )}
-                      </h3>
+                <div className={`absolute top-4 right-4 ${theme.icon} opacity-20 group-hover:opacity-100 transition-opacity`}>
+                  <Icon name="push_pin" size={24} />
+                </div>
+
+                <div className="flex-grow">
+                  <h3 className={`font-handwriting text-2xl mb-4 ${theme.text}`}>{todo.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">{todo.description}</p>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 transition-all ${isCompleted ? `border-primary animate-heart-pop` : 'border-gray-200'
+                      }`}>
+                      <Icon
+                        name="favorite"
+                        size={16}
+                        className={isCompleted ? "text-primary fill-current" : "text-gray-300"}
+                      />
                     </div>
-
-                    {todo.description && (
-                      <p className="text-stone-600 text-sm font-light mb-3 leading-relaxed">
-                        {todo.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center space-x-3 text-sm">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-light ${priorityColors[todo.priority] || priorityColors.medium
-                        }`}>
-                        {todo.priority === 'high' ? '高' :
-                          todo.priority === 'medium' ? '中' : '低'}
-                      </span>
-
-                      {todo.due_date && (
-                        <span className="inline-flex items-center text-stone-600 font-light">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {formatDate(todo.due_date)}
-                        </span>
-                      )}
-
-                      <span className="inline-flex items-center text-stone-600 font-light">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {new Date(todo.created_at).toLocaleDateString('zh-CN')}
-                      </span>
-                    </div>
-
-                    {/* 完成照片展示 */}
-                    {/* 完成记录 - 可折叠展示 */}
-                    {todo.completed && (todo.completion_photos || todo.completion_notes) && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() => toggleTodoExpand(todo.id)}
-                          className="flex items-center text-sm transition-colors group"
-                        >
-                          <Camera className="w-3 h-3 mr-1.5 text-green-600 group-hover:text-green-700 transition-transform group-hover:scale-110" />
-                          <span className="text-green-700 font-medium group-hover:text-green-800">
-                            {isTodoExpandable(todo.id) ? '收起记录' : '查看完成记录'}
-                          </span>
-                          <ChevronDown
-                            className={`w-3 h-3 ml-1.5 text-green-600 group-hover:text-green-700 transition-transform duration-200 ${isTodoExpandable(todo.id) ? 'rotate-180' : ''
-                              }`}
-                          />
-                        </button>
-
-                        {/* 折叠内容 */}
-                        <div className={`overflow-hidden transition-all duration-300 ${isTodoExpandable(todo.id) ? 'max-h-96 mt-4' : 'max-h-0'
-                          }`}>
-                          {/* 完成照片 */}
-                          {todo.completion_photos && (
-                            <div className="mb-4">
-                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                {(Array.isArray(todo.completion_photos) ? todo.completion_photos :
-                                  (typeof todo.completion_photos === 'string' ? JSON.parse(todo.completion_photos) : [])
-                                ).map((photo: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    className="relative group cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedImage(photo);
-                                    }}
-                                  >
-                                    <img
-                                      src={getThumbnailUrl(photo, 300)}
-                                      alt={`完成照片 ${index + 1}`}
-                                      className="w-full h-16 object-cover rounded-lg border-2 border-green-100 hover:border-green-300 hover:shadow-md hover:scale-105 transition-all"
-                                      draggable="false"
-                                    />
-                                    <div className="absolute inset-0 bg-green-600/0 group-hover:bg-green-600/10 rounded-lg transition-colors pointer-events-none"></div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* 完成心得 */}
-                          {todo.completion_notes && (
-                            <div>
-                              <div className="flex items-center text-sm text-green-700 mb-2 font-medium">
-                                <Heart className="w-4 h-4 mr-2 text-green-600" />
-                                <span>完成心得</span>
-                              </div>
-                              <div className="text-sm text-green-800 bg-gradient-to-r from-green-50/80 to-emerald-50/80 rounded-xl p-4 border border-green-100 shadow-sm">
-                                <div className="flex items-start">
-                                  <div className="w-1 h-full bg-gradient-to-b from-green-300 to-emerald-300 rounded-full mr-3"></div>
-                                  <div className="flex-1">
-                                    {todo.completion_notes}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${isCompleted ? 'text-primary' : 'text-gray-400'}`}>
+                      {isCompleted ? '已完成' : '进行中'}
+                    </span>
                   </div>
+                  <span className="text-[10px] text-slate-400">
+                    {todo.due_date ? new Date(todo.due_date).toLocaleDateString() : 'SOMEDAY'}
+                  </span>
                 </div>
               </div>
-            ))
-          )}
+            )
+          })}
+
+          <div className="group relative bg-slate-50 p-8 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[220px] cursor-pointer hover:bg-slate-100 transition-colors">
+            <Icon name="add_circle" size={40} className="text-slate-300 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-slate-400 text-sm font-medium">在管理后台添加愿望</span>
+          </div>
         </div>
 
-        {/* 分页控件 */}
-        {totalPages > 1 && (
-          <div className="flex justify-center space-x-2 mt-8">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              上一页
-            </button>
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
-
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
-                    ? 'bg-stone-800 text-white'
-                    : 'bg-white/60 border border-white/20 text-stone-700 hover:bg-white'
-                    }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg bg-white/60 border border-white/20 text-stone-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              下一页
-            </button>
+        {/* 进度条 */}
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="font-bold text-lg">我们的进度</h4>
+            <span className="text-primary font-bold">{progress}%</span>
           </div>
-        )}
-      </div>
+          <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+            <div className="bg-primary h-full rounded-full transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+          </div>
+          <p className="mt-6 text-center text-sm text-slate-400 italic">
+            “我们已经共同完成了 {completedCount} 个小目标，还有许多美好的明天在等着我们。”
+          </p>
+        </div>
+      </main>
 
-      {/* 图片放大模态框 */}
       <ImageModal
         isOpen={selectedImage !== null}
         onClose={() => setSelectedImage(null)}

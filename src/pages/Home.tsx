@@ -1,22 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Heart, Calendar, Camera, Clock } from 'lucide-react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import StickyNotes from '../components/StickyNotes'
 import { apiService } from '../services/apiService'
-import { formatDate } from '../utils/common'
+import Icon from '../components/icons/Icons'
 
-// 定义配置接口
 interface Config {
   coupleName1: string;
   coupleName2: string;
   anniversaryDate: string;
-}
-
-// 定义TimeCard组件的props接口
-interface TimeCardProps {
-  value: string | number;
-  label: string;
-  color?: 'rose' | 'amber' | 'slate' | 'emerald' | 'violet' | 'stone';
 }
 
 export default function Home() {
@@ -35,7 +26,6 @@ export default function Home() {
   const fetchConfig = async () => {
     try {
       const result = await apiService.get<Config>('/config')
-      // apiService返回{ data, error }格式，需要访问result.data
       const data = result.data
       if (data) {
         setConfig({
@@ -46,93 +36,91 @@ export default function Home() {
       }
     } catch (error) {
       console.error('获取配置失败:', error)
-      const defaultConfig: Config = {
-        coupleName1: '包包',
-        coupleName2: '恺恺',
-        anniversaryDate: '2023-10-08'
-      }
-      setConfig(defaultConfig)
     }
   }
-
-  const TimeCard = ({ value, label, color = 'rose' }: TimeCardProps) => {
-    const colorClasses = {
-      rose: 'from-rose-50/80 to-rose-100/80 text-rose-700 border-rose-200/30',
-      amber: 'from-amber-50/80 to-amber-100/80 text-amber-700 border-amber-200/30',
-      slate: 'from-slate-50/80 to-slate-100/80 text-slate-700 border-slate-200/30',
-      emerald: 'from-emerald-50/80 to-emerald-100/80 text-emerald-700 border-emerald-200/30',
-      violet: 'from-violet-50/80 to-violet-100/80 text-violet-700 border-violet-200/30',
-      stone: 'from-stone-50/80 to-stone-100/80 text-stone-700 border-stone-200/30'
-    }
-
-    return (
-      <div className="relative">
-        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-3xl p-6 border backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:scale-[1.02]`}>
-          <div className="text-3xl md:text-4xl font-light mb-2 font-mono tracking-wider">
-            {String(value).padStart(2, '0')}
-          </div>
-          <div className="text-sm font-light opacity-80">
-            {label}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const colors: Array<'rose' | 'amber' | 'slate' | 'emerald' | 'violet' | 'stone'> = ['rose', 'amber', 'slate', 'emerald', 'violet', 'stone']
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-light text-stone-800 mb-4 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent">
-            包包和恺恺的小窝
-          </h1>
-          <p className="text-xl text-stone-600 font-light max-w-2xl mx-auto">
-            欢迎来到我们的小窝，这里收藏着每一个温暖瞬间
+    <main className="max-w-6xl mx-auto px-6 py-12 pt-32">
+      <header className="text-center mb-16 relative">
+        <div className="flex justify-center items-center space-x-12 mb-8 relative">
+          <div className="avatar-ring">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-pink-100 flex items-center justify-center">
+              <img alt="Bao Avatar" className="w-full h-full object-cover" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Bao&backgroundColor=ffdfbf" />
+            </div>
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            <div className="w-24 md:w-32 h-[2px] bg-gradient-to-r from-pink-200 via-primary to-blue-200"></div>
+            <div className="absolute bg-white p-2 rounded-full border border-pink-100 shadow-sm flex items-center justify-center">
+              <Icon name="favorite" className="text-primary" size={20} />
+            </div>
+          </div>
+
+          <div className="avatar-ring">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-blue-100 flex items-center justify-center">
+              <img alt="Kai Avatar" className="w-full h-full object-cover" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=b6e3f4" />
+            </div>
+          </div>
+        </div>
+
+        <h1 className="font-display text-5xl md:text-6xl mb-4 text-gray-800">包包和恺恺的小窝</h1>
+        <p className="text-gray-500 text-lg max-w-lg mx-auto leading-relaxed italic">
+          "遇见你，是银河赠予我的糖。"
+        </p>
+      </header>
+
+      <section className="bg-white/40 rounded-xlarge p-8 md:p-12 mb-16 border border-white/50 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+          <Icon name="favorite" size={120} />
+        </div>
+        <div className="text-center mb-10">
+          <p className="text-gray-400 tracking-widest text-sm uppercase font-bold">我们已携手走过</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6 mb-10">
+          {[
+            { value: timeTogether.years, label: '年', color: 'pink', shadow: 'diffused-shadow-pink' },
+            { value: timeTogether.months, label: '月', color: 'yellow', shadow: 'diffused-shadow-yellow' },
+            { value: timeTogether.days, label: '天', color: 'blue', shadow: 'diffused-shadow-blue' },
+            { value: timeTogether.hours, label: '时', color: 'green', shadow: 'diffused-shadow-green' },
+            { value: timeTogether.minutes, label: '分', color: 'purple', shadow: 'diffused-shadow-purple' },
+            { value: timeTogether.seconds, label: '秒', color: 'rose', shadow: 'diffused-shadow-pink' },
+          ].map((item, idx) => (
+            <div key={idx} className={`bg-${item.color}-50 p-6 rounded-3xl text-center ${item.shadow} border border-${item.color}-100/50`}>
+              <div className={`text-${item.color}-500 text-4xl md:text-5xl font-bold mb-1`}>
+                {String(item.value).padStart(2, '0')}
+              </div>
+              <div className={`text-${item.color}-400 text-xs font-bold`}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
+          <div className="bg-white/60 px-6 py-3 rounded-full border border-white/40 flex items-center space-x-3">
+            <Icon name="calendar_month" className="text-primary" size={18} />
+            <span className="text-sm font-semibold text-gray-500">纪念日：2023年10月8日</span>
+          </div>
+          <p className="text-gray-400 text-sm">
+            已经一起度过了 <span className="text-primary font-bold">{timeTogether.totalDays}</span> 个温柔的日子
           </p>
         </div>
+      </section>
 
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] mb-12">
-          <div className="text-center mb-8">
-            <div className="text-xl text-stone-600 mb-8 font-light">我们相爱已经</div>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
-              <TimeCard value={timeTogether.years} label="年" color={colors[0]} />
-              <TimeCard value={timeTogether.months} label="月" color={colors[1]} />
-              <TimeCard value={timeTogether.days} label="日" color={colors[2]} />
-              <TimeCard value={String(timeTogether.hours).padStart(2, '0')} label="时" color={colors[3]} />
-              <TimeCard value={String(timeTogether.minutes).padStart(2, '0')} label="分" color={colors[4]} />
-              <TimeCard value={String(timeTogether.seconds).padStart(2, '0')} label="秒" color={colors[5]} />
+      <section>
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 px-4">
+          <div className="mb-6 md:mb-0">
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="bg-primary/10 text-primary p-2 rounded-xl flex items-center justify-center">
+                <Icon name="auto_fix_high" size={24} />
+              </span>
+              <h2 className="font-display text-4xl text-gray-800">碎碎念</h2>
             </div>
-          </div>
-
-          <div className="bg-stone-50/50 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/30 transition-all duration-500 hover:bg-stone-100/60">
-            <div className="flex items-center justify-center text-stone-700 mb-2">
-              <Calendar className="h-5 w-5 mr-3 text-stone-400" />
-              <span className="text-base font-light">我们的纪念日：{formatDate(config.anniversaryDate)}</span>
-            </div>
-            <div className="text-sm text-stone-500 font-light text-center">
-              已经一起走过了 {timeTogether.totalDays} 个温柔的日子
-            </div>
-          </div>
-
-          <div className="flex justify-center space-x-8 text-stone-500 mt-8">
-            <div className="flex items-center">
-              <Heart className="h-4 w-4 mr-2 text-rose-400" />
-              <span className="text-sm font-light">每一天都在相爱</span>
-            </div>
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-stone-400" />
-              <span className="text-sm font-light">每一刻都值得纪念</span>
-            </div>
+            <p className="text-gray-500">记录生活中的小确幸，让美好时光在此停留</p>
           </div>
         </div>
 
-        {/* 碎碎念区域 */}
-        <div>
-          <StickyNotes />
-        </div>
-      </div>
-    </div>
+        <StickyNotes />
+      </section>
+    </main>
   )
 }

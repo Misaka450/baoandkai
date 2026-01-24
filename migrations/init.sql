@@ -8,6 +8,8 @@ CREATE TABLE users (
   couple_name2 TEXT NOT NULL,
   anniversary_date TEXT NOT NULL,
   background_image TEXT,
+  token TEXT,
+  token_expires TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );

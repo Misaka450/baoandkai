@@ -22,7 +22,7 @@ interface ErrorBoundaryState {
  * </ErrorBoundary>
  */
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props) {
+  constructor(props: any) {
     super(props);
     this.state = { 
       hasError: false, 

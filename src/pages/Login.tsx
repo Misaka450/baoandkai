@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Heart } from 'lucide-react'
+import Icon from '../components/icons/Icons'
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('')
@@ -18,7 +18,6 @@ const Login: React.FC = () => {
 
         try {
             await login(username, password)
-            // 登录成功后跳转到首页
             navigate('/')
         } catch (error) {
             setError((error as Error).message || '登录失败,请检查用户名和密码')
@@ -28,58 +27,64 @@ const Login: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-            {/* 装饰性背景元素 */}
-            <div className="fixed inset-0 -z-10 overflow-hidden">
-                <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-pink-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
-                <div className="fixed inset-0 bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50 -z-10" />
-                <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-stone-200/20 via-transparent to-transparent -z-10" />
-                <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-pink-200/20 rounded-full blur-3xl"></div>
+        <div className="min-h-screen flex items-center justify-center bg-background-light p-6 transition-colors duration-300 relative overflow-hidden">
+            {/* 背景装饰 */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+                <div className="absolute -top-24 -left-24 text-primary animate-float">
+                    <Icon name="favorite" size={300} className="fill-current" />
+                </div>
+                <div className="absolute -bottom-24 -right-24 text-secondary animate-float" style={{ animationDelay: '-2s' }}>
+                    <Icon name="auto_awesome" size={200} />
+                </div>
             </div>
-            
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 w-full max-w-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)]">
-                <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 rounded-full mb-6 shadow-[0_4px_16px_rgba(255,105,180,0.15)]">
-                        <Heart className="w-10 h-10 text-rose-500" />
+
+            <div className="glass-card p-8 md:p-12 w-full max-w-md rounded-xlarge border border-white/50 relative z-10 animate-fade-in shadow-xl">
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6">
+                        <Icon name="favorite" size={40} className="text-primary fill-current" />
                     </div>
-                    <h1 className="text-4xl font-light text-stone-800 mb-3 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent">
-                        宝&凯的小窝
-                    </h1>
-                    <p className="text-lg text-stone-600 font-light">请登录以继续访问</p>
+                    <h1 className="font-display text-4xl text-gray-800 mb-2">欢迎回家</h1>
+                    <p className="text-gray-400 text-sm italic">“记录我们的美好回忆 ❤️”</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-light text-stone-700 mb-2 ml-1">
-                            用户名
-                        </label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full px-5 py-4 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-rose-300 focus:border-transparent bg-white/80 font-light transition-all duration-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
-                            required
-                            autoFocus
-                            placeholder="请输入用户名"
-                        />
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1 text-slate-400">用户名</label>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
+                                <Icon name="person" size={20} />
+                            </div>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700"
+                                required
+                                autoFocus
+                                placeholder="请输入用户名"
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-light text-stone-700 mb-2 ml-1">
-                            密码
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-5 py-4 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-rose-300 focus:border-transparent bg-white/80 font-light transition-all duration-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
-                            required
-                            placeholder="请输入密码"
-                        />
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1 text-slate-400">密码</label>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
+                                <Icon name="lock" size={20} />
+                            </div>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700"
+                                required
+                                placeholder="请输入密码"
+                            />
+                        </div>
                     </div>
 
                     {error && (
-                        <div className="text-red-500 text-sm text-center bg-red-50/50 border border-red-100 rounded-xl p-4 font-light shadow-sm">
+                        <div className="text-red-500 text-xs text-center bg-red-50 rounded-xl p-3 animate-shake">
                             {error}
                         </div>
                     )}
@@ -87,23 +92,17 @@ const Login: React.FC = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-4 px-6 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-2xl font-light hover:from-rose-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                        className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                        {loading ? (
-                            <div className="flex items-center justify-center">
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                登录中...
-                            </div>
-                        ) : (
-                            '登录'
-                        )}
+                        {loading ? '正在回家...' : '登录'}
                     </button>
                 </form>
 
                 <div className="mt-8 text-center">
-                    <p className="text-sm text-stone-500 font-light">
-                        记录我们的美好回忆 ❤️
-                    </p>
+                    <button onClick={() => navigate('/')} className="text-xs text-gray-400 hover:text-primary transition-colors flex items-center justify-center space-x-2 mx-auto">
+                        <Icon name="west" size={16} />
+                        <span>返回小窝首页</span>
+                    </button>
                 </div>
             </div>
         </div>

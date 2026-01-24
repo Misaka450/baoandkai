@@ -1,284 +1,85 @@
 # 包包和恺恺的小窝 💕
 
-一个温馨的小窝网站，记录包包和恺恺的美好时光。基于Cloudflare全栈技术栈，无需服务器，部署简单，功能丰富。
+一个充满爱意且功能强大的温馨小窝，专为记录包包和恺恺的每一份美好记忆而打造。
 
-## ✨ 功能特色
+本项目采用 **Cloudflare 全栈无服务器架构**，无需维护传统服务器，具备极高的访问速度和低廉的运营成本。
 
-- 🏠 **温馨首页** - 展示情侣信息和纪念日倒计时，支持自定义背景
-- 📸 **回忆相册** - 上传和管理美好瞬间的照片，支持拖拽排序
-- 📝 **碎碎念** - 记录日常的小确幸和心情，管理员可删除任意内容
-- 🍜 **美食打卡** - 记录一起品尝的美食，包含评分和位置信息
-- 📅 **时间轴** - 按时间线展示重要时刻，支持图片和分类
-- ✅ **甜蜜待办** - 一起完成的小目标清单，支持优先级和状态
-- 👨‍💻 **管理后台** - 一站式内容管理，支持图片上传和系统设置
-- 🎨 **主题定制** - 支持自定义网站标题、描述、背景图等
-- 📱 **响应式设计** - 完美适配手机、平板、电脑
+---
 
-## 🚀 技术栈
+## ✨ 核心功能
 
-- **前端**: React 18 + Vite + Tailwind CSS + Framer Motion
-- **后端**: Cloudflare Pages Functions (Serverless)
-- **数据库**: Cloudflare D1 (SQLite兼容)
-- **存储**: Cloudflare R2 (兼容S3)
-- **部署**: GitHub Actions + Cloudflare Pages (CI/CD)
-- **身份验证**: 基于token的会话管理
-- **图片处理**: 客户端压缩 + 服务端存储
+- 🏠 **智慧首页** - 动态展示情侣信息与纪念日倒计，支持极致个性化的背景定制。
+- 📸 **高清相册** - 沉浸式照片墙，支持批量上传、智能压缩及流畅的拖拽排序。
+- 📝 **心动碎碎念** - 随时随地记录生活点滴，支持精美便签样式展示。
+- 🍜 **美食足迹** - 记录共同品味的人间烟火，包含评分、定位及照片。
+- 📅 **时光轴** - 以时间为序梳理重要里程碑，铭记每一个高光时刻。
+- ✅ **甜蜜清单** - 共同完成的生活目标，带状态追踪与精美完成动画。
+- 👨‍💻 **全能后台** - 一站式内容管控中心，支持实时数据预览与系统全局配置。
+- 🎨 **极致适配** - 完美适配从手机到 4K 巨屏的各终端设备，提供丝滑的操作体验。
 
-## 📦 快速开始
+---
 
-### 🛠️ 开发环境搭建
+## 🚀 核心技术栈
 
-1. **克隆项目**
-   ```bash
-   git clone https://github.com/Misaka450/baoandkai.git
-   cd baoandkai
-   ```
+- **前端架构**: React 18 + TypeScript + Vite + Tailwind CSS
+- **动效引航**: Framer Motion (提供丝滑的交互体验)
+- **后端引擎**: Cloudflare Pages Functions (Serverless 架构，毫秒级响应)
+- **数据库系统**: Cloudflare D1 (高性能边缘 SQL 数据库)
+- **对象存储**: Cloudflare R2 (可靠、低成本的媒体存储)
+- **自动化部署**: GitHub Actions 双向集成生产流
 
-2. **安装依赖**
-   ```bash
-   npm install
-   ```
+---
 
-3. **本地开发**
-   ```bash
-   npm run dev
-   # 访问 http://localhost:3000
-   ```
+## 🛠️ 快速起步
 
-### 🚀 生产部署
+### 1. 本地开发准备
 
-#### 方案1：一键部署（推荐）
-1. Fork本项目到你的GitHub
-2. 绑定到Cloudflare Pages
-3. 自动部署完成！
-
-#### 方案2：手动部署
-1. **构建项目**
-   ```bash
-   npm run build
-   ```
-
-2. **部署到Cloudflare**
-   ```bash
-   npm run deploy
-   ```
-
-#### 方案3：使用Wrangler
 ```bash
-# 安装Wrangler
-npm install -g wrangler
+# 克隆仓库
+git clone https://github.com/Misaka450/baoandkai.git
+cd baoandkai
 
-# 登录Cloudflare
-wrangler login
+# 安装依赖
+npm install
 
-# 部署
-wrangler pages deploy dist
+# 启动开发服务器
+npm run dev
 ```
 
-## 🔧 环境配置
+### 2. 云端部署（Cloudflare Pages）
 
-### 1. Cloudflare资源准备
+1. **GitHub 自动化**: 将仓库 Fork 并连接至 Cloudflare Pages，享受代码提交即部署的快感。
+2. **资源绑定**:
+   - 在控制台创建 **D1**、**R2** 和 **KV** 资源。
+   - 在 `wrangler.toml` 中正确配置对应绑定。
 
-#### 创建D1数据库
-```bash
-# 创建数据库（名称可自定义）
-wrangler d1 create oursql
+---
 
-# 获取数据库ID，填入wrangler.toml
-```
+## 🔧 最新架构优化
 
-#### 创建R2存储桶
-```bash
-# 创建存储桶（名称可自定义）
-wrangler r2 bucket create our
-```
+我们近期对项目进行了深度重构与性能优化：
 
-#### 创建KV命名空间（用于Token缓存）
-```bash
-# 创建KV命名空间
-wrangler kv:namespace create "KV"
+- ⚡ **Vite 构建优化**: 极致缩小产物包体积（约 **61%** 的降幅），提升首屏加载速度。
+- 🛡️ **全面 TypeScript**: 全量迁移至 .tsx，提供更稳健的类型检查和工程可靠性。
+- 🌏 **全站中文化**: 管理后台（Admin UI）已完全汉化，提供更亲切的使用体验。
+- 📸 **功能增强**: 相册、美食打卡、时间轴及心愿清单全面支持图片上传与管理。
+- 🗄️ **数据库同步**: 生产环境数据库结构已自动适配，确保线上线下功能完全一致。
+- 🧼 **代码规范化**: 修复冗余语法，移除调试日志，确保代码整洁（Pristine CodeBase）。
+- 🖼️ **智能媒体处理**: 优化前端图片预压缩流程，显著降低存储带宽占用。
 
-# 获取命名空间ID，填入wrangler.toml
-```
+---
 
-### 2. 配置文件设置
+## 💝 鸣谢
 
-#### wrangler.toml
-```toml
-name = "baoandkai"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "dist"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "oursql"  # 替换为你的数据库名
-database_id = "your-database-id"  # 替换为你的数据库ID
-
-[[kv_namespaces]]
-binding = "KV"
-id = "your-kv-namespace-id"  # 替换为你的KV命名空间ID
-
-[[r2_buckets]]
-binding = "IMAGES"
-bucket_name = "our"  # 替换为你的存储桶名
-
-[vars]
-ENVIRONMENT = "production"
-# ALLOWED_ORIGINS = "https://your-domain.com"  # 生产环境建议设置
-```
-
-### 3. 数据库初始化
-
-#### 自动初始化（推荐）
-首次部署时，系统会自动运行数据库迁移。
-
-#### 手动初始化
-```bash
-# 本地测试数据库
-wrangler d1 execute oursql --local --file=./migrations/complete_setup.sql
-
-# 生产数据库（使用 --remote 标志）
-wrangler d1 execute oursql --remote --file=./migrations/complete_setup.sql
-```
-
-#### 更新管理员密码
-```bash
-# 访问 /api/auth/update-password-hash 来设置管理员密码
-# 默认用户名: baobao  默认密码: baobao123
-```
-
-## 📱 功能详解
-
-### 🏠 首页功能
-- 💝 情侣信息展示（可自定义情侣姓名）
-- ⏰ 纪念日倒计时（支持设置纪念日期）
-- 🎨 自定义背景图（支持上传背景图片）
-- 📱 完美移动端适配
-
-### 📸 相册功能
-- 📁 无限创建相册分类
-- 🖼️ 批量上传照片（支持拖拽）
-- 🎯 拖拽排序照片
-- 🔍 高清图片预览
-- 📱 手机拍照直接上传
-- 🗑️ 一键删除照片
-
-### 📝 碎碎念功能
-- ✨ 记录日常小确幸
-- 🎨 多彩便签样式
-- 👨‍💻 管理员可删除任意内容
-- 📅 时间戳显示
-- 💝 爱心互动
-
-### 🍜 美食打卡
-- 🏪 餐厅名称记录
-- ⭐ 1-5星评分系统
-- 📍 地理位置标记
-- 📝 详细描述
-- 📸 美食照片上传
-- 📅 打卡时间记录
-
-### 📅 时间轴功能
-- 📅 按时间线展示重要时刻
-- 🏷️ 支持事件分类（纪念日、旅行、日常等）
-- 🖼️ 支持多张图片
-- 📝 详细描述
-- 🔍 按分类筛选
-- 📱 时间轴滑动体验
-
-### ✅ 甜蜜待办
-- 📋 创建待办事项
-- 🎯 优先级设置（高/中/低）
-- ✅ 完成状态跟踪
-- 🗓️ 截止日期
-- 📱 手机端快速添加
-- 🎉 完成庆祝动画
-
-### 👨‍💻 管理后台
-- 🔐 安全登录验证
-- 📊 一站式内容管理
-- 🖼️ 图片批量管理
-- ⚙️ 网站设置（标题、描述、背景等）
-- 📱 移动端管理界面
-- 🔄 实时数据同步
-
-## 🎯 使用技巧
-
-### 🚀 快速上手
-1. **首次访问**: 使用管理员账号登录
-   - 用户名: `baobao`
-   - 密码: `baobao123`
-
-2. **基础设置**: 进入管理后台设置情侣姓名、纪念日期、网站标题等
-3. **开始使用**: 直接上传照片、添加碎碎念、记录美食等
-
-### 📱 移动端优化
-- **拍照上传**: 手机可直接拍照上传到相册
-- **快速添加**: 支持语音输入待办事项
-- **手势操作**: 支持左滑删除、长按编辑等手势
-
-### 💡 高级技巧
-- **图片优化**: 上传前自动压缩，保证清晰度同时减小体积
-- **批量操作**: 支持批量删除、批量移动照片
-- **数据安全**: 自动云端备份，无需担心数据丢失
-- **分享功能**: 支持生成分享链接给朋友
-
-### 🔧 故障排除
-- **登录问题**: 使用 `/debug_token.html` 检查token状态
-- **图片上传**: 检查R2存储桶权限和网络连接
-- **数据库**: 使用D1控制台查看数据状态
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request！
-
-### 📋 开发规范
-- 使用ESLint + Prettier保持代码风格
-- 提交前运行 `npm run lint` 检查代码
-- 使用语义化提交信息
-- 大功能请先在Issue中讨论
-
-## 📄 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
-## 💝 致谢
-
-- **Cloudflare**: 提供优秀的全栈无服务器平台
-- **React社区**: 提供强大的前端框架
-- **Tailwind CSS**: 提供优雅的样式解决方案
-- **所有贡献者**: 感谢每一位为这个项目贡献的朋友
-
-## 📊 监控建议
-- 添加性能监控
-- 添加错误日志收集
-- 添加用户行为分析
-
-## 🎯 最新优化
-
-### ✅ 已完成的重要优化
-- **代码质量提升**: 修复所有语法错误，统一代码规范
-- **文件清理**: 移除调试文件和临时文件，保持项目整洁
-- **构建优化**: 配置Vite构建优化，减少打包体积61%
-- **类型安全**: 所有.jsx文件已迁移到.tsx，提供更好的类型检查
-
-### 📦 项目状态
-- ✅ **代码质量**: 通过ESLint检查，无语法错误
-- ✅ **构建状态**: npm run build 成功，退出码0
-- ✅ **文件结构**: 清理冗余文件，保持简洁
-- ✅ **类型安全**: 全面TypeScript支持
-
-## 📞 联系方式
-
-- **项目地址**: [https://github.com/Misaka450/baoandkai](https://github.com/Misaka450/baoandkai)
-- **演示地址**: [https://baoandkai.pages.dev](https://baoandkai.pages.dev)
-- **管理后台**: [https://baoandkai.pages.dev/admin](https://baoandkai.pages.dev/admin)
+感谢 Cloudflare 提供的边缘计算平台，以及 React 社区的无限创造力。该项目致力于用技术温暖生活。
 
 ---
 
 <div align="center">
-  <p>💖 用爱构建，用心记录 💖</p>
-  <p><em>每一个瞬间都值得被珍藏</em></p>
-  <p>🚀 <strong>项目状态: 优化完成 ✅</strong></p>
+  <p>🚀 <strong>项目状态: 运行稳定 | 优化完成 ✅</strong></p>
+  <p>💖 <em>让每一个瞬间都值得被铭记</em> 💖</p>
+  <p>
+    <a href="https://baoandkai.pages.dev">演示站点</a> · 
+    <a href="https://github.com/Misaka450/baoandkai">GitHub 仓库</a>
+  </p>
 </div>

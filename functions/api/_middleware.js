@@ -41,7 +41,21 @@ export async function onRequest(context) {
         '/api/auth/check-token',
         '/api/config',  // 公开配置API给首页使用
         '/api/uploads/', // Allow public access to uploaded files
+        '/api/debug/',  // TEMP: Allow db debug
     ];
+
+    // Allow GET requests to content APIs (public viewing, editing still requires auth)
+    const publicGetPaths = [
+        '/api/notes',
+        '/api/timeline',
+        '/api/albums',
+        '/api/todos',
+        '/api/food',
+    ];
+
+    const isPublicGet = request.method === 'GET' && publicGetPaths.some(path =>
+        url.pathname === path || url.pathname.startsWith(path + '/')
+    );
 
     // Check if current path is public - 使用精确匹配或前缀匹配
     const pathname = url.pathname;
@@ -51,7 +65,7 @@ export async function onRequest(context) {
     });
 
     // 3. Auth check for non-public paths
-    if (!isPublic) {
+    if (!isPublic && !isPublicGet) {
         try {
             const authHeader = request.headers.get('Authorization');
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -77,8 +91,8 @@ export async function onRequest(context) {
                 user = await env.DB.prepare(`
                     SELECT id, username, email, token_expires
                     FROM users
-                    WHERE token = ? AND token_expires > datetime('now')
-                `).bind(token).first();
+                    WHERE token = ? AND token_expires > ?
+                `).bind(token, new Date().toISOString()).first();
 
                 // If found in DB, sync back to KV (if available)
                 if (user && env.KV) {
@@ -105,10 +119,17 @@ export async function onRequest(context) {
 
     // 4. Proceed to actual handler
     try {
+        console.log(`[Middleware] Handling path: ${pathname}`);
         const response = await next();
+        console.log(`[Middleware] Handler responded with status: ${response.status}`);
 
         // 5. Add CORS headers to all responses
-        const newResponse = new Response(response.body, response);
+        const newResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers)
+        });
+
         newResponse.headers.set('Access-Control-Allow-Origin', corsOrigin);
         newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
