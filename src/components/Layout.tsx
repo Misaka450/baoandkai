@@ -1,8 +1,13 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Navigation from './Navigation'
 import Icon from './icons/Icons'
 
 export default function Layout() {
+  const location = useLocation()
+
+  // 在后台管理页面隐藏顶部导航栏
+  const isAdminPage = location.pathname.startsWith('/admin')
+
   return (
     <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300 overflow-x-hidden">
       {/* 装饰性背景元素 - 增加更多浮动图标 */}
@@ -48,7 +53,8 @@ export default function Layout() {
         </div>
       </div>
 
-      <Navigation />
+      {/* 只在非后台页面显示导航栏 */}
+      {!isAdminPage && <Navigation />}
 
       <main className="relative z-10">
         <div className="animate-fade-in">

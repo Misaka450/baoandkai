@@ -45,7 +45,7 @@ export default function Todos() {
     <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
       <main className="pt-32 pb-20 px-4 max-w-6xl mx-auto">
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">甜蜜共享清单</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">我们的待办</h1>
           <p className="text-slate-400 italic font-handwriting text-2xl">
             记录我们的每一个小愿望，一起去完成它们吧 ✨
           </p>

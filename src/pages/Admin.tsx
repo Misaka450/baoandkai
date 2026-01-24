@@ -135,7 +135,14 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         })}
       </nav>
 
-      <div className="p-6 space-y-4">
+      <div className="p-6 space-y-2">
+        <Link
+          to="/"
+          className="w-full flex items-center justify-center gap-2 py-3 text-primary hover:text-white hover:bg-primary rounded-2xl transition-all text-sm font-medium border border-primary/20"
+        >
+          <Icon name="home" size={20} />
+          <span>返回首页</span>
+        </Link>
         <button
           onClick={logout}
           className="w-full flex items-center justify-center gap-2 py-3 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all text-sm font-medium"

@@ -176,7 +176,7 @@ export default function Albums() {
                     <div
                       key={photo.id || idx}
                       className="aspect-square rounded-2xl overflow-hidden cursor-pointer group/photo relative"
-                      onClick={() => handlePhotoClick(idx)}
+                      onClick={(e) => { e.stopPropagation(); handlePhotoClick(idx); }}
                     >
                       <img
                         src={photo.url}
