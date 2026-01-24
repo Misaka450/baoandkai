@@ -106,7 +106,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             <Icon name="favorite" size={20} />
           </div>
           <div>
-            <h1 className="font-bold text-lg text-slate-800 leading-tight">宝包和恺恺</h1>
+            <h1 className="font-bold text-lg text-slate-800 leading-tight">包包和恺恺</h1>
             <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Sweet Admin</p>
           </div>
         </div>
