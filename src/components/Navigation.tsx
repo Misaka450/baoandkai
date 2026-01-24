@@ -27,7 +27,7 @@ export default function Navigation() {
             <Link
               key={item.name}
               to={item.href}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive
+              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-full transition-all duration-300 ${isActive
                 ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
                 : 'text-gray-500 hover:text-primary hover:bg-primary/5'
                 }`}

@@ -144,10 +144,10 @@ export default function Albums() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* 弹窗头部 */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-800">{selectedAlbum.name}</h2>
-                <p className="text-slate-500 text-sm">{selectedAlbum.description || '暂无描述'}</p>
+            <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800 truncate">{selectedAlbum.name}</h2>
+                <p className="text-slate-500 text-sm truncate">{selectedAlbum.description || '暂无描述'}</p>
               </div>
               <button
                 onClick={closeAlbumDetail}
