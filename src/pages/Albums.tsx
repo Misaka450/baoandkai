@@ -46,11 +46,11 @@ export default function Albums() {
 
                 {/* 封面图 */}
                 <div className="absolute inset-0 bg-slate-50 rounded-3xl shadow-md border-4 border-white overflow-hidden z-10">
-                  {album.photo_count && album.photo_count > 0 ? (
+                  {album.photos && album.photos.length > 0 ? (
                     <img
                       alt={album.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      src={`https://images.unsplash.com/photo-${1500000000000 + (parseInt(album.id) % 1000)}?q=80&w=800&auto=format&fit=crop`}
+                      src={album.photos[0]?.url || ''}
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
@@ -62,7 +62,7 @@ export default function Albums() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
                     <div className="flex items-center gap-2 text-white">
                       <Icon name="photo_album" size={16} />
-                      <span className="text-xs font-medium">{album.photo_count} 张照片</span>
+                      <span className="text-xs font-medium">{album.photo_count || 0} 张照片</span>
                     </div>
                   </div>
                 </div>

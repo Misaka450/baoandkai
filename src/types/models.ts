@@ -53,6 +53,7 @@ export interface Album {
     id: string;
     name: string;
     description?: string;
+    cover_url?: string;
     photos?: Photo[];
     photo_count?: number;
     created_at?: string;
