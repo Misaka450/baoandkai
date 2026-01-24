@@ -8,6 +8,8 @@ interface SiteConfig {
     coupleName1: string
     coupleName2: string
     anniversaryDate: string
+    homeTitle?: string
+    homeSubtitle?: string
 }
 
 const AdminSettings = () => {
@@ -111,6 +113,38 @@ const AdminSettings = () => {
                                         value={config.anniversaryDate}
                                         onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
                                         className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">首页标题</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Icon name="home" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={config.homeTitle || ''}
+                                        onChange={(e) => setConfig({ ...config, homeTitle: e.target.value })}
+                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        placeholder="例如：包包和恺恺的小窝"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">首页副标题</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Icon name="favorite" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={config.homeSubtitle || ''}
+                                        onChange={(e) => setConfig({ ...config, homeSubtitle: e.target.value })}
+                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        placeholder="例如：遇见你，是银河赠予我的糖。"
                                     />
                                 </div>
                             </div>

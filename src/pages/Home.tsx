@@ -8,13 +8,17 @@ interface Config {
   coupleName1: string;
   coupleName2: string;
   anniversaryDate: string;
+  homeTitle: string;
+  homeSubtitle: string;
 }
 
 export default function Home() {
   const [config, setConfig] = useState<Config>({
     coupleName1: '包包',
     coupleName2: '恺恺',
-    anniversaryDate: '2023-10-08'
+    anniversaryDate: '2023-10-08',
+    homeTitle: '包包和恺恺的小窝',
+    homeSubtitle: '遇见你，是银河赠予我的糖。'
   })
 
   const timeTogether = useLoveTimer(config.anniversaryDate)
@@ -31,7 +35,9 @@ export default function Home() {
         setConfig({
           coupleName1: data.coupleName1 || '包包',
           coupleName2: data.coupleName2 || '恺恺',
-          anniversaryDate: data.anniversaryDate || '2023-10-08'
+          anniversaryDate: data.anniversaryDate || '2023-10-08',
+          homeTitle: data.homeTitle || '包包和恺恺的小窝',
+          homeSubtitle: data.homeSubtitle || '遇见你，是银河赠予我的糖。'
         })
       }
     } catch (error) {
@@ -63,9 +69,9 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="font-display text-5xl md:text-6xl mb-4 text-gray-800">包包和恺恺的小窝</h1>
+        <h1 className="font-display text-5xl md:text-6xl mb-4 text-gray-800">{config.homeTitle}</h1>
         <p className="text-gray-500 text-lg max-w-lg mx-auto leading-relaxed italic">
-          "遇见你，是银河赠予我的糖。"
+          "{config.homeSubtitle}"
         </p>
       </header>
 
