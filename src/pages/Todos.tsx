@@ -89,29 +89,32 @@ export default function Todos() {
                 </div>
 
                 {/* 完成信息展示 */}
-                {isCompleted && (todo.completion_photos || todo.completion_notes) && (
-                  <div className="mt-4 pt-4 border-t border-slate-200/50">
-                    {todo.completion_notes && (
-                      <p className="text-xs text-slate-500 italic mb-2">"{todo.completion_notes}"</p>
-                    )}
-                    {todo.completion_photos && (
-                      <div className="flex gap-2 flex-wrap">
-                        {(Array.isArray(todo.completion_photos)
+                {isCompleted && (
+                  (todo.completion_notes || (todo.completion_photos && (Array.isArray(todo.completion_photos) ? todo.completion_photos.length > 0 : todo.completion_photos))) && (
+                    <div className="mt-4 pt-4 border-t border-slate-200/50">
+                      {todo.completion_notes && (
+                        <p className="text-xs text-slate-500 italic mb-2">"{todo.completion_notes}"</p>
+                      )}
+                      {todo.completion_photos && (() => {
+                        const photos = Array.isArray(todo.completion_photos)
                           ? todo.completion_photos
-                          : todo.completion_photos.split(',').filter(Boolean)
-                        ).slice(0, 3).map((photo, i) => (
-                          <img
-                            key={i}
-                            src={photo}
-                            alt="完成照片"
-                            className="w-12 h-12 rounded-lg object-cover cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => setSelectedImage(photo)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                          : (typeof todo.completion_photos === 'string' ? todo.completion_photos.split(',').filter(Boolean) : [])
+                        return photos.length > 0 && (
+                          <div className="flex gap-2 flex-wrap">
+                            {photos.slice(0, 3).map((photo, i) => (
+                              <img
+                                key={i}
+                                src={photo}
+                                alt="完成照片"
+                                className="w-12 h-12 rounded-lg object-cover cursor-pointer hover:scale-105 transition-transform"
+                                onClick={() => setSelectedImage(photo)}
+                              />
+                            ))}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  ))}
               </div>
             )
           })}
