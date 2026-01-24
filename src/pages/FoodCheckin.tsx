@@ -30,7 +30,10 @@ const cuisines: CuisineConfig[] = [
 export default function FoodCheckin() {
   const [currentPage, setCurrentPage] = useState(1)
   const [filter, setFilter] = useState('all')
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+
+  // 多图查看状态
+  const [selectedImages, setSelectedImages] = useState<string[]>([])
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const { data: foodData, isLoading: loading } = useQuery({
     queryKey: ['food', currentPage, filter],
@@ -60,6 +63,14 @@ export default function FoodCheckin() {
     </div>
   )
 
+  // 打开图片查看器
+  const handleImageClick = (images: string[], startIndex: number = 0) => {
+    if (images && images.length > 0) {
+      setSelectedImages(images)
+      setCurrentImageIndex(startIndex)
+    }
+  }
+
   if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">觅食中...</div>
 
   return (
@@ -88,6 +99,7 @@ export default function FoodCheckin() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCheckins.map((checkin, idx) => {
+            const images = checkin.images || []
             const isReceipt = idx % 3 === 1 // 每3张中第2张显示为收据模式
 
             if (isReceipt) {
@@ -117,9 +129,24 @@ export default function FoodCheckin() {
                         <span>无限循环</span>
                       </div>
                     </div>
+                    {/* 多图缩略图 */}
+                    <div className="flex items-center gap-2 mb-4">
+                      {images.slice(0, 4).map((img, i) => (
+                        <div
+                          key={i}
+                          className="w-10 h-10 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                          onClick={() => handleImageClick(images, i)}
+                        >
+                          <img className="w-full h-full object-cover" src={img} alt={`Food ${i}`} />
+                        </div>
+                      ))}
+                      {images.length > 4 && (
+                        <span className="text-xs text-slate-400">+{images.length - 4}</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
-                        <img className="w-full h-full object-cover" src={checkin.images?.[0] || ''} alt="Food" />
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white cursor-pointer" onClick={() => handleImageClick(images, 0)}>
+                        <img className="w-full h-full object-cover" src={images[0] || ''} alt="Food" />
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-400">{checkin.date}</p>
@@ -133,16 +160,22 @@ export default function FoodCheckin() {
 
             return (
               <div key={checkin.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl transition-all duration-500">
-                <div className="h-48 relative overflow-hidden">
+                <div className="h-48 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
                   <img
                     alt={checkin.restaurant_name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    src={checkin.images?.[0] || ''}
-                    onClick={() => setSelectedImage(checkin.images?.[0] || null)}
+                    src={images[0] || ''}
                   />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-primary shadow-sm">
                     {checkin.cuisine}
                   </div>
+                  {/* 多图指示器 */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white flex items-center gap-1">
+                      <Icon name="photo_library" size={14} />
+                      {images.length}
+                    </div>
+                  )}
                 </div>
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-2">
@@ -153,7 +186,28 @@ export default function FoodCheckin() {
                     <Icon name="location_on" size={12} />
                     <span className="truncate">{checkin.address}</span>
                   </div>
-                  <p className="text-slate-500 text-sm italic mb-4">“{checkin.description}”</p>
+                  <p className="text-slate-500 text-sm italic mb-4">"{checkin.description}"</p>
+
+                  {/* 多图缩略图行 */}
+                  {images.length > 1 && (
+                    <div className="flex gap-2 mb-4">
+                      {images.slice(0, 4).map((img, i) => (
+                        <div
+                          key={i}
+                          className="w-10 h-10 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                          onClick={() => handleImageClick(images, i)}
+                        >
+                          <img className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
+                        </div>
+                      ))}
+                      {images.length > 4 && (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-medium">
+                          +{images.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-[10px] text-end text-slate-300 font-bold uppercase tracking-widest">{checkin.date}</p>
                 </div>
               </div>
@@ -162,10 +216,15 @@ export default function FoodCheckin() {
         </div>
       </main>
 
+      {/* 多图查看器 */}
       <ImageModal
-        isOpen={selectedImage !== null}
-        onClose={() => setSelectedImage(null)}
-        imageUrl={selectedImage || undefined}
+        isOpen={selectedImages.length > 0}
+        onClose={() => setSelectedImages([])}
+        images={selectedImages}
+        currentIndex={currentImageIndex}
+        onPrevious={() => setCurrentImageIndex(prev => (prev - 1 + selectedImages.length) % selectedImages.length)}
+        onNext={() => setCurrentImageIndex(prev => (prev + 1) % selectedImages.length)}
+        onJumpTo={setCurrentImageIndex}
       />
     </div>
   )

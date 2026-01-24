@@ -23,8 +23,8 @@ export default function Albums() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
 
-  // 相册详情展开状态
-  const [expandedAlbum, setExpandedAlbum] = useState<Album | null>(null)
+  // 相册详情弹窗状态
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
   const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
   const [loadingPhotos, setLoadingPhotos] = useState(false)
 
@@ -43,16 +43,9 @@ export default function Albums() {
 
   const albums = albumsData?.data || []
 
-  // 点击相册 - 展开详情
+  // 点击相册 - 打开详情弹窗
   const handleAlbumClick = async (album: Album) => {
-    if (expandedAlbum?.id === album.id) {
-      // 已展开则收起
-      setExpandedAlbum(null)
-      setAlbumPhotos([])
-      return
-    }
-
-    setExpandedAlbum(album)
+    setSelectedAlbum(album)
     setLoadingPhotos(true)
     try {
       const { data, error } = await apiService.get<AlbumDetailResponse>(`/albums/${album.id}`)
@@ -64,6 +57,12 @@ export default function Albums() {
     } finally {
       setLoadingPhotos(false)
     }
+  }
+
+  // 关闭相册详情弹窗
+  const closeAlbumDetail = () => {
+    setSelectedAlbum(null)
+    setAlbumPhotos([])
   }
 
   // 点击单张照片 - 进入看图模式
@@ -84,90 +83,44 @@ export default function Albums() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {albums.map((album) => (
-            <div key={album.id} className="group">
-              {/* 相册卡片 */}
-              <div
-                className="cursor-pointer"
-                onClick={() => handleAlbumClick(album)}
-              >
-                <div className="relative aspect-[4/3] mb-4">
-                  {/* 叠层效果 */}
-                  <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 rotate-1 group-hover:rotate-3 transition-transform"></div>
-                  <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 -rotate-1 group-hover:-rotate-3 transition-transform"></div>
+            <div
+              key={album.id}
+              className="group cursor-pointer"
+              onClick={() => handleAlbumClick(album)}
+            >
+              <div className="relative aspect-[4/3] mb-4">
+                {/* 叠层效果 */}
+                <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 rotate-1 group-hover:rotate-3 transition-transform"></div>
+                <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 -rotate-1 group-hover:-rotate-3 transition-transform"></div>
 
-                  {/* 封面图 */}
-                  <div className="absolute inset-0 bg-slate-50 rounded-3xl shadow-md border-4 border-white overflow-hidden z-10">
-                    {album.photos && album.photos.length > 0 ? (
-                      <img
-                        alt={album.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src={album.photos[0]?.url || ''}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
-                        <Icon name="photo_library" size={48} className="mb-2" />
-                        <p className="text-xs font-bold uppercase tracking-widest">还没有照片哦</p>
-                      </div>
-                    )}
-
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
-                      <div className="flex items-center gap-2 text-white">
-                        <Icon name="photo_album" size={16} />
-                        <span className="text-xs font-medium">{album.photo_count || 0} 张照片</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 加载状态 */}
-                  {loadingPhotos && expandedAlbum?.id === album.id && (
-                    <div className="absolute inset-0 bg-black/30 rounded-3xl z-20 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                {/* 封面图 */}
+                <div className="absolute inset-0 bg-slate-50 rounded-3xl shadow-md border-4 border-white overflow-hidden z-10">
+                  {album.photos && album.photos.length > 0 ? (
+                    <img
+                      alt={album.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      src={album.photos[0]?.url || ''}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                      <Icon name="photo_library" size={48} className="mb-2" />
+                      <p className="text-xs font-bold uppercase tracking-widest">还没有照片哦</p>
                     </div>
                   )}
-                </div>
 
-                <div className="px-2 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-xl text-slate-800 mb-1 group-hover:text-primary transition-colors">{album.name}</h3>
-                    <p className="text-slate-400 text-sm line-clamp-1">{album.description || '暂无描述'}</p>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
+                    <div className="flex items-center gap-2 text-white">
+                      <Icon name="photo_album" size={16} />
+                      <span className="text-xs font-medium">{album.photo_count || 0} 张照片</span>
+                    </div>
                   </div>
-                  <Icon
-                    name={expandedAlbum?.id === album.id ? "expand_less" : "expand_more"}
-                    size={24}
-                    className="text-slate-400"
-                  />
                 </div>
               </div>
 
-              {/* 展开的照片网格 */}
-              {expandedAlbum?.id === album.id && (
-                <div className="mt-4 p-4 bg-white/60 rounded-2xl border border-slate-100 shadow-inner">
-                  {loadingPhotos ? (
-                    <div className="text-center py-8 text-slate-400">加载中...</div>
-                  ) : albumPhotos.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400">
-                      <Icon name="photo_library" size={32} className="mx-auto mb-2 opacity-50" />
-                      <p>这个相册还没有照片</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      {albumPhotos.map((photo, idx) => (
-                        <div
-                          key={photo.id || idx}
-                          className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all"
-                          onClick={() => handlePhotoClick(idx)}
-                        >
-                          <img
-                            src={photo.url}
-                            alt={photo.caption || `照片${idx + 1}`}
-                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="px-2">
+                <h3 className="font-bold text-xl text-slate-800 mb-1 group-hover:text-primary transition-colors">{album.name}</h3>
+                <p className="text-slate-400 text-sm line-clamp-1">{album.description || '暂无描述'}</p>
+              </div>
             </div>
           ))}
 
@@ -179,6 +132,80 @@ export default function Albums() {
           </div>
         </div>
       </main>
+
+      {/* 相册详情弹窗 */}
+      {selectedAlbum && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closeAlbumDetail}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 弹窗头部 */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800">{selectedAlbum.name}</h2>
+                <p className="text-slate-500 text-sm">{selectedAlbum.description || '暂无描述'}</p>
+              </div>
+              <button
+                onClick={closeAlbumDetail}
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+              >
+                <Icon name="west" size={20} className="text-slate-600" />
+              </button>
+            </div>
+
+            {/* 照片网格 */}
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              {loadingPhotos ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-slate-400">加载中...</p>
+                </div>
+              ) : albumPhotos.length === 0 ? (
+                <div className="text-center py-16 text-slate-400">
+                  <Icon name="photo_library" size={64} className="mx-auto mb-4 opacity-30" />
+                  <p className="text-lg">这个相册还没有照片</p>
+                  <p className="text-sm">去后台添加一些美好的回忆吧~</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {albumPhotos.map((photo, idx) => (
+                    <div
+                      key={photo.id || idx}
+                      className="aspect-square rounded-2xl overflow-hidden cursor-pointer group/photo relative"
+                      onClick={() => handlePhotoClick(idx)}
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || `照片${idx + 1}`}
+                        className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/20 transition-colors flex items-center justify-center">
+                        <Icon name="search" size={32} className="text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                      </div>
+                      {photo.caption && (
+                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                          <p className="text-white text-xs truncate">{photo.caption}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 底部统计 */}
+            {albumPhotos.length > 0 && (
+              <div className="p-4 border-t border-slate-100 text-center text-slate-400 text-sm">
+                共 {albumPhotos.length} 张照片
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 图片查看器 */}
       <ImageModal
