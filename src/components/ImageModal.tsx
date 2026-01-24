@@ -184,7 +184,10 @@ export default function ImageModal({
           <button onClick={resetTransform} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all">
             <RotateCcw className="w-5 h-5" />
           </button>
-          <button onClick={onClose} className="ml-2 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl">
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            className="ml-2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl"
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
