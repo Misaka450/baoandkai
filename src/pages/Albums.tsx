@@ -136,24 +136,24 @@ export default function Albums() {
       {/* 相册详情弹窗 */}
       {selectedAlbum && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={closeAlbumDetail}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/50"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 弹窗头部 */}
-            <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between gap-4">
+            <div className="p-4 md:p-6 bg-gradient-to-r from-pink-50 to-purple-50 border-b border-slate-100/50 flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl md:text-2xl font-bold text-slate-800 truncate">{selectedAlbum.name}</h2>
                 <p className="text-slate-500 text-sm truncate">{selectedAlbum.description || '暂无描述'}</p>
               </div>
               <button
                 onClick={closeAlbumDetail}
-                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-white/80 hover:bg-primary hover:text-white flex items-center justify-center transition-all shadow-sm"
               >
-                <Icon name="west" size={20} className="text-slate-600" />
+                <Icon name="west" size={20} />
               </button>
             </div>
 

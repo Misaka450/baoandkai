@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon, { IconName } from './icons/Icons'
 
@@ -9,6 +10,9 @@ interface NavItem {
 
 export default function Navigation() {
   const location = useLocation()
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
   const navigation: NavItem[] = [
     { name: '首页', href: '/', icon: 'home' },
     { name: '时间轴', href: '/timeline', icon: 'schedule' },
@@ -18,8 +22,33 @@ export default function Navigation() {
     { name: '管理', href: '/admin', icon: 'settings' }
   ]
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // 在顶部时始终显示
+      if (currentScrollY < 50) {
+        setIsVisible(true)
+      }
+      // 向上滚动显示，向下滚动隐藏
+      else if (currentScrollY < lastScrollY) {
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
+
   return (
-    <nav className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
+    <nav
+      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0'
+        }`}
+    >
       <div className="glass-card soft-shadow px-4 md:px-6 py-2 md:py-3 rounded-full flex items-center space-x-2 md:space-x-4 border border-white/50">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
