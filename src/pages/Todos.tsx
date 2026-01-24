@@ -42,7 +42,7 @@ export default function Todos() {
   if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">加载小愿望中...</div>
 
   return (
-    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300">
+    <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="pt-32 pb-20 px-4 max-w-6xl mx-auto">
         <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">我们的待办</h1>
