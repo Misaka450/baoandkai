@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
-import type { Album } from '../types'
+import type { Album, Photo } from '../types'
 import Icon from '../components/icons/Icons'
+import ImageModal from '../components/ImageModal'
 
 interface AlbumsResponse {
   data: Album[]
@@ -11,9 +12,21 @@ interface AlbumsResponse {
   currentPage: number
 }
 
+interface AlbumDetailResponse {
+  id: string
+  name: string
+  description?: string
+  photos: Photo[]
+}
+
 export default function Albums() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+  const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
+  const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [loadingPhotos, setLoadingPhotos] = useState(false)
 
   const { data: albumsData, isLoading: loading } = useQuery({
     queryKey: ['albums', currentPage, itemsPerPage],
@@ -25,6 +38,24 @@ export default function Albums() {
   })
 
   const albums = albumsData?.data || []
+
+  const handleAlbumClick = async (album: Album) => {
+    setSelectedAlbum(album)
+    setLoadingPhotos(true)
+    try {
+      const { data, error } = await apiService.get<AlbumDetailResponse>(`/albums/${album.id}`)
+      if (error) throw new Error(error)
+      if (data?.photos && data.photos.length > 0) {
+        setAlbumPhotos(data.photos)
+        setCurrentImageIndex(0)
+        setImageModalOpen(true)
+      }
+    } catch (e) {
+      console.error('加载相册失败:', e)
+    } finally {
+      setLoadingPhotos(false)
+    }
+  }
 
   if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">开启回忆相框...</div>
 
@@ -38,7 +69,11 @@ export default function Albums() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {albums.map((album) => (
-            <div key={album.id} className="group cursor-pointer">
+            <div
+              key={album.id}
+              className="group cursor-pointer"
+              onClick={() => handleAlbumClick(album)}
+            >
               <div className="relative aspect-[4/3] mb-4">
                 {/* 叠层效果 */}
                 <div className="absolute inset-0 bg-white rounded-3xl shadow-sm border border-slate-100 rotate-1 group-hover:rotate-3 transition-transform"></div>
@@ -66,6 +101,13 @@ export default function Albums() {
                     </div>
                   </div>
                 </div>
+
+                {/* 加载状态 */}
+                {loadingPhotos && selectedAlbum?.id === album.id && (
+                  <div className="absolute inset-0 bg-black/30 rounded-3xl z-20 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  </div>
+                )}
               </div>
 
               <div className="px-2">
@@ -83,6 +125,20 @@ export default function Albums() {
           </div>
         </div>
       </main>
+
+      {/* 图片查看器 */}
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => {
+          setImageModalOpen(false)
+          setSelectedAlbum(null)
+        }}
+        images={albumPhotos.map(p => p.url)}
+        currentIndex={currentImageIndex}
+        onPrevious={() => setCurrentImageIndex(prev => (prev - 1 + albumPhotos.length) % albumPhotos.length)}
+        onNext={() => setCurrentImageIndex(prev => (prev + 1) % albumPhotos.length)}
+        onJumpTo={setCurrentImageIndex}
+      />
     </div>
   )
 }
