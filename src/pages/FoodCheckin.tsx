@@ -98,65 +98,8 @@ export default function FoodCheckin() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCheckins.map((checkin, idx) => {
+          {filteredCheckins.map((checkin) => {
             const images = checkin.images || []
-            const isReceipt = idx % 3 === 1 // 每3张中第2张显示为收据模式
-
-            if (isReceipt) {
-              return (
-                <div key={checkin.id} className="bg-amber-50 shadow-lg p-6 relative overflow-hidden flex flex-col justify-between border-t-4 border-primary">
-                  <div className="absolute -right-4 -top-4 opacity-10">
-                    <Icon name="receipt" size={80} />
-                  </div>
-                  <div>
-                    <div className="text-center border-b border-dashed border-amber-200 pb-4 mb-4">
-                      <h3 className="font-mono font-bold text-xl uppercase tracking-widest text-slate-800">美食入场券</h3>
-                      <p className="font-mono text-[10px] text-slate-400">流水号: {checkin.id}</p>
-                    </div>
-                    <div className="space-y-3 font-mono text-sm mb-6">
-                      <div className="flex justify-between">
-                        <span className="truncate pr-4">{checkin.restaurant_name}</span>
-                        <span>{checkin.cuisine}</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>口感评分</span>
-                        <div className="flex text-primary gap-1">
-                          {Array.from({ length: checkin.overall_rating || 5 }).map((_, i) => <Icon key={i} name="favorite" size={12} className="fill-current" />)}
-                        </div>
-                      </div>
-                      <div className="flex justify-between text-primary font-bold pt-2 border-t border-dashed border-amber-200">
-                        <span>爱心总值</span>
-                        <span>无限循环</span>
-                      </div>
-                    </div>
-                    {/* 多图缩略图 */}
-                    <div className="flex items-center gap-2 mb-4">
-                      {images.slice(0, 4).map((img, i) => (
-                        <div
-                          key={i}
-                          className="w-10 h-10 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                          onClick={() => handleImageClick(images, i)}
-                        >
-                          <img className="w-full h-full object-cover" src={img} alt={`Food ${i}`} />
-                        </div>
-                      ))}
-                      {images.length > 4 && (
-                        <span className="text-xs text-slate-400">+{images.length - 4}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white cursor-pointer" onClick={() => handleImageClick(images, 0)}>
-                        <img className="w-full h-full object-cover" src={images[0] || ''} alt="Food" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400">{checkin.date}</p>
-                        <p className="text-xs font-bold truncate max-w-[150px]">{checkin.address}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            }
 
             return (
               <div key={checkin.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl transition-all duration-500">
@@ -169,6 +112,12 @@ export default function FoodCheckin() {
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-primary shadow-sm">
                     {checkin.cuisine}
                   </div>
+                  {/* 人均花费 */}
+                  {checkin.price_range && (
+                    <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-white shadow-sm">
+                      ¥{checkin.price_range}/人
+                    </div>
+                  )}
                   {/* 多图指示器 */}
                   {images.length > 1 && (
                     <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white flex items-center gap-1">
@@ -186,7 +135,9 @@ export default function FoodCheckin() {
                     <Icon name="location_on" size={12} />
                     <span className="truncate">{checkin.address}</span>
                   </div>
-                  <p className="text-slate-500 text-sm italic mb-4">"{checkin.description}"</p>
+                  {checkin.description && (
+                    <p className="text-slate-500 text-sm italic mb-4">"{checkin.description}"</p>
+                  )}
 
                   {/* 多图缩略图行 */}
                   {images.length > 1 && (
