@@ -20,11 +20,11 @@ interface colorStyle {
 }
 
 const colorMap: Record<string, colorStyle> = {
-  pink: { bg: 'bg-pink-50/70', border: 'border-pink-100', text: 'text-pink-800', icon: 'text-pink-400', shadow: 'diffused-shadow-pink' },
-  orange: { bg: 'bg-orange-50/70', border: 'border-orange-100', text: 'text-orange-800', icon: 'text-orange-400', shadow: 'diffused-shadow-yellow' },
-  green: { bg: 'bg-green-50/70', border: 'border-green-100', text: 'text-green-800', icon: 'text-green-400', shadow: 'diffused-shadow-green' },
-  blue: { bg: 'bg-blue-50/70', border: 'border-blue-100', text: 'text-blue-800', icon: 'text-blue-400', shadow: 'diffused-shadow-blue' },
-  purple: { bg: 'bg-purple-50/70', border: 'border-purple-100', text: 'text-purple-800', icon: 'text-purple-400', shadow: 'diffused-shadow-purple' },
+  pink: { bg: 'bg-pastel-pink', border: 'border-pink-100', text: 'text-pink-700', icon: 'text-primary', shadow: 'shadow-pink-100/50' },
+  orange: { bg: 'bg-pastel-yellow', border: 'border-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-500', shadow: 'shadow-yellow-100/50' },
+  green: { bg: 'bg-pastel-green', border: 'border-green-100', text: 'text-green-700', icon: 'text-green-400', shadow: 'shadow-green-100/50' },
+  blue: { bg: 'bg-pastel-blue', border: 'border-blue-100', text: 'text-blue-700', icon: 'text-blue-400', shadow: 'shadow-blue-100/50' },
+  purple: { bg: 'bg-pastel-purple', border: 'border-purple-100', text: 'text-purple-700', icon: 'text-purple-400', shadow: 'shadow-purple-100/50' },
 }
 
 const getRandomColorName = () => {
