@@ -227,6 +227,8 @@ const AdminSettings = () => {
                                                     </div>
                                                     {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
                                                 </div>
+                                            ) : config.avatar1 && config.avatar1.includes('/api/') ? (
+                                                <img src={config.avatar1} alt="Preview" className="w-full h-full object-cover" />
                                             ) : (
                                                 <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
                                             )}
@@ -261,6 +263,8 @@ const AdminSettings = () => {
                                                     </div>
                                                     {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
                                                 </div>
+                                            ) : config.avatar2 && config.avatar2.includes('/api/') ? (
+                                                <img src={config.avatar2} alt="Preview" className="w-full h-full object-cover" />
                                             ) : (
                                                 <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
                                             )}
