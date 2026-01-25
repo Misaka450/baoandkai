@@ -55,10 +55,10 @@ export default function Home() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 pt-40 relative">
+    <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative">
       {/* 背景光晕 - 升级为多彩混色 */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-pink-200/20 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
-      <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-blue-200/20 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
+      <div className="absolute top-20 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
 
       <header className="text-center mb-24 relative animate-fade-in">
         <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-12 relative">
@@ -84,10 +84,10 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-gradient antialiased py-2">
+        <h1 className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 tracking-tight text-gradient antialiased py-2">
           {config.homeTitle}
         </h1>
-        <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80">
+        <p className="text-slate-400 text-base md:text-xl max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80 px-4">
           "{config.homeSubtitle}"
         </p>
       </header>
@@ -102,7 +102,7 @@ export default function Home() {
           <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">Memory since Oct 8, 2023</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-16 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-16 relative z-10">
           {[
             { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
             { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
@@ -113,14 +113,14 @@ export default function Home() {
           ].map((item, idx) => (
             <div
               key={idx}
-              className={`p-10 rounded-[2.5rem] text-center shadow-lg shadow-black/[0.03] hover:scale-110 active:scale-95 transition-all duration-500 border-8 border-white relative group/item overflow-hidden ${item.color}`}
+              className={`px-4 py-8 md:p-10 rounded-[2.5rem] text-center shadow-lg shadow-black/[0.03] hover:scale-105 active:scale-95 transition-all duration-500 border-4 md:border-8 border-white relative group/item overflow-hidden ${item.color}`}
               style={{ animation: `float 6s ease-in-out infinite ${item.delay}` }}
             >
               <div className={`absolute -top-4 -right-4 opacity-10 group-hover/item:opacity-30 transition-opacity rotate-12 ${item.text}`}>
-                <Icon name={item.icon as any} size={64} />
+                <Icon name={item.icon as any} size={idx % 2 === 0 ? 64 : 48} />
               </div>
 
-              <div className={`text-5xl md:text-6xl font-black mb-3 tracking-tighter ${item.text} drop-shadow-sm`}>
+              <div className={`text-4xl md:text-5xl lg:text-6xl font-black mb-3 ${item.text} drop-shadow-sm`}>
                 {String(item.value).padStart(2, '0')}
               </div>
               <div className="text-[10px] font-black text-slate-400/50 uppercase tracking-[0.2em]">{item.label}</div>
