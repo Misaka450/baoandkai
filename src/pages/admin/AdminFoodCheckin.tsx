@@ -38,6 +38,7 @@ const AdminFoodCheckin = () => {
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<number | null>(null)
     const [uploading, setUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({
         restaurant_name: '', description: '', date: '', address: '',
@@ -64,10 +65,18 @@ const AdminFoodCheckin = () => {
                 const fd = new FormData()
                 fd.append('file', file)
                 fd.append('folder', 'food')
-                const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
+                const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
+                    '/uploads',
+                    fd,
+                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
+                )
                 if (error) throw new Error(error)
                 if (data?.url) newImages.push(data.url)
-            } catch (err) { console.error(err) }
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setUploadProgress(null)
+            }
         }
         setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
         setUploading(false)
@@ -154,7 +163,24 @@ const AdminFoodCheckin = () => {
                                     </div>
                                 ))}
                                 <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                    {uploading ? <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={24} className="text-slate-400" /><span className="text-xs text-slate-400 mt-1">上传</span></>}
+                                    {uploading ? (
+                                        <div className="flex flex-col items-center">
+                                            <div className="relative w-12 h-12 mb-1">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
+                                                    {uploadProgress?.percent || 0}%
+                                                </div>
+                                            </div>
+                                            {uploadProgress && (
+                                                <span className="text-[10px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <Icon name="add_photo_alternate" size={24} className="text-slate-400" />
+                                            <span className="text-xs text-slate-400 mt-1">上传</span>
+                                        </>
+                                    )}
                                     <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
                                 </label>
                             </div>

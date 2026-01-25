@@ -48,7 +48,7 @@ export async function onRequestPost(context) {
             },
         });
 
-        const url = `https://pub-f3abc7adae724902b344281ec73f700c.r2.dev/${fileName}`;
+        const url = `/api/images/${fileName}`;
 
         // 2. 插入数据库记录
         const result = await env.DB.prepare(`
