@@ -178,19 +178,29 @@ export default function ImageModal({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <button onClick={handleDownload} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all" title="下载原图">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center"
+            title="下载原图"
+          >
             <Download className="w-5 h-5" />
           </button>
-          <button onClick={handleZoomIn} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all hidden sm:block">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
+            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all hidden sm:flex items-center justify-center"
+          >
             <ZoomIn className="w-5 h-5" />
           </button>
-          <button onClick={resetTransform} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all">
+          <button
+            onClick={(e) => { e.stopPropagation(); resetTransform(); }}
+            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center"
+          >
             <RotateCcw className="w-5 h-5" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="ml-2 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl"
+            className="ml-1 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl flex items-center justify-center"
           >
             <X className="w-7 h-7" />
           </button>
