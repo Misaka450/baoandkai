@@ -190,9 +190,9 @@ export default function ImageModal({
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="ml-2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl"
+            className="ml-2 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl"
           >
-            <X className="w-6 h-6" />
+            <X className="w-7 h-7" />
           </button>
         </div>
       </div>
