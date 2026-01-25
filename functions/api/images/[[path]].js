@@ -1,15 +1,21 @@
 export async function onRequestGet(context) {
     const { params, env } = context;
-    const key = params.key;
+    // [[path]].js 在 Pages Functions 中返回的是数组
+    const pathArray = params.path || [];
+    const key = pathArray.join('/');
 
     if (!env.IMAGES) {
         return new Response('Image storage not configured', { status: 500 });
     }
 
+    if (!key) {
+        return new Response('Key is required', { status: 400 });
+    }
+
     const object = await env.IMAGES.get(key);
 
     if (!object) {
-        return new Response('Image not found', { status: 404 });
+        return new Response('Image not found: ' + key, { status: 404 });
     }
 
     const headers = new Headers();
