@@ -48,7 +48,9 @@ export async function onRequestGet(context) {
       homeTitle: config.homeTitle || '包包和恺恺的小窝',
       homeSubtitle: config.homeSubtitle || '遇见你，是银河赠予我的糖。',
       avatar1: config.avatar1 || '',
-      avatar2: config.avatar2 || ''
+      avatar2: config.avatar2 || '',
+      customAvatar1: config.customAvatar1 || '',
+      customAvatar2: config.customAvatar2 || ''
     }), {
       headers: {
         'Content-Type': 'application/json',
@@ -100,6 +102,8 @@ export async function onRequestPut(context) {
     // 头像字段支持空值（用于恢复默认）
     if (body.avatar1 !== undefined) config.avatar1 = body.avatar1;
     if (body.avatar2 !== undefined) config.avatar2 = body.avatar2;
+    if (body.customAvatar1 !== undefined) config.customAvatar1 = body.customAvatar1;
+    if (body.customAvatar2 !== undefined) config.customAvatar2 = body.customAvatar2;
 
     await env.DB.prepare(`
       UPDATE settings 
@@ -114,7 +118,9 @@ export async function onRequestPut(context) {
       homeTitle: config.homeTitle,
       homeSubtitle: config.homeSubtitle,
       avatar1: config.avatar1 || '',
-      avatar2: config.avatar2 || ''
+      avatar2: config.avatar2 || '',
+      customAvatar1: config.customAvatar1 || '',
+      customAvatar2: config.customAvatar2 || ''
     }), {
       headers: {
         'Content-Type': 'application/json',

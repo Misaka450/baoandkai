@@ -24,13 +24,17 @@ interface SiteConfig {
     homeSubtitle?: string
     avatar1?: string
     avatar2?: string
+    customAvatar1?: string
+    customAvatar2?: string
 }
 
 const AdminSettings = () => {
     const [config, setConfig] = useState<SiteConfig>({
         coupleName1: '',
         coupleName2: '',
-        anniversaryDate: ''
+        anniversaryDate: '',
+        customAvatar1: '',
+        customAvatar2: ''
     })
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState<'avatar1' | 'avatar2' | null>(null)
@@ -56,7 +60,14 @@ const AdminSettings = () => {
                 (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
             )
             if (error) throw new Error(error)
-            if (data?.url) setConfig(prev => ({ ...prev, [field]: data.url }))
+            if (data?.url) {
+                const customField = field === 'avatar1' ? 'customAvatar1' : 'customAvatar2'
+                setConfig(prev => ({
+                    ...prev,
+                    [field]: data.url,
+                    [customField]: data.url
+                }))
+            }
         } catch { await showAlert('错误', '上传失败', 'error') }
         finally {
             setUploading(null)
@@ -77,7 +88,12 @@ const AdminSettings = () => {
                     body: JSON.stringify({ filename })
                 })
             }
-            setConfig(prev => ({ ...prev, [field]: '' }))
+            const customField = field === 'avatar1' ? 'customAvatar1' : 'customAvatar2'
+            setConfig(prev => ({
+                ...prev,
+                [field]: prev[field] === url ? '' : prev[field],
+                [customField]: ''
+            }))
         } catch (error) {
             console.error('删除头像物理文件失败:', error)
             // 即使删除物理文件失败，也清除本地设置，让用户可以重新操作
@@ -237,8 +253,11 @@ const AdminSettings = () => {
                                                 <img src={getAvatarUrl(avatar.seed, avatar.bg)} alt={avatar.seed} className="w-full h-full" />
                                             </button>
                                         ))}
-                                        <div className="relative">
-                                            <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden p-1 text-center">
+                                        <div className="relative group">
+                                            <label
+                                                onClick={() => config.customAvatar1 && setConfig({ ...config, avatar1: config.customAvatar1 })}
+                                                className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden p-0.5 text-center ${config.avatar1 === config.customAvatar1 && config.customAvatar1 ? 'border-primary ring-2 ring-primary/30' : 'border-dashed border-slate-200 hover:border-primary hover:bg-primary/5'}`}
+                                            >
                                                 {uploading === 'avatar1' ? (
                                                     <div className="flex flex-col items-center justify-center">
                                                         <div className="relative w-8 h-8">
@@ -249,22 +268,25 @@ const AdminSettings = () => {
                                                         </div>
                                                         {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
                                                     </div>
-                                                ) : config.avatar1 && config.avatar1.includes('/api/') ? (
-                                                    <img src={config.avatar1} alt="Preview" className="w-full h-full object-cover" />
+                                                ) : config.customAvatar1 ? (
+                                                    <img src={config.customAvatar1} alt="Preview" className="w-full h-full object-cover rounded-full" />
                                                 ) : (
                                                     <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
                                                 )}
-                                                <input ref={fileInputRef1} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar1')} className="hidden" />
+                                                {!config.customAvatar1 && <input ref={fileInputRef1} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar1')} className="hidden" />}
                                             </label>
 
-                                            {config.avatar1 && config.avatar1.includes('/api/') && !uploading && (
+                                            {config.customAvatar1 && !uploading && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleAvatarDelete('avatar1')}
-                                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all shadow-sm z-30"
-                                                    title="删除头像文件"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAvatarDelete('avatar1');
+                                                    }}
+                                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all shadow-sm z-30 border-2 border-white"
+                                                    title="物理删除头像"
                                                 >
-                                                    <Icon name="delete" size={12} />
+                                                    <Icon name="delete" size={10} />
                                                 </button>
                                             )}
                                         </div>
@@ -286,8 +308,11 @@ const AdminSettings = () => {
                                                 <img src={getAvatarUrl(avatar.seed, avatar.bg)} alt={avatar.seed} className="w-full h-full" />
                                             </button>
                                         ))}
-                                        <div className="relative">
-                                            <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden p-1 text-center">
+                                        <div className="relative group">
+                                            <label
+                                                onClick={() => config.customAvatar2 && setConfig({ ...config, avatar2: config.customAvatar2 })}
+                                                className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden p-0.5 text-center ${config.avatar2 === config.customAvatar2 && config.customAvatar2 ? 'border-primary ring-2 ring-primary/30' : 'border-dashed border-slate-200 hover:border-primary hover:bg-primary/5'}`}
+                                            >
                                                 {uploading === 'avatar2' ? (
                                                     <div className="flex flex-col items-center justify-center">
                                                         <div className="relative w-8 h-8">
@@ -298,22 +323,25 @@ const AdminSettings = () => {
                                                         </div>
                                                         {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
                                                     </div>
-                                                ) : config.avatar2 && config.avatar2.includes('/api/') ? (
-                                                    <img src={config.avatar2} alt="Preview" className="w-full h-full object-cover" />
+                                                ) : config.customAvatar2 ? (
+                                                    <img src={config.customAvatar2} alt="Preview" className="w-full h-full object-cover rounded-full" />
                                                 ) : (
                                                     <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
                                                 )}
-                                                <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar2')} className="hidden" />
+                                                {!config.customAvatar2 && <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar2')} className="hidden" />}
                                             </label>
 
-                                            {config.avatar2 && config.avatar2.includes('/api/') && !uploading && (
+                                            {config.customAvatar2 && !uploading && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleAvatarDelete('avatar2')}
-                                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all shadow-sm z-30"
-                                                    title="删除头像文件"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAvatarDelete('avatar2');
+                                                    }}
+                                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all shadow-sm z-30 border-2 border-white"
+                                                    title="物理删除头像"
                                                 >
-                                                    <Icon name="delete" size={12} />
+                                                    <Icon name="delete" size={10} />
                                                 </button>
                                             )}
                                         </div>
