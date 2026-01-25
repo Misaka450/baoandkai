@@ -122,7 +122,7 @@ const AdminTimeline = () => {
             category: event.category,
             images: event.images || []
         })
-        setShowForm(true)
+        setShowForm(false) // 编辑时关闭顶部的新增表单
     }
 
     const handleDelete = async (id: number) => {
@@ -169,10 +169,11 @@ const AdminTimeline = () => {
                 </button>
             </header>
 
-            {showForm && (
+            {/* 新增表单 - 只在新增模式显示 */}
+            {showForm && !editingId && (
                 <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
                     <h2 className="text-lg font-bold mb-6 text-slate-800">
-                        {editingId ? '编辑事件' : '新建事件'}
+                        新建事件
                     </h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -223,7 +224,7 @@ const AdminTimeline = () => {
                             <div className="flex flex-wrap gap-3">
                                 {formData.images.map((img, index) => (
                                     <div key={index} className="relative w-24 h-24 rounded-xl overflow-hidden group">
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(index)}
@@ -282,51 +283,90 @@ const AdminTimeline = () => {
                     </div>
                 ) : (
                     events.map((event) => (
-                        <div key={event.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
-                                            {event.category}
-                                        </span>
-                                        <span className="text-xs text-slate-400">{event.date}</span>
-                                    </div>
-                                    <h3 className="font-bold text-slate-800 mb-1">{event.title}</h3>
-                                    <p className="text-sm text-slate-500 mb-2">{event.description}</p>
-                                    {event.location && (
-                                        <p className="text-xs text-slate-400 flex items-center gap-1">
-                                            <Icon name="location_on" size={14} />
-                                            {event.location}
-                                        </p>
-                                    )}
-                                    {event.images && event.images.length > 0 && (
-                                        <div className="flex gap-2 mt-3">
-                                            {event.images.slice(0, 4).map((img, i) => (
-                                                <img key={i} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                                            ))}
-                                            {event.images.length > 4 && (
-                                                <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-sm text-slate-500">
-                                                    +{event.images.length - 4}
-                                                </div>
-                                            )}
+                        <div key={event.id}>
+                            <div className={`bg-white p-6 rounded-2xl shadow-sm border ${editingId === event.id ? 'border-primary' : 'border-slate-100'}`}>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                                                {event.category}
+                                            </span>
+                                            <span className="text-xs text-slate-400">{event.date}</span>
                                         </div>
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleEdit(event)}
-                                        className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
-                                    >
-                                        <Icon name="edit" size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(event.id)}
-                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                    >
-                                        <Icon name="delete" size={18} />
-                                    </button>
+                                        <h3 className="font-bold text-slate-800 mb-1">{event.title}</h3>
+                                        <p className="text-sm text-slate-500 mb-2">{event.description}</p>
+                                        {event.location && (
+                                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                                                <Icon name="location_on" size={14} />
+                                                {event.location}
+                                            </p>
+                                        )}
+                                        {event.images && event.images.length > 0 && (
+                                            <div className="flex gap-2 mt-3">
+                                                {event.images.slice(0, 4).map((img, i) => (
+                                                    <img key={i} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />
+                                                ))}
+                                                {event.images.length > 4 && (
+                                                    <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-sm text-slate-500">
+                                                        +{event.images.length - 4}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => editingId === event.id ? resetForm() : handleEdit(event)}
+                                            className={`p-2 rounded-xl transition-all ${editingId === event.id ? 'text-primary bg-primary/10' : 'text-slate-400 hover:text-primary hover:bg-primary/10'}`}
+                                        >
+                                            <Icon name={editingId === event.id ? "expand_less" : "edit"} size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(event.id)}
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                        >
+                                            <Icon name="delete" size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                            {/* 内联编辑表单 */}
+                            {editingId === event.id && (
+                                <div className="bg-slate-50 p-6 rounded-b-2xl border border-t-0 border-slate-200 -mt-2">
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" placeholder="事件标题" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" required />
+                                            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" required />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" placeholder="地点（可选）" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" />
+                                            <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                                                {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
+                                            </select>
+                                        </div>
+                                        <textarea placeholder="事件描述" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 min-h-[80px]" />
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-600">图片</label>
+                                            <div className="flex flex-wrap gap-3">
+                                                {formData.images.map((img, index) => (
+                                                    <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden group">
+                                                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
+                                                        <button type="button" onClick={() => removeImage(index)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
+                                                    </div>
+                                                ))}
+                                                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                                    {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>}
+                                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button type="submit" className="px-5 py-2 bg-primary text-white rounded-xl font-bold hover:scale-105 active:scale-95 transition-all text-sm">保存修改</button>
+                                            <button type="button" onClick={resetForm} className="px-5 py-2 bg-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-300 transition-all text-sm">取消</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            )}
                         </div>
                     ))
                 )}
