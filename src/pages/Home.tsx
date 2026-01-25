@@ -56,28 +56,29 @@ export default function Home() {
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12 pt-40 relative">
-      {/* 背景光晕 */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+      {/* 背景光晕 - 升级为多彩混色 */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-pink-200/20 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
+      <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-blue-200/20 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
 
       <header className="text-center mb-24 relative animate-fade-in">
         <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-12 relative">
           <div className="relative group">
-            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-1.5 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500">
+            <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">
               <img alt="Bao Avatar" className="w-full h-full object-cover rounded-full" src={config.avatar1 || getDefaultAvatar('Bao', 'C9ADA7')} />
             </div>
           </div>
 
           <div className="relative flex items-center justify-center">
-            <div className="w-20 md:w-40 h-[1.5px] bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
-            <button className="absolute w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center group animate-elastic">
-              <Icon name="favorite" size={24} className="text-primary group-hover:scale-125 transition-transform" />
+            <div className="w-20 md:w-40 h-[2px] bg-gradient-to-r from-transparent via-[#FF8BB1]/40 to-transparent"></div>
+            <button className="absolute w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center group animate-elastic border-2 border-[#FFEDF3]">
+              <Icon name="favorite" size={28} className="text-[#FF8BB1] group-hover:scale-125 transition-transform" />
             </button>
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-0 bg-secondary/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-1.5 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500">
+            <div className="absolute inset-0 bg-[#6BBFFF]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-4 border-[#EBF7FF]">
               <img alt="Kai Avatar" className="w-full h-full object-cover rounded-full" src={config.avatar2 || getDefaultAvatar('Kai', '9A9EAB')} />
             </div>
           </div>
@@ -91,41 +92,49 @@ export default function Home() {
         </p>
       </header>
 
-      <section className="premium-card p-10 md:p-16 mb-24 animate-slide-up group overflow-hidden">
-        <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none group-hover:scale-150 transition-transform duration-1000 rotate-12">
+      <section className="premium-card p-10 md:p-16 mb-24 animate-slide-up group overflow-hidden !border-none !bg-white/40 backdrop-blur-sm">
+        <div className="absolute top-0 right-0 p-10 opacity-[0.05] pointer-events-none group-hover:scale-150 transition-transform duration-1000 rotate-12 text-[#FF8BB1]">
           <Icon name="favorite" size={240} />
         </div>
 
-        <div className="text-center mb-12">
-          <span className="premium-badge mb-4">LOVE TIMER</span>
-          <p className="text-slate-400 font-black tracking-[0.3em] text-[10px] uppercase">已携手走过</p>
+        <div className="text-center mb-16">
+          <span className="premium-badge !bg-[#FFEDF3] !text-[#FF8BB1] mb-6">LOVE TIMER</span>
+          <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">Memory since Oct 8, 2023</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-12 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-16 relative z-10">
           {[
-            { value: timeTogether.years, label: '年' },
-            { value: timeTogether.months, label: '月' },
-            { value: timeTogether.days, label: '天' },
-            { value: timeTogether.hours, label: '时' },
-            { value: timeTogether.minutes, label: '分' },
-            { value: timeTogether.seconds, label: '秒' },
+            { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
+            { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
+            { value: timeTogether.days, label: '天', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]', icon: 'auto_awesome', delay: '0.4s' },
+            { value: timeTogether.hours, label: '时', color: 'bg-[#F5F0FF]', text: 'text-[#A688FA]', icon: 'celebration', delay: '0.1s' },
+            { value: timeTogether.minutes, label: '分', color: 'bg-[#FFF9EB]', text: 'text-[#FFB344]', icon: 'wb_cloudy', delay: '0.3s' },
+            { value: timeTogether.seconds, label: '秒', color: 'bg-[#FFF0F0]', text: 'text-[#FF7D7D]', icon: 'star', delay: '0.5s' },
           ].map((item, idx) => (
-            <div key={idx} className="glass-effect p-6 rounded-[2rem] text-center shadow-sm hover:scale-105 active:scale-95 transition-all duration-300 border border-white group/time">
-              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-2 group-hover/time:text-primary transition-colors">
+            <div
+              key={idx}
+              className={`p-10 rounded-[2.5rem] text-center shadow-lg shadow-black/[0.03] hover:scale-110 active:scale-95 transition-all duration-500 border-8 border-white relative group/item overflow-hidden ${item.color}`}
+              style={{ animation: `float 6s ease-in-out infinite ${item.delay}` }}
+            >
+              <div className={`absolute -top-4 -right-4 opacity-10 group-hover/item:opacity-30 transition-opacity rotate-12 ${item.text}`}>
+                <Icon name={item.icon as any} size={64} />
+              </div>
+
+              <div className={`text-5xl md:text-6xl font-black mb-3 tracking-tighter ${item.text} drop-shadow-sm`}>
                 {String(item.value).padStart(2, '0')}
               </div>
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</div>
+              <div className="text-[10px] font-black text-slate-400/50 uppercase tracking-[0.2em]">{item.label}</div>
             </div>
           ))}
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-          <div className="premium-glass !bg-white/40 border !border-white/60 px-8 py-3 rounded-2xl flex items-center shadow-sm">
-            <Icon name="calendar_month" className="text-primary mr-3" size={18} />
-            <span className="text-xs font-black text-slate-500 uppercase tracking-widest">纪念日：2023年10月8日</span>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+          <div className="bg-white/60 border border-white px-10 py-4 rounded-[2rem] flex items-center shadow-sm">
+            <Icon name="calendar_month" className="text-[#FF8BB1] mr-3" size={20} />
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">STARTING LINE: 2023.10.8</span>
           </div>
-          <p className="text-slate-400 font-bold text-sm tracking-tight">
-            已经一起度过了 <span className="text-primary font-black text-lg underline decoration-primary/20 decoration-4 underline-offset-4">{timeTogether.totalDays}</span> 个温柔的日子
+          <p className="text-slate-400 font-bold text-sm tracking-[0.05em]">
+            已经一起度过了 <span className="text-3xl font-black text-[#FF8BB1] mx-2 drop-shadow-sm font-mono">{timeTogether.totalDays}</span> 个温柔的日子
           </p>
         </div>
       </section>
