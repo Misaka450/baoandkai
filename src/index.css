@@ -203,8 +203,14 @@
 }
 
 .premium-card {
-  @apply bg-white rounded-[2rem] border border-slate-100/50 shadow-sm transition-all duration-500 hover:shadow-[0_20px_50px_-20px_rgba(0, 0, 0, 0.12)] hover:-translate-y-2 relative overflow-hidden;
+  @apply bg-white rounded-[2rem] border border-slate-100/50 shadow-sm transition-all duration-500 relative overflow-hidden;
 }
+
+.premium-card:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.12);
+}
+
 
 .premium-input {
   @apply w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-[1.25rem] transition-all outline-none font-medium;
