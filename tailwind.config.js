@@ -7,16 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#f472b6",
-        "background-light": "#fdfbf7",
-        "background-dark": "#1a1617",
-        "pastel-pink": "#fee2e2",
-        "pastel-yellow": "#fef9c3",
-        "pastel-blue": "#dcfce7",
-        "pastel-purple": "#ede9fe",
-        "pastel-green": "#f0fdf4",
-        "sage": "#A8D5BA",
-        "secondary": "#B0E0E6",
+        primary: "#C9ADA7", // 灰粉 / 莫兰迪粉
+        secondary: "#9A9EAB", // 蓝灰
+        "background-light": "#F7F3F0", // 暖米灰
+        "background-dark": "#4A4E69", // 深紫灰
+        "morandi-pink": "#C9ADA7",
+        "morandi-blue": "#9A9EAB",
+        "morandi-green": "#B7B7A4",
+        "morandi-yellow": "#D6CFC7",
+        "morandi-purple": "#AAA1C8",
+        "morandi-rose": "#DEB3AD",
+        "sage": "#B7B7A4", // 豆沙绿
       },
       fontFamily: {
         'sans': ['Nunito', 'Quicksand', 'Noto Sans SC', 'system-ui', 'sans-serif'],
@@ -61,7 +62,7 @@ export default {
   },
   safelist: [
     'bg-primary', 'bg-secondary', 'bg-sage',
-    'bg-pastel-pink', 'bg-pastel-yellow', 'bg-pastel-blue', 'bg-pastel-purple', 'bg-pastel-green',
+    'bg-morandi-pink', 'bg-morandi-yellow', 'bg-morandi-blue', 'bg-morandi-purple', 'bg-morandi-green', 'bg-morandi-rose',
     'animate-float', 'animate-heart-pop',
     'animate-fade-in', 'animate-slide-up', 'animate-fade-in-up',
     'rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]'

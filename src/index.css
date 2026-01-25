@@ -11,7 +11,7 @@
   }
 
   body {
-    @apply bg-background-light text-gray-800 min-h-screen transition-colors duration-300;
+    @apply bg-background-light text-slate-600 min-h-screen transition-colors duration-300;
   }
 
   /* 自定义滚动条 */
@@ -38,27 +38,27 @@
   }
 
   .diffused-shadow-pink {
-    box-shadow: 0 8px 25px -5px rgba(244, 114, 182, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(201, 173, 167, 0.3);
   }
 
   .diffused-shadow-yellow {
-    box-shadow: 0 8px 25px -5px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(214, 207, 199, 0.3);
   }
 
   .diffused-shadow-blue {
-    box-shadow: 0 8px 25px -5px rgba(96, 165, 250, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(154, 158, 171, 0.3);
   }
 
   .diffused-shadow-green {
-    box-shadow: 0 8px 25px -5px rgba(74, 222, 128, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(183, 183, 164, 0.3);
   }
 
   .diffused-shadow-purple {
-    box-shadow: 0 8px 25px -5px rgba(167, 139, 250, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(170, 161, 200, 0.3);
   }
 
   .avatar-ring {
-    @apply relative p-1 rounded-full border-2 border-dashed border-pink-200;
+    @apply relative p-1 rounded-full border-2 border-dashed border-primary/30;
   }
 
   /* Polaroid Styles */
@@ -115,7 +115,7 @@
 
   /* Timeline */
   .timeline-line {
-    background-image: radial-gradient(circle, #FF85A2 2px, transparent 2px);
+    background-image: radial-gradient(circle, #C9ADA7 2px, transparent 2px);
     background-size: 100% 12px;
   }
 }

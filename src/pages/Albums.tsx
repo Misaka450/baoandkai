@@ -144,7 +144,7 @@ export default function Albums() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* 弹窗头部 */}
-            <div className="p-4 md:p-6 bg-gradient-to-r from-pink-50 to-purple-50 border-b border-slate-100/50 flex items-center justify-between gap-4">
+            <div className="p-4 md:p-6 bg-gradient-to-r from-stone-50 to-slate-50 border-b border-slate-100/50 flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl md:text-2xl font-bold text-slate-800 truncate">{selectedAlbum.name}</h2>
                 <p className="text-slate-500 text-sm truncate">{selectedAlbum.description || '暂无描述'}</p>

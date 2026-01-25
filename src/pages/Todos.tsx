@@ -13,11 +13,11 @@ interface TodosResponse {
 }
 
 const stickyColors = [
-  { bg: 'bg-pastel-pink', border: 'border-pink-100', text: 'text-pink-700', icon: 'text-primary' },
-  { bg: 'bg-pastel-blue', border: 'border-blue-100', text: 'text-blue-700', icon: 'text-blue-400' },
-  { bg: 'bg-pastel-green', border: 'border-green-100', text: 'text-green-700', icon: 'text-green-400' },
-  { bg: 'bg-pastel-yellow', border: 'border-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-500' },
-  { bg: 'bg-pastel-purple', border: 'border-purple-100', text: 'text-purple-700', icon: 'text-purple-400' },
+  { bg: 'bg-emerald-50/40', border: 'border-emerald-100/50', text: 'text-emerald-800/70', icon: 'text-emerald-400' },
+  { bg: 'bg-blue-50/40', border: 'border-blue-100/50', text: 'text-blue-800/70', icon: 'text-blue-400' },
+  { bg: 'bg-rose-50/40', border: 'border-rose-100/50', text: 'text-rose-800/70', icon: 'text-rose-400' },
+  { bg: 'bg-amber-50/40', border: 'border-amber-100/50', text: 'text-amber-800/70', icon: 'text-amber-400' },
+  { bg: 'bg-indigo-50/40', border: 'border-indigo-100/50', text: 'text-indigo-800/70', icon: 'text-indigo-400' },
 ]
 
 export default function Todos() {

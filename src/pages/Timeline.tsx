@@ -18,10 +18,10 @@ interface CategoryConfig {
 }
 
 const categoryConfigs: Record<string, CategoryConfig> = {
-  '生活': { icon: 'favorite', color: 'pink-400' },
-  '旅行': { icon: 'flight', color: 'blue-400' },
-  '美食': { icon: 'restaurant', color: 'orange-400' },
-  '纪念': { icon: 'star', color: 'purple-400' },
+  '生活': { icon: 'favorite', color: 'morandi-pink' },
+  '旅行': { icon: 'flight', color: 'morandi-blue' },
+  '美食': { icon: 'restaurant', color: 'morandi-green' },
+  '纪念': { icon: 'star', color: 'morandi-purple' },
   'default': { icon: 'auto_awesome', color: 'primary' }
 }
 
@@ -91,7 +91,7 @@ export default function Timeline() {
                         <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
                           {event.date ? new Date(event.date).toLocaleDateString() : '未知日期'}
                         </span>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-${config.color?.split('-')[0]}-100 text-${config.color}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-${config.color}/10 text-${config.color}`}>
                           {event.category}
                         </span>
                       </div>
@@ -107,8 +107,8 @@ export default function Timeline() {
                   </div>
 
                   {/* 中间圆圈 */}
-                  <div className="hidden md:absolute md:left-1/2 md:-translate-x-1/2 md:flex items-center justify-center w-12 h-12 bg-white border-4 rounded-full z-10 shadow-lg" style={{ borderColor: `var(--tw-colors-${config.color})` }}>
-                    <Icon name={config.icon} size={20} style={{ color: `var(--tw-colors-${config.color})` }} />
+                  <div className={`hidden md:absolute md:left-1/2 md:-translate-x-1/2 md:flex items-center justify-center w-12 h-12 bg-white border-4 rounded-full z-10 shadow-lg border-${config.color}`}>
+                    <Icon name={config.icon} size={20} className={`text-${config.color}`} />
                   </div>
 
                   {/* 图片展示 */}

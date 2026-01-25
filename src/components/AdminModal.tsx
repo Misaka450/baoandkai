@@ -34,31 +34,31 @@ const AdminModal: React.FC<AdminModalProps> = ({
   }> = {
     info: {
       icon: 'info',
-      headerGradient: 'bg-gradient-to-r from-blue-50 to-indigo-50',
-      iconColor: 'text-blue-500',
-      buttonGradient: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-      buttonHover: 'hover:from-blue-600 hover:to-indigo-600'
+      headerGradient: 'bg-gradient-to-r from-slate-50 to-indigo-50/30',
+      iconColor: 'text-secondary',
+      buttonGradient: 'bg-gradient-to-r from-secondary to-slate-400',
+      buttonHover: 'hover:opacity-90'
     },
     warning: {
       icon: 'warning',
-      headerGradient: 'bg-gradient-to-r from-amber-50 to-orange-50',
-      iconColor: 'text-amber-500',
-      buttonGradient: 'bg-gradient-to-r from-amber-500 to-orange-500',
-      buttonHover: 'hover:from-amber-600 hover:to-orange-600'
+      headerGradient: 'bg-gradient-to-r from-stone-50 to-orange-50/30',
+      iconColor: 'text-morandi-yellow',
+      buttonGradient: 'bg-gradient-to-r from-morandi-yellow to-stone-400',
+      buttonHover: 'hover:opacity-90'
     },
     error: {
       icon: 'error',
-      headerGradient: 'bg-gradient-to-r from-red-50 to-pink-50',
-      iconColor: 'text-red-500',
-      buttonGradient: 'bg-gradient-to-r from-red-500 to-pink-500',
-      buttonHover: 'hover:from-red-600 hover:to-pink-600'
+      headerGradient: 'bg-gradient-to-r from-rose-50 to-pink-50/30',
+      iconColor: 'text-morandi-rose',
+      buttonGradient: 'bg-gradient-to-r from-morandi-rose to-rose-400',
+      buttonHover: 'hover:opacity-90'
     },
     success: {
       icon: 'check_circle',
-      headerGradient: 'bg-gradient-to-r from-emerald-50 to-teal-50',
-      iconColor: 'text-emerald-500',
-      buttonGradient: 'bg-gradient-to-r from-emerald-500 to-teal-500',
-      buttonHover: 'hover:from-emerald-600 hover:to-teal-600'
+      headerGradient: 'bg-gradient-to-r from-morandi-green/10 to-teal-50/30',
+      iconColor: 'text-morandi-green',
+      buttonGradient: 'bg-gradient-to-r from-morandi-green to-teal-600',
+      buttonHover: 'hover:opacity-90'
     }
   }
 

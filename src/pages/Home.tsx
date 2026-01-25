@@ -50,21 +50,21 @@ export default function Home() {
       <header className="text-center mb-16 relative">
         <div className="flex justify-center items-center space-x-12 mb-8 relative">
           <div className="avatar-ring">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-pink-100 flex items-center justify-center">
-              <img alt="Bao Avatar" className="w-full h-full object-cover" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Bao&backgroundColor=ffdfbf" />
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-stone-100 flex items-center justify-center">
+              <img alt="Bao Avatar" className="w-full h-full object-cover opacity-90" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Bao&backgroundColor=C9ADA7&backgroundType=solid" />
             </div>
           </div>
 
           <div className="relative flex items-center justify-center">
-            <div className="w-24 md:w-32 h-[2px] bg-gradient-to-r from-pink-200 via-primary to-blue-200"></div>
-            <div className="absolute bg-white p-2 rounded-full border border-pink-100 shadow-sm flex items-center justify-center">
-              <Icon name="favorite" className="text-primary" size={20} />
+            <div className="w-24 md:w-32 h-[2px] bg-gradient-to-r from-stone-200 via-primary to-slate-200"></div>
+            <div className="absolute bg-white/90 p-2 rounded-full border border-stone-100 shadow-sm flex items-center justify-center">
+              <Icon name="favorite" className="text-primary/60" size={20} />
             </div>
           </div>
 
           <div className="avatar-ring">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-blue-100 flex items-center justify-center">
-              <img alt="Kai Avatar" className="w-full h-full object-cover" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=b6e3f4" />
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-slate-100 flex items-center justify-center">
+              <img alt="Kai Avatar" className="w-full h-full object-cover opacity-90" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=9A9EAB&backgroundType=solid" />
             </div>
           </div>
         </div>
@@ -85,18 +85,19 @@ export default function Home() {
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6 mb-10">
           {[
-            { value: timeTogether.years, label: '年', color: 'pink', shadow: 'diffused-shadow-pink' },
-            { value: timeTogether.months, label: '月', color: 'yellow', shadow: 'diffused-shadow-yellow' },
-            { value: timeTogether.days, label: '天', color: 'blue', shadow: 'diffused-shadow-blue' },
-            { value: timeTogether.hours, label: '时', color: 'green', shadow: 'diffused-shadow-green' },
-            { value: timeTogether.minutes, label: '分', color: 'purple', shadow: 'diffused-shadow-purple' },
-            { value: timeTogether.seconds, label: '秒', color: 'rose', shadow: 'diffused-shadow-pink' },
+            { value: timeTogether.years, label: '年', color: 'morandi-pink', shadow: 'diffused-shadow-pink', textColor: 'text-primary' },
+            { value: timeTogether.months, label: '月', color: 'morandi-yellow', shadow: 'diffused-shadow-yellow', textColor: 'text-amber-600/60' },
+            { value: timeTogether.days, label: '天', color: 'morandi-blue', shadow: 'diffused-shadow-blue', textColor: 'text-secondary' },
+            { value: timeTogether.hours, label: '时', color: 'morandi-green', shadow: 'diffused-shadow-green', textColor: 'text-morandi-green' },
+            { value: timeTogether.minutes, label: '分', color: 'morandi-purple', shadow: 'diffused-shadow-purple', textColor: 'text-morandi-purple' },
+            { value: timeTogether.seconds, label: '秒', color: 'morandi-rose', shadow: 'diffused-shadow-pink', textColor: 'text-morandi-rose' },
           ].map((item, idx) => (
-            <div key={idx} className={`bg-${item.color}-50 p-6 rounded-3xl text-center ${item.shadow} border border-${item.color}-100/50`}>
-              <div className={`text-${item.color}-500 text-4xl md:text-5xl font-bold mb-1`}>
+            <div key={idx} className={`bg-white/70 p-6 rounded-3xl text-center shadow-lg border border-white/40 transition-all hover:scale-105 group`}>
+              <div className={`${item.textColor} text-4xl md:text-5xl font-bold mb-1 opacity-80 group-hover:opacity-100 transition-opacity`}>
                 {String(item.value).padStart(2, '0')}
               </div>
-              <div className={`text-${item.color}-400 text-xs font-bold`}>{item.label}</div>
+              <div className={`${item.textColor} opacity-60 text-xs font-bold uppercase tracking-wider`}>{item.label}</div>
+              <div className={`mt-2 h-1 w-12 mx-auto rounded-full bg-${item.color} opacity-40`}></div>
             </div>
           ))}
         </div>
