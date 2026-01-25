@@ -21,10 +21,10 @@ interface CuisineConfig {
 
 const cuisines: CuisineConfig[] = [
   { name: 'all', label: '全都要', icon: 'restaurant_menu' },
-  { name: '火锅', label: '热腾腾火锅', icon: 'local_fire_department', color: 'bg-rose-500' },
-  { name: '甜点', label: '甜蜜蜜', icon: 'icecream', color: 'bg-pink-400' },
-  { name: '烧烤', label: '滋滋烧烤', icon: 'outdoor_grill', color: 'bg-amber-600' },
-  { name: '面食', label: '吸溜面条', icon: 'ramen_dining', color: 'bg-orange-400' }
+  { name: '火锅', label: '热腾腾火锅', icon: 'local_fire_department', color: 'bg-morandi-rose' },
+  { name: '甜点', label: '甜蜜蜜', icon: 'icecream', color: 'bg-morandi-pink' },
+  { name: '烧烤', label: '滋滋烧烤', icon: 'outdoor_grill', color: 'bg-morandi-yellow' },
+  { name: '面食', label: '吸溜面条', icon: 'ramen_dining', color: 'bg-morandi-green' }
 ]
 
 export default function FoodCheckin() {
@@ -50,18 +50,43 @@ export default function FoodCheckin() {
     ? checkins
     : checkins.filter(c => c.cuisine === filter)
 
-  const renderStars = (rating: number = 0) => (
+  const renderStars = (rating: number = 0, size: number = 16) => (
     <div className="flex text-primary">
       {Array.from({ length: 5 }).map((_, i) => (
         <Icon
           key={i}
           name="favorite"
-          size={16}
+          size={size}
           className={i < rating ? "fill-current" : "text-gray-200"}
         />
       ))}
     </div>
   )
+
+  // 迷你评分条
+  const renderMiniRating = (label: string, rating?: number) => {
+    if (!rating) return null
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-[10px] text-slate-400">{label}</span>
+        <div className="flex">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className={`w-1.5 h-1.5 rounded-full mx-px ${i < rating ? 'bg-primary' : 'bg-gray-200'}`} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr)
+      return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
+    } catch {
+      return dateStr
+    }
+  }
 
   // 打开图片查看器
   const handleImageClick = (images: string[], startIndex: number = 0) => {
@@ -102,10 +127,12 @@ export default function FoodCheckin() {
             const images = checkin.images || []
 
             return (
-              <div key={checkin.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl transition-all duration-500">
-                <div className="h-48 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
+              <div key={checkin.id} className="bg-white/90 rounded-3xl shadow-lg border border-white/50 overflow-hidden group hover:shadow-xl hover:scale-[1.02] transition-all duration-500">
+                <div className="h-52 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
                   <img
                     alt={checkin.restaurant_name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     src={images[0] || ''}
                   />
@@ -127,28 +154,55 @@ export default function FoodCheckin() {
                   )}
                 </div>
                 <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg text-slate-800">{checkin.restaurant_name}</h3>
+                  {/* 餐厅名称和总评分 */}
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-lg text-slate-800 leading-tight">{checkin.restaurant_name}</h3>
                     {renderStars(checkin.overall_rating)}
                   </div>
-                  <div className="flex items-center gap-1 text-slate-400 text-xs mb-4">
+
+                  {/* 地址 */}
+                  <div className="flex items-center gap-1 text-slate-400 text-xs mb-3">
                     <Icon name="location_on" size={12} />
-                    <span className="truncate">{checkin.address}</span>
+                    <span className="truncate">{checkin.address || '未知地址'}</span>
                   </div>
+
+                  {/* 推荐菜品 */}
+                  {checkin.recommended_dishes && (
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-1">
+                        {checkin.recommended_dishes.split(/[,，、]/).filter(Boolean).slice(0, 3).map((dish, i) => (
+                          <span key={i} className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">
+                            {dish.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 描述 */}
                   {checkin.description && (
-                    <p className="text-slate-500 text-sm italic mb-4">"{checkin.description}"</p>
+                    <p className="text-slate-500 text-sm italic mb-3 line-clamp-2">"{checkin.description}"</p>
+                  )}
+
+                  {/* 迷你评分条 */}
+                  {(checkin.taste_rating || checkin.environment_rating || checkin.service_rating) && (
+                    <div className="flex flex-wrap gap-3 mb-3 py-2 border-t border-slate-100">
+                      {renderMiniRating('口味', checkin.taste_rating)}
+                      {renderMiniRating('环境', checkin.environment_rating)}
+                      {renderMiniRating('服务', checkin.service_rating)}
+                    </div>
                   )}
 
                   {/* 多图缩略图行 */}
                   {images.length > 1 && (
-                    <div className="flex gap-2 mb-4">
+                    <div className="flex gap-2 mb-3">
                       {images.slice(0, 4).map((img, i) => (
                         <div
                           key={i}
                           className="w-10 h-10 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
                           onClick={() => handleImageClick(images, i)}
                         >
-                          <img className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
+                          <img loading="lazy" decoding="async" className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
                         </div>
                       ))}
                       {images.length > 4 && (
@@ -159,7 +213,8 @@ export default function FoodCheckin() {
                     </div>
                   )}
 
-                  <p className="text-[10px] text-end text-slate-300 font-bold uppercase tracking-widest">{checkin.date}</p>
+                  {/* 日期 */}
+                  <p className="text-[10px] text-end text-slate-300 font-bold uppercase tracking-widest">{formatDate(checkin.date)}</p>
                 </div>
               </div>
             )

@@ -98,6 +98,8 @@ export default function Albums() {
                   {album.photos && album.photos.length > 0 ? (
                     <img
                       alt={album.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       src={album.photos[0]?.url || ''}
                     />
@@ -181,6 +183,8 @@ export default function Albums() {
                       <img
                         src={photo.url}
                         alt={photo.caption || `照片${idx + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/20 transition-colors flex items-center justify-center">
