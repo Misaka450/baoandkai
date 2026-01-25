@@ -6,7 +6,7 @@ export type IconName =
     | 'dashboard' | 'female' | 'male' | 'calendar_month' | 'auto_fix_high'
     | 'local_fire_department' | 'icecream' | 'outdoor_grill' | 'ramen_dining'
     | 'receipt' | 'location_on' | 'chevron_left' | 'chevron_right' | 'folder_special'
-    | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search'
+    | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search' | 'verified' | 'report_problem'
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu'
     | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration';
@@ -52,6 +52,8 @@ const iconPaths: Record<IconName, string> = {
     add_circle: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z",
     delete: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
     search: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
+    verified: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z",
+    report_problem: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z",
     cake: "M12 6c1.11 0 2-.9 2-2 0-.38-.1-.73-.29-1.03L12 0l-1.71 2.97c-.19.3-.29.65-.29 1.03 0 1.1.9 2 2 2zm4.6 9.99l-1.07-1.07-1.08 1.07c-1.3 1.3-3.58 1.31-4.89 0l-1.07-1.07-1.09 1.07C6.75 16.64 5.88 17 4.96 17c-.73 0-1.4-.23-1.96-.61V21c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-4.61c-.56.38-1.23.61-1.96.61-.92 0-1.79-.36-2.44-1.01zM18 9h-5V7h-2v2H6c-1.66 0-3 1.34-3 3v3.11c.4-.19.86-.31 1.35-.31.83 0 1.58.33 2.14.88l1.51 1.51 1.51-1.51c.56-.55 1.31-.88 2.14-.88.83 0 1.58.33 2.14.88l1.51 1.51 1.51-1.51c.56-.55 1.31-.88 2.14-.88.49 0 .95.12 1.35.31V12c0-1.66-1.34-3-3-3z",
     flight: "M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z",
     chat_bubble: "M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z",
@@ -71,7 +73,7 @@ const iconPaths: Record<IconName, string> = {
     error: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",
     check_circle: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
     event: "M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z",
-    celebration: "M2 22l14-5-9-9-5 14zm11.83-11.41L15 9l1.17 1.59 1.59-1.17L16.59 8l1.59-1.17-1.59-1.17L15 4l-1.17 1.59-1.59-1.17L13.41 6l-1.59 1.17 1.59 1.17zM19 14l-1.17 1.59-1.59-1.17L17.41 16l-1.59 1.17 1.59 1.17L19 17l1.17-1.59 1.59 1.17L20.59 15l1.59-1.17-1.59-1.17z"
+    celebration: "M2 22l14-5-9-9-5 14zm11.83-11.41L15 9l1.17 1.59 1.59-1.17L16.59 8l1.59-1.17-1.59-1.17L15 4l-1.17 1.59-1.59-1.17L13.41 6l-1.59 1.17 1.59 1.17zM19 14l-1.17 1.59-1.59-1.17L17.41 16l-1.59 1.17 1.59-1.17L19 17l1.17-1.59 1.59-1.17L20.59 15l1.59-1.17-1.59-1.17z"
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {

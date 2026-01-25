@@ -4,6 +4,7 @@ import { apiService } from '../services/apiService'
 import type { FoodCheckin } from '../types'
 import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
+import { Skeleton } from '../components/Skeleton'
 
 interface FoodResponse {
   data: FoodCheckin[]
@@ -20,11 +21,11 @@ interface CuisineConfig {
 }
 
 const cuisines: CuisineConfig[] = [
-  { name: 'all', label: '全都要', icon: 'restaurant_menu' },
-  { name: '火锅', label: '热腾腾火锅', icon: 'local_fire_department', color: 'bg-morandi-rose' },
-  { name: '甜点', label: '甜蜜蜜', icon: 'icecream', color: 'bg-morandi-pink' },
-  { name: '烧烤', label: '滋滋烧烤', icon: 'outdoor_grill', color: 'bg-morandi-yellow' },
-  { name: '面食', label: '吸溜面条', icon: 'ramen_dining', color: 'bg-morandi-green' }
+  { name: 'all', label: 'Everything', icon: 'restaurant_menu' },
+  { name: '火锅', label: 'Hot Pot', icon: 'local_fire_department' },
+  { name: '甜点', label: 'Dessert', icon: 'icecream' },
+  { name: '烧烤', label: 'Barbecue', icon: 'outdoor_grill' },
+  { name: '面食', label: 'Noodles', icon: 'ramen_dining' }
 ]
 
 export default function FoodCheckin() {
@@ -45,11 +46,6 @@ export default function FoodCheckin() {
 
   const checkins = foodData?.data || []
 
-  // 临时过滤逻辑 (如果后端筛选不可用)
-  const filteredCheckins = filter === 'all'
-    ? checkins
-    : checkins.filter(c => c.cuisine === filter)
-
   const renderStars = (rating: number = 0, size: number = 16) => (
     <div className="flex text-primary">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -57,38 +53,35 @@ export default function FoodCheckin() {
           key={i}
           name="favorite"
           size={size}
-          className={i < rating ? "fill-current" : "text-gray-200"}
+          className={i < rating ? "fill-current animate-pulse" : "text-gray-200"}
         />
       ))}
     </div>
   )
 
-  // 迷你评分条
   const renderMiniRating = (label: string, rating?: number) => {
     if (!rating) return null
     return (
-      <div className="flex items-center gap-1">
-        <span className="text-[10px] text-slate-400">{label}</span>
-        <div className="flex">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
+        <div className="flex gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className={`w-1.5 h-1.5 rounded-full mx-px ${i < rating ? 'bg-primary' : 'bg-gray-200'}`} />
+            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < rating ? 'bg-primary' : 'bg-slate-100'}`} />
           ))}
         </div>
       </div>
     )
   }
 
-  // 格式化日期
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr)
-      return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
     } catch {
       return dateStr
     }
   }
 
-  // 打开图片查看器
   const handleImageClick = (images: string[], startIndex: number = 0) => {
     if (images && images.length > 0) {
       setSelectedImages(images)
@@ -96,125 +89,139 @@ export default function FoodCheckin() {
     }
   }
 
-  if (loading) return <div className="min-h-screen pt-32 text-center opacity-50">觅食中...</div>
+  if (loading) return (
+    <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
+      <div className="text-center mb-16">
+        <Skeleton className="h-12 w-64 mx-auto mb-4" />
+        <Skeleton className="h-4 w-48 mx-auto" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="premium-card p-0 overflow-hidden h-96">
+            <Skeleton className="h-52 w-full" />
+            <div className="p-6 space-y-4">
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-4 pb-20 pt-32">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">我们的美食足迹</h1>
-          <p className="text-slate-500">记录我们共享的每一个美味瞬间。</p>
+      <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
+        <header className="text-center mb-20 animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">美食足迹</h1>
+          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed">
+            Discovering the world, one bite at a time
+          </p>
 
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <div className="flex flex-wrap justify-center gap-3 mt-12 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
             {cuisines.map(c => (
               <button
                 key={c.name}
                 onClick={() => setFilter(c.name)}
-                className={`px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${filter === c.name
-                  ? `${c.color || 'bg-primary'} text-white shadow-md`
-                  : 'bg-white shadow-sm border border-slate-100 hover:bg-primary/10'
+                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${filter === c.name
+                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                   }`}
               >
-                <Icon name={c.icon} size={18} />
+                <Icon name={c.icon} size={14} />
                 {c.label}
               </button>
             ))}
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCheckins.map((checkin) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {checkins.map((checkin, index) => {
             const images = checkin.images || []
-
             return (
-              <div key={checkin.id} className="bg-white/90 rounded-3xl shadow-lg border border-white/50 overflow-hidden group hover:shadow-xl hover:scale-[1.02] transition-all duration-500">
-                <div className="h-52 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
+              <div key={checkin.id} className="premium-card !p-0 overflow-hidden group hover:-translate-y-2 transition-all duration-700 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
                   <img
                     alt={checkin.restaurant_name}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                     src={images[0] || ''}
                   />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-primary shadow-sm">
-                    {checkin.cuisine}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+
+                  <div className="absolute top-4 left-4 premium-glass !bg-white/90 px-3 py-1 rounded-full border-none shadow-sm">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{checkin.cuisine}</span>
                   </div>
-                  {/* 人均花费 */}
+
                   {checkin.price_range && (
-                    <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-white shadow-sm">
-                      ¥{checkin.price_range}/人
+                    <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full shadow-sm">
+                      <span className="text-[10px] font-black text-white tracking-widest">¥{checkin.price_range}/Person</span>
                     </div>
                   )}
-                  {/* 多图指示器 */}
+
                   {images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white flex items-center gap-1">
-                      <Icon name="photo_library" size={14} />
-                      {images.length}
+                    <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-1.5 border border-white/20">
+                      <Icon name="photo_library" size={12} />
+                      {images.length} Photos
                     </div>
                   )}
                 </div>
-                <div className="p-6">
-                  {/* 餐厅名称和总评分 */}
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-lg text-slate-800 leading-tight">{checkin.restaurant_name}</h3>
-                    {renderStars(checkin.overall_rating)}
+
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-black text-2xl text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{checkin.restaurant_name}</h3>
+                    <div className="bg-slate-50 p-1.5 rounded-xl">
+                      {renderStars(checkin.overall_rating, 14)}
+                    </div>
                   </div>
 
-                  {/* 地址 */}
-                  <div className="flex items-center gap-1 text-slate-400 text-xs mb-3">
-                    <Icon name="location_on" size={12} />
-                    <span className="truncate">{checkin.address || '未知地址'}</span>
+                  <div className="flex items-center gap-2 text-slate-400 mb-6">
+                    <Icon name="location_on" size={14} className="text-primary/40" />
+                    <span className="text-[10px] font-black uppercase tracking-widest truncate">{checkin.address || 'Somewhere delicious'}</span>
                   </div>
 
-                  {/* 推荐菜品 */}
                   {checkin.recommended_dishes && (
-                    <div className="mb-3">
-                      <div className="flex flex-wrap gap-1">
-                        {checkin.recommended_dishes.split(/[,，、]/).filter(Boolean).slice(0, 3).map((dish, i) => (
-                          <span key={i} className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">
-                            {dish.trim()}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="mb-6 flex flex-wrap gap-2">
+                      {checkin.recommended_dishes.split(/[,，、]/).filter(Boolean).slice(0, 3).map((dish, i) => (
+                        <span key={i} className="premium-badge !bg-slate-50 !text-slate-500 !shadow-none border border-slate-100">
+                          {dish.trim()}
+                        </span>
+                      ))}
                     </div>
                   )}
 
-                  {/* 描述 */}
                   {checkin.description && (
-                    <p className="text-slate-500 text-sm italic mb-3 line-clamp-2">"{checkin.description}"</p>
+                    <p className="text-slate-500 font-medium text-sm italic mb-6 line-clamp-2 leading-relaxed opacity-80">"{checkin.description}"</p>
                   )}
 
-                  {/* 迷你评分条 */}
                   {(checkin.taste_rating || checkin.environment_rating || checkin.service_rating) && (
-                    <div className="flex flex-wrap gap-3 mb-3 py-2 border-t border-slate-100">
-                      {renderMiniRating('口味', checkin.taste_rating)}
-                      {renderMiniRating('环境', checkin.environment_rating)}
-                      {renderMiniRating('服务', checkin.service_rating)}
+                    <div className="flex flex-wrap gap-4 mb-8 py-4 border-y border-dashed border-slate-100">
+                      {renderMiniRating('Taste', checkin.taste_rating)}
+                      {renderMiniRating('Vibe', checkin.environment_rating)}
+                      {renderMiniRating('Service', checkin.service_rating)}
                     </div>
                   )}
 
-                  {/* 多图缩略图行 */}
                   {images.length > 1 && (
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex gap-2.5 mb-8">
                       {images.slice(0, 4).map((img, i) => (
                         <div
                           key={i}
-                          className="w-10 h-10 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                          className="w-12 h-12 rounded-xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-primary/10 transition-all shadow-sm"
                           onClick={() => handleImageClick(images, i)}
                         >
                           <img loading="lazy" decoding="async" className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
                         </div>
                       ))}
                       {images.length > 4 && (
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-medium">
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black">
                           +{images.length - 4}
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* 日期 */}
-                  <p className="text-[10px] text-end text-slate-300 font-bold uppercase tracking-widest">{formatDate(checkin.date)}</p>
+                  <p className="text-[10px] text-end text-slate-300 font-black uppercase tracking-[0.2em]">{formatDate(checkin.date)}</p>
                 </div>
               </div>
             )
@@ -222,7 +229,6 @@ export default function FoodCheckin() {
         </div>
       </main>
 
-      {/* 多图查看器 */}
       <ImageModal
         isOpen={selectedImages.length > 0}
         onClose={() => setSelectedImages([])}
