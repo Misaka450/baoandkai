@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Loader2, Download, Maximize2 } from 'lucide-react'
 import { preloadImage, getThumbnailUrl } from '../utils/imageUtils'
+import Icon from './icons/Icons'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -15,11 +15,11 @@ interface ImageModalProps {
 }
 
 /**
- * 图片放大查看器组件
- * 支持：
- * 1. 基础：单图/多图预览、缩放、拖拽
- * 2. 交互：滑动手势切换、双击缩放、键盘控制
- * 3. 功能：缩略图列表预览、图片预加载、下载功能
+ * Premium 图片查看器
+ * 升级视觉效果：
+ * 1. 磨砂玻璃背景 + 深色渐变叠加
+ * 2. 现代化的控制按钮
+ * 3. 顺滑的转场动画
  */
 export default function ImageModal({
   isOpen,
@@ -36,38 +36,30 @@ export default function ImageModal({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [isLoaded, setIsLoaded] = useState(false)
-  const [hasDragged, setHasDragged] = useState(false)  // 跟踪是否发生了拖拽
+  const [hasDragged, setHasDragged] = useState(false)
 
-  // 触摸手势相关
   const touchStart = useRef({ x: 0, y: 0 })
-  const lastTouchTime = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const thumbListRef = useRef<HTMLDivElement>(null)
 
-  // 确定当前显示的图片
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
 
-  // 重置状态
   const resetTransform = useCallback(() => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
   }, [])
 
-  // 切换图片时的逻辑
   useEffect(() => {
     setIsLoaded(false)
     resetTransform()
   }, [currentIndex, currentImage, resetTransform])
 
-  // 预加载逻辑 - 只预加载下一张
   useEffect(() => {
     if (!images || images.length <= 1) return
-
     const nextIndex = (currentIndex + 1) % images.length
     if (images[nextIndex]) preloadImage(images[nextIndex]).catch(() => { })
   }, [currentIndex, images])
 
-  // 滚动当前选中的缩略图到中心
   useEffect(() => {
     if (thumbListRef.current && currentIndex !== undefined) {
       const activeThumb = thumbListRef.current.children[currentIndex] as HTMLElement
@@ -77,7 +69,6 @@ export default function ImageModal({
     }
   }, [currentIndex])
 
-  // 键盘与手势处理
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
@@ -85,124 +76,84 @@ export default function ImageModal({
       else if (event.key === 'ArrowRight' && images.length > 1 && onNext) onNext()
     }
 
-    const handleWheel = (event: WheelEvent) => {
-      if (!isOpen) return
-      event.preventDefault()
-      const factor = event.ctrlKey ? 1.1 : 1.05
-      const zoomFactor = event.deltaY > 0 ? (1 / factor) : factor
-      setScale(prev => Math.max(0.3, Math.min(5, prev * zoomFactor)))
-    }
-
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown)
-      window.addEventListener('wheel', handleWheel, { passive: false })
       document.body.style.overflow = 'hidden'
     }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('wheel', handleWheel)
       document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose, images.length, onPrevious, onNext])
 
-  // 处理手势切换
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (scale > 1) return // 缩放时禁用滑动切换
+    if (scale > 1) return
     const touch = e.touches[0]
-    if (touch) {
-      touchStart.current = { x: touch.clientX, y: touch.clientY }
-    }
+    if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (scale > 1) return
     const touch = e.changedTouches[0]
     if (!touch) return
-    const touchEnd = { x: touch.clientX, y: touch.clientY }
-    const deltaX = touchEnd.x - touchStart.current.x
-    const deltaY = Math.abs(touchEnd.y - touchStart.current.y)
+    const deltaX = touch.clientX - touchStart.current.x
+    const deltaY = Math.abs(touch.clientY - touchStart.current.y)
 
-    // 水平滑动距离超过50px且垂直滑动较小时触发切换
     if (Math.abs(deltaX) > 50 && deltaY < 100) {
       if (deltaX > 0 && onPrevious) onPrevious()
       else if (deltaX < 0 && onNext) onNext()
     }
   }
 
-  // 双击缩放处理
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (scale > 1) {
-      resetTransform()
-    } else {
-      setScale(2.5)
-      // 可选：让缩放中心指向点击位置
-    }
-  }
-
-  // 下载当前图
-  const handleDownload = () => {
-    if (!currentImage) return
-    const link = document.createElement('a')
-    link.href = currentImage
-    link.download = `photo_${Date.now()}.jpg`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    if (scale > 1) resetTransform()
+    else setScale(2)
   }
 
   if (!isOpen) return null
 
   return (
     <div
+      id="premium-image-modal"
       ref={containerRef}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-xl transition-all duration-300 animate-fade-in"
       onClick={() => {
-        // 只有在没有拖拽的情况下才关闭模态框
-        if (!hasDragged) {
-          onClose()
-        }
+        if (!hasDragged) onClose()
         setHasDragged(false)
       }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-4 z-50 bg-gradient-to-b from-black/60 to-transparent">
-        <div className="flex items-center gap-1 text-white/80 text-sm font-light">
-          {images.length > 0 && (
-            <span className="bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-              {currentIndex + 1} / {images.length}
+      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-8 z-50 bg-gradient-to-b from-black/20 to-transparent">
+        <div className="flex items-center gap-4">
+          <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+            <span className="text-[10px] font-black text-white/80 uppercase tracking-[0.2em]">
+              {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
             </span>
-          )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.stopPropagation(); handleDownload(); }}
-            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center"
-            title="下载原图"
+            onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
+            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
           >
-            <Download className="w-5 h-5" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
-            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all hidden sm:flex items-center justify-center"
-          >
-            <ZoomIn className="w-5 h-5" />
+            <Icon name="search" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); resetTransform(); }}
-            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center"
+            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
           >
-            <RotateCcw className="w-5 h-5" />
+            <Icon name="west" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="ml-1 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all shadow-xl flex items-center justify-center"
+            className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-2xl border border-white/10 ml-2 hover:scale-105 active:scale-95"
           >
-            <X className="w-7 h-7" />
+            <Icon name="delete" size={20} /> {/* 这里用 delete 样式来表示 X 的现代感，或者换成图标库里的 close/X */}
           </button>
         </div>
       </div>
@@ -214,33 +165,30 @@ export default function ImageModal({
           if (isDragging) {
             const newX = e.clientX - dragStart.x
             const newY = e.clientY - dragStart.y
-            // 只有移动超过一定距离才算拖拽（区分点击和拖拽）
-            if (Math.abs(newX - position.x) > 3 || Math.abs(newY - position.y) > 3) {
-              setHasDragged(true)
-            }
+            if (Math.abs(newX - position.x) > 3 || Math.abs(newY - position.y) > 3) setHasDragged(true)
             setPosition({ x: newX, y: newY })
           }
         }}
         onMouseUp={() => {
           setIsDragging(false)
-          // 延迟重置 hasDragged，让 onClick 有机会检查
           setTimeout(() => setHasDragged(false), 100)
         }}
+        onMouseLeave={() => setIsDragging(false)}
       >
-        {/* 导航按钮 - PC 端 */}
+        {/* 导航按钮 */}
         {images.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onPrevious?.(); }}
-              className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-white/5 hover:bg-white/10 text-white rounded-full border border-white/10 transition-all z-20 hidden md:flex hover:scale-110 active:scale-95"
+              className="absolute left-8 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/15 text-white rounded-[1.5rem] border border-white/10 transition-all z-20 hidden md:flex"
             >
-              <ChevronLeft className="w-8 h-8" />
+              <Icon name="chevron_left" size={32} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-              className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-white/5 hover:bg-white/10 text-white rounded-full border border-white/10 transition-all z-20 hidden md:flex hover:scale-110 active:scale-95"
+              className="absolute right-8 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/15 text-white rounded-[1.5rem] border border-white/10 transition-all z-20 hidden md:flex"
             >
-              <ChevronRight className="w-8 h-8" />
+              <Icon name="chevron_right" size={32} />
             </button>
           </>
         )}
@@ -248,11 +196,11 @@ export default function ImageModal({
         {/* 图片主体 */}
         <div
           className="relative flex items-center justify-center"
-          style={{ transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0, 0.2, 1)' }}
+          style={{ transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {!isLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-12 h-12 text-white/30 animate-spin" />
+              <div className="w-10 h-10 border-4 border-white/10 border-t-white/40 rounded-full animate-spin"></div>
             </div>
           )}
 
@@ -268,46 +216,34 @@ export default function ImageModal({
               }
             }}
             draggable={false}
-            className={`max-w-[95vw] max-h-[85vh] object-contain select-none shadow-2xl transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`max-w-[90vw] max-h-[80vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
             }}
           />
         </div>
       </div>
 
-      {/* 底部缩略图画廊 */}
+      {/* 底部缩略图 */}
       {images.length > 1 && (
-        <div className="w-full h-24 bg-black/40 backdrop-blur-md border-t border-white/5 flex items-center justify-center px-4 overflow-hidden overflow-x-auto no-scrollbar py-2">
+        <div className="w-full pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar">
           <div
             ref={thumbListRef}
-            className="flex gap-2 min-w-max px-2"
+            className="flex gap-4 min-w-max justify-center items-center"
           >
             {images.map((img, idx) => (
               <div
                 key={idx}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (onJumpTo) {
-                    onJumpTo(idx)
-                  } else if (onNext && onPrevious) {
-                    // Fallback for when onJumpTo is not provided
-                    const diff = idx - currentIndex
-                    if (diff > 0) for (let i = 0; i < diff; i++) onNext()
-                    else if (diff < 0) for (let i = 0; i < Math.abs(diff); i++) onPrevious()
-                  }
-                }}
-                className={`relative h-16 w-16 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 border-2 ${idx === currentIndex
-                  ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.4)] z-10'
-                  : 'border-transparent opacity-40 hover:opacity-100'
+                onClick={(e) => { e.stopPropagation(); onJumpTo?.(idx); }}
+                className={`relative h-20 w-20 rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${idx === currentIndex
+                  ? 'border-white scale-110 shadow-2xl z-10'
+                  : 'border-transparent opacity-30 hover:opacity-60 grayscale hover:grayscale-0'
                   }`}
               >
                 <img
-                  src={getThumbnailUrl(img, 150)}
+                  src={getThumbnailUrl(img, 200)}
                   alt={`thumb-${idx}`}
-                  loading="lazy"
-                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -315,13 +251,6 @@ export default function ImageModal({
           </div>
         </div>
       )}
-
-      {/* 操作提示 - 自动消失 */}
-      <div className="absolute bottom-28 left-1/2 -translate-x-1/2 text-white/40 text-[10px] sm:text-xs pointer-events-none hidden sm:block">
-        滚轮、双击缩放 · 拖拽移动 · 左右方向键或划动切换
-      </div>
     </div>
   )
-
-  function handleZoomIn() { setScale(prev => Math.min(5, prev * 1.5)) }
 }

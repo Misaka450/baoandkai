@@ -12,6 +12,7 @@ export default function Navigation() {
   const location = useLocation()
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const navigation: NavItem[] = [
     { name: '首页', href: '/', icon: 'home' },
@@ -40,13 +41,25 @@ export default function Navigation() {
       setLastScrollY(currentScrollY)
     }
 
+    // 检测图片模态框是否打开
+    const checkModal = () => {
+      const modal = document.getElementById('premium-image-modal')
+      setIsModalOpen(!!modal)
+    }
+
+    const observer = new MutationObserver(checkModal)
+    observer.observe(document.body, { childList: true, subtree: true })
+
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      observer.disconnect()
+    }
   }, [lastScrollY])
 
   return (
     <nav
-      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0'
+      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
         }`}
     >
       <div className="glass-card soft-shadow px-4 md:px-6 py-2 md:py-3 rounded-full flex items-center space-x-2 md:space-x-4 border border-white/50">
