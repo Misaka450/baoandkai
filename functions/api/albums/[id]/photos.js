@@ -3,7 +3,12 @@ import { jsonResponse, errorResponse } from '../../../utils/response';
 // GET /api/albums/:id/photos - 获取相册照片列表
 export async function onRequestGet(context) {
     const { params, env } = context;
-    const albumId = params.id;
+    // 这里的 id 可能是 string，而数据库 id 是 INTEGER
+    const albumId = parseInt(params.id);
+
+    if (isNaN(albumId)) {
+        return errorResponse('无效的相册ID', 400);
+    }
 
     try {
         const photos = await env.DB.prepare(`
@@ -11,7 +16,7 @@ export async function onRequestGet(context) {
     `).bind(albumId).all();
 
         return jsonResponse({
-            data: photos.results
+            data: photos.results || []
         });
     } catch (error) {
         return errorResponse(error.message, 500);
@@ -49,12 +54,17 @@ export async function onRequestPost(context) {
         });
 
         const url = `/api/images/${fileName}`;
+        const finalAlbumId = parseInt(albumId);
+
+        if (isNaN(finalAlbumId)) {
+            return errorResponse('无效的相册ID', 400);
+        }
 
         // 2. 插入数据库记录
         const result = await env.DB.prepare(`
       INSERT INTO photos (album_id, url, caption, sort_order, created_at)
       VALUES (?, ?, ?, ?, datetime('now'))
-    `).bind(albumId, url, file.name, 0).run();
+    `).bind(finalAlbumId, url, file.name, 0).run();
 
         const newPhoto = await env.DB.prepare(`
       SELECT * FROM photos WHERE id = ?
