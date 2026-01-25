@@ -9,9 +9,9 @@ export async function onRequestGet(context) {
 
   try {
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const id = url.pathname.split('/').filter(Boolean).pop();
 
-    if (!id || isNaN(id)) {
+    if (!id || isNaN(parseInt(id))) {
       return errorResponse('无效的ID', 400);
     }
 
@@ -46,11 +46,9 @@ export async function onRequestPut(context) {
 
   try {
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
-    const body = await request.json();
-    const { name, description, photos = [], cover_url } = body;
+    const id = url.pathname.split('/').filter(Boolean).pop();
 
-    if (!id || isNaN(id)) {
+    if (!id || isNaN(parseInt(id))) {
       return errorResponse('无效的ID', 400);
     }
 
@@ -113,9 +111,9 @@ export async function onRequestDelete(context) {
 
   try {
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const id = url.pathname.split('/').filter(Boolean).pop();
 
-    if (!id || isNaN(id)) {
+    if (!id || isNaN(parseInt(id))) {
       return errorResponse('无效的ID', 400);
     }
 
