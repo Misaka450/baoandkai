@@ -23,6 +23,20 @@ export async function onRequestGet(context) {
     headers.set('etag', object.httpEtag);
     headers.set('Cache-Control', 'public, max-age=31536000');
 
+    // 兜底处理 Content-Type，防止某些情况下缺失导致无法预览
+    if (!headers.has('Content-Type')) {
+        const ext = key.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp',
+            'svg': 'image/svg+xml'
+        };
+        headers.set('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+    }
+
     return new Response(object.body, {
         headers,
     });

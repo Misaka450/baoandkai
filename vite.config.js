@@ -43,14 +43,14 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8789',
+        target: 'http://localhost:8788',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path
       }
     }
   },
-  base: './',
+  base: '/',
   resolve: {
     alias: {
       '@': '/src', // 路径别名
