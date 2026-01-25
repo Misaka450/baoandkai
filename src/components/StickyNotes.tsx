@@ -20,11 +20,11 @@ interface colorStyle {
 }
 
 const colorMap: Record<string, colorStyle> = {
-  pink: { bg: 'bg-pastel-pink', border: 'border-pink-100', text: 'text-pink-700', icon: 'text-primary', shadow: 'shadow-pink-100/50' },
-  orange: { bg: 'bg-pastel-yellow', border: 'border-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-500', shadow: 'shadow-yellow-100/50' },
-  green: { bg: 'bg-pastel-green', border: 'border-green-100', text: 'text-green-700', icon: 'text-green-400', shadow: 'shadow-green-100/50' },
-  blue: { bg: 'bg-pastel-blue', border: 'border-blue-100', text: 'text-blue-700', icon: 'text-blue-400', shadow: 'shadow-blue-100/50' },
-  purple: { bg: 'bg-pastel-purple', border: 'border-purple-100', text: 'text-purple-700', icon: 'text-purple-400', shadow: 'shadow-purple-100/50' },
+  pink: { bg: 'bg-morandi-pink', border: 'border-white/20', text: 'text-white', icon: 'text-white/80', shadow: 'shadow-morandi-pink/30' },
+  orange: { bg: 'bg-morandi-yellow', border: 'border-white/20', text: 'text-stone-700', icon: 'text-stone-500/60', shadow: 'shadow-morandi-yellow/30' },
+  green: { bg: 'bg-morandi-green', border: 'border-white/20', text: 'text-stone-800/80', icon: 'text-stone-600/60', shadow: 'shadow-morandi-green/30' },
+  blue: { bg: 'bg-morandi-blue', border: 'border-white/20', text: 'text-white', icon: 'text-white/80', shadow: 'shadow-morandi-blue/30' },
+  purple: { bg: 'bg-morandi-purple', border: 'border-white/20', text: 'text-white', icon: 'text-white/80', shadow: 'shadow-morandi-purple/30' },
 }
 
 const getRandomColorName = () => {
@@ -81,28 +81,33 @@ export default function StickyNotes() {
       {notes.map((note, idx) => {
         // 按索引轮换颜色，确保五颜六色
         const colorKeys = Object.keys(colorMap)
-        const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
-        const style = colorMap[colorKey]!
+        const rotations = ['rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]']
+        const rotation = rotations[idx % rotations.length]
         return (
-          <div key={note.id} className={`${style.bg} p-8 rounded-[2.5rem] border ${style.border} flex flex-col justify-between hover:rotate-1 transition-transform cursor-default group`}>
-            <p className={`${style.text} text-lg leading-relaxed mb-8 italic`}>“{note.content}”</p>
-            <div className={`flex items-center justify-between border-t ${style.border} pt-4`}>
-              <div className={`flex items-center space-x-4 ${style.icon}`}>
-                <span className="flex items-center space-x-1 hover:scale-110 transition-transform cursor-pointer">
-                  <Icon name="favorite" size={18} />
-                  <span className="text-xs font-bold">{note.likes || 0}</span>
+          <div key={note.id} className={`${style.bg} p-10 py-12 rounded-2xl border ${style.border} flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] shadow-xl ${style.shadow} cursor-default group relative ${rotation}`}>
+            {/* 图钉装饰 */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-stone-400/80 drop-shadow-sm group-hover:scale-110 transition-transform">
+              <Icon name="push_pin" size={24} />
+            </div>
+
+            <p className={`${style.text} text-xl leading-relaxed mb-10 font-medium font-handwriting tracking-wide`}>“{note.content}”</p>
+            <div className={`flex items-center justify-between border-t ${style.border} pt-6 mt-auto`}>
+              <div className={`flex items-center space-x-5 ${style.icon}`}>
+                <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">
+                  <Icon name="favorite" size={20} />
+                  <span className="text-sm font-bold">{note.likes || 0}</span>
                 </span>
-                <span className="flex items-center space-x-1 hover:scale-110 transition-transform cursor-pointer">
-                  <Icon name="chat_bubble" size={18} />
-                  <span className="text-xs font-bold">0</span>
+                <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">
+                  <Icon name="chat_bubble" size={20} />
+                  <span className="text-sm font-bold">0</span>
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                <span className={`text-[11px] ${style.text} opacity-40 font-bold uppercase tracking-widest`}>
                   {note.created_at ? new Date(note.created_at).toLocaleDateString() : 'JUST NOW'}
                 </span>
                 {isAdmin && (
-                  <button onClick={() => handleDelete(note.id)} className="text-gray-300 hover:text-red-500 transition-colors flex items-center justify-center">
+                  <button onClick={() => handleDelete(note.id)} className={`${style.text} opacity-20 hover:opacity-100 hover:text-red-500 transition-all flex items-center justify-center p-1`}>
                     <Icon name="delete" size={18} />
                   </button>
                 )}
