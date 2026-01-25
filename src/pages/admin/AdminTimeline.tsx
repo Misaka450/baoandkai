@@ -69,6 +69,7 @@ const AdminTimeline = () => {
             try {
                 const formDataUpload = new FormData()
                 formDataUpload.append('file', file)
+                formDataUpload.append('folder', 'timeline')
 
                 const { data, error } = await apiService.upload<{ url: string }>('/uploads', formDataUpload)
                 if (error) throw new Error(error)

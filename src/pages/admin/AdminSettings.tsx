@@ -48,6 +48,7 @@ const AdminSettings = () => {
         try {
             const fd = new FormData()
             fd.append('file', file)
+            fd.append('folder', 'avatars')
             const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
             if (error) throw new Error(error)
             if (data?.url) setConfig(prev => ({ ...prev, [field]: data.url }))

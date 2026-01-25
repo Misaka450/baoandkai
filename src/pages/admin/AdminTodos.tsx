@@ -66,6 +66,7 @@ const AdminTodos = () => {
             try {
                 const fd = new FormData()
                 fd.append('file', file)
+                fd.append('folder', 'todos')
                 const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
                 if (error) throw new Error(error)
                 if (data?.url) newImages.push(data.url)
