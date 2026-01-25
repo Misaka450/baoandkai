@@ -25,8 +25,13 @@ const AdminAlbums = () => {
     const [editingId, setEditingId] = useState<number | null>(null)
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
     const [photos, setPhotos] = useState<Photo[]>([])
-    const [uploading, setUploading] = useState(false)
-    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
+    const [uploadingFiles, setUploadingFiles] = useState<{
+        id: string;
+        file: File;
+        preview: string;
+        progress: number;
+        speed: number;
+    }[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState({ name: '', description: '' })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
@@ -87,27 +92,53 @@ const AdminAlbums = () => {
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedAlbum || !e.target.files?.length) return
-        setUploading(true)
-        for (const file of Array.from(e.target.files)) {
+
+        const files = Array.from(e.target.files);
+        const newUploads = files.map(file => ({
+            id: Math.random().toString(36).substring(7),
+            file,
+            preview: URL.createObjectURL(file),
+            progress: 0,
+            speed: 0
+        }));
+
+        setUploadingFiles(prev => [...prev, ...newUploads]);
+
+        // 串行上传以保证稳定性，或者并行上传（用户要求“完成一张显示一张”）
+        for (const uploadItem of newUploads) {
             try {
                 const formDataUpload = new FormData()
-                formDataUpload.append('file', file)
+                formDataUpload.append('file', uploadItem.file)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
-                const { error } = await apiService.uploadWithProgress(
+
+                const { data, error } = await apiService.uploadWithProgress<Photo>(
                     `/albums/${selectedAlbum.id}/photos`,
                     formDataUpload,
-                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
-                )
-                if (error) throw new Error(error)
+                    (p) => {
+                        setUploadingFiles(prev => prev.map(item =>
+                            item.id === uploadItem.id
+                                ? { ...item, progress: p.percent, speed: p.speed }
+                                : item
+                        ))
+                    }
+                );
+
+                if (error) throw new Error(error);
+
+                // 上传成功后，将照片添加到列表并移除正在上传的状态
+                if (data) {
+                    setPhotos(prev => [data, ...prev]);
+                    // 同时更新相册列表中的计数（可选）
+                    setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
+                }
             } catch (err) {
-                console.error(err)
+                console.error('上传失败:', err);
             } finally {
-                setUploadProgress(null)
+                setUploadingFiles(prev => prev.filter(item => item.id !== uploadItem.id));
+                URL.revokeObjectURL(uploadItem.preview);
             }
         }
-        setUploading(false)
-        loadPhotos(selectedAlbum.id)
-        loadAlbums()
+
         if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
@@ -168,20 +199,46 @@ const AdminAlbums = () => {
                     </div>
 
                     <label className="px-8 py-3.5 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer min-w-[160px] justify-center">
-                        {uploading ? (
-                            <div className="flex items-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                <span className="text-sm font-mono">{uploadProgress?.percent || 0}%</span>
-                                <span className="text-[10px] opacity-80 whitespace-nowrap">{uploadProgress?.speed || 0}K/s</span>
-                            </div>
-                        ) : (
-                            <><Icon name="add_photo_alternate" size={20} />添加照片</>
-                        )}
-                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
+                        <Icon name="add_photo_alternate" size={20} />
+                        添加照片
+                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
                     </label>
                 </header>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {/* 正在上传的文件卡片 */}
+                    {uploadingFiles.map(upload => (
+                        <div key={upload.id} className="relative aspect-square rounded-3xl overflow-hidden bg-slate-900 shadow-sm border-4 border-white transition-all">
+                            <img src={upload.preview} alt="uploading" className="w-full h-full object-cover opacity-40 blur-[2px]" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4">
+                                <div className="relative w-16 h-16 mb-3">
+                                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                                        <path
+                                            className="text-white/20"
+                                            stroke="currentColor"
+                                            strokeWidth="3"
+                                            fill="none"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        />
+                                        <path
+                                            className="text-white transition-all duration-300"
+                                            stroke="currentColor"
+                                            strokeWidth="3"
+                                            strokeDasharray={`${upload.progress}, 100`}
+                                            strokeLinecap="round"
+                                            fill="none"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black">
+                                        {upload.progress}%
+                                    </div>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">{upload.speed} KB/S</p>
+                            </div>
+                        </div>
+                    ))}
+
                     {photos.map(photo => (
                         <div key={photo.id} className="relative group aspect-square rounded-3xl overflow-hidden bg-slate-100 shadow-sm border-4 border-white transition-all hover:shadow-xl hover:-translate-y-1">
                             {selectedAlbum.cover_url === photo.url && (
