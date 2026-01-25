@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react'
+import Icon from './icons/Icons'
 
 interface Props {
     children: ReactNode
@@ -31,7 +32,6 @@ class ErrorBoundary extends Component<Props, State> {
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
         this.setState({ errorInfo })
-        // 可以在这里添加错误上报逻辑
         console.error('ErrorBoundary caught an error:', error, errorInfo)
     }
 
@@ -45,62 +45,64 @@ class ErrorBoundary extends Component<Props, State> {
 
     render(): ReactNode {
         if (this.state.hasError) {
-            // 如果提供了自定义fallback，使用它
             if (this.props.fallback) {
                 return this.props.fallback
             }
 
-            // 默认错误UI
             return (
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-                    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 max-w-lg mx-4 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
-                        <div className="text-center">
-                            {/* 错误图标 */}
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-100 to-rose-100 rounded-full mb-6">
-                                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                <div className="min-h-screen flex items-center justify-center bg-stone-50 p-6">
+                    <div className="premium-card max-w-lg w-full !p-12 text-center animate-fade-in relative overflow-hidden">
+                        {/* 装饰性背景 */}
+                        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none rotate-12">
+                            <Icon name="favorite" size={120} />
+                        </div>
+
+                        <div className="mb-10 relative inline-block">
+                            <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse"></div>
+                            <div className="relative w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center text-primary transform rotate-12 transition-transform hover:rotate-0">
+                                <Icon name="report_problem" size={40} />
                             </div>
+                        </div>
 
-                            <h2 className="text-2xl font-light text-stone-800 mb-3">
-                                哎呀，出错了
-                            </h2>
-                            <p className="text-stone-600 font-light mb-6">
-                                页面遇到了一些问题，请尝试刷新页面或稍后再试
-                            </p>
+                        <h2 className="text-3xl font-black text-slate-800 mb-4 tracking-tighter">
+                            出了点小意外
+                        </h2>
+                        <p className="text-slate-400 font-medium mb-10 leading-relaxed px-4">
+                            记忆长廊暂时关闭维护中...<br />请尝试刷新，或稍后再来探索。
+                        </p>
 
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <button
-                                    onClick={this.handleRetry}
-                                    className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-light hover:from-rose-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
-                                >
-                                    重试
-                                </button>
-                                <button
-                                    onClick={() => window.location.href = '/'}
-                                    className="px-6 py-3 bg-stone-100 text-stone-700 rounded-xl font-light hover:bg-stone-200 transition-all duration-300"
-                                >
-                                    返回首页
-                                </button>
-                            </div>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+                            <button
+                                onClick={this.handleRetry}
+                                className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200"
+                            >
+                                进行重试
+                            </button>
+                            <button
+                                onClick={() => window.location.href = '/'}
+                                className="px-10 py-4 bg-white text-slate-400 border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all"
+                            >
+                                返回首页
+                            </button>
+                        </div>
 
-                            {/* 开发模式显示错误详情 */}
-                            {process.env.NODE_ENV === 'development' && this.state.error && (
-                                <details className="mt-6 text-left">
-                                    <summary className="text-sm text-stone-500 cursor-pointer hover:text-stone-700">
-                                        错误详情（仅开发模式可见）
+                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                            <div className="mt-12 text-left">
+                                <details className="group">
+                                    <summary className="text-[10px] font-black text-slate-300 cursor-pointer uppercase tracking-widest hover:text-primary transition-colors">
+                                        TECHNICAL DETAILS
                                     </summary>
-                                    <div className="mt-2 p-4 bg-stone-50 rounded-xl text-xs font-mono text-red-600 overflow-auto max-h-48">
-                                        <p className="font-bold">{this.state.error.toString()}</p>
+                                    <div className="mt-4 p-6 bg-slate-50 rounded-2xl text-[10px] font-mono text-slate-500 overflow-auto max-h-48 border border-slate-100 italic leading-relaxed">
+                                        <p className="font-bold text-red-400 mb-2">{this.state.error.toString()}</p>
                                         {this.state.errorInfo && (
-                                            <pre className="mt-2 whitespace-pre-wrap">
+                                            <pre className="whitespace-pre-wrap opacity-60">
                                                 {this.state.errorInfo.componentStack}
                                             </pre>
                                         )}
                                     </div>
                                 </details>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )
