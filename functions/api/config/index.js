@@ -46,7 +46,9 @@ export async function onRequestGet(context) {
       coupleName2: config.coupleName2 || '恺恺',
       anniversaryDate: config.anniversaryDate || '2023-10-08',
       homeTitle: config.homeTitle || '包包和恺恺的小窝',
-      homeSubtitle: config.homeSubtitle || '遇见你，是银河赠予我的糖。'
+      homeSubtitle: config.homeSubtitle || '遇见你，是银河赠予我的糖。',
+      avatar1: config.avatar1 || '',
+      avatar2: config.avatar2 || ''
     }), {
       headers: {
         'Content-Type': 'application/json',
@@ -95,6 +97,9 @@ export async function onRequestPut(context) {
     config.anniversaryDate = anniversaryDate || config.anniversaryDate || '2023-10-08';
     config.homeTitle = body.homeTitle || config.homeTitle || '包包和恺恺的小窝';
     config.homeSubtitle = body.homeSubtitle || config.homeSubtitle || '遇见你，是银河赠予我的糖。';
+    // 头像字段支持空值（用于恢复默认）
+    if (body.avatar1 !== undefined) config.avatar1 = body.avatar1;
+    if (body.avatar2 !== undefined) config.avatar2 = body.avatar2;
 
     await env.DB.prepare(`
       UPDATE settings 
@@ -107,7 +112,9 @@ export async function onRequestPut(context) {
       coupleName2: config.coupleName2,
       anniversaryDate: config.anniversaryDate,
       homeTitle: config.homeTitle,
-      homeSubtitle: config.homeSubtitle
+      homeSubtitle: config.homeSubtitle,
+      avatar1: config.avatar1 || '',
+      avatar2: config.avatar2 || ''
     }), {
       headers: {
         'Content-Type': 'application/json',

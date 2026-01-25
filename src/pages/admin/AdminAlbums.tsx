@@ -111,6 +111,21 @@ const AdminAlbums = () => {
         } catch { await showAlert('错误', '删除失败', 'error') }
     }
 
+    const handleSetCover = async (photoUrl: string) => {
+        if (!selectedAlbum) return
+        try {
+            const { error } = await apiService.put(`/albums/${selectedAlbum.id}`, {
+                name: selectedAlbum.name,
+                description: selectedAlbum.description,
+                cover_url: photoUrl
+            })
+            if (error) throw new Error(error)
+            await showAlert('成功', '封面已设置！', 'success')
+            loadAlbums()
+            setSelectedAlbum({ ...selectedAlbum, cover_url: photoUrl })
+        } catch { await showAlert('错误', '设置封面失败', 'error') }
+    }
+
     const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ name: '', description: '' }) }
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
@@ -131,9 +146,13 @@ const AdminAlbums = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {photos.map(photo => (
                         <div key={photo.id} className="relative group aspect-square rounded-2xl overflow-hidden bg-slate-100">
+                            {selectedAlbum.cover_url === photo.url && (
+                                <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-primary text-white text-xs rounded-full">封面</div>
+                            )}
                             <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button onClick={() => handleDeletePhoto(photo.id)} className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600"><Icon name="delete" size={20} /></button>
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button onClick={() => handleSetCover(photo.url)} className="p-3 bg-primary text-white rounded-full hover:bg-primary/80" title="设为封面"><Icon name="photo_album" size={20} /></button>
+                                <button onClick={() => handleDeletePhoto(photo.id)} className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600" title="删除"><Icon name="delete" size={20} /></button>
                             </div>
                         </div>
                     ))}

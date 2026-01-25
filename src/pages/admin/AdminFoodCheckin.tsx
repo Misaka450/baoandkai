@@ -96,7 +96,15 @@ const AdminFoodCheckin = () => {
 
     const handleEdit = (c: FoodCheckin) => {
         setEditingId(c.id)
-        setFormData({ restaurant_name: c.restaurant_name, description: c.description, date: c.date, address: c.address, cuisine: c.cuisine, price_range: c.price_range, overall_rating: c.overall_rating, recommended_dishes: c.recommended_dishes?.join('，') || '', images: c.images || [] })
+        // recommended_dishes 可能是数组或字符串（从后端返回）
+        const dishes = Array.isArray(c.recommended_dishes)
+            ? c.recommended_dishes.join('，')
+            : (c.recommended_dishes || '')
+        // images 可能是数组或逗号分隔的字符串
+        const imgs = Array.isArray(c.images)
+            ? c.images
+            : (c.images ? String(c.images).split(',').filter(Boolean) : [])
+        setFormData({ restaurant_name: c.restaurant_name, description: c.description, date: c.date, address: c.address, cuisine: c.cuisine, price_range: c.price_range, overall_rating: c.overall_rating, recommended_dishes: dishes, images: imgs })
         setShowForm(true)
     }
 

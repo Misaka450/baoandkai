@@ -48,7 +48,7 @@ export async function onRequestPut(context) {
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
     const body = await request.json();
-    const { name, description, photos = [] } = body;
+    const { name, description, photos = [], cover_url } = body;
 
     if (!id || isNaN(id)) {
       return errorResponse('无效的ID', 400);
@@ -58,11 +58,11 @@ export async function onRequestPut(context) {
       return errorResponse('相册名称不能为空', 400);
     }
 
-    // 更新相册信息
+    // 更新相册信息（包括封面）
     const result = await env.DB.prepare(`
-      UPDATE albums SET name = ?, description = ?, updated_at = datetime('now') 
+      UPDATE albums SET name = ?, description = ?, cover_url = ?, updated_at = datetime('now') 
       WHERE id = ?
-    `).bind(name.trim(), description?.trim() || '', parseInt(id)).run();
+    `).bind(name.trim(), description?.trim() || '', cover_url || '', parseInt(id)).run();
 
     if (result.changes === 0) {
       return errorResponse('相册不存在', 404);
