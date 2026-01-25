@@ -142,12 +142,6 @@ export default function Albums() {
             </div>
           ))}
 
-          <div className="group aspect-[4/3] premium-card !p-0 !bg-slate-50/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center hover:bg-white hover:border-primary/40 transition-all cursor-pointer animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:scale-110 group-hover:rotate-12 transition-all mb-4">
-              <Icon name="folder_special" size={40} />
-            </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Create New Gallery</p>
-          </div>
         </div>
       </main>
 
