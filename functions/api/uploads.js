@@ -28,8 +28,8 @@ export async function onRequestPost(context) {
                 },
             });
 
-            // 返回公开访问 URL
-            const url = `https://pub-f3abc7adae724902b344281ec73f700c.r2.dev/${fileName}`;
+            // 返回代理访问 URL
+            const url = `/api/images/${fileName}`;
             return jsonResponse({ url });
         }
 

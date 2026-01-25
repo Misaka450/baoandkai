@@ -34,6 +34,7 @@ const AdminSettings = () => {
     })
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState<'avatar1' | 'avatar2' | null>(null)
+    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef1 = useRef<HTMLInputElement>(null)
     const fileInputRef2 = useRef<HTMLInputElement>(null)
     const { modalState, showAlert, closeModal } = useAdminModal()
@@ -49,11 +50,18 @@ const AdminSettings = () => {
             const fd = new FormData()
             fd.append('file', file)
             fd.append('folder', 'avatars')
-            const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
+            const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
+                '/uploads',
+                fd,
+                (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
+            )
             if (error) throw new Error(error)
             if (data?.url) setConfig(prev => ({ ...prev, [field]: data.url }))
         } catch { await showAlert('错误', '上传失败', 'error') }
-        finally { setUploading(null) }
+        finally {
+            setUploading(null)
+            setUploadProgress(null)
+        }
     }
 
     useEffect(() => {
@@ -205,8 +213,20 @@ const AdminSettings = () => {
                                                 <img src={getAvatarUrl(avatar.seed, avatar.bg)} alt={avatar.seed} className="w-full h-full" />
                                             </button>
                                         ))}
-                                        <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                            {uploading === 'avatar1' ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <Icon name="add_photo_alternate" size={20} className="text-slate-400" />}
+                                        <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden p-1 text-center">
+                                            {uploading === 'avatar1' ? (
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="relative w-8 h-8">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                                        <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
+                                                            {uploadProgress?.percent || 0}%
+                                                        </div>
+                                                    </div>
+                                                    {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
+                                                </div>
+                                            ) : (
+                                                <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
+                                            )}
                                             <input ref={fileInputRef1} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar1')} className="hidden" />
                                         </label>
                                     </div>
@@ -227,8 +247,20 @@ const AdminSettings = () => {
                                                 <img src={getAvatarUrl(avatar.seed, avatar.bg)} alt={avatar.seed} className="w-full h-full" />
                                             </button>
                                         ))}
-                                        <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                            {uploading === 'avatar2' ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <Icon name="add_photo_alternate" size={20} className="text-slate-400" />}
+                                        <label className="w-14 h-14 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all overflow-hidden p-1 text-center">
+                                            {uploading === 'avatar2' ? (
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="relative w-8 h-8">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                                        <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
+                                                            {uploadProgress?.percent || 0}%
+                                                        </div>
+                                                    </div>
+                                                    {uploadProgress && <span className="text-[8px] text-slate-400 font-mono scale-90">{uploadProgress.speed}KB/s</span>}
+                                                </div>
+                                            ) : (
+                                                <Icon name="add_photo_alternate" size={20} className="text-slate-400" />
+                                            )}
                                             <input ref={fileInputRef2} type="file" accept="image/*" onChange={(e) => handleAvatarUpload(e, 'avatar2')} className="hidden" />
                                         </label>
                                     </div>

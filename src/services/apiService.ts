@@ -213,6 +213,83 @@ class ApiService {
             return { data: null, error: errorMessage }
         }
     }
+
+    /**
+     * 上传文件（带进度回调）
+     * @param endpoint 上传端点
+     * @param formData 表单数据
+     * @param onProgress 进度回调函数，接收 { percent: 百分比, speed: 速率(KB/s), loaded: 已上传字节, total: 总字节 }
+     */
+    uploadWithProgress<T = unknown>(
+        endpoint: string,
+        formData: FormData,
+        onProgress?: (progress: { percent: number; speed: number; loaded: number; total: number }) => void
+    ): Promise<ApiResponse<T>> {
+        return new Promise((resolve) => {
+            const url = `${this.baseURL}${endpoint}`
+            const token = localStorage.getItem('token')
+            const xhr = new XMLHttpRequest()
+            let startTime = Date.now()
+            let lastLoaded = 0
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable && onProgress) {
+                    const now = Date.now()
+                    const elapsed = (now - startTime) / 1000 // 秒
+                    const bytesLoaded = e.loaded - lastLoaded
+                    const speed = elapsed > 0 ? (bytesLoaded / 1024) / elapsed : 0 // KB/s
+
+                    // 更新基准
+                    startTime = now
+                    lastLoaded = e.loaded
+
+                    onProgress({
+                        percent: Math.round((e.loaded / e.total) * 100),
+                        speed: Math.round(speed),
+                        loaded: e.loaded,
+                        total: e.total
+                    })
+                }
+            })
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 401) {
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('user')
+                    if (window.location.pathname !== '/login') {
+                        window.location.href = '/login'
+                    }
+                    resolve({ data: null, error: 'Unauthorized' })
+                    return
+                }
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data: T = JSON.parse(xhr.responseText)
+                        resolve({ data, error: null })
+                    } catch {
+                        resolve({ data: null, error: 'Failed to parse response' })
+                    }
+                } else {
+                    resolve({ data: null, error: `Upload failed! status: ${xhr.status}` })
+                }
+            })
+
+            xhr.addEventListener('error', () => {
+                resolve({ data: null, error: 'Network error' })
+            })
+
+            xhr.addEventListener('abort', () => {
+                resolve({ data: null, error: 'Upload cancelled' })
+            })
+
+            xhr.open('POST', url)
+            if (token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+            }
+            xhr.send(formData)
+        })
+    }
 }
 
 // 创建单例实例

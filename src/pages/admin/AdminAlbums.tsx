@@ -26,6 +26,7 @@ const AdminAlbums = () => {
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
     const [photos, setPhotos] = useState<Photo[]>([])
     const [uploading, setUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState({ name: '', description: '' })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
@@ -92,9 +93,17 @@ const AdminAlbums = () => {
                 const formDataUpload = new FormData()
                 formDataUpload.append('file', file)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
-                const { error } = await apiService.upload(`/albums/${selectedAlbum.id}/photos`, formDataUpload)
+                const { error } = await apiService.uploadWithProgress(
+                    `/albums/${selectedAlbum.id}/photos`,
+                    formDataUpload,
+                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
+                )
                 if (error) throw new Error(error)
-            } catch (err) { console.error(err) }
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setUploadProgress(null)
+            }
         }
         setUploading(false)
         loadPhotos(selectedAlbum.id)
@@ -138,8 +147,16 @@ const AdminAlbums = () => {
                         <button onClick={() => setSelectedAlbum(null)} className="p-2 hover:bg-slate-100 rounded-xl"><Icon name="west" size={20} /></button>
                         <div><h1 className="text-2xl font-bold text-slate-800">{selectedAlbum.name}</h1><p className="text-sm text-slate-400">{photos.length} 张照片</p></div>
                     </div>
-                    <label className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
-                        {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <><Icon name="add_photo_alternate" size={20} />上传照片</>}
+                    <label className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer min-w-[140px] justify-center">
+                        {uploading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                <span className="text-sm font-mono">{uploadProgress?.percent || 0}%</span>
+                                <span className="text-[10px] opacity-80">{uploadProgress?.speed || 0}K/s</span>
+                            </div>
+                        ) : (
+                            <><Icon name="add_photo_alternate" size={20} />上传照片</>
+                        )}
                         <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
                     </label>
                 </header>

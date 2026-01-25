@@ -43,6 +43,7 @@ const AdminTodos = () => {
     const [completionPhotos, setCompletionPhotos] = useState<string[]>([])
     const [completionNotes, setCompletionNotes] = useState('')
     const [uploading, setUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const completionFileRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] })
@@ -67,10 +68,18 @@ const AdminTodos = () => {
                 const fd = new FormData()
                 fd.append('file', file)
                 fd.append('folder', 'todos')
-                const { data, error } = await apiService.upload<{ url: string }>('/uploads', fd)
+                const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
+                    '/uploads',
+                    fd,
+                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
+                )
                 if (error) throw new Error(error)
                 if (data?.url) newImages.push(data.url)
-            } catch (err) { console.error(err) }
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setUploadProgress(null)
+            }
         }
         if (isCompletion) {
             setCompletionPhotos(prev => [...prev, ...newImages])
@@ -191,7 +200,21 @@ const AdminTodos = () => {
                                     </div>
                                 ))}
                                 <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                    {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>}
+                                    {uploading ? (
+                                        <div className="flex flex-col items-center">
+                                            <div className="relative w-10 h-10 mb-1">
+                                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
+                                                    {uploadProgress?.percent || 0}%
+                                                </div>
+                                            </div>
+                                            {uploadProgress && (
+                                                <span className="text-[9px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>
+                                    )}
                                     <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e)} className="hidden" disabled={uploading} />
                                 </label>
                             </div>
@@ -225,7 +248,21 @@ const AdminTodos = () => {
                                         </div>
                                     ))}
                                     <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                        {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div> : <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>}
+                                        {uploading ? (
+                                            <div className="flex flex-col items-center">
+                                                <div className="relative w-10 h-10 mb-1">
+                                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                                                    <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
+                                                        {uploadProgress?.percent || 0}%
+                                                    </div>
+                                                </div>
+                                                {uploadProgress && (
+                                                    <span className="text-[9px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>
+                                        )}
                                         <input ref={completionFileRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e, true)} className="hidden" disabled={uploading} />
                                     </label>
                                 </div>
