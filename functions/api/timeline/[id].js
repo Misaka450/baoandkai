@@ -1,95 +1,97 @@
-// Cloudflare Pages Functions - 时间轴单个事件API
+import { jsonResponse, errorResponse } from '../../utils/response';
+
+/**
+ * 更新时间轴事件
+ */
 export async function onRequestPut(context) {
   const { request, env } = context;
-  
+
   try {
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const id = url.pathname.split('/').filter(Boolean).pop();
+    const eventId = parseInt(id);
     const body = await request.json();
     const { title, description, date, location, category, images = [] } = body;
-    
-    if (!id || isNaN(id)) {
-      return new Response(JSON.stringify({ error: '无效的ID' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+
+    if (isNaN(eventId)) {
+      return errorResponse('无效的ID', 400);
     }
-    
+
     if (!title || !date) {
-      return new Response(JSON.stringify({ error: '标题和日期不能为空' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('标题和日期不能为空', 400);
     }
-    
+
     const result = await env.DB.prepare(`
       UPDATE timeline_events 
       SET title = ?, description = ?, date = ?, location = ?, category = ?, images = ?, updated_at = datetime('now') 
       WHERE id = ?
-    `).bind(title, description, date, location || '', category || '日常', images.join(','), parseInt(id)).run();
-    
+    `).bind(title, description, date, location || '', category || '日常', images.join(','), eventId).run();
+
     if (result.changes === 0) {
-      return new Response(JSON.stringify({ error: '记录不存在' }), { 
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('记录不存在', 404);
     }
-    
+
     const updatedEvent = await env.DB.prepare(`
       SELECT * FROM timeline_events WHERE id = ?
-    `).bind(parseInt(id)).first();
+    `).bind(eventId).first();
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       ...updatedEvent,
       images: updatedEvent.images ? updatedEvent.images.split(',') : []
-    }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('更新时间轴失败:', error);
+    return errorResponse(error.message, 500);
   }
 }
 
+/**
+ * 删除时间轴事件（包含 R2 物理清理）
+ */
 export async function onRequestDelete(context) {
-  const { env } = context;
-  
+  const { env, request } = context;
+
   try {
-    const url = new URL(context.request.url);
-    const id = url.pathname.split('/').pop();
-    
-    if (!id || isNaN(id)) {
-      return new Response(JSON.stringify({ error: '无效的ID' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').filter(Boolean).pop();
+    const eventId = parseInt(id);
+
+    if (isNaN(eventId)) {
+      return errorResponse('无效的ID', 400);
     }
-    
-    const result = await env.DB.prepare('DELETE FROM timeline_events WHERE id = ?').bind(parseInt(id)).run();
-    
+
+    // 1. 获取事件详情以获取待清理的照片 URL
+    const event = await env.DB.prepare(`SELECT images FROM timeline_events WHERE id = ?`).bind(eventId).first();
+
+    if (event && event.images && env.IMAGES) {
+      const imageUrls = event.images.split(',');
+      const cleanupPromises = imageUrls.map(imgUrl => {
+        if (imgUrl && imgUrl.startsWith('/api/images/')) {
+          const key = imgUrl.split('/api/images/')[1];
+          try {
+            return env.IMAGES.delete(decodeURIComponent(key));
+          } catch (e) {
+            console.error('解析时间轴图片 Key 失败:', key, e);
+          }
+        }
+        return null;
+      }).filter(Boolean);
+
+      // 异步清理资源，失败不阻塞逻辑
+      Promise.all(cleanupPromises).catch(e => console.error('时间轴资源清理失败:', e));
+    }
+
+    // 2. 删除数据库记录
+    const result = await env.DB.prepare('DELETE FROM timeline_events WHERE id = ?').bind(eventId).run();
+
     if (result.changes === 0) {
-      return new Response(JSON.stringify({ error: '记录不存在' }), { 
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('记录不存在', 404);
     }
-    
-    return new Response(JSON.stringify({ success: true, message: '删除成功' }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+
+    return jsonResponse({ success: true, message: '事件及关联资源已删除' });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('删除时间轴记录失败:', error);
+    return errorResponse(error.message, 500);
   }
 }
 

@@ -1,20 +1,18 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 
-// Cloudflare Pages Functions - 单个待办事项API
-// PUT /api/todos/:id - 更新待办事项
 /**
- * 更新单个待办事项的状态或内容
- * @param {import('@cloudflare/workers-types').EventContext} context 
+ * 更新待办事项
  */
 export async function onRequestPut(context) {
-  const { request, env } = context;
+  const { request, env, params } = context;
 
   try {
-    const id = context.params.id;
+    const id = params.id;
+    const todoId = parseInt(id);
     const body = await request.json();
     const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
-    if (!id || isNaN(id)) {
+    if (isNaN(todoId)) {
       return errorResponse('无效的ID', 400);
     }
 
@@ -36,51 +34,79 @@ export async function onRequestPut(context) {
       completion_notes || null,
       completion_photos ? JSON.stringify(completion_photos) : null,
       images ? JSON.stringify(images) : null,
-      parseInt(id)
+      todoId
     ).run();
 
     if (result.changes === 0) {
-      return errorResponse('记录不存在', 404);
+      return errorResponse('任务不存在', 404);
     }
 
-    const updatedTodo = await env.DB.prepare(`
-      SELECT * FROM todos WHERE id = ?
-    `).bind(parseInt(id)).first();
+    const updatedTodo = await env.DB.prepare(`SELECT * FROM todos WHERE id = ?`).bind(todoId).first();
 
     return jsonResponse({
-      success: true,
-      data: {
-        ...updatedTodo,
-        images: updatedTodo.images ? JSON.parse(updatedTodo.images) : [],
-        completion_photos: updatedTodo.completion_photos ? JSON.parse(updatedTodo.completion_photos) : []
-      },
-      message: '更新成功'
+      ...updatedTodo,
+      images: updatedTodo.images ? JSON.parse(updatedTodo.images) : [],
+      completion_photos: updatedTodo.completion_photos ? JSON.parse(updatedTodo.completion_photos) : []
     });
   } catch (error) {
+    console.error('更新待办事项失败:', error);
     return errorResponse(error.message, 500);
   }
 }
 
-// DELETE /api/todos/:id - 删除待办事项
+/**
+ * 删除待办事项（包含 R2 图片清理）
+ */
 export async function onRequestDelete(context) {
-  const { request, env } = context;
+  const { env, params } = context;
 
   try {
-    const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const id = params.id;
+    const todoId = parseInt(id);
 
-    if (!id || isNaN(id)) {
+    if (isNaN(todoId)) {
       return errorResponse('无效的ID', 400);
     }
 
-    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(parseInt(id)).run();
+    // 1. 获取任务详情以清理可能存在的图片
+    const todo = await env.DB.prepare(`SELECT images, completion_photos FROM todos WHERE id = ?`).bind(todoId).first();
 
-    if (result.changes === 0) {
-      return errorResponse('记录不存在', 404);
+    if (todo && env.IMAGES) {
+      const cleanupList = [];
+
+      // 解析图片列表
+      const parseAndAdd = (field) => {
+        try {
+          const list = typeof field === 'string' ? JSON.parse(field) : (Array.isArray(field) ? field : []);
+          list.forEach(item => {
+            const url = typeof item === 'string' ? item : item.url;
+            if (url && url.startsWith('/api/images/')) {
+              const key = url.split('/api/images/')[1];
+              cleanupList.push(decodeURIComponent(key));
+            }
+          });
+        } catch (e) { }
+      };
+
+      parseAndAdd(todo.images);
+      parseAndAdd(todo.completion_photos);
+
+      if (cleanupList.length > 0) {
+        const cleanupPromises = cleanupList.map(key => env.IMAGES.delete(key));
+        Promise.all(cleanupPromises).catch(e => console.error('待办事项图片清理失败:', e));
+      }
     }
 
-    return jsonResponse({ success: true, message: '删除成功' });
+    // 2. 执行数据库删除
+    const result = await env.DB.prepare('DELETE FROM todos WHERE id = ?').bind(todoId).run();
+
+    if (result.changes === 0) {
+      return errorResponse('任务不存在', 404);
+    }
+
+    return jsonResponse({ success: true, message: '任务及关联资源已永久删除' });
   } catch (error) {
+    console.error('删除待办事项失败:', error);
     return errorResponse(error.message, 500);
   }
 }
