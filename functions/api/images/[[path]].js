@@ -1,8 +1,8 @@
 export async function onRequestGet(context) {
     const { params, env } = context;
-    // [[path]].js 在 Pages Functions 中返回的是数组
-    const pathArray = params.path || [];
-    let key = pathArray.join('/');
+    // 处理 catch-all 参数可能为数组或字符串的情况
+    const pathArray = params.path;
+    let key = Array.isArray(pathArray) ? pathArray.join('/') : pathArray;
 
     // 关键修复：解码 URL，确保支持中文文件夹名（如“相册/两周年纪念日/文件.jpg”）
     try {
