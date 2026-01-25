@@ -23,60 +23,65 @@ export async function onRequestGet(context) {
     }
 }
 
-const finalAlbumId = parseInt(albumId);
-if (isNaN(finalAlbumId)) {
-    return errorResponse('无效的相册ID', 400);
-}
+// POST /api/albums/:id/photos - 上传照片到相册
+export async function onRequestPost(context) {
+    const { params, request, env } = context;
+    const albumId = params.id;
+    const finalAlbumId = parseInt(albumId);
 
-try {
-    const formData = await request.formData();
-    const file = formData.get('file');
-
-    if (!file || !(file instanceof File)) {
-        return errorResponse('未找到文件', 400);
+    if (isNaN(finalAlbumId)) {
+        return errorResponse('无效的相册ID', 400);
     }
 
-    // 1. 获取相册信息以确定存储文件夹名
-    const album = await env.DB.prepare(`SELECT name FROM albums WHERE id = ?`).bind(finalAlbumId).first();
-    if (!album) {
-        return errorResponse('相册不存在', 404);
-    }
-    const folderName = album.name || 'default';
+    try {
+        const formData = await request.formData();
+        const file = formData.get('file');
 
-    // 2. 上传文件到 R2
-    if (!env.IMAGES) {
-        return errorResponse('存储服务(R2)未配置', 500);
-    }
+        if (!file || !(file instanceof File)) {
+            return errorResponse('未找到文件', 400);
+        }
 
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8);
-    const ext = file.name.split('.').pop();
-    // 按照用户要求修改路径: our/albums/相册名/文件名
-    const fileName = `our/albums/${folderName}/${timestamp}-${random}.${ext}`;
+        // 1. 获取相册信息以确定存储文件夹名
+        const album = await env.DB.prepare(`SELECT name FROM albums WHERE id = ?`).bind(finalAlbumId).first();
+        if (!album) {
+            return errorResponse('相册不存在', 404);
+        }
+        const folderName = album.name || 'default';
 
-    await env.IMAGES.put(fileName, file.stream(), {
-        httpMetadata: {
-            contentType: file.type,
-            cacheControl: 'public, max-age=31536000',
-        },
-    });
+        // 2. 上传文件到 R2
+        if (!env.IMAGES) {
+            return errorResponse('存储服务(R2)未配置', 500);
+        }
 
-    const url = `/api/images/${fileName}`;
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8);
+        const ext = file.name.split('.').pop();
+        // 按照用户要求修改路径: our/albums/相册名/文件名
+        const fileName = `our/albums/${folderName}/${timestamp}-${random}.${ext}`;
 
-    // 3. 插入数据库记录
-    const result = await env.DB.prepare(`
+        await env.IMAGES.put(fileName, file.stream(), {
+            httpMetadata: {
+                contentType: file.type,
+                cacheControl: 'public, max-age=31536000',
+            },
+        });
+
+        const url = `/api/images/${fileName}`;
+
+        // 3. 插入数据库记录
+        const result = await env.DB.prepare(`
       INSERT INTO photos (album_id, url, caption, sort_order, created_at)
       VALUES (?, ?, ?, ?, datetime('now'))
     `).bind(finalAlbumId, url, file.name, 0).run();
 
-    const newPhoto = await env.DB.prepare(`
+        const newPhoto = await env.DB.prepare(`
       SELECT * FROM photos WHERE id = ?
     `).bind(result.meta.last_row_id).first();
 
-    return jsonResponse(newPhoto, 201);
+        return jsonResponse(newPhoto, 201);
 
-} catch (error) {
-    console.error('上传失败:', error);
-    return errorResponse(error.message, 500);
-}
+    } catch (error) {
+        console.error('上传失败:', error);
+        return errorResponse(error.message, 500);
+    }
 }
