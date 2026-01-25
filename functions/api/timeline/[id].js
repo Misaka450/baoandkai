@@ -64,21 +64,29 @@ export async function onRequestDelete(context) {
     const event = await env.DB.prepare(`SELECT images FROM timeline_events WHERE id = ?`).bind(eventId).first();
 
     if (event && event.images && env.IMAGES) {
-      const imageUrls = event.images.split(',');
-      const cleanupPromises = imageUrls.map(imgUrl => {
-        if (imgUrl && imgUrl.startsWith('/api/images/')) {
-          const key = imgUrl.split('/api/images/')[1];
-          try {
-            return env.IMAGES.delete(decodeURIComponent(key));
-          } catch (e) {
-            console.error('解析时间轴图片 Key 失败:', key, e);
+      const imageUrls = event.images.split(',').filter(Boolean);
+      // 将异步清理改为由 await 控制的串行或并行清理，确保在 DB 删除前完成（或至少确保删除请求已发出）
+      const cleanupPromises = imageUrls.map(async (imgUrl) => {
+        // 去除空格并清理路径
+        const trimmedUrl = imgUrl.trim();
+        if (trimmedUrl.includes('/api/images/')) {
+          const key = trimmedUrl.split('/api/images/')[1];
+          if (key) {
+            try {
+              const decodedKey = decodeURIComponent(key);
+              console.log('正在从R2物理删除文件:', decodedKey);
+              await env.IMAGES.delete(decodedKey);
+              return true;
+            } catch (e) {
+              console.error(`R2物理文件删除失败 [${key}]:`, e);
+            }
           }
         }
-        return null;
-      }).filter(Boolean);
+        return false;
+      });
 
-      // 异步清理资源，失败不阻塞逻辑
-      Promise.all(cleanupPromises).catch(e => console.error('时间轴资源清理失败:', e));
+      // 关键改进：等待所有图片删除指令完成（即使失败也不中断流程）
+      await Promise.allSettled(cleanupPromises);
     }
 
     // 2. 删除数据库记录
