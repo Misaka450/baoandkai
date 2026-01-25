@@ -39,13 +39,16 @@ export async function onRequestPost(context) {
         const timestamp = Date.now();
         const random = Math.random().toString(36).substring(2, 8);
         const ext = file.name.split('.').pop();
-        const fileName = `album-${albumId}-${timestamp}-${random}.${ext}`;
+        const fileName = `albums/${timestamp}-${random}.${ext}`;
 
         await env.IMAGES.put(fileName, file.stream(), {
-            httpMetadata: { contentType: file.type },
+            httpMetadata: {
+                contentType: file.type,
+                cacheControl: 'public, max-age=31536000',
+            },
         });
 
-        const url = `/api/images/${fileName}`;
+        const url = `https://pub-f3abc7adae724902b344281ec73f700c.r2.dev/${fileName}`;
 
         // 2. 插入数据库记录
         const result = await env.DB.prepare(`
