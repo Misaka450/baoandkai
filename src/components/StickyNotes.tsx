@@ -81,6 +81,8 @@ export default function StickyNotes() {
       {notes.map((note, idx) => {
         // 按索引轮换颜色，确保五颜六色
         const colorKeys = Object.keys(colorMap)
+        const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
+        const style = colorMap[colorKey]!
         const rotations = ['rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]']
         const rotation = rotations[idx % rotations.length]
         return (
