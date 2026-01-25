@@ -56,8 +56,8 @@ export async function onRequestPost(context) {
         const timestamp = Date.now();
         const random = Math.random().toString(36).substring(2, 8);
         const ext = file.name.split('.').pop();
-        // 按照用户要求修改路径: our/albums/相册名/文件名
-        const fileName = `our/albums/${folderName}/${timestamp}-${random}.${ext}`;
+        // 按照用户要求修改路径: albums/相册名/文件名
+        const fileName = `albums/${folderName}/${timestamp}-${random}.${ext}`;
 
         await env.IMAGES.put(fileName, file.stream(), {
             httpMetadata: {
