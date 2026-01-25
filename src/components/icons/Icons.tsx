@@ -9,7 +9,7 @@ export type IconName =
     | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search'
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu'
-    | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle';
+    | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration';
 
 interface IconProps {
     name: IconName;
@@ -69,7 +69,9 @@ const iconPaths: Record<IconName, string> = {
     info: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
     warning: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z",
     error: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",
-    check_circle: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+    check_circle: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
+    event: "M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z",
+    celebration: "M2 22l14-5-9-9-5 14zm11.83-11.41L15 9l1.17 1.59 1.59-1.17L16.59 8l1.59-1.17-1.59-1.17L15 4l-1.17 1.59-1.59-1.17L13.41 6l-1.59 1.17 1.59 1.17zM19 14l-1.17 1.59-1.59-1.17L17.41 16l-1.59 1.17 1.59 1.17L19 17l1.17-1.59 1.59 1.17L20.59 15l1.59-1.17-1.59-1.17z"
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {

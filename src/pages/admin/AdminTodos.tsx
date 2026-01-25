@@ -174,9 +174,19 @@ const AdminTodos = () => {
 
     return (
         <div className="animate-fade-in text-slate-700">
-            <header className="flex items-center justify-between mb-8">
-                <div><h1 className="text-2xl font-bold text-slate-800 mb-1">心愿清单</h1><p className="text-sm text-slate-400">管理我们想做的事情</p></div>
-                <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Icon name="add" size={20} />新增心愿</button>
+            {/* 粘性玻璃头部 */}
+            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">心愿清单<span className="text-primary tracking-tighter ml-1">WISHES</span></h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dreams to be shared, moments to be lived</p>
+                </div>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                >
+                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                    新增心愿
+                </button>
             </header>
 
             {showForm && (
@@ -280,35 +290,106 @@ const AdminTodos = () => {
                 </div>
             )}
 
-            <div className="space-y-4">
-                {todos.length === 0 ? <div className="text-center py-12 text-slate-400"><Icon name="checklist" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有心愿，添加第一个吧！</p></div> : todos.map((t) => (
-                    <div key={t.id} className={`bg-white p-6 rounded-2xl shadow-sm border border-slate-100 ${t.status === 'completed' ? 'opacity-70' : ''}`}>
-                        <div className="flex items-start gap-4">
-                            <button onClick={() => toggleStatus(t)} className={`w-6 h-6 mt-1 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${t.status === 'completed' ? 'bg-primary border-primary text-white' : 'border-slate-300 hover:border-primary'}`}>{t.status === 'completed' && <Icon name="check" size={14} />}</button>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                    <h3 className={`font-bold text-slate-800 ${t.status === 'completed' ? 'line-through' : ''}`}>{t.title}</h3>
-                                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${getPriorityStyle(t.priority)}`}>{priorities.find(p => p.value === t.priority)?.label}</span>
-                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full">{t.category}</span>
-                                </div>
-                                {t.description && <p className="text-sm text-slate-500 mb-2">{t.description}</p>}
-                                {t.due_date && <p className="text-xs text-slate-400 mb-2">截止日期：{t.due_date}</p>}
-                                {t.images && t.images.length > 0 && <div className="flex gap-2 mb-2">{t.images.slice(0, 4).map((img, i) => <img key={i} src={img} alt="" className="w-12 h-12 rounded-lg object-cover" />)}</div>}
-                                {t.status === 'completed' && t.completion_photos && t.completion_photos.length > 0 && (
-                                    <div className="mt-3 p-3 bg-green-50 rounded-xl">
-                                        <p className="text-xs text-green-600 font-bold mb-2">✨ 已完成</p>
-                                        <div className="flex gap-2">{t.completion_photos.slice(0, 4).map((img, i) => <img key={i} src={img} alt="" className="w-12 h-12 rounded-lg object-cover" />)}</div>
-                                        {t.completion_notes && <p className="text-sm text-green-700 mt-2">{t.completion_notes}</p>}
+            <div className="space-y-6 pb-20">
+                {todos.length === 0 ? (
+                    <div className="text-center py-24 glass-card rounded-[3rem]">
+                        <Icon name="favorite" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
+                        <p className="text-slate-400 font-bold tracking-tight">我们的愿望盒还是空的...</p>
+                    </div>
+                ) : (
+                    todos.map((t, index) => (
+                        <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                            <div className={`premium-card p-8 group transition-all duration-500 ${t.status === 'completed' ? 'bg-slate-50/50' : 'hover:bg-white'}`}>
+                                <div className="flex items-start gap-6">
+                                    {/* 弹性交互式复选框 */}
+                                    <button
+                                        onClick={() => toggleStatus(t)}
+                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 shadow-sm ${t.status === 'completed'
+                                                ? 'bg-primary border-primary text-white scale-110 shadow-primary/30'
+                                                : 'border-slate-200 bg-white hover:border-primary hover:scale-110 active:scale-90'
+                                            }`}
+                                    >
+                                        {t.status === 'completed' ? <Icon name="check" size={18} /> : <div className="w-2 h-2 rounded-full bg-slate-100 group-hover:bg-primary/20 transition-colors"></div>}
+                                    </button>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-4 mb-2 flex-wrap">
+                                            <h3 className={`text-xl font-black text-slate-800 transition-all duration-500 ${t.status === 'completed' ? 'opacity-40 italic' : ''}`}>
+                                                {t.title}
+                                            </h3>
+                                            <span className={`premium-badge !bg-slate-50 !text-slate-400 border border-slate-100`}>
+                                                {t.category}
+                                            </span>
+                                            <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter ${t.priority === 3 ? 'bg-red-50 text-red-500' : t.priority === 2 ? 'bg-yellow-50 text-yellow-600' : 'bg-green-50 text-green-600'
+                                                }`}>
+                                                {priorities.find(p => p.value === t.priority)?.label}级优先
+                                            </span>
+                                        </div>
+
+                                        {t.description && (
+                                            <p className={`text-sm font-medium leading-relaxed mb-4 transition-all duration-500 ${t.status === 'completed' ? 'text-slate-300' : 'text-slate-500'}`}>
+                                                {t.description}
+                                            </p>
+                                        )}
+
+                                        {t.due_date && (
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">
+                                                <Icon name="event" size={14} />
+                                                DEALINE: {t.due_date}
+                                            </div>
+                                        )}
+
+                                        {/* 图片堆叠预览 */}
+                                        {t.images && t.images.length > 0 && (
+                                            <div className="flex -space-x-3 mb-4">
+                                                {t.images.slice(0, 5).map((img, i) => (
+                                                    <div key={i} className="w-12 h-12 rounded-2xl border-2 border-white overflow-hidden shadow-sm hover:translate-y-[-4px] hover:z-10 transition-all duration-300 hover:rotate-2">
+                                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                                {t.images.length > 5 && (
+                                                    <div className="w-12 h-12 rounded-2xl bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                        +{t.images.length - 5}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {t.status === 'completed' && (
+                                            <div className="mt-6 p-6 bg-primary/5 rounded-[1.5rem] border border-primary/10 animate-fade-in relative overflow-hidden group/success">
+                                                <div className="absolute -right-4 -top-4 text-primary/10 group-hover/success:scale-150 transition-transform duration-1000">
+                                                    <Icon name="celebration" size={120} />
+                                                </div>
+                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                    <span className="w-4 h-[1px] bg-primary/40"></span>
+                                                    ACHIEVED MOMENT
+                                                </p>
+                                                {t.completion_photos && t.completion_photos.length > 0 && (
+                                                    <div className="flex gap-3 mb-4 flex-wrap relative z-10">
+                                                        {t.completion_photos.slice(0, 4).map((img, i) => (
+                                                            <img key={i} src={img} alt="" className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-md hover:scale-110 transition-transform cursor-zoom-in" />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {t.completion_notes && (
+                                                    <p className="text-sm font-bold text-primary/80 italic relative z-10 line-clamp-2">
+                                                        "{t.completion_notes}"
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="flex gap-2 shrink-0">
-                                <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"><Icon name="edit" size={18} /></button>
-                                <button onClick={() => handleDelete(t.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Icon name="delete" size={18} /></button>
+
+                                    {/* 悬浮操作按钮 */}
+                                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                        <button onClick={() => handleEdit(t)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 hover:bg-primary hover:text-white transition-all flex items-center justify-center"><Icon name="edit" size={18} /></button>
+                                        <button onClick={() => handleDelete(t.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"><Icon name="delete" size={18} /></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
             <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>
