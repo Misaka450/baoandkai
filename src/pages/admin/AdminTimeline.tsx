@@ -162,56 +162,60 @@ const AdminTimeline = () => {
 
     return (
         <div className="animate-fade-in text-slate-700">
-            <header className="flex items-center justify-between mb-8">
+            {/* 粘性玻璃头部 */}
+            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 mb-1">时间轴管理</h1>
-                    <p className="text-sm text-slate-400">记录我们的美好时光</p>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">时间轴<span className="text-primary tracking-tighter ml-1">JOURNAL</span></h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Memories are timeless treasures</p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
                 >
-                    <Icon name="add" size={20} />
+                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
                     添加事件
                 </button>
             </header>
 
             {/* 新增表单 - 只在新增模式显示 */}
             {showForm && !editingId && (
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
-                    <h2 className="text-lg font-bold mb-6 text-slate-800">
-                        新建事件
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 mb-12 animate-slide-up">
+                    <h2 className="text-xl font-black mb-8 text-slate-800">
+                        新建美好回忆
                     </h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <input
                                 type="text"
-                                placeholder="事件标题"
+                                placeholder="给这一刻起个名字..."
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                className="premium-input"
                                 required
                             />
                             <input
                                 type="date"
                                 value={formData.date}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                className="premium-input"
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input
-                                type="text"
-                                placeholder="地点（可选）"
-                                value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="relative">
+                                <Icon name="location_on" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                <input
+                                    type="text"
+                                    placeholder="当时在哪儿？"
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                    className="premium-input pl-12"
+                                />
+                            </div>
                             <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                className="premium-input appearance-none bg-slate-50 cursor-pointer"
                             >
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
@@ -219,10 +223,10 @@ const AdminTimeline = () => {
                             </select>
                         </div>
                         <textarea
-                            placeholder="事件描述"
+                            placeholder="写下当下的心情与细节..."
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 min-h-[100px]"
+                            className="premium-input min-h-[140px] resize-none"
                         />
 
                         {/* 图片上传区域 */}
@@ -292,57 +296,64 @@ const AdminTimeline = () => {
                 </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-8 pb-20">
                 {events.length === 0 ? (
-                    <div className="text-center py-12 text-slate-400">
-                        <Icon name="schedule" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p>还没有时间轴事件，记录第一个美好时刻吧！</p>
+                    <div className="text-center py-24 glass-card rounded-[3rem]">
+                        <Icon name="auto_awesome" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
+                        <p className="text-slate-400 font-bold tracking-tight">我们的故事，正等待被书写...</p>
                     </div>
                 ) : (
-                    events.map((event) => (
-                        <div key={event.id}>
-                            <div className={`bg-white p-6 rounded-2xl shadow-sm border ${editingId === event.id ? 'border-primary' : 'border-slate-100'}`}>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
-                                                {event.category}
-                                            </span>
-                                            <span className="text-xs text-slate-400">{event.date}</span>
+                    events.map((event, index) => (
+                        <div key={event.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div className={`premium-card p-10 group ${editingId === event.id ? 'ring-4 ring-primary/20' : ''}`}>
+                                <div className="flex flex-col lg:flex-row gap-8">
+                                    {/* 左侧：图片墙或占位 */}
+                                    {event.images && event.images.length > 0 && (
+                                        <div className="lg:w-48 flex-shrink-0">
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-110 opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
+                                                <div className="grid grid-cols-2 gap-2 relative">
+                                                    {event.images.slice(0, 4).map((img, i) => (
+                                                        <div key={i} className={`aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:rotate-${i % 2 === 0 ? '3' : '-3'}`}>
+                                                            <img src={img} alt="" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    ))}
+                                                    {event.images.length === 1 && <div className="aspect-square bg-slate-50 rounded-2xl border-2 border-white"></div>}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h3 className="font-bold text-slate-800 mb-1">{event.title}</h3>
-                                        <p className="text-sm text-slate-500 mb-2">{event.description}</p>
+                                    )}
+
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <span className="premium-badge">{event.category}</span>
+                                            <div className="h-1 w-1 bg-slate-200 rounded-full"></div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{event.date}</span>
+                                        </div>
+                                        <h3 className="text-2xl font-black text-slate-800 mb-3 group-hover:text-primary transition-colors">{event.title}</h3>
+                                        <p className="text-slate-500 font-medium leading-relaxed mb-6 line-clamp-3 group-hover:line-clamp-none transition-all duration-500">{event.description}</p>
+
                                         {event.location && (
-                                            <p className="text-xs text-slate-400 flex items-center gap-1">
-                                                <Icon name="location_on" size={14} />
+                                            <p className="text-xs font-bold text-slate-300 flex items-center gap-2 group-hover:text-slate-400 transition-colors">
+                                                <Icon name="location_on" size={16} className="text-primary/40" />
                                                 {event.location}
                                             </p>
                                         )}
-                                        {event.images && event.images.length > 0 && (
-                                            <div className="flex gap-2 mt-3">
-                                                {event.images.slice(0, 4).map((img, i) => (
-                                                    <img key={i} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                                                ))}
-                                                {event.images.length > 4 && (
-                                                    <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-sm text-slate-500">
-                                                        +{event.images.length - 4}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
-                                    <div className="flex gap-2">
+
+                                    {/* 右侧：悬浮出现的控制按钮 */}
+                                    <div className="flex flex-row lg:flex-col gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
                                         <button
                                             onClick={() => editingId === event.id ? resetForm() : handleEdit(event)}
-                                            className={`p-2 rounded-xl transition-all ${editingId === event.id ? 'text-primary bg-primary/10' : 'text-slate-400 hover:text-primary hover:bg-primary/10'}`}
+                                            className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center font-black"
                                         >
-                                            <Icon name={editingId === event.id ? "expand_less" : "edit"} size={18} />
+                                            <Icon name={editingId === event.id ? "expand_less" : "edit"} size={20} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(event.id)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                            className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
                                         >
-                                            <Icon name="delete" size={18} />
+                                            <Icon name="delete" size={20} />
                                         </button>
                                     </div>
                                 </div>

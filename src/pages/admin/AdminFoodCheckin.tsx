@@ -133,9 +133,19 @@ const AdminFoodCheckin = () => {
 
     return (
         <div className="animate-fade-in text-slate-700">
-            <header className="flex items-center justify-between mb-8">
-                <div><h1 className="text-2xl font-bold text-slate-800 mb-1">美食打卡</h1><p className="text-sm text-slate-400">记录我们的美食探店</p></div>
-                <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Icon name="add" size={20} />新增打卡</button>
+            {/* 粘性玻璃头部 */}
+            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">美食打卡<span className="text-primary tracking-tighter ml-1">FOODIE</span></h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Taste the world, one bite at a time</p>
+                </div>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                >
+                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                    新增打卡
+                </button>
             </header>
             {showForm && (
                 <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
@@ -192,26 +202,67 @@ const AdminFoodCheckin = () => {
                     </form>
                 </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {checkins.length === 0 ? <div className="col-span-full text-center py-12 text-slate-400"><Icon name="restaurant" size={48} className="mx-auto mb-4 opacity-50" /><p>还没有美食打卡，记录第一次探店吧！</p></div> : checkins.map((c) => (
-                    <div key={c.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div className="flex items-start justify-between mb-3">
-                            <div><h3 className="font-bold text-slate-800">{c.restaurant_name}</h3><p className="text-xs text-slate-400">{c.date} · {c.cuisine} · {c.price_range}</p></div>
-                            <div className="flex gap-2">
-                                <button onClick={() => handleEdit(c)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"><Icon name="edit" size={18} /></button>
-                                <button onClick={() => handleDelete(c.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Icon name="delete" size={18} /></button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
+                {checkins.length === 0 ? (
+                    <div className="col-span-full text-center py-24 glass-card rounded-[3rem]">
+                        <Icon name="restaurant" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
+                        <p className="text-slate-400 font-bold tracking-tight">空空如也，快去探索美食吧！</p>
+                    </div>
+                ) : (
+                    checkins.map((c, index) => (
+                        <div key={c.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div className="premium-card p-8 group h-full flex flex-col">
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                            <span className="premium-badge">{c.cuisine}</span>
+                                            <span className="px-2 py-0.5 bg-slate-100 text-[10px] font-black text-slate-400 rounded-lg">{c.price_range}</span>
+                                        </div>
+                                        <h3 className="text-xl font-black text-slate-800 group-hover:text-primary transition-colors truncate">{c.restaurant_name}</h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{c.date}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                                        <button onClick={() => handleEdit(c)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 hover:bg-primary hover:text-white transition-all flex items-center justify-center"><Icon name="edit" size={18} /></button>
+                                        <button onClick={() => handleDelete(c.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"><Icon name="delete" size={18} /></button>
+                                    </div>
+                                </div>
+
+                                <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6 line-clamp-2 italic">
+                                    "{c.description}"
+                                </p>
+
+                                {c.images && c.images.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-3 mb-6">
+                                        {c.images.slice(0, 3).map((img, i) => (
+                                            <div key={i} className="aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform duration-500">
+                                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <span key={star} className={`text-lg leading-none transition-all duration-500 ${star <= c.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] scale-110' : 'text-slate-100'}`}>
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    {c.address && (
+                                        <span className="text-[10px] font-bold text-slate-300 max-w-[150px] truncate flex items-center gap-1 group-hover:text-slate-400 transition-colors">
+                                            <Icon name="location_on" size={12} className="text-primary/40" />
+                                            {c.address}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <p className="text-sm text-slate-500 mb-3">{c.description}</p>
-                        {c.images && c.images.length > 0 && (
-                            <div className="flex gap-2 mb-3">{c.images.slice(0, 3).map((img, i) => <img key={i} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />)}{c.images.length > 3 && <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-sm text-slate-500">+{c.images.length - 3}</div>}</div>
-                        )}
-                        <div className="flex items-center gap-4">
-                            <div className="text-yellow-400">{'★'.repeat(c.overall_rating)}{'☆'.repeat(5 - c.overall_rating)}</div>
-                            {c.address && <span className="text-xs text-slate-400 flex items-center gap-1"><Icon name="location_on" size={14} />{c.address}</span>}
-                        </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
             <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>

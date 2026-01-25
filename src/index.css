@@ -131,7 +131,6 @@
   }
 }
 
-/* Base Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -145,7 +144,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
 
   to {
@@ -154,12 +153,30 @@
   }
 }
 
+@keyframes elasticPop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.5s ease-out forwards;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-elastic {
+  animation: elasticPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes float {
@@ -168,7 +185,7 @@
   }
 
   50% {
-    transform: translateY(-20px) rotate(5deg);
+    transform: translateY(-15px) rotate(2deg);
   }
 
   100% {
@@ -177,5 +194,33 @@
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 8s ease-in-out infinite;
+}
+
+/* Premium Component Classes */
+.premium-glass {
+  @apply bg-white/60 backdrop-blur-xl border-b border-white/40 sticky top-0 z-40;
+}
+
+.premium-card {
+  @apply bg-white rounded-[2rem] border border-slate-100/50 shadow-sm transition-all duration-500 hover:shadow-[0_20px_50px_-20px_rgba(0, 0, 0, 0.12)] hover:-translate-y-2 relative overflow-hidden;
+}
+
+.premium-input {
+  @apply w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-[1.25rem] transition-all outline-none font-medium;
+}
+
+.premium-badge {
+  @apply px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest shadow-sm;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
 }

@@ -99,14 +99,17 @@ const AdminSettings = () => {
 
     return (
         <div className="animate-fade-in text-slate-700">
-            <header className="mb-10">
-                <h1 className="text-2xl font-bold text-slate-800 mb-1">小窝设置</h1>
-                <p className="text-sm text-slate-400">管理我们的个人信息和小窝配置</p>
+            {/* 粘性玻璃头部 */}
+            <header className="premium-glass -mx-4 px-4 py-6 mb-10 flex items-center justify-between backdrop-blur-xl">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">小窝设置<span className="text-primary tracking-tighter ml-1">CONFIG</span></h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Personalize your sweet home</p>
+                </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 pb-20">
                 <div className="lg:col-span-2">
-                    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <form onSubmit={handleSubmit} className="premium-card p-10">
                         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
                             <Icon name="favorite" size={20} className="text-primary" />
                             基本信息
@@ -123,7 +126,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.coupleName1}
                                         onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        className="premium-input pl-12"
                                         placeholder="例如：包包"
                                     />
                                 </div>
@@ -139,7 +142,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.coupleName2}
                                         onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        className="premium-input pl-12"
                                         placeholder="例如：恺恺"
                                     />
                                 </div>
@@ -155,7 +158,7 @@ const AdminSettings = () => {
                                         type="date"
                                         value={config.anniversaryDate}
                                         onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        className="premium-input pl-12"
                                     />
                                 </div>
                             </div>
@@ -282,33 +285,33 @@ const AdminSettings = () => {
                     </form>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center">
-                        <div className="text-6xl font-bold text-primary mb-2">{daysCount}</div>
-                        <p className="text-slate-400 text-sm">我们已经相爱的天数</p>
-                        <div className="mt-6 pt-6 border-t border-dashed border-slate-100">
-                            <h2 className="font-display text-2xl mb-2 text-slate-800">{config.coupleName1} 和 {config.coupleName2} 的小窝</h2>
-                            <p className="text-xs text-slate-400">自 {config.anniversaryDate || '---'} 起</p>
+                <div className="space-y-8">
+                    <div className="premium-card p-8 text-center group">
+                        <div className="text-7xl font-black text-gradient mb-2 group-hover:scale-110 transition-transform duration-700">{daysCount}</div>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Our Love Story Index</p>
+                        <div className="mt-8 pt-8 border-t border-dashed border-slate-100">
+                            <h2 className="text-xl font-black text-slate-800 leading-tight mb-2 tracking-tight">{config.coupleName1} & {config.coupleName2}</h2>
+                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Since {config.anniversaryDate || '---'}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
+                    <div className="premium-card p-10 bg-slate-900 text-white border-none shadow-2xl shadow-slate-300">
+                        <h2 className="text-lg font-black mb-6 flex items-center gap-3">
                             <Icon name="auto_fix_high" size={20} className="text-primary" />
-                            小提示
+                            智慧小窝
                         </h2>
-                        <ul className="space-y-3 text-sm text-slate-500">
-                            <li className="flex items-start gap-2">
-                                <Icon name="favorite" size={16} className="text-primary shrink-0 mt-0.5" />
-                                <span>昵称会显示在首页和各个页面的欢迎语中</span>
+                        <ul className="space-y-5">
+                            <li className="flex items-start gap-4">
+                                <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                    <Icon name="favorite" size={12} className="text-primary" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-400 leading-relaxed">昵称将应用于全站，作为独特的数字足迹。</span>
                             </li>
-                            <li className="flex items-start gap-2">
-                                <Icon name="calendar_month" size={16} className="text-primary shrink-0 mt-0.5" />
-                                <span>纪念日用于计算我们在一起的天数</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <Icon name="auto_awesome" size={16} className="text-primary shrink-0 mt-0.5" />
-                                <span>所有设置都会实时同步到全站</span>
+                            <li className="flex items-start gap-4">
+                                <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                    <Icon name="calendar_month" size={12} className="text-primary" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-400 leading-relaxed">您的每一天都会被精心记录并计算。</span>
                             </li>
                         </ul>
                     </div>
