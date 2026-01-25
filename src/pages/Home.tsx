@@ -10,6 +10,8 @@ interface Config {
   anniversaryDate: string;
   homeTitle: string;
   homeSubtitle: string;
+  avatar1: string;
+  avatar2: string;
 }
 
 export default function Home() {
@@ -18,8 +20,13 @@ export default function Home() {
     coupleName2: '恺恺',
     anniversaryDate: '2023-10-08',
     homeTitle: '包包和恺恺的小窝',
-    homeSubtitle: '遇见你，是银河赠予我的糖。'
+    homeSubtitle: '遇见你，是银河赠予我的糖。',
+    avatar1: '',
+    avatar2: ''
   })
+
+  const getDefaultAvatar = (seed: string, bg: string) =>
+    `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
 
   const timeTogether = useLoveTimer(config.anniversaryDate)
 
@@ -37,7 +44,9 @@ export default function Home() {
           coupleName2: data.coupleName2 || '恺恺',
           anniversaryDate: data.anniversaryDate || '2023-10-08',
           homeTitle: data.homeTitle || '包包和恺恺的小窝',
-          homeSubtitle: data.homeSubtitle || '遇见你，是银河赠予我的糖。'
+          homeSubtitle: data.homeSubtitle || '遇见你，是银河赠予我的糖。',
+          avatar1: data.avatar1 || '',
+          avatar2: data.avatar2 || ''
         })
       }
     } catch (error) {
@@ -51,7 +60,7 @@ export default function Home() {
         <div className="flex justify-center items-center space-x-12 mb-8 relative">
           <div className="avatar-ring">
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-stone-100 flex items-center justify-center">
-              <img alt="Bao Avatar" className="w-full h-full object-cover opacity-90" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Bao&backgroundColor=C9ADA7&backgroundType=solid" />
+              <img alt="Bao Avatar" className="w-full h-full object-cover opacity-90" src={config.avatar1 || getDefaultAvatar('Bao', 'C9ADA7')} />
             </div>
           </div>
 
@@ -64,7 +73,7 @@ export default function Home() {
 
           <div className="avatar-ring">
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-slate-100 flex items-center justify-center">
-              <img alt="Kai Avatar" className="w-full h-full object-cover opacity-90" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Kai&backgroundColor=9A9EAB&backgroundType=solid" />
+              <img alt="Kai Avatar" className="w-full h-full object-cover opacity-90" src={config.avatar2 || getDefaultAvatar('Kai', '9A9EAB')} />
             </div>
           </div>
         </div>
