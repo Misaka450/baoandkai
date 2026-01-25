@@ -161,6 +161,10 @@ export default function ImageModal({
       {/* 主展示区 */}
       <div
         className="relative w-full flex-1 flex items-center justify-center overflow-hidden"
+        onClick={(e) => {
+          // 点击这个容器（背景区域）会关闭
+          if (e.target === e.currentTarget && !hasDragged) onClose()
+        }}
         onMouseMove={(e) => {
           if (isDragging) {
             const newX = e.clientX - dragStart.x
@@ -196,6 +200,7 @@ export default function ImageModal({
         {/* 图片主体 */}
         <div
           className="relative flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()} // 阻止冒泡到背景容器
           style={{ transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {!isLoaded && (
@@ -208,7 +213,17 @@ export default function ImageModal({
             src={currentImage}
             alt="Viewer"
             onLoad={() => setIsLoaded(true)}
-            onDoubleClick={handleDoubleClick}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!hasDragged) {
+                if (scale === 1) setScale(2.5)
+                else resetTransform()
+              }
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation()
+              resetTransform()
+            }}
             onMouseDown={(e) => {
               if (scale > 1) {
                 setIsDragging(true)
