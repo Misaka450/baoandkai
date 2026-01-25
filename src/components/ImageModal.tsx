@@ -36,6 +36,7 @@ export default function ImageModal({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [isLoaded, setIsLoaded] = useState(false)
+  const [hasDragged, setHasDragged] = useState(false)  // 跟踪是否发生了拖拽
 
   // 触摸手势相关
   const touchStart = useRef({ x: 0, y: 0 })
@@ -58,15 +59,12 @@ export default function ImageModal({
     resetTransform()
   }, [currentIndex, currentImage, resetTransform])
 
-  // 预加载逻辑
+  // 预加载逻辑 - 只预加载下一张
   useEffect(() => {
     if (!images || images.length <= 1) return
 
     const nextIndex = (currentIndex + 1) % images.length
-    const prevIndex = (currentIndex - 1 + images.length) % images.length
-
     if (images[nextIndex]) preloadImage(images[nextIndex]).catch(() => { })
-    if (images[prevIndex]) preloadImage(images[prevIndex]).catch(() => { })
   }, [currentIndex, images])
 
   // 滚动当前选中的缩略图到中心
@@ -160,7 +158,13 @@ export default function ImageModal({
     <div
       ref={containerRef}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300"
-      onClick={onClose}
+      onClick={() => {
+        // 只有在没有拖拽的情况下才关闭模态框
+        if (!hasDragged) {
+          onClose()
+        }
+        setHasDragged(false)
+      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -198,10 +202,20 @@ export default function ImageModal({
         className="relative w-full flex-1 flex items-center justify-center overflow-hidden"
         onMouseMove={(e) => {
           if (isDragging) {
-            setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+            const newX = e.clientX - dragStart.x
+            const newY = e.clientY - dragStart.y
+            // 只有移动超过一定距离才算拖拽（区分点击和拖拽）
+            if (Math.abs(newX - position.x) > 3 || Math.abs(newY - position.y) > 3) {
+              setHasDragged(true)
+            }
+            setPosition({ x: newX, y: newY })
           }
         }}
-        onMouseUp={() => setIsDragging(false)}
+        onMouseUp={() => {
+          setIsDragging(false)
+          // 延迟重置 hasDragged，让 onClick 有机会检查
+          setTimeout(() => setHasDragged(false), 100)
+        }}
       >
         {/* 导航按钮 - PC 端 */}
         {images.length > 1 && (
@@ -282,6 +296,8 @@ export default function ImageModal({
                 <img
                   src={getThumbnailUrl(img, 150)}
                   alt={`thumb-${idx}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               </div>
