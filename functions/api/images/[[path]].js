@@ -2,7 +2,14 @@ export async function onRequestGet(context) {
     const { params, env } = context;
     // [[path]].js 在 Pages Functions 中返回的是数组
     const pathArray = params.path || [];
-    const key = pathArray.join('/');
+    let key = pathArray.join('/');
+
+    // 关键修复：解码 URL，确保支持中文文件夹名（如“相册/两周年纪念日/文件.jpg”）
+    try {
+        key = decodeURIComponent(key);
+    } catch (e) {
+        console.error('解码 Key 失败:', key, e);
+    }
 
     if (!env.IMAGES) {
         return new Response('Image storage not configured', { status: 500 });
