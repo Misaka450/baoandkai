@@ -73,7 +73,7 @@ const AdminTimeline = () => {
                 formDataUpload.append('folder', 'timeline')
 
                 const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
-                    '/uploads',
+                    '/upload',
                     formDataUpload,
                     (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
                 )

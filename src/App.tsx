@@ -2,7 +2,7 @@ import { Routes, Route, Outlet } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
-import ErrorBoundary from './components/ErrorBoundary'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // 懒加载页面组件 - 优化首屏加载性能
@@ -14,14 +14,13 @@ const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 
+import LoadingSpinner from './components/common/LoadingSpinner'
+
 // 加载占位组件
 function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-        <p className="text-stone-600">加载中...</p>
-      </div>
+      <LoadingSpinner size="lg" text="小窝正在开启..." />
     </div>
   )
 }
