@@ -347,23 +347,25 @@ const AdminSettings = () => {
                         </div>
                     </div>
 
-                    <div className="premium-card p-10 bg-slate-900 text-white border-none shadow-2xl shadow-slate-300">
-                        <h2 className="text-lg font-black mb-6 flex items-center gap-3">
-                            <Icon name="auto_fix_high" size={20} className="text-primary" />
+                    <div className="premium-card p-10 bg-white border-slate-100 shadow-xl shadow-slate-200/60 group">
+                        <h2 className="text-lg font-black mb-6 flex items-center gap-3 text-slate-800">
+                            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+                                <Icon name="auto_fix_high" size={20} />
+                            </div>
                             智慧小窝
                         </h2>
-                        <ul className="space-y-5">
+                        <ul className="space-y-6">
                             <li className="flex items-start gap-4">
-                                <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <div className="w-6 h-6 rounded-lg bg-pink-50 flex items-center justify-center shrink-0 mt-1">
                                     <Icon name="favorite" size={12} className="text-primary" />
                                 </div>
-                                <span className="text-sm font-medium text-slate-400 leading-relaxed">昵称将应用于全站，作为独特的数字足迹。</span>
+                                <span className="text-sm font-bold text-slate-500 leading-relaxed">昵称将应用于全站，作为你们独特的数字足迹。</span>
                             </li>
                             <li className="flex items-start gap-4">
-                                <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                                    <Icon name="calendar_month" size={12} className="text-primary" />
+                                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 mt-1">
+                                    <Icon name="calendar_month" size={12} className="text-blue-400" />
                                 </div>
-                                <span className="text-sm font-medium text-slate-400 leading-relaxed">您的每一天都会被精心记录并计算。</span>
+                                <span className="text-sm font-bold text-slate-500 leading-relaxed">相爱的每一天都会被精心记录并呈现在首页。</span>
                             </li>
                         </ul>
                     </div>
