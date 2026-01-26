@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
+import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 
@@ -147,61 +148,91 @@ const AdminFoodCheckin = () => {
                     新增打卡
                 </button>
             </header>
-            {showForm && (
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
-                    <h2 className="text-lg font-bold mb-6 text-slate-800">{editingId ? '编辑打卡' : '新增打卡'}</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" placeholder="餐厅名称" value={formData.restaurant_name} onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
-                            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
-                        </div>
-                        <input type="text" placeholder="地址" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <select value={formData.cuisine} onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{cuisines.map(c => <option key={c} value={c}>{c}</option>)}</select>
-                            <select value={formData.price_range} onChange={(e) => setFormData({ ...formData, price_range: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{priceRanges.map(p => <option key={p} value={p}>{p}</option>)}</select>
-                            <div className="flex items-center gap-2"><span className="text-sm text-slate-500">评分：</span>{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" onClick={() => setFormData({ ...formData, overall_rating: n })} className={`text-xl ${n <= formData.overall_rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</button>)}</div>
-                        </div>
-                        <textarea placeholder="用餐体验" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
-                        <input type="text" placeholder="推荐菜品（用中文逗号分隔）" value={formData.recommended_dishes} onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
+            <Modal
+                isOpen={showForm}
+                onClose={resetForm}
+                title={editingId ? '编辑美食打卡' : '新增美食打卡'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-600">美食照片</label>
-                            <div className="flex flex-wrap gap-3">
-                                {formData.images.map((img, i) => (
-                                    <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden group">
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
-                                        <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
-                                    </div>
-                                ))}
-                                <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                    {uploading ? (
-                                        <div className="flex flex-col items-center">
-                                            <div className="relative w-12 h-12 mb-1">
-                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
-                                                    {uploadProgress?.percent || 0}%
-                                                </div>
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">餐厅名称</label>
+                            <input type="text" placeholder="输入餐厅名称..." value={formData.restaurant_name} onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all" required />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">打卡日期</label>
+                            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all" required />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">餐厅地址</label>
+                        <input type="text" placeholder="输入详细地址..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all" />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">菜系分类</label>
+                            <select value={formData.cuisine} onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all">{cuisines.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">价格区间</label>
+                            <select value={formData.price_range} onChange={(e) => setFormData({ ...formData, price_range: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all">{priceRanges.map(p => <option key={p} value={p}>{p}</option>)}</select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">推荐指数</label>
+                            <div className="flex items-center h-[56px] gap-2">{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" onClick={() => setFormData({ ...formData, overall_rating: n })} className={`text-2xl transition-all hover:scale-125 ${n <= formData.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]' : 'text-slate-200'}`}>★</button>)}</div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">用餐心得</label>
+                        <textarea placeholder="分享你的美食体验..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium min-h-[120px] transition-all" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">推荐菜品</label>
+                        <input type="text" placeholder="例如：招牌红烧肉，清蒸鲈鱼（用中文逗号分隔）" value={formData.recommended_dishes} onChange={(e) => setFormData({ ...formData, recommended_dishes: e.target.value })} className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-slate-800 font-medium transition-all" />
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">美食照片</label>
+                        <div className="flex flex-wrap gap-4">
+                            {formData.images.map((img, i) => (
+                                <div key={i} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md">
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
+                                </div>
+                            ))}
+                            <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
+                                {uploading ? (
+                                    <div className="flex flex-col items-center">
+                                        <div className="relative w-12 h-12 mb-1">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
+                                                {uploadProgress?.percent || 0}%
                                             </div>
-                                            {uploadProgress && (
-                                                <span className="text-[10px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
-                                            )}
                                         </div>
-                                    ) : (
-                                        <>
-                                            <Icon name="add_photo_alternate" size={24} className="text-slate-400" />
-                                            <span className="text-xs text-slate-400 mt-1">上传</span>
-                                        </>
-                                    )}
-                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                                </label>
-                            </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                                            <Icon name="add_photo_alternate" size={24} />
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-400 mt-2">上传照片</span>
+                                    </>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                            </label>
                         </div>
-                        <div className="flex gap-3">
-                            <button type="submit" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">{editingId ? '更新' : '创建'}</button>
-                            <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
-                        </div>
-                    </form>
-                </div>
-            )}
+                    </div>
+
+                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-white py-4 border-t border-slate-50">
+                        <button type="submit" className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-[0.98] transition-all">{editingId ? '保存修改' : '立即发布'}</button>
+                        <button type="button" onClick={resetForm} className="px-10 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                    </div>
+                </form>
+            </Modal>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
                 {checkins.length === 0 ? (
                     <div className="col-span-full text-center py-24 glass-card rounded-[3rem]">

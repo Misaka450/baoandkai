@@ -209,7 +209,7 @@ const AdminTimeline = () => {
                                     placeholder="当时在哪儿？"
                                     value={formData.location}
                                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                    className="premium-input pl-12"
+                                    className="premium-input pl-14"
                                 />
                             </div>
                             <select
