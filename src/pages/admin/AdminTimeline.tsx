@@ -357,16 +357,16 @@ const AdminTimeline = () => {
                                     </div>
 
                                     {/* 右侧：悬浮出现的控制按钮 */}
-                                    <div className="flex flex-row lg:flex-col gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                    <div className="flex flex-row lg:flex-col gap-3 opacity-70 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
                                         <button
                                             onClick={() => editingId === event.id ? resetForm() : handleEdit(event)}
-                                            className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center font-black"
+                                            className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center font-black"
                                         >
                                             <Icon name={editingId === event.id ? "expand_less" : "edit"} size={20} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(event.id)}
-                                            className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
+                                            className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
                                         >
                                             <Icon name="delete" size={20} />
                                         </button>

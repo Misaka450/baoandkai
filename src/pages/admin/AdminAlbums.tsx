@@ -374,7 +374,7 @@ const AdminAlbums = () => {
                                 </div>
                             </div>
                             <div className="p-6 relative">
-                                <div className="absolute top-0 right-6 translate-y-[-50%] flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <div className="absolute top-0 right-6 translate-y-[-50%] flex gap-2 opacity-70 group-hover:opacity-100 transition-all duration-300">
                                     <button
                                         onClick={e => { e.stopPropagation(); handleEdit(album); }}
                                         className="w-10 h-10 bg-white shadow-lg text-slate-400 hover:text-primary rounded-xl flex items-center justify-center transition-all hover:scale-110"
