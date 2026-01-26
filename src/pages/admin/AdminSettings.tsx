@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
+import { useConfig } from '../../hooks/useConfig'
+import { SiteConfig } from '../../types'
 
 // 预设卡通头像列表
 const presetAvatars = [
@@ -16,32 +18,19 @@ const presetAvatars = [
     { seed: 'Sunny', bg: 'FFE0B2' },
 ]
 
-interface SiteConfig {
-    coupleName1: string
-    coupleName2: string
-    anniversaryDate: string
-    homeTitle?: string
-    homeSubtitle?: string
-    avatar1?: string
-    avatar2?: string
-    customAvatar1?: string
-    customAvatar2?: string
-}
-
 const AdminSettings = () => {
-    const [config, setConfig] = useState<SiteConfig>({
-        coupleName1: '',
-        coupleName2: '',
-        anniversaryDate: '',
-        customAvatar1: '',
-        customAvatar2: ''
-    })
+    const { config: globalConfig, updateConfig } = useConfig()
+    const [config, setConfig] = useState<SiteConfig>(globalConfig)
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState<'avatar1' | 'avatar2' | null>(null)
     const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef1 = useRef<HTMLInputElement>(null)
     const fileInputRef2 = useRef<HTMLInputElement>(null)
     const { modalState, showAlert, closeModal } = useAdminModal()
+
+    useEffect(() => {
+        setConfig(globalConfig)
+    }, [globalConfig])
 
     const getAvatarUrl = (seed: string, bg: string) =>
         `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
@@ -80,7 +69,6 @@ const AdminSettings = () => {
         if (!url || !url.includes('/api/images/')) return
 
         try {
-            // 提取文件名：/api/images/avatars/xxx.png -> avatars/xxx.png
             const filename = url.split('/api/images/')[1]
             if (filename) {
                 await apiService.request('/delete', {
@@ -96,22 +84,7 @@ const AdminSettings = () => {
             }))
         } catch (error) {
             console.error('删除头像物理文件失败:', error)
-            // 即使删除物理文件失败，也清除本地设置，让用户可以重新操作
             setConfig(prev => ({ ...prev, [field]: '' }))
-        }
-    }
-
-    useEffect(() => {
-        loadConfig()
-    }, [])
-
-    const loadConfig = async () => {
-        try {
-            const { data, error } = await apiService.get<SiteConfig>('/config')
-            if (error) throw new Error(error)
-            if (data) setConfig(data)
-        } catch (error) {
-            console.error('加载配置失败:', error)
         }
     }
 
@@ -120,8 +93,8 @@ const AdminSettings = () => {
         setSaving(true)
 
         try {
-            const { error } = await apiService.put('/config', config)
-            if (error) throw new Error(error)
+            const result = await updateConfig(config)
+            if (!result.success) throw new Error(result.error)
             await showAlert('成功', '设置已保存，我们的小窝又更新啦！', 'success')
         } catch (error) {
             await showAlert('错误', '保存设置时遇到了一点小问题', 'error')

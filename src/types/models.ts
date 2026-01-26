@@ -74,3 +74,15 @@ export interface FoodCheckin {
     recommended_dishes?: string;
     images: string[];
 }
+
+export interface SiteConfig {
+    coupleName1: string;
+    coupleName2: string;
+    anniversaryDate: string;
+    homeTitle: string;
+    homeSubtitle: string;
+    avatar1: string;
+    avatar2: string;
+    customAvatar1?: string;
+    customAvatar2?: string;
+}
