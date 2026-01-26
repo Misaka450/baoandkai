@@ -55,7 +55,7 @@ const AdminSettings = () => {
             fd.append('file', file)
             fd.append('folder', 'avatars')
             const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
-                '/uploads',
+                '/upload',
                 fd,
                 (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
             )
