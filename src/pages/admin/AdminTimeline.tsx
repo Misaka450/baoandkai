@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
+import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 
@@ -129,7 +130,7 @@ const AdminTimeline = () => {
             category: event.category,
             images: event.images || []
         })
-        setShowForm(false) // 编辑时关闭顶部的新增表单
+        setShowForm(true) // 弹出 Modal
     }
 
     const handleDelete = async (id: number) => {
@@ -177,31 +178,40 @@ const AdminTimeline = () => {
                 </button>
             </header>
 
-            {/* 新增表单 - 只在新增模式显示 */}
-            {showForm && !editingId && (
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 mb-12 animate-slide-up">
-                    <h2 className="text-xl font-black mb-8 text-slate-800">
-                        新建美好回忆
-                    </h2>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 统一的 Modal 弹窗表单 */}
+            <Modal
+                isOpen={showForm}
+                onClose={resetForm}
+                title={editingId ? '编辑美好回忆' : '记录新时刻'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">事件标题</label>
                             <input
                                 type="text"
                                 placeholder="给这一刻起个名字..."
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="premium-input"
+                                className="premium-input w-full"
                                 required
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">日期</label>
                             <input
                                 type="date"
                                 value={formData.date}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="premium-input"
+                                className="premium-input w-full"
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">地点</label>
                             <div className="relative">
                                 <Icon name="location_on" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                 <input
@@ -209,92 +219,97 @@ const AdminTimeline = () => {
                                     placeholder="当时在哪儿？"
                                     value={formData.location}
                                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                    className="premium-input pl-14"
+                                    className="premium-input pl-14 w-full"
                                 />
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">分类</label>
                             <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                className="premium-input appearance-none bg-slate-50 cursor-pointer"
+                                className="premium-input appearance-none bg-slate-50 cursor-pointer w-full"
                             >
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">回忆细节</label>
                         <textarea
                             placeholder="写下当下的心情与细节..."
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="premium-input min-h-[140px] resize-none"
+                            className="premium-input min-h-[140px] resize-none w-full"
                         />
+                    </div>
 
-                        {/* 图片上传区域 */}
-                        <div className="space-y-3">
-                            <label className="text-sm font-medium text-slate-600">添加图片</label>
-                            <div className="flex flex-wrap gap-3">
-                                {formData.images.map((img, index) => (
-                                    <div key={index} className="relative w-24 h-24 rounded-xl overflow-hidden group">
-                                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(index)}
-                                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                        >
-                                            <Icon name="delete" size={24} className="text-white" />
-                                        </button>
-                                    </div>
-                                ))}
-                                <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                    {uploading ? (
-                                        <div className="flex flex-col items-center">
-                                            <div className="relative w-12 h-12 mb-1">
-                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
-                                                    {uploadProgress?.percent || 0}%
-                                                </div>
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">珍贵照片</label>
+                        <div className="flex flex-wrap gap-4">
+                            {formData.images.map((img, index) => (
+                                <div key={index} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
+                                    <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index)}
+                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                    >
+                                        <Icon name="delete" size={24} className="text-white" />
+                                    </button>
+                                </div>
+                            ))}
+                            <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
+                                {uploading ? (
+                                    <div className="flex flex-col items-center">
+                                        <div className="relative w-12 h-12 mb-1">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
+                                                {uploadProgress?.percent || 0}%
                                             </div>
-                                            {uploadProgress && (
-                                                <span className="text-[10px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
-                                            )}
                                         </div>
-                                    ) : (
-                                        <>
-                                            <Icon name="add_photo_alternate" size={24} className="text-slate-400" />
-                                            <span className="text-xs text-slate-400 mt-1">上传</span>
-                                        </>
-                                    )}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={handleImageUpload}
-                                        className="hidden"
-                                        disabled={uploading}
-                                    />
-                                </label>
-                            </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                                            <Icon name="add_photo_alternate" size={24} />
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-400 mt-2">上传照片</span>
+                                    </>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                            </label>
                         </div>
+                    </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                type="submit"
-                                className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all"
-                            >
-                                {editingId ? '更新' : '创建'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={resetForm}
-                                className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
-                            >
-                                取消
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
+                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-white py-4 border-t border-slate-50">
+                        <button
+                            type="submit"
+                            className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        >
+                            {editingId ? '保存更改' : '记录此刻'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={resetForm}
+                            className="px-10 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                        >
+                            取消
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             <div className="space-y-8 pb-20">
                 {events.length === 0 ? (
@@ -358,57 +373,6 @@ const AdminTimeline = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* 内联编辑表单 */}
-                            {editingId === event.id && (
-                                <div className="bg-slate-50 p-6 rounded-b-2xl border border-t-0 border-slate-200 -mt-2">
-                                    <form onSubmit={handleSubmit} className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" placeholder="事件标题" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" required />
-                                            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" required />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" placeholder="地点（可选）" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700" />
-                                            <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                                                {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
-                                            </select>
-                                        </div>
-                                        <textarea placeholder="事件描述" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-white border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 min-h-[80px]" />
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-600">图片</label>
-                                            <div className="flex flex-wrap gap-3">
-                                                {formData.images.map((img, index) => (
-                                                    <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden group">
-                                                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
-                                                        <button type="button" onClick={() => removeImage(index)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
-                                                    </div>
-                                                ))}
-                                                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                                    {uploading ? (
-                                                        <div className="flex flex-col items-center">
-                                                            <div className="relative w-10 h-10 mb-1">
-                                                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                                                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
-                                                                    {uploadProgress?.percent || 0}%
-                                                                </div>
-                                                            </div>
-                                                            {uploadProgress && (
-                                                                <span className="text-[9px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>
-                                                    )}
-                                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <button type="submit" className="px-5 py-2 bg-primary text-white rounded-xl font-bold hover:scale-105 active:scale-95 transition-all text-sm">保存修改</button>
-                                            <button type="button" onClick={resetForm} className="px-5 py-2 bg-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-300 transition-all text-sm">取消</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            )}
                         </div>
                     ))
                 )}

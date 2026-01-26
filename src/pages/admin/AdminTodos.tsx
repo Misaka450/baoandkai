@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
+import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 
@@ -189,106 +190,124 @@ const AdminTodos = () => {
                 </button>
             </header>
 
-            {showForm && (
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
-                    <h2 className="text-lg font-bold mb-6 text-slate-800">{editingId ? '编辑心愿' : '新增心愿'}</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <input type="text" placeholder="想做什么？" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" required />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{priorities.map(p => <option key={p.value} value={p.value}>{p.label}优先级</option>)}</select>
-                            <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
-                            <input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm" />
-                        </div>
-                        <textarea placeholder="详细描述（可选）" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
+            {/* 统一的 Modal 弹窗表单 */}
+            <Modal
+                isOpen={showForm}
+                onClose={resetForm}
+                title={editingId ? '修改心愿' : '添加新心愿'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">心愿标题</label>
+                        <input type="text" placeholder="想做什么？" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="premium-input w-full" required />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-600">相关图片</label>
-                            <div className="flex flex-wrap gap-3">
-                                {formData.images.map((img, i) => (
-                                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">优先级</label>
+                            <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })} className="premium-input w-full appearance-none bg-slate-50 cursor-pointer">{priorities.map(p => <option key={p.value} value={p.value}>{p.label}优先级</option>)}</select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">分类</label>
+                            <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="premium-input w-full appearance-none bg-slate-50 cursor-pointer">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">截至日期</label>
+                            <input type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} className="premium-input w-full" />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">详细描述</label>
+                        <textarea placeholder="详细描述（可选）" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="premium-input w-full min-h-[100px] resize-none" />
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">相关图片</label>
+                        <div className="flex flex-wrap gap-4">
+                            {formData.images.map((img, i) => (
+                                <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
+                                </div>
+                            ))}
+                            <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
+                                {uploading ? (
+                                    <div className="flex flex-col items-center">
+                                        <div className="relative w-10 h-10 mb-1">
+                                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Icon name="add_photo_alternate" size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
+                                        <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">上传</span>
+                                    </>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e)} className="hidden" disabled={uploading} />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-white py-4 border-t border-slate-50">
+                        <button type="submit" className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-[0.98] transition-all">{editingId ? '保存更改' : '立即添加'}</button>
+                        <button type="button" onClick={resetForm} className="px-10 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* 完成心愿弹窗 - 重构为 Modal */}
+            <Modal
+                isOpen={!!completingTodo}
+                onClose={() => { setCompletingTodo(null); setCompletionPhotos([]); setCompletionNotes('') }}
+                title="🎉 完成心愿"
+            >
+                <div className="space-y-6">
+                    <p className="text-slate-500 -mt-2">恭喜！记录下这个美好时刻吧~</p>
+
+                    <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10">
+                        <h3 className="font-black text-slate-800 text-lg mb-1">{completingTodo?.title}</h3>
+                        <p className="text-sm text-slate-500 font-medium">{completingTodo?.description}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">完成照片</label>
+                            <div className="flex flex-wrap gap-4">
+                                {completionPhotos.map((img, i) => (
+                                    <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
                                         <img src={img} alt="" className="w-full h-full object-cover" />
-                                        <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
+                                        <button type="button" onClick={() => removeImage(i, true)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
                                     </div>
                                 ))}
-                                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
                                     {uploading ? (
                                         <div className="flex flex-col items-center">
-                                            <div className="relative w-10 h-10 mb-1">
-                                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
-                                                    {uploadProgress?.percent || 0}%
-                                                </div>
-                                            </div>
-                                            {uploadProgress && (
-                                                <span className="text-[9px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
-                                            )}
+                                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                                         </div>
                                     ) : (
-                                        <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>
+                                        <>
+                                            <Icon name="add_photo_alternate" size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
+                                            <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">上传</span>
+                                        </>
                                     )}
-                                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e)} className="hidden" disabled={uploading} />
+                                    <input ref={completionFileRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e, true)} className="hidden" disabled={uploading} />
                                 </label>
                             </div>
                         </div>
-                        <div className="flex gap-3">
-                            <button type="submit" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">{editingId ? '更新' : '创建'}</button>
-                            <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
-            {/* 完成心愿弹窗 */}
-            {completingTodo && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-slate-800 mb-2">🎉 完成心愿</h2>
-                        <p className="text-slate-500 mb-6">恭喜！记录下这个美好时刻吧~</p>
-                        <div className="mb-4 p-4 bg-primary/5 rounded-2xl">
-                            <h3 className="font-bold text-slate-800">{completingTodo.title}</h3>
-                            <p className="text-sm text-slate-500">{completingTodo.description}</p>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-600">完成照片</label>
-                                <div className="flex flex-wrap gap-3">
-                                    {completionPhotos.map((img, i) => (
-                                        <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
-                                            <img src={img} alt="" className="w-full h-full object-cover" />
-                                            <button type="button" onClick={() => removeImage(i, true)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={20} className="text-white" /></button>
-                                        </div>
-                                    ))}
-                                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
-                                        {uploading ? (
-                                            <div className="flex flex-col items-center">
-                                                <div className="relative w-10 h-10 mb-1">
-                                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                                    <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-primary">
-                                                        {uploadProgress?.percent || 0}%
-                                                    </div>
-                                                </div>
-                                                {uploadProgress && (
-                                                    <span className="text-[9px] text-slate-400 font-mono leading-none">{uploadProgress.speed} KB/s</span>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <><Icon name="add_photo_alternate" size={20} className="text-slate-400" /><span className="text-xs text-slate-400">上传</span></>
-                                        )}
-                                        <input ref={completionFileRef} type="file" accept="image/*" multiple onChange={(e) => handleImageUpload(e, true)} className="hidden" disabled={uploading} />
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-600">完成感言</label>
-                                <textarea value={completionNotes} onChange={(e) => setCompletionNotes(e.target.value)} placeholder="记录一下这次经历的感受..." className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm min-h-[80px]" />
-                            </div>
-                        </div>
-                        <div className="flex gap-3 mt-6">
-                            <button onClick={handleComplete} className="flex-1 py-3 bg-primary text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all">完成心愿</button>
-                            <button onClick={() => { setCompletingTodo(null); setCompletionPhotos([]); setCompletionNotes('') }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">取消</button>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">完成感言</label>
+                            <textarea value={completionNotes} onChange={(e) => setCompletionNotes(e.target.value)} placeholder="记录一下这次经历的感受..." className="premium-input w-full min-h-[120px] resize-none" />
                         </div>
                     </div>
+
+                    <div className="flex gap-4 pt-4 border-t border-slate-50">
+                        <button onClick={handleComplete} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">任务达成！</button>
+                        <button onClick={() => { setCompletingTodo(null); setCompletionPhotos([]); setCompletionNotes('') }} className="px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">再等等</button>
+                    </div>
                 </div>
-            )}
+            </Modal>
 
             <div className="space-y-6 pb-20">
                 {todos.length === 0 ? (
@@ -305,8 +324,8 @@ const AdminTodos = () => {
                                     <button
                                         onClick={() => toggleStatus(t)}
                                         className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 shadow-sm ${t.status === 'completed'
-                                                ? 'bg-primary border-primary text-white scale-110 shadow-primary/30'
-                                                : 'border-slate-200 bg-white hover:border-primary hover:scale-110 active:scale-90'
+                                            ? 'bg-primary border-primary text-white scale-110 shadow-primary/30'
+                                            : 'border-slate-200 bg-white hover:border-primary hover:scale-110 active:scale-90'
                                             }`}
                                     >
                                         {t.status === 'completed' ? <Icon name="check" size={18} /> : <div className="w-2 h-2 rounded-full bg-slate-100 group-hover:bg-primary/20 transition-colors"></div>}
