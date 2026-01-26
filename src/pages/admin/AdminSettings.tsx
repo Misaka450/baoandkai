@@ -163,7 +163,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.coupleName1}
                                         onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
-                                        className="premium-input pl-12"
+                                        className="premium-input pl-14"
                                         placeholder="例如：包包"
                                     />
                                 </div>
@@ -179,7 +179,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.coupleName2}
                                         onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
-                                        className="premium-input pl-12"
+                                        className="premium-input pl-14"
                                         placeholder="例如：恺恺"
                                     />
                                 </div>
@@ -195,7 +195,7 @@ const AdminSettings = () => {
                                         type="date"
                                         value={config.anniversaryDate}
                                         onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
-                                        className="premium-input pl-12"
+                                        className="premium-input pl-14"
                                     />
                                 </div>
                             </div>
@@ -210,7 +210,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.homeTitle || ''}
                                         onChange={(e) => setConfig({ ...config, homeTitle: e.target.value })}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        className="premium-input pl-14"
                                         placeholder="例如：包包和恺恺的小窝"
                                     />
                                 </div>
@@ -226,7 +226,7 @@ const AdminSettings = () => {
                                         type="text"
                                         value={config.homeSubtitle || ''}
                                         onChange={(e) => setConfig({ ...config, homeSubtitle: e.target.value })}
-                                        className="w-full pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700"
+                                        className="premium-input pl-14"
                                         placeholder="例如：遇见你，是银河赠予我的糖。"
                                     />
                                 </div>
