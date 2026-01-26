@@ -1,58 +1,14 @@
-import { useState, useEffect } from 'react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
+import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
-import { apiService } from '../services/apiService'
 import Icon from '../components/icons/Icons'
 
-interface Config {
-  coupleName1: string;
-  coupleName2: string;
-  anniversaryDate: string;
-  homeTitle: string;
-  homeSubtitle: string;
-  avatar1: string;
-  avatar2: string;
-}
-
 export default function Home() {
-  const [config, setConfig] = useState<Config>({
-    coupleName1: '包包',
-    coupleName2: '恺恺',
-    anniversaryDate: '2023-10-08',
-    homeTitle: '包包和恺恺的小窝',
-    homeSubtitle: '遇见你，是银河赠予我的糖。',
-    avatar1: '',
-    avatar2: ''
-  })
+  const { config } = useConfig()
+  const timeTogether = useLoveTimer(config.anniversaryDate)
 
   const getDefaultAvatar = (seed: string, bg: string) =>
     `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
-
-  const timeTogether = useLoveTimer(config.anniversaryDate)
-
-  useEffect(() => {
-    fetchConfig()
-  }, [])
-
-  const fetchConfig = async () => {
-    try {
-      const result = await apiService.get<Config>('/config')
-      const data = result.data
-      if (data) {
-        setConfig({
-          coupleName1: data.coupleName1 || '包包',
-          coupleName2: data.coupleName2 || '恺恺',
-          anniversaryDate: data.anniversaryDate || '2023-10-08',
-          homeTitle: data.homeTitle || '包包和恺恺的小窝',
-          homeSubtitle: data.homeSubtitle || '遇见你，是银河赠予我的糖。',
-          avatar1: data.avatar1 || '',
-          avatar2: data.avatar2 || ''
-        })
-      }
-    } catch (error) {
-      console.error('获取配置失败:', error)
-    }
-  }
 
   return (
     <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative">
