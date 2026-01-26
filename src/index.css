@@ -118,6 +118,28 @@
     background-image: radial-gradient(circle, #C9ADA7 2px, transparent 2px);
     background-size: 100% 12px;
   }
+
+  /* Premium Component Classes */
+  .premium-glass {
+    @apply bg-white/60 backdrop-blur-xl border-b border-white/40 sticky top-0 z-40;
+  }
+
+  .premium-card {
+    @apply bg-white rounded-[2rem] border border-slate-100/50 shadow-sm transition-all duration-500 relative overflow-hidden;
+  }
+
+  .premium-card:hover {
+    transform: translateY(-0.5rem);
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.12);
+  }
+
+  .premium-input {
+    @apply w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-[1.25rem] transition-all outline-none font-medium;
+  }
+
+  .premium-badge {
+    @apply px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest shadow-sm;
+  }
 }
 
 @layer utilities {
@@ -197,28 +219,6 @@
   animation: float 8s ease-in-out infinite;
 }
 
-/* Premium Component Classes */
-.premium-glass {
-  @apply bg-white/60 backdrop-blur-xl border-b border-white/40 sticky top-0 z-40;
-}
-
-.premium-card {
-  @apply bg-white rounded-[2rem] border border-slate-100/50 shadow-sm transition-all duration-500 relative overflow-hidden;
-}
-
-.premium-card:hover {
-  transform: translateY(-0.5rem);
-  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.12);
-}
-
-
-.premium-input {
-  @apply w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-[1.25rem] transition-all outline-none font-medium;
-}
-
-.premium-badge {
-  @apply px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest shadow-sm;
-}
 
 .glass-effect {
   background: rgba(255, 255, 255, 0.7);
