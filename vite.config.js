@@ -17,11 +17,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false, // 生产环境关闭sourcemap减小体积
-    minify: 'terser', // 使用Terser压缩
+    minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // 移除console.log
-        drop_debugger: true, // 移除debugger
+        drop_console: true,
+        drop_debugger: true,
       },
     },
     rollupOptions: {

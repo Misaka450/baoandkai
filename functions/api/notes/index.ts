@@ -1,7 +1,20 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 
+export interface Env {
+  DB: D1Database;
+}
+
+interface Note {
+  id: number;
+  content: string;
+  color?: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // Cloudflare Pages Functions - 碎碎念API
-export async function onRequestGet(context) {
+export async function onRequestGet(context: { env: Env; request: Request }) {
   const { env, request } = context;
 
   try {
@@ -14,7 +27,7 @@ export async function onRequestGet(context) {
     // 获取总数
     const countResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM notes
-    `).first();
+    `).first<{ total: number }>();
     const total = countResult?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
@@ -23,7 +36,7 @@ export async function onRequestGet(context) {
       SELECT * FROM notes 
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all();
+    `).bind(limit, offset).all<Note>();
 
     return jsonResponse({
       data: notes.results || [],
@@ -34,17 +47,17 @@ export async function onRequestGet(context) {
         totalPages
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return errorResponse(error.message, 500);
   }
 }
 
-export async function onRequestPost(context) {
+export async function onRequestPost(context: { request: Request; env: Env; data: any }) {
   const { request, env, data } = context;
-  const user = data.user; // Injected by middleware
+  const user = data?.user; // Injected by middleware
 
   try {
-    let body;
+    let body: any;
     try {
       body = await request.json();
     } catch (e) {
@@ -63,15 +76,15 @@ export async function onRequestPost(context) {
     `).bind(
       content.trim(),
       color || 'bg-yellow-100 border-yellow-200',
-      user ? user.id : 1 // Fallback to 1 if user is missing (shouldn't happen with middleware)
+      user ? user.id : 1 // Fallback to 1 if user is missing
     ).run();
 
     const newNote = await env.DB.prepare(`
       SELECT * FROM notes WHERE id = ?
-    `).bind(result.meta.last_row_id).first();
+    `).bind(result.meta.last_row_id).first<Note>();
 
     return jsonResponse(newNote, 201);
-  } catch (error) {
+  } catch (error: any) {
     console.error('添加碎碎念API错误:', error);
     return errorResponse('服务器内部错误: ' + error.message, 500);
   }

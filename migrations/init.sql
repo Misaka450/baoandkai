@@ -132,7 +132,7 @@ CREATE INDEX IF NOT EXISTS idx_food_checkins_created_at ON food_checkins(created
 
 -- 插入默认管理员用户 (密码: baobao123 的 bcrypt 哈希)
 INSERT OR IGNORE INTO users (id, username, password_hash, email, couple_name1, couple_name2, anniversary_date)
-VALUES (1, 'baobao', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'baobao@example.com', '包包', '恺恺', '2023-10-08');
+VALUES (1, 'baobao', '$2a$12$s3tctwnzBnMdxfFZtAIfJOUaRmLrn21kxlQNV.TbQe5ShQaF5I5Oq', 'baobao@example.com', '包包', '恺恺', '2023-10-08');
 
 -- 初始化默认配置
 INSERT OR IGNORE INTO settings (key, value) VALUES ('site_config', '{"site_name": "包包和恺恺的故事", "site_description": "记录我们的点点滴滴", "theme": "light"}');

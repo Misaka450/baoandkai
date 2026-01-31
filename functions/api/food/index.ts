@@ -1,7 +1,28 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 
+export interface Env {
+  DB: D1Database;
+}
+
+interface FoodCheckin {
+  id: number;
+  restaurant_name: string;
+  description: string;
+  date: string;
+  address: string;
+  cuisine: string;
+  price_range: string;
+  overall_rating: number;
+  taste_rating: number;
+  environment_rating: number;
+  service_rating: number;
+  recommended_dishes: string;
+  images: string;
+  created_at: string;
+}
+
 // Cloudflare Pages Functions - 美食API
-export async function onRequestGet(context) {
+export async function onRequestGet(context: { env: Env; request: Request }) {
   const { env, request } = context;
 
   try {
@@ -14,7 +35,7 @@ export async function onRequestGet(context) {
     // 获取总数
     const countResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM food_checkins
-    `).first();
+    `).first<{ total: number }>();
     const total = countResult?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
@@ -23,7 +44,7 @@ export async function onRequestGet(context) {
       SELECT * FROM food_checkins 
       ORDER BY date DESC, created_at DESC
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all();
+    `).bind(limit, offset).all<FoodCheckin>();
 
     const foodsWithImages = foods.results.map(food => ({
       ...food,
@@ -39,16 +60,16 @@ export async function onRequestGet(context) {
         totalPages
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return errorResponse(error.message, 500);
   }
 }
 
-export async function onRequestPost(context) {
+export async function onRequestPost(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
-    const body = await request.json();
+    const body: any = await request.json();
     const {
       restaurant_name,
       description,
@@ -84,13 +105,17 @@ export async function onRequestPost(context) {
     const foodId = result.meta.last_row_id;
     const newFood = await env.DB.prepare(`
         SELECT * FROM food_checkins WHERE id = ?
-      `).bind(foodId).first();
+      `).bind(foodId).first<FoodCheckin>();
+
+    if (!newFood) {
+      return errorResponse('创建失败', 500);
+    }
 
     return jsonResponse({
       ...newFood,
       images: newFood.images ? newFood.images.split(',') : []
     });
-  } catch (error) {
+  } catch (error: any) {
     return errorResponse(error.message, 500);
   }
 }

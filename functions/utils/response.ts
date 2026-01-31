@@ -1,4 +1,4 @@
-export function jsonResponse(data, status = 200) {
+export function jsonResponse<T = any>(data: T, status: number = 200): Response {
     return new Response(JSON.stringify(data), {
         status,
         headers: {
@@ -7,7 +7,7 @@ export function jsonResponse(data, status = 200) {
     });
 }
 
-export function errorResponse(message, status = 500, details = null) {
+export function errorResponse(message: string, status: number = 500, details: any = null): Response {
     return jsonResponse({
         error: message,
         details: details,

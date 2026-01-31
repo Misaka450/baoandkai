@@ -6,7 +6,7 @@ import './index.css'
 import { initSentry } from './config/sentry'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 // 初始化Sentry错误监控
 initSentry()
@@ -31,7 +31,7 @@ ReactDOM.createRoot(rootElement).render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   </React.StrictMode>,
 )

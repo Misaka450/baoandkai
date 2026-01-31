@@ -1,21 +1,24 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 
+export interface Env {
+  IMAGES: R2Bucket;
+}
+
 // Cloudflare Pages Functions 上传处理
-export async function onRequestPost(context) {
+export async function onRequestPost(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
     const formData = await request.formData();
-    const files = formData.getAll('file');
-    const folder = formData.get('folder') || 'images';
+    const files = formData.getAll('file') as File[];
+    const folder = (formData.get('folder') as string) || 'images';
 
     if (!files || files.length === 0) {
       return errorResponse('没有上传文件', 400);
     }
 
     // 验证每个文件
-    // 上传接口配置
-    const maxFileSize = 20 * 1024 * 1024; // 20MB 支持更大的相机照片
+    const maxFileSize = 20 * 1024 * 1024; // 20MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     for (const file of files) {
@@ -28,13 +31,12 @@ export async function onRequestPost(context) {
       }
     }
 
-    const uploadedUrls = [];
+    const uploadedUrls: string[] = [];
 
     for (const file of files) {
-      const extension = file.name.split('.').pop().toLowerCase();
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
       const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
 
-      // 修复：使用正确的R2存储桶绑定名称
       await env.IMAGES.put(filename, file.stream(), {
         httpMetadata: {
           contentType: file.type,
@@ -42,7 +44,8 @@ export async function onRequestPost(context) {
         },
       });
 
-      const url = `https://pub-f3abc7adae724902b344281ec73f700c.r2.dev/${filename}`;
+      // 使用本地 API 代理路径，替代 R2 公网地址以增强安全性
+      const url = `/api/images/${filename}`;
       uploadedUrls.push(url);
     }
 
@@ -50,7 +53,7 @@ export async function onRequestPost(context) {
       urls: uploadedUrls,
       count: uploadedUrls.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return errorResponse(error.message, 500);
   }
 }
