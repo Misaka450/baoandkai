@@ -3,6 +3,7 @@ import { transformImageUrl } from '../../../utils/url';
 
 export interface Env {
     DB: D1Database;
+    IMAGES: R2Bucket;
 }
 
 interface Photo {
@@ -54,7 +55,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 /**
  * 向相册上传并添加照片 (修复 405 Method Not Allowed)
  */
-export async function onRequestPost(context: { request: Request; env: Env & { IMAGES: R2Bucket }; data: any }) {
+export async function onRequestPost(context: { request: Request; env: Env; data: any }) {
     const { request, env } = context;
 
     try {
