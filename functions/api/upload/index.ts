@@ -50,7 +50,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     }
 
     return jsonResponse({
-      urls: uploadedUrls,
+      url: uploadedUrls[0],  // 单个上传时的 URL（前端期望这个字段）
+      urls: uploadedUrls,    // 批量上传时的 URL 数组
       count: uploadedUrls.length
     });
   } catch (error: any) {
