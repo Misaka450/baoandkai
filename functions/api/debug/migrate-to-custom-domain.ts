@@ -57,6 +57,16 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
             }
         }
 
+        // 4. 迁移 albums 表 (cover_url)
+        const albums = await env.DB.prepare(`SELECT id, cover_url FROM albums WHERE cover_url LIKE ?`).bind(`%${oldPrefix}%`).all();
+        for (const row of albums.results as any[]) {
+            if (row.cover_url) {
+                const newUrl = row.cover_url.replace(oldPrefix, `${imageBaseUrl}/`);
+                await env.DB.prepare(`UPDATE albums SET cover_url = ? WHERE id = ?`).bind(newUrl, row.id).run();
+                results.albums = (results.albums || 0) + 1;
+            }
+        }
+
         return jsonResponse({
             success: true,
             message: '迁移完成',
