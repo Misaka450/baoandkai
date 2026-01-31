@@ -23,7 +23,9 @@ export async function onRequestGet(context: { env: Env }) {
         return jsonResponse({
           ...config,
           avatar1: transformImageUrl(config.avatar1),
-          avatar2: transformImageUrl(config.avatar2)
+          avatar2: transformImageUrl(config.avatar2),
+          customAvatar1: transformImageUrl(config.customAvatar1),
+          customAvatar2: transformImageUrl(config.customAvatar2)
         });
       } catch (e) {
         console.error('解析 settings 失败:', e);
@@ -31,8 +33,10 @@ export async function onRequestGet(context: { env: Env }) {
     }
 
     // 2. 备选方案：从 users 表获取核心信息 (兼容旧版数据结构)
-    // 注意：部分字段可能由于迁移未完成而缺失，这里使用 try-catch 或 SELECT *
     const user = await env.DB.prepare('SELECT * FROM users WHERE id = 1').first<any>();
+
+    const avatar1 = transformImageUrl(user?.avatar1);
+    const avatar2 = transformImageUrl(user?.avatar2);
 
     return jsonResponse({
       coupleName1: user?.couple_name1 || '包包',
@@ -40,8 +44,10 @@ export async function onRequestGet(context: { env: Env }) {
       anniversaryDate: user?.anniversary_date || '2023-10-08',
       homeTitle: user?.home_title || '包包和恺恺的小窝',
       homeSubtitle: user?.home_subtitle || '遇见你，是银河赠予我的糖。',
-      avatar1: transformImageUrl(user?.avatar1),
-      avatar2: transformImageUrl(user?.avatar2)
+      avatar1,
+      avatar2,
+      customAvatar1: avatar1.startsWith('/api/images/') ? avatar1 : '',
+      customAvatar2: avatar2.startsWith('/api/images/') ? avatar2 : ''
     });
   } catch (error: any) {
     console.error('获取配置失败:', error);
