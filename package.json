@@ -1,8 +1,8 @@
 {
   "name": "couple-moments",
+  "type": "module",
   "version": "1.0.0",
   "description": "A couple's exclusive platform to record shared moments",
-  "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
