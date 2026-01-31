@@ -3,6 +3,7 @@ import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
+import { compressImage } from '../../utils/imageUtils'
 
 interface Album {
     id: number
@@ -104,11 +105,14 @@ const AdminAlbums = () => {
 
         setUploadingFiles(prev => [...prev, ...newUploads]);
 
-        // 串行上传以保证稳定性，或者并行上传（用户要求“完成一张显示一张”）
+        // 串行处理：压缩并上传
         for (const uploadItem of newUploads) {
             try {
+                // 1. 压缩图片 (最大 2000px 宽度，质量 0.8)
+                const optimizedFile = await compressImage(uploadItem.file, 2000, 0.8);
+
                 const formDataUpload = new FormData()
-                formDataUpload.append('file', uploadItem.file)
+                formDataUpload.append('file', optimizedFile)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
 
                 const { data, error } = await apiService.uploadWithProgress<Photo>(
@@ -125,10 +129,8 @@ const AdminAlbums = () => {
 
                 if (error) throw new Error(error);
 
-                // 上传成功后，将照片添加到列表并移除正在上传的状态
                 if (data) {
                     setPhotos(prev => [data, ...prev]);
-                    // 同时更新相册列表中的计数（可选）
                     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
                 }
             } catch (err) {

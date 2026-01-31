@@ -5,6 +5,7 @@ import type { Album, Photo } from '../types'
 import Icon from '../components/icons/Icons'
 import ImageModal from '../components/ImageModal'
 import { Skeleton, ImageGridSkeleton } from '../components/Skeleton'
+import LazyImage from '../components/LazyImage'
 
 interface AlbumsResponse {
   data: Album[]
@@ -108,7 +109,7 @@ export default function Albums() {
                 {/* 主相册封面 */}
                 <div className="absolute inset-0 premium-card !p-0 z-10 overflow-hidden ring-4 ring-white shadow-2xl">
                   {album.cover_url ? (
-                    <img
+                    <LazyImage
                       alt={album.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                       src={album.cover_url}
@@ -192,7 +193,7 @@ export default function Albums() {
                       className="aspect-square rounded-[1.5rem] overflow-hidden cursor-pointer group/photo relative shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
                       onClick={(e) => { e.stopPropagation(); handlePhotoClick(idx); }}
                     >
-                      <img
+                      <LazyImage
                         src={photo.url}
                         alt={photo.caption || `照片${idx + 1}`}
                         className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-1000"

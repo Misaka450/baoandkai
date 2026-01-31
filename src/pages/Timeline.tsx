@@ -5,6 +5,7 @@ import type { TimelineEvent } from '../types'
 import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton, TimelineSkeleton } from '../components/Skeleton'
+import LazyImage from '../components/LazyImage'
 
 interface TimelineResponse {
   data: TimelineEvent[]
@@ -135,7 +136,7 @@ export default function Timeline() {
                           setImageModalOpen(true)
                         }}
                       >
-                        <img
+                        <LazyImage
                           alt={event.title}
                           className="w-full h-64 object-cover"
                           src={event.images[0] || ''}
