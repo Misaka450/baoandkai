@@ -42,7 +42,8 @@ export default function FoodCheckin() {
     queryFn: async () => {
       const response = await apiService.get<FoodResponse>(`/food?page=${currentPage}&limit=12&cuisine=${filter === 'all' ? '' : filter}`)
       return response.data
-    }
+    },
+    staleTime: Infinity,
   })
 
   const checkins = foodData?.data || []
