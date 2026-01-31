@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
@@ -46,6 +47,7 @@ const AdminFoodCheckin = () => {
         cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: []
     })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
+    const queryClient = useQueryClient()
 
     useEffect(() => { loadCheckins() }, [])
 
@@ -102,6 +104,7 @@ const AdminFoodCheckin = () => {
                 await showAlert('成功', '美食打卡已创建！', 'success')
             }
             resetForm(); loadCheckins()
+            queryClient.invalidateQueries({ queryKey: ['food'] });
         } catch { await showAlert('错误', '保存失败', 'error') }
     }
 
@@ -125,6 +128,7 @@ const AdminFoodCheckin = () => {
             const { error } = await apiService.delete(`/food/${id}`)
             if (error) throw new Error(error)
             await showAlert('成功', '已删除！', 'success'); loadCheckins()
+            queryClient.invalidateQueries({ queryKey: ['food'] });
         } catch { await showAlert('错误', '删除失败', 'error') }
     }
 

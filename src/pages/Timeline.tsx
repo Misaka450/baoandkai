@@ -39,7 +39,8 @@ export default function Timeline() {
     queryFn: async () => {
       const response = await apiService.get<TimelineResponse>(`/timeline?page=${currentPage}&limit=10&category=${filter === 'all' ? '' : filter}`)
       return response.data
-    }
+    },
+    staleTime: Infinity,
   })
 
   const events = timelineData?.data || []

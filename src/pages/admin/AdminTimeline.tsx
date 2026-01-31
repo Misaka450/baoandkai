@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
@@ -43,6 +44,7 @@ const AdminTimeline = () => {
         images: []
     })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
+    const queryClient = useQueryClient()
 
     useEffect(() => {
         loadEvents()
@@ -115,6 +117,8 @@ const AdminTimeline = () => {
             }
             resetForm()
             loadEvents()
+            // 失效缓存，让 Gallery/Timeline 页面重新加载
+            queryClient.invalidateQueries({ queryKey: ['timeline'] });
         } catch (error) {
             await showAlert('错误', '保存时间轴事件失败', 'error')
         }
