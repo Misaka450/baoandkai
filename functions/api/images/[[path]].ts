@@ -55,8 +55,8 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('etag', object.httpEtag);
-        // 浏览器和边缘都缓存 1 年，immutable 表示内容永不变化
-        headers.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+        // 浏览器缓存 1 个月，边缘缓存 1 年
+        headers.set('Cache-Control', 'public, max-age=2592000, s-maxage=31536000, immutable');
         headers.set('X-Cache', 'MISS');
 
         response = new Response(object.body, { headers });
