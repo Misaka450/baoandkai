@@ -70,22 +70,30 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             VALUES (?, ?, datetime('now'))
         `).bind('site_config', JSON.stringify(config)).run();
 
-    // 2. 同步更新 users 表中存在的字段 (主要是昵称和纪念日)
+    // 2. 同步更新 users 表中存在的字段 (核心配置与基础信息)
     try {
       await env.DB.prepare(`
                 UPDATE users SET 
                     couple_name1 = ?, 
                     couple_name2 = ?, 
                     anniversary_date = ?,
+                    home_title = ?,
+                    home_subtitle = ?,
+                    avatar1 = ?,
+                    avatar2 = ?,
                     updated_at = datetime('now')
                 WHERE id = 1
             `).bind(
         config.coupleName1,
         config.coupleName2,
-        config.anniversaryDate
+        config.anniversaryDate,
+        config.homeTitle,
+        config.homeSubtitle,
+        config.avatar1,
+        config.avatar2
       ).run();
     } catch (e) {
-      console.warn('同步更新 users 表失败 (可能缺少列):', e);
+      console.warn('同步更新 users 表失败 (可能缺少列或字段不匹配):', e);
     }
 
     return jsonResponse({ success: true, message: '配置已更新' });
