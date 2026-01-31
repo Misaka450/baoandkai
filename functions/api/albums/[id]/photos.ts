@@ -50,3 +50,59 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
         return errorResponse(error.message, 500);
     }
 }
+
+/**
+ * 向相册上传并添加照片 (修复 405 Method Not Allowed)
+ */
+export async function onRequestPost(context: { request: Request; env: Env & { IMAGES: R2Bucket }; data: any }) {
+    const { request, env } = context;
+
+    try {
+        const url = new URL(request.url);
+        const parts = url.pathname.split('/').filter(Boolean);
+        const idIndex = parts.indexOf('albums') + 1;
+        const albumId = parseInt(parts[idIndex] || '');
+
+        if (isNaN(albumId)) {
+            return errorResponse('无效的相册ID', 400);
+        }
+
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+
+        if (!file) {
+            return errorResponse('未找到上传文件', 400);
+        }
+
+        // 1. 上传到 R2
+        if (!env.IMAGES) {
+            return errorResponse('R2 存储未配置', 500);
+        }
+
+        const album = await env.DB.prepare(`SELECT name FROM albums WHERE id = ?`).bind(albumId).first<{ name: string }>();
+        const albumName = album?.name || 'default';
+        const timestamp = Date.now();
+        const randomStr = Math.random().toString(36).substring(7);
+        const extension = file.name.split('.').pop() || 'jpg';
+        const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
+
+        await env.IMAGES.put(key, await file.arrayBuffer(), {
+            httpMetadata: { contentType: file.type }
+        });
+
+        const proxiedUrl = `/api/images/${key}`;
+
+        // 2. 写入数据库
+        const result = await env.DB.prepare(`
+            INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
+            VALUES (?, ?, ?, (SELECT IFNULL(MAX(sort_order), 0) + 1 FROM photos WHERE album_id = ?), datetime('now'))
+        `).bind(albumId, proxiedUrl, file.name, albumId).run();
+
+        const newPhoto = await env.DB.prepare(`SELECT * FROM photos WHERE id = ?`).bind(result.meta.last_row_id).first<Photo>();
+
+        return jsonResponse(newPhoto, 201);
+    } catch (error: any) {
+        console.error('上传照片失败:', error);
+        return errorResponse(error.message, 500);
+    }
+}
