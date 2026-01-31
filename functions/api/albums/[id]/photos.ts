@@ -87,8 +87,8 @@ export async function onRequestPost(context: { request: Request; env: Env; data:
         const extension = file.name.split('.').pop() || 'jpg';
         const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
 
-        await env.IMAGES.put(key, await file.arrayBuffer(), {
-            httpMetadata: { contentType: file.type }
+        await env.IMAGES.put(key, file.stream(), {
+            httpMetadata: { contentType: file.type },
         });
 
         const proxiedUrl = `/api/images/${key}`;
