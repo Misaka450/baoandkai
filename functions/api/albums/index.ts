@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageUrl } from '../../utils/url';
 
 export interface Env {
     DB: D1Database;
@@ -41,7 +42,10 @@ export async function onRequestGet(context: { env: Env }) {
 
             return {
                 ...album,
-                photos: coverPhoto.results,
+                photos: coverPhoto.results.map(p => ({
+                    ...p,
+                    url: transformImageUrl(p.url)
+                })),
                 photo_count: countResult?.count || 0
             };
         }));

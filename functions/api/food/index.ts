@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
   DB: D1Database;
@@ -48,17 +49,14 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
     const foodsWithImages = foods.results.map(food => ({
       ...food,
-      images: food.images ? food.images.split(',') : []
+      images: transformImageArray(food.images)
     }));
 
     return jsonResponse({
       data: foodsWithImages,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages
-      }
+      totalPages,
+      totalCount: total,
+      currentPage: page
     });
   } catch (error: any) {
     return errorResponse(error.message, 500);

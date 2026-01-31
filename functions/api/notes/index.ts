@@ -40,12 +40,9 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
     return jsonResponse({
       data: notes.results || [],
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages
-      }
+      totalCount: total,
+      totalPages,
+      currentPage: page
     });
   } catch (error: any) {
     return errorResponse(error.message, 500);

@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
   DB: D1Database;
@@ -42,17 +43,14 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
     const eventsWithImages = events.results.map(event => ({
       ...event,
-      images: event.images ? event.images.split(',') : []
+      images: transformImageArray(event.images)
     }));
 
     return jsonResponse({
       data: eventsWithImages,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages
-      }
+      totalPages,
+      totalCount: total,
+      currentPage: page
     });
   } catch (error: any) {
     return errorResponse(error.message, 500);
