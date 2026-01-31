@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { preloadImage, getThumbnailUrl } from '../utils/imageUtils'
+import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
 import Icon from './icons/Icons'
 
 // 定义图片模态框组件的属性接口
@@ -53,7 +53,12 @@ export default function ImageModal({
   }, [])
 
   useEffect(() => {
-    setIsLoaded(false)
+    // 只有当图片不在缓存中时，才显示加载动画
+    if (currentImage && !loadedImagesCache.has(currentImage)) {
+      setIsLoaded(false)
+    } else {
+      setIsLoaded(true)
+    }
     resetTransform()
   }, [currentIndex, currentImage, resetTransform])
 
@@ -273,7 +278,10 @@ export default function ImageModal({
           <img
             src={currentImage}
             alt="Viewer"
-            onLoad={() => setIsLoaded(true)}
+            onLoad={() => {
+              setIsLoaded(true)
+              if (currentImage) loadedImagesCache.add(currentImage)
+            }}
             onClick={(e) => {
               e.stopPropagation()
               if (!hasDragged) {

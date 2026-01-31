@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Album, Photo } from '../types'
 import Icon from '../components/icons/Icons'
@@ -25,10 +26,8 @@ export default function Albums() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
 
-  // 相册详情弹窗状态
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
-  const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
-  const [loadingPhotos, setLoadingPhotos] = useState(false)
+  // 当前选中的相册 ID
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null)
 
   // 看图模式状态
   const [imageModalOpen, setImageModalOpen] = useState(false)
@@ -45,27 +44,31 @@ export default function Albums() {
 
   const albums = albumsData?.data || []
 
-  // 点击相册 - 打开详情弹窗
-  const handleAlbumClick = async (album: Album) => {
-    setSelectedAlbum(album)
-    setLoadingPhotos(true)
-    try {
-      const { data, error } = await apiService.get<AlbumDetailResponse>(`/albums/${album.id}`)
+  // 使用 React Query 加载相册详情，利用其自动缓存机制
+  const { data: albumDetail, isLoading: loadingPhotos } = useQuery({
+    queryKey: ['album-detail', selectedAlbumId],
+    queryFn: async () => {
+      if (!selectedAlbumId) return null
+      const { data, error } = await apiService.get<AlbumDetailResponse>(`/albums/${selectedAlbumId}`)
       if (error) throw new Error(error)
-      setAlbumPhotos(data?.photos || [])
-    } catch (e) {
-      console.error('加载相册失败:', e)
-      setAlbumPhotos([])
-    } finally {
-      setLoadingPhotos(false)
-    }
+      return data
+    },
+    enabled: !!selectedAlbumId,
+    staleTime: 1000 * 60 * 30, // 30分钟内不重新从后端拉取详情
+  })
+
+  // 点击相册 - 设置 ID 触发加载
+  const handleAlbumClick = (album: Album) => {
+    setSelectedAlbumId(album.id)
   }
 
   // 关闭相册详情弹窗
   const closeAlbumDetail = () => {
-    setSelectedAlbum(null)
-    setAlbumPhotos([])
+    setSelectedAlbumId(null)
   }
+
+  const albumPhotos = albumDetail?.photos || []
+  const selectedAlbum = albums.find(a => a.id === selectedAlbumId)
 
   // 点击单张照片 - 进入看图模式
   const handlePhotoClick = (index: number) => {
