@@ -44,9 +44,11 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         },
       });
 
-      // 使用本地 API 代理路径，替代 R2 公网地址以增强安全性
-      const url = `/api/images/${filename}`;
+      // 使用自定义域名或本地 API 代理路径
+      const baseUrl = (env as any).IMAGE_BASE_URL || '/api/images';
+      const url = `${baseUrl}/${filename}`;
       uploadedUrls.push(url);
+
     }
 
     return jsonResponse({

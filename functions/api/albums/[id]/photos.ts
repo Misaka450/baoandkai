@@ -91,7 +91,8 @@ export async function onRequestPost(context: { request: Request; env: Env; data:
             httpMetadata: { contentType: file.type },
         });
 
-        const proxiedUrl = `/api/images/${key}`;
+        const baseUrl = (env as any).IMAGE_BASE_URL || '/api/images';
+        const proxiedUrl = `${baseUrl}/${key}`;
 
         // 2. 写入数据库
         const result = await env.DB.prepare(`
