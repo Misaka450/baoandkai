@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-
-// 全局已加载图片缓存记录
-const loadedImagesCache = new Set<string>()
+import { loadedImagesCache } from '../utils/imageUtils'
 
 interface LazyImageProps {
     src: string

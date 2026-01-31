@@ -2,6 +2,9 @@
  * 图片优化工具函数
  */
 
+// 全局已加载图片缓存记录 (内存中)
+export const loadedImagesCache = new Set<string>();
+
 /**
  * 压缩图片
  * @param file 原始文件
