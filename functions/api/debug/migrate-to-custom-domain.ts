@@ -26,12 +26,12 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
         timeline: 0,
         notes: 0,
         food: 0
-    };
+    } as any;
 
     try {
         // 1. 迁移 photos 表
         const photos = await env.DB.prepare(`SELECT id, url FROM photos WHERE url LIKE ?`).bind(`${oldPrefix}%`).all();
-        for (const row: any of photos.results) {
+        for (const row of photos.results as any[]) {
             const newUrl = row.url.replace(oldPrefix, `${imageBaseUrl}/`);
             await env.DB.prepare(`UPDATE photos SET url = ? WHERE id = ?`).bind(newUrl, row.id).run();
             results.photos++;
@@ -39,7 +39,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
         // 2. 迁移 timeline_events 表 (images 是逗号分隔的字符串)
         const events = await env.DB.prepare(`SELECT id, images FROM timeline_events WHERE images LIKE ?`).bind(`%${oldPrefix}%`).all();
-        for (const row: any of events.results) {
+        for (const row of events.results as any[]) {
             if (row.images) {
                 const newImages = row.images.split(',').map((img: string) => img.replace(oldPrefix, `${imageBaseUrl}/`)).join(',');
                 await env.DB.prepare(`UPDATE timeline_events SET images = ? WHERE id = ?`).bind(newImages, row.id).run();
@@ -47,19 +47,9 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
             }
         }
 
-        // 3. 迁移 notes 表 (images 是逗号分隔的字符串)
-        const notes = await env.DB.prepare(`SELECT id, images FROM notes WHERE images LIKE ?`).bind(`%${oldPrefix}%`).all();
-        for (const row: any of notes.results) {
-            if (row.images) {
-                const newImages = row.images.split(',').map((img: string) => img.replace(oldPrefix, `${imageBaseUrl}/`)).join(',');
-                await env.DB.prepare(`UPDATE notes SET images = ? WHERE id = ?`).bind(newImages, row.id).run();
-                results.notes++;
-            }
-        }
-
-        // 4. 迁移 food_checkins 表 (images 是逗号分隔的字符串)
+        // 3. 迁移 food_checkins 表 (images 是逗号分隔的字符串)
         const foods = await env.DB.prepare(`SELECT id, images FROM food_checkins WHERE images LIKE ?`).bind(`%${oldPrefix}%`).all();
-        for (const row: any of foods.results) {
+        for (const row of foods.results as any[]) {
             if (row.images) {
                 const newImages = row.images.split(',').map((img: string) => img.replace(oldPrefix, `${imageBaseUrl}/`)).join(',');
                 await env.DB.prepare(`UPDATE food_checkins SET images = ? WHERE id = ?`).bind(newImages, row.id).run();
