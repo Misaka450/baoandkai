@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+// 全局已加载图片缓存记录
+const loadedImagesCache = new Set<string>()
 
 interface LazyImageProps {
     src: string
@@ -12,14 +15,27 @@ interface LazyImageProps {
  * 专门针对大图优化，提供加载占位符和淡入效果
  */
 export default function LazyImage({ src, alt, className = '', onClick }: LazyImageProps) {
-    const [isLoaded, setIsLoaded] = useState(false)
+    const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(src))
     const [error, setError] = useState(false)
+    const lastSrc = useRef(src)
 
-    // 如果 src 改变，重置状态
+    // 如果 src 改变，且不在缓存中，才重置状态
     useEffect(() => {
-        setIsLoaded(false)
-        setError(false)
+        if (lastSrc.current !== src) {
+            lastSrc.current = src
+            if (!loadedImagesCache.has(src)) {
+                setIsLoaded(false)
+                setError(false)
+            } else {
+                setIsLoaded(true)
+            }
+        }
     }, [src])
+
+    const handleLoad = () => {
+        loadedImagesCache.add(src)
+        setIsLoaded(true)
+    }
 
     return (
         <div className={`relative overflow-hidden ${className}`}>
@@ -44,10 +60,10 @@ export default function LazyImage({ src, alt, className = '', onClick }: LazyIma
                 src={src}
                 alt={alt}
                 loading="lazy"
-                onLoad={() => setIsLoaded(true)}
+                onLoad={handleLoad}
                 onError={() => setError(true)}
                 onClick={onClick}
-                className={`w-full h-full object-cover transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             />
         </div>
     )
