@@ -5,6 +5,7 @@ import type { FoodCheckin } from '../types'
 import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
+import LazyImage from '../components/LazyImage'
 
 interface FoodResponse {
   data: FoodCheckin[]
@@ -142,7 +143,7 @@ export default function FoodCheckin() {
             return (
               <div key={checkin.id} className="premium-card !p-0 overflow-hidden group hover:-translate-y-2 transition-all duration-700 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
-                  <img
+                  <LazyImage
                     alt={checkin.restaurant_name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                     src={images[0] || ''}
@@ -210,7 +211,7 @@ export default function FoodCheckin() {
                           className="w-12 h-12 rounded-xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-primary/10 transition-all shadow-sm"
                           onClick={() => handleImageClick(images, i)}
                         >
-                          <img loading="lazy" decoding="async" className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
+                          <LazyImage className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
                         </div>
                       ))}
                       {images.length > 4 && (
