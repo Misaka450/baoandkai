@@ -2,9 +2,9 @@ import { errorResponse } from '../utils/response';
 
 /**
  * 全局中间件：处理 CORS、公共路径验证以及 Token 鉴权逻辑
- * @param {import('@cloudflare/workers-types').EventContext} context 
+ * @param {import('@cloudflare/workers-types').EventContext<any, any, any>} context 
  */
-export async function onRequest(context) {
+export async function onRequest(context: any) {
     const { request, env, next } = context;
     const url = new URL(request.url);
 
@@ -18,8 +18,6 @@ export async function onRequest(context) {
         if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             corsOrigin = origin;
         } else if (allowedOrigins.length > 0) {
-            // If specific origins are defined but don't match, still default to first one for preflight
-            // but in production we should be stricter.
             corsOrigin = allowedOrigins[0];
         }
     }
@@ -58,10 +56,9 @@ export async function onRequest(context) {
         url.pathname === path || url.pathname.startsWith(path + '/')
     );
 
-    // Check if current path is public - 使用精确匹配或前缀匹配
+    // Check if current path is public
     const pathname = url.pathname;
     const isPublic = publicPaths.some(path => {
-        // 精确匹配或前缀匹配（对于目录路径）
         return pathname === path || pathname.startsWith(path + '/') || (path.endsWith('/') && pathname.startsWith(path));
     });
 
@@ -78,9 +75,8 @@ export async function onRequest(context) {
             // 1. Try to get from KV first
             let user = null;
             if (env.KV) {
-                const cached = await env.KV.get(`token:${token}`, 'json');
+                const cached = await env.KV.get(`token:${token}`, { type: 'json' });
                 if (cached) {
-                    // Check if expired (just in case)
                     if (new Date(cached.token_expires) > new Date()) {
                         user = cached;
                     }
@@ -111,7 +107,7 @@ export async function onRequest(context) {
             // Attach user to context for downstream use
             context.data.user = user;
 
-        } catch (err) {
+        } catch (err: any) {
             console.error('Middleware Auth Error:', err);
             const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '认证失败';
             return errorResponse('服务器内部错误: ' + errorMessage, 500);
@@ -120,23 +116,28 @@ export async function onRequest(context) {
 
     // 4. Proceed to actual handler
     try {
-        console.log(`[Middleware] Handling path: ${pathname}`);
         const response = await next();
-        console.log(`[Middleware] Handler responded with status: ${response.status}`);
 
-        // 5. Add CORS headers to all responses
+        // 5. Add CORS and Security headers to all responses
         const newResponse = new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
             headers: new Headers(response.headers)
         });
 
+        // CORS Headers
         newResponse.headers.set('Access-Control-Allow-Origin', corsOrigin);
         newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
+        // Security Headers
+        newResponse.headers.set('X-Content-Type-Options', 'nosniff');
+        newResponse.headers.set('X-Frame-Options', 'DENY');
+        newResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+
         return newResponse;
-    } catch (err) {
+    } catch (err: any) {
         console.error('Middleware Next Error:', err);
         const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '请稍后重试';
         return errorResponse('服务器内部错误: ' + errorMessage, 500);

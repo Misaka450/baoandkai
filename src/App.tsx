@@ -36,10 +36,10 @@ function App(): JSX.Element {
             {/* 主应用布局 */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
-              <Route path="timeline" element={<Timeline />} />
-              <Route path="albums" element={<Albums />} />
-              <Route path="todos" element={<Todos />} />
-              <Route path="food" element={<FoodCheckin />} />
+              <Route path="timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
+              <Route path="albums" element={<ProtectedRoute><Albums /></ProtectedRoute>} />
+              <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
+              <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
               <Route path="admin/*" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />

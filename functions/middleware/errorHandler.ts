@@ -3,7 +3,10 @@
  */
 
 export class APIError extends Error {
-  constructor(message, statusCode = 500, code = 'INTERNAL_ERROR') {
+  statusCode: number;
+  code: string;
+
+  constructor(message: string, statusCode: number = 500, code: string = 'INTERNAL_ERROR') {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
@@ -24,11 +27,11 @@ export const ErrorTypes = {
 /**
  * 统一的错误响应处理
  */
-export function handleError(error, env) {
+export function handleError(error: any, env: any): Response {
   const isDevelopment = env?.ENVIRONMENT === 'development';
-  
+
   console.error('API Error:', error);
-  
+
   if (error instanceof APIError) {
     return new Response(JSON.stringify({
       success: false,
@@ -39,13 +42,13 @@ export function handleError(error, env) {
       }
     }), {
       status: error.statusCode,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
     });
   }
-  
+
   // 未知错误
   return new Response(JSON.stringify({
     success: false,
@@ -56,7 +59,7 @@ export function handleError(error, env) {
     }
   }), {
     status: 500,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     }
@@ -66,13 +69,13 @@ export function handleError(error, env) {
 /**
  * 成功响应
  */
-export function successResponse(data, status = 200) {
+export function successResponse<T = any>(data: T, status: number = 200): Response {
   return new Response(JSON.stringify({
     success: true,
     data
   }), {
     status,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     }
