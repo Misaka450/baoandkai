@@ -7,33 +7,47 @@ const OLD_R2_DOMAIN = 'pub-f3abc7adae724902b344281ec73f700c.r2.dev';
 const PROXY_PATH = '/api/images/';
 
 /**
- * 将旧的 R2 直链转换为本地代理链接
+ * 将旧的 R2 直链或任何 R2 域名转换为本地代理链接
  * @param url 原始 URL
  * @returns 转换后的 URL
  */
 export function transformImageUrl(url: string | null | undefined): string {
     if (!url) return '';
-    if (url.includes(OLD_R2_DOMAIN)) {
-        // 提取文件名部分
-        const parts = url.split(OLD_R2_DOMAIN + '/');
-        if (parts.length > 1) {
-            return PROXY_PATH + parts[1];
+    // 匹配任何 r2.dev 域名
+    if (url.includes('r2.dev')) {
+        const match = url.match(/https?:\/\/[^/]+\.r2\.dev\/(.+)$/);
+        if (match && match[1]) {
+            return PROXY_PATH + match[1];
         }
     }
     return url;
 }
 
 /**
- * 转换图片数组或逗号分隔的字符串
+ * 转换图片数组或可能是 JSON 字符串的数据
  * @param images 图片数据
  * @returns 转换后的图片数组
  */
 export function transformImageArray(images: string | string[] | null | undefined): string[] {
     if (!images) return [];
 
-    const imageList = Array.isArray(images)
-        ? images
-        : (typeof images === 'string' ? images.split(',').filter(Boolean) : []);
+    let imageList: string[] = [];
+    if (Array.isArray(images)) {
+        imageList = images;
+    } else if (typeof images === 'string') {
+        const trimmed = images.trim();
+        // 尝试解析 JSON 格式 (如 ["url1", "url2"])
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+                imageList = JSON.parse(trimmed);
+            } catch {
+                imageList = trimmed.split(',').filter(Boolean);
+            }
+        } else {
+            // 普通逗号分隔格式
+            imageList = trimmed.split(',').filter(Boolean);
+        }
+    }
 
     return imageList.map(transformImageUrl);
 }

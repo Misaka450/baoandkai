@@ -7,40 +7,41 @@ export interface Env {
 
 /**
  * 获取系统配置
- * 从 users 表获取核心配置信息
  */
 export async function onRequestGet(context: { env: Env }) {
   const { env } = context;
 
   try {
-    // 获取主用户信息中的配置 (ID 为 1 的用户通常是管理员/主用户)
-    const userConfig = await env.DB.prepare(`
-            SELECT couple_name1, couple_name2, anniversary_date, avatar1, avatar2, home_title, home_subtitle
-            FROM users 
-            WHERE id = 1
-        `).first<any>();
+    // 1. 尝试从 settings 表获取核心配置
+    const configRow = await env.DB.prepare('SELECT value FROM settings WHERE key = ?')
+      .bind('site_config')
+      .first<{ value: string }>();
 
-    if (!userConfig) {
-      // 如果找不到用户，返回默认值
-      return jsonResponse({
-        coupleName1: '包包',
-        coupleName2: '恺恺',
-        anniversaryDate: '2023-10-08',
-        homeTitle: '包包和恺恺的小窝',
-        homeSubtitle: '遇见你，是银河赠予我的糖。',
-        avatar1: '',
-        avatar2: ''
-      });
+    if (configRow) {
+      try {
+        const config = JSON.parse(configRow.value);
+        return jsonResponse({
+          ...config,
+          avatar1: transformImageUrl(config.avatar1),
+          avatar2: transformImageUrl(config.avatar2)
+        });
+      } catch (e) {
+        console.error('解析 settings 失败:', e);
+      }
     }
 
+    // 2. 备选方案：从 users 表获取核心信息 (兼容旧版数据结构)
+    // 注意：部分字段可能由于迁移未完成而缺失，这里使用 try-catch 或 SELECT *
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = 1').first<any>();
+
     return jsonResponse({
-      coupleName1: userConfig.couple_name1,
-      coupleName2: userConfig.couple_name2,
-      anniversaryDate: userConfig.anniversary_date,
-      homeTitle: userConfig.home_title || '包包和恺恺的小窝',
-      homeSubtitle: userConfig.home_subtitle || '遇见你，是银河赠予我的糖。',
-      avatar1: transformImageUrl(userConfig.avatar1),
-      avatar2: transformImageUrl(userConfig.avatar2)
+      coupleName1: user?.couple_name1 || '包包',
+      coupleName2: user?.couple_name2 || '恺恺',
+      anniversaryDate: user?.anniversary_date || '2023-10-08',
+      homeTitle: user?.home_title || '包包和恺恺的小窝',
+      homeSubtitle: user?.home_subtitle || '遇见你，是银河赠予我的糖。',
+      avatar1: transformImageUrl(user?.avatar1),
+      avatar2: transformImageUrl(user?.avatar2)
     });
   } catch (error: any) {
     console.error('获取配置失败:', error);
@@ -55,38 +56,31 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
-    const body: any = await request.json();
-    const {
-      coupleName1,
-      coupleName2,
-      anniversaryDate,
-      homeTitle,
-      homeSubtitle,
-      avatar1,
-      avatar2
-    } = body;
+    const config: any = await request.json();
 
-    // 更新数据库中 ID 为 1 的用户配置
+    // 1. 更新 settings 表 (持久化所有配置)
     await env.DB.prepare(`
-            UPDATE users SET 
-                couple_name1 = ?, 
-                couple_name2 = ?, 
-                anniversary_date = ?,
-                home_title = ?,
-                home_subtitle = ?,
-                avatar1 = ?,
-                avatar2 = ?,
-                updated_at = datetime('now')
-            WHERE id = 1
-        `).bind(
-      coupleName1,
-      coupleName2,
-      anniversaryDate,
-      homeTitle,
-      homeSubtitle,
-      avatar1,
-      avatar2
-    ).run();
+            INSERT OR REPLACE INTO settings (key, value, updated_at)
+            VALUES (?, ?, datetime('now'))
+        `).bind('site_config', JSON.stringify(config)).run();
+
+    // 2. 同步更新 users 表中存在的字段 (主要是昵称和纪念日)
+    try {
+      await env.DB.prepare(`
+                UPDATE users SET 
+                    couple_name1 = ?, 
+                    couple_name2 = ?, 
+                    anniversary_date = ?,
+                    updated_at = datetime('now')
+                WHERE id = 1
+            `).bind(
+        config.coupleName1,
+        config.coupleName2,
+        config.anniversaryDate
+      ).run();
+    } catch (e) {
+      console.warn('同步更新 users 表失败 (可能缺少列):', e);
+    }
 
     return jsonResponse({ success: true, message: '配置已更新' });
   } catch (error: any) {
