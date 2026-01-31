@@ -18,6 +18,7 @@ bucket_name = "our"
 
 [vars]
 ENVIRONMENT = "production"
+IMAGE_BASE_URL = "https://img.980823.xyz"
 
 # 环境变量配置说明：
 # ADMIN_TOKEN - 管理员认证token，建议使用随机生成的UUID
