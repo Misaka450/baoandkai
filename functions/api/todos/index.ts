@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
   DB: D1Database;
@@ -42,11 +43,11 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
       LIMIT ? OFFSET ?
     `).bind(limit, offset).all<Todo>();
 
-    const formattedTodos = todos.results.map(todo => ({
+    const formattedTodos = todos.results ? todos.results.map(todo => ({
       ...todo,
-      images: todo.images ? JSON.parse(todo.images) : [],
-      completion_photos: todo.completion_photos ? JSON.parse(todo.completion_photos) : []
-    }));
+      images: transformImageArray(todo.images),
+      completion_photos: transformImageArray(todo.completion_photos)
+    })) : [];
 
     return jsonResponse({
       data: formattedTodos,

@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageUrl } from '../../utils/url';
 
 export interface Env {
     DB: D1Database;
@@ -47,7 +48,11 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
         return jsonResponse({
             ...album,
-            photos: photos.results || []
+            cover_url: transformImageUrl(album.cover_url),
+            photos: (photos.results || []).map(p => ({
+                ...p,
+                url: transformImageUrl(p.url)
+            }))
         });
     } catch (error: any) {
         console.error('获取相册详情失败:', error);
