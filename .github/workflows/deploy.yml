@@ -34,5 +34,3 @@ jobs:
           projectName: baoandkai
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          # 添加环境变量配置
-          environmentVariables: NODE_VERSION=18,CI=true
