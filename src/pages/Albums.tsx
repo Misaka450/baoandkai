@@ -54,7 +54,7 @@ export default function Albums() {
       return data
     },
     enabled: !!selectedAlbumId,
-    staleTime: 1000 * 60 * 30, // 30分钟内不重新从后端拉取详情
+    staleTime: Infinity, // 除非手动失效，否则永不重新请求（满足用户“仅在上传后重新拉取”的需求）
   })
 
   // 点击相册 - 设置 ID 触发加载

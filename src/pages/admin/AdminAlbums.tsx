@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
@@ -31,6 +32,7 @@ const AdminAlbums = () => {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
+    const queryClient = useQueryClient()
 
     useEffect(() => {
         loadAlbums()
@@ -125,6 +127,10 @@ const AdminAlbums = () => {
                 if (data) {
                     setPhotos(prev => [data, ...prev]);
                     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
+
+                    // 核心逻辑：通知 React Query 缓存失效，Gallery 页面再次进入该相册时会重新拉取最新数据
+                    queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
+                    queryClient.invalidateQueries({ queryKey: ['albums'] });
                 }
             } catch (err) {
                 console.error('上传失败:', err);
@@ -146,6 +152,12 @@ const AdminAlbums = () => {
             if (error) throw new Error(error)
             setPhotos(prev => prev.filter(p => p.id !== photoId))
             setAlbums(prev => prev.map(a => a.id === selectedAlbum?.id ? { ...a, photo_count: (a.photo_count || 0) - 1 } : a))
+
+            // 核心逻辑：同步失效缓存
+            if (selectedAlbum) {
+                queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
+                queryClient.invalidateQueries({ queryKey: ['albums'] });
+            }
             await showAlert('成功', '照片已删除！', 'success')
         } catch (error) {
             await showAlert('错误', '删除失败', 'error')
