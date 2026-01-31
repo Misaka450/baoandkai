@@ -39,8 +39,11 @@ export default function ImageModal({
   const [hasDragged, setHasDragged] = useState(false)
 
   const touchStart = useRef({ x: 0, y: 0 })
+  const initialPinchDistance = useRef(0)
+  const initialScale = useRef(1)
   const containerRef = useRef<HTMLDivElement>(null)
   const thumbListRef = useRef<HTMLDivElement>(null)
+
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
 
@@ -88,22 +91,78 @@ export default function ImageModal({
   }, [isOpen, onClose, images.length, onPrevious, onNext])
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (scale > 1) return
-    const touch = e.touches[0]
-    if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY }
+    if (e.touches.length === 2) {
+      // 双指操作：准备缩放
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      if (!touch1 || !touch2) return
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY)
+      initialPinchDistance.current = distance
+      initialScale.current = scale
+      e.preventDefault()
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      if (touch) {
+        touchStart.current = { x: touch.clientX, y: touch.clientY }
+        if (scale > 1) {
+          // 缩放状态下，准备拖拽
+          setIsDragging(true)
+          setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
+        }
+      }
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // 双指缩放
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      if (!touch1 || !touch2) return
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY)
+
+      if (initialPinchDistance.current > 0) {
+        const scaleChange = distance / initialPinchDistance.current
+        const newScale = Math.min(5, Math.max(0.5, initialScale.current * scaleChange))
+        setScale(newScale)
+        setHasDragged(true)
+      }
+      e.preventDefault()
+    } else if (e.touches.length === 1 && scale > 1 && isDragging) {
+      // 单指拖拽（仅在缩放状态）
+      const touch = e.touches[0]
+      if (touch) {
+        const newX = touch.clientX - dragStart.x
+        const newY = touch.clientY - dragStart.y
+        setPosition({ x: newX, y: newY })
+        setHasDragged(true)
+      }
+    }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (scale > 1) return
-    const touch = e.changedTouches[0]
-    if (!touch) return
-    const deltaX = touch.clientX - touchStart.current.x
-    const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+    initialPinchDistance.current = 0
+    setIsDragging(false)
 
-    if (Math.abs(deltaX) > 50 && deltaY < 100) {
-      if (deltaX > 0 && onPrevious) onPrevious()
-      else if (deltaX < 0 && onNext) onNext()
+    // 如果缩放比例太小，重置
+    if (scale < 1) {
+      resetTransform()
     }
+
+    // 处理左右滑动切换图片（仅在非缩放状态）
+    if (scale <= 1 && !hasDragged) {
+      const touch = e.changedTouches[0]
+      if (!touch) return
+      const deltaX = touch.clientX - touchStart.current.x
+      const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+
+      if (Math.abs(deltaX) > 50 && deltaY < 100) {
+        if (deltaX > 0 && onPrevious) onPrevious()
+        else if (deltaX < 0 && onNext) onNext()
+      }
+    }
+
+    setTimeout(() => setHasDragged(false), 100)
   }
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -124,8 +183,10 @@ export default function ImageModal({
         setHasDragged(false)
       }}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+
       {/* 顶部工具栏 */}
       <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-8 z-50 bg-gradient-to-b from-black/20 to-transparent">
         <div className="flex items-center gap-4">
