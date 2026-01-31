@@ -45,7 +45,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       });
 
       // 使用自定义域名或本地 API 代理路径
-      const baseUrl = (env as any).IMAGE_BASE_URL || '/api/images';
+      const baseUrl = (env as any).IMAGE_BASE_URL || 'https://img.980823.xyz';
       const url = `${baseUrl}/${filename}`;
       uploadedUrls.push(url);
 

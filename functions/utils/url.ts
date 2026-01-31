@@ -2,28 +2,38 @@
  * URL 处理工具函数
  */
 
-// 旧的 R2 公网子域
-const OLD_R2_DOMAIN = 'pub-f3abc7adae724902b344281ec73f700c.r2.dev';
+// 部署后的自定义域名
+const CUSTOM_DOMAIN = 'https://img.980823.xyz';
 const PROXY_PATH = '/api/images/';
 
 /**
- * 将旧的 R2 直链、任何 r2.dev 域名或原始 Key 转换为本地代理链接
+ * 将旧的 R2 直链、任何 r2.dev 域名或原始 Key 转换为 CDN 链接或本地代理链接
  * @param url 原始 URL 或 Key
  * @returns 转换后的 URL
  */
 export function transformImageUrl(url: string | null | undefined): string {
     if (!url) return '';
 
-    // 如果已经是代理链接或本地路径，直接返回
-    if (url.startsWith('/') || url.startsWith('./')) {
+    // 如果已经是自定义域名，直接返回
+    if (url.startsWith(CUSTOM_DOMAIN)) {
         return url;
     }
 
-    // 匹配任何 r2.dev 域名
+    // 如果是代理链接或本地路径，转换成自定义域名
+    if (url.startsWith(PROXY_PATH)) {
+        return url.replace(PROXY_PATH, `${CUSTOM_DOMAIN}/`);
+    }
+
+    // 如果已经是以 / 开头的绝对路径（但不是代理路径），可能是前端资源，保持原样
+    if (url.startsWith('/')) {
+        return url;
+    }
+
+    // 匹配任何 r2.dev 域名并转换
     if (url.includes('r2.dev')) {
         const match = url.match(/https?:\/\/[^/]+\.r2\.dev\/(.+)$/);
         if (match && match[1]) {
-            return PROXY_PATH + match[1];
+            return `${CUSTOM_DOMAIN}/${match[1]}`;
         }
     }
 
@@ -32,8 +42,8 @@ export function transformImageUrl(url: string | null | undefined): string {
         return url;
     }
 
-    // 否则视为原始 R2 Key，拼接到代理路径
-    return PROXY_PATH + url;
+    // 否则视为原始 R2 Key，拼接到自定义域名
+    return `${CUSTOM_DOMAIN}/${url}`;
 }
 
 /**
