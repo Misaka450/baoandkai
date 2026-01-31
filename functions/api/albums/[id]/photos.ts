@@ -91,7 +91,7 @@ export async function onRequestPost(context: { request: Request; env: Env; data:
             httpMetadata: { contentType: file.type },
         });
 
-        const baseUrl = (env as any).IMAGE_BASE_URL || '/api/images';
+        const baseUrl = (env as any).IMAGE_BASE_URL || 'https://img.980823.xyz';
         const proxiedUrl = `${baseUrl}/${key}`;
 
         // 2. 写入数据库
