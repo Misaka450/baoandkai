@@ -9,7 +9,8 @@ export type IconName =
     | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search' | 'verified' | 'report_problem'
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu' | 'close'
-    | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration';
+    | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration'
+    | 'upload' | 'add_a_photo';
 
 interface IconProps {
     name: IconName;
@@ -74,7 +75,9 @@ const iconPaths: Record<IconName, string> = {
     error: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",
     check_circle: "M12 2C6.48 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
     event: "M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z",
-    celebration: "M2 22l14-5-9-9-5 14zm11.83-11.41L15 9l1.17 1.59 1.59-1.17L16.59 8l1.59-1.17-1.59-1.17L15 4l-1.17 1.59-1.59-1.17L13.41 6l-1.59 1.17 1.59 1.17zM19 14l-1.17 1.59-1.59-1.17L17.41 16l-1.59 1.17 1.59-1.17L19 17l1.17-1.59 1.59-1.17L20.59 15l1.59-1.17-1.59-1.17z"
+    celebration: "M2 22l14-5-9-9-5 14zm11.83-11.41L15 9l1.17 1.59 1.59-1.17L16.59 8l1.59-1.17-1.59-1.17L15 4l-1.17 1.59-1.59-1.17L13.41 6l-1.59 1.17 1.59 1.17zM19 14l-1.17 1.59-1.59-1.17L17.41 16l-1.59 1.17 1.59-1.17L19 17l1.17-1.59 1.59-1.17L20.59 15l1.59-1.17-1.59-1.17z",
+    upload: "M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z",
+    add_a_photo: "M4 4h3l2-2h6l2 2h3c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm2 13c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5-5 2.24-5 5zm5-3c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3z"
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {
