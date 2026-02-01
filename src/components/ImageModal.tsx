@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
 import Icon from './icons/Icons'
 
@@ -178,7 +179,8 @@ export default function ImageModal({
 
   if (!isOpen) return null
 
-  return (
+  // 使用 Portal 确保模态框相对于视口定位
+  return createPortal(
     <div
       id="premium-image-modal"
       ref={containerRef}
@@ -219,7 +221,7 @@ export default function ImageModal({
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-2xl border border-white/10 ml-2 hover:scale-105 active:scale-95"
           >
-            <Icon name="delete" size={20} /> {/* 这里用 delete 样式来表示 X 的现代感，或者换成图标库里的 close/X */}
+            <Icon name="close" size={20} />
           </button>
         </div>
       </div>
@@ -335,6 +337,7 @@ export default function ImageModal({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   )
 }

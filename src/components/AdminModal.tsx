@@ -1,4 +1,5 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 import Icon, { IconName } from './icons/Icons'
 
 // 定义模态框组件的属性接口
@@ -64,10 +65,11 @@ const AdminModal: React.FC<AdminModalProps> = ({
 
   const config = typeConfig[type] || typeConfig.info
 
-  return (
+  // 使用 Portal 确保模态框相对于视口定位
+  return createPortal(
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60]" onClick={onClose}>
       <div
-        className="bg-white/95 backdrop-blur-md border border-white/50 rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 overflow-hidden animate-scale-in"
+        className="bg-white/95 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         <div className={`p-6 ${config.headerGradient} border-b border-slate-100/50 flex items-center gap-4`}>
@@ -101,7 +103,8 @@ const AdminModal: React.FC<AdminModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
