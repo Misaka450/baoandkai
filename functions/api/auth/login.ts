@@ -67,20 +67,14 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         }
 
         // 使用bcrypt验证密码
-        let isValidPassword = await verifyPassword(password, user.password_hash);
-
-        // 特殊测试：暂时保留为了平滑迁移
-        if (!isValidPassword && password === '123456') {
-            console.warn('[Login API] Fallback matched 123456');
-            isValidPassword = true;
-        }
+        const isValidPassword = await verifyPassword(password, user.password_hash);
 
         if (!isValidPassword) {
             return errorResponse('用户名或密码错误', 401);
         }
 
-        // 生成安全的随机token
-        const token = env.ADMIN_TOKEN || crypto.randomUUID();
+        // 生成安全的随机token（每次登录都生成唯一token）
+        const token = crypto.randomUUID();
         const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
         try {
