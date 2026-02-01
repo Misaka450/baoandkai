@@ -86,13 +86,13 @@ class ErrorBoundary extends Component<Props, State> {
                             </button>
                         </div>
 
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                        {this.state.error && (
                             <div className="mt-12 text-left">
                                 <details className="group">
                                     <summary className="text-[10px] font-black text-slate-300 cursor-pointer uppercase tracking-widest hover:text-primary transition-colors">
-                                        TECHNICAL DETAILS
+                                        TECHNICAL DETAILS (点击展开)
                                     </summary>
-                                    <div className="mt-4 p-6 bg-slate-50 rounded-2xl text-[10px] font-mono text-slate-500 overflow-auto max-h-48 border border-slate-100 italic leading-relaxed">
+                                    <div className="mt-4 p-6 bg-slate-50 rounded-2xl text-[10px] font-mono text-slate-500 overflow-auto max-h-48 border border-slate-100 italic leading-relaxed select-text">
                                         <p className="font-bold text-red-400 mb-2">{this.state.error.toString()}</p>
                                         {this.state.errorInfo && (
                                             <pre className="whitespace-pre-wrap opacity-60">
