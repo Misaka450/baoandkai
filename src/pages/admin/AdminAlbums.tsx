@@ -433,8 +433,12 @@ const AdminAlbums = () => {
                                             onDragStart={(e) => handleDragStart(e, photo)}
                                             onDragOver={handleDragOver}
                                             onDrop={(e) => handleDrop(e, photo)}
-                                            className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700 ${draggedPhoto?.id === photo.id ? 'opacity-50' : ''}`}
+                                            className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700 cursor-move relative ${draggedPhoto?.id === photo.id ? 'opacity-50' : ''}`}
                                         >
+                                            {/* 拖拽提示图标 */}
+                                            <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
+                                                <Icon name="drag_indicator" size={16} className="text-white" />
+                                            </div>
                                             <img
                                                 src={`${photo.url}${photo.url.includes('?') ? '&' : '?'}width=400&height=400&fit=crop&quality=80`}
                                                 loading="lazy"
