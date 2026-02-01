@@ -85,16 +85,38 @@ export async function onRequestPost(context: { request: Request; env: Env; data:
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(7);
         const extension = file.name.split('.').pop() || 'jpg';
+
+        // 原图 Key: albums/AlbumName/timestamp-random.ext
         const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
 
-        await env.IMAGES.put(key, file.stream(), {
-            httpMetadata: { contentType: file.type },
-        });
+        // 缩略图 Key: thumbnails/AlbumName/timestamp-random_thumb.ext
+        // 按用户要求：专门建一个文件夹存放压缩后的图片，并且命名为原图名称+压缩
+        // 这里 "原图名称" 指的是生成的唯一文件名，以保持关联
+        const thumbKey = `thumbnails/${albumName}/${timestamp}-${randomStr}_thumb.${extension}`;
+
+        // 并行上传原图和缩略图
+        const uploadPromises = [
+            env.IMAGES.put(key, file.stream(), {
+                httpMetadata: { contentType: file.type },
+            })
+        ];
+
+        // 如果有缩略图，也上传
+        const thumbnail = formData.get('thumbnail') as File;
+        if (thumbnail) {
+            uploadPromises.push(
+                env.IMAGES.put(thumbKey, thumbnail.stream(), {
+                    httpMetadata: { contentType: thumbnail.type },
+                })
+            );
+        }
+
+        await Promise.all(uploadPromises);
 
         const baseUrl = (env as any).IMAGE_BASE_URL || 'https://img.980823.xyz';
         const proxiedUrl = `${baseUrl}/${key}`;
 
-        // 2. 写入数据库
+        // 2. 写入数据库 (只存原图 URL，前端通过规则推导缩略图 URL)
         const result = await env.DB.prepare(`
             INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
             VALUES (?, ?, ?, (SELECT IFNULL(MAX(sort_order), 0) + 1 FROM photos WHERE album_id = ?), datetime('now'))

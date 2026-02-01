@@ -211,14 +211,15 @@ const AdminAlbums = () => {
 
         setUploadingFiles(prev => [...prev, ...newUploads]);
 
-        // 串行处理：压缩后上传
+        // 串行处理：同时上传原图和缩略图
         for (const uploadItem of newUploads) {
             try {
-                // 前端压缩 (免费优化方案)
-                const compressedFile = await compressImage(uploadItem.file);
+                // 生成缩略图 (用于管理界面快速显示)
+                const thumbnailFile = await compressImage(uploadItem.file, 400, 0.6); // 更小的尺寸和质量用于缩略图
 
                 const formDataUpload = new FormData()
-                formDataUpload.append('file', compressedFile)
+                formDataUpload.append('file', uploadItem.file) // 上传原图
+                formDataUpload.append('thumbnail', thumbnailFile) // 上传缩略图
                 formDataUpload.append('album_id', String(selectedAlbum.id))
 
                 const { data, error } = await apiService.uploadWithProgress<Photo>(
@@ -439,10 +440,40 @@ const AdminAlbums = () => {
                                             <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
                                                 <Icon name="drag_indicator" size={16} className="text-white" />
                                             </div>
+                                            {/* 优先尝试加载缩略图 (约定: albums/ -> thumbnails/ 且文件名追加 _thumb) */}
                                             <img
-                                                src={`${photo.url}${photo.url.includes('?') ? '&' : '?'}width=400&height=400&fit=crop&quality=80`}
+                                                src={(() => {
+                                                    // 尝试构建缩略图 URL
+                                                    // 原图: .../albums/Name/file.ext
+                                                    // 缩略图: .../thumbnails/Name/file_thumb.ext
+                                                    const url = photo.url;
+                                                    if (!url.includes('/albums/')) return url;
+
+                                                    const lastDotIndex = url.lastIndexOf('.');
+                                                    if (lastDotIndex === -1) return url;
+
+                                                    // 1. 替换路径前缀
+                                                    let thumbUrl = url.replace('/albums/', '/thumbnails/');
+
+                                                    // 2. 追加 _thumb 后缀
+                                                    // 注意：replace 只替换了一次 albums，现在处理文件名
+                                                    // 我们需要确保只在最后的文件名处追加 _thumb, 且 thumbUrl 目前已经是 .../thumbnails/.../file.ext
+                                                    const newLastDotIndex = thumbUrl.lastIndexOf('.');
+                                                    thumbUrl = thumbUrl.substring(0, newLastDotIndex) + '_thumb' + thumbUrl.substring(newLastDotIndex);
+
+                                                    return thumbUrl;
+                                                })()}
                                                 loading="lazy"
                                                 alt=""
+                                                onError={(e) => {
+                                                    // 如果缩略图加载失败 (旧图片没有缩略图)，回退到原图 + 动态压缩参数 (作为兜底)
+                                                    const target = e.target as HTMLImageElement;
+                                                    const fallbackUrl = `${photo.url}${photo.url.includes('?') ? '&' : '?'}width=400&height=400&fit=crop&quality=80`;
+                                                    // 防止死循环: 如果 fallback 也是当前 src，则停止
+                                                    if (target.src !== fallbackUrl) {
+                                                        target.src = fallbackUrl;
+                                                    }
+                                                }}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                             />
 
