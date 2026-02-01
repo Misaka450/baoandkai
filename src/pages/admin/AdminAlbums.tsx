@@ -19,6 +19,7 @@ interface Photo {
     url: string
     caption: string
     album_id: number
+    sort_order?: number
 }
 
 const AdminAlbums = () => {
@@ -32,6 +33,10 @@ const AdminAlbums = () => {
     const [uploadingFiles, setUploadingFiles] = useState<{ id: string, progress: number, speed: number, preview: string }[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
+
+    // New Feature State
+    const [draggedPhoto, setDraggedPhoto] = useState<Photo | null>(null)
+    const [editingCaption, setEditingCaption] = useState<{ id: number, text: string } | null>(null)
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
 
@@ -76,6 +81,82 @@ const AdminAlbums = () => {
     const handleAlbumClick = (album: Album) => {
         setSelectedAlbum(album)
         loadPhotos(album.id)
+    }
+
+    // --- Drag & Drop Logic ---
+    const handleDragStart = (e: React.DragEvent, photo: Photo) => {
+        setDraggedPhoto(photo)
+        e.dataTransfer.effectAllowed = 'move'
+        // Set transparent image to avoid ghosting if desired, or let default behavior happen
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+    }
+
+    const handleDrop = async (e: React.DragEvent, targetPhoto: Photo) => {
+        e.preventDefault()
+        if (!draggedPhoto || draggedPhoto.id === targetPhoto.id || !selectedAlbum) return
+
+        const newPhotos = [...photos]
+        const draggedIndex = newPhotos.findIndex(p => p.id === draggedPhoto.id)
+        const targetIndex = newPhotos.findIndex(p => p.id === targetPhoto.id)
+
+        // Remove and insert
+        newPhotos.splice(draggedIndex, 1)
+        newPhotos.splice(targetIndex, 0, draggedPhoto)
+
+        // Optimistic Update
+        setPhotos(newPhotos)
+        setDraggedPhoto(null)
+
+        // Sync with backend
+        try {
+            const reorderData = newPhotos.map((p, index) => ({
+                id: p.id,
+                sort_order: index
+            }))
+
+            await apiService.post(`/albums/${selectedAlbum.id}/photos/reorder`, reorderData)
+        } catch (error) {
+            console.error('排序更新失败:', error)
+            await showAlert('错误', '排序未保存成功', 'error')
+            loadPhotos(selectedAlbum.id) // Revert
+        }
+    }
+
+    // --- Caption Editing Logic ---
+    const startEditingCaption = (photo: Photo) => {
+        setEditingCaption({ id: photo.id, text: photo.caption || '' })
+    }
+
+    const saveCaption = async () => {
+        if (!editingCaption || !selectedAlbum) return
+
+        try {
+            const { error } = await apiService.put(`/albums/${selectedAlbum.id}/photos/${editingCaption.id}`, {
+                caption: editingCaption.text
+            })
+            if (error) throw new Error(error)
+
+            // Update local state
+            setPhotos(prev => prev.map(p =>
+                p.id === editingCaption.id ? { ...p, caption: editingCaption.text } : p
+            ))
+            setEditingCaption(null)
+        } catch (error) {
+            console.error('更新名称失败:', error)
+            await showAlert('错误', '名称更新失败', 'error')
+        }
+    }
+
+    const handleCaptionKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            saveCaption()
+        } else if (e.key === 'Escape') {
+            setEditingCaption(null)
+        }
     }
 
     // ... (中间原有代码保持不变) ...
@@ -342,10 +423,47 @@ const AdminAlbums = () => {
                                     </div>
                                 ) : (
                                     photos.map((photo) => (
-                                        <div key={photo.id} className="premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700">
-                                            <img src={photo.url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                            {/* 操作层 */}
-                                            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+                                        <div
+                                            key={photo.id}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, photo)}
+                                            onDragOver={handleDragOver}
+                                            onDrop={(e) => handleDrop(e, photo)}
+                                            className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700 ${draggedPhoto?.id === photo.id ? 'opacity-50' : ''}`}
+                                        >
+                                            <img
+                                                src={`${photo.url}${photo.url.includes('?') ? '&' : '?'}width=400&height=400&fit=crop&quality=80`}
+                                                loading="lazy"
+                                                alt=""
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                            />
+
+                                            {/* 图片说明/标题编辑区 */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                                                {editingCaption?.id === photo.id ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editingCaption.text}
+                                                        onChange={(e) => setEditingCaption({ ...editingCaption, text: e.target.value })}
+                                                        onBlur={saveCaption}
+                                                        onKeyDown={handleCaptionKeyDown}
+                                                        autoFocus
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="w-full bg-white/20 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-white/30 focus:outline-none focus:bg-white/30"
+                                                    />
+                                                ) : (
+                                                    <p
+                                                        onClick={(e) => { e.stopPropagation(); startEditingCaption(photo); }}
+                                                        className="text-white text-xs font-medium truncate cursor-text hover:underline text-center"
+                                                        title="点击编辑标题"
+                                                    >
+                                                        {photo.caption || '未命名图片'}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* 操作层 (Buttons) */}
+                                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 z-20">
                                                 <button
                                                     onClick={() => setAsCover(photo.url)}
                                                     className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedAlbum.cover_url === photo.url ? 'bg-primary text-white' : 'bg-white text-slate-900 hover:bg-primary hover:text-white'}`}
