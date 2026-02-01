@@ -208,18 +208,28 @@ export default function ImageModal({
           <button
             onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
             className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            title="放大"
           >
-            <Icon name="search" size={20} />
+            <Icon name="zoom_in" size={20} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setScale(prev => Math.max(0.5, prev / 1.5)); }}
+            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            title="缩小"
+          >
+            <Icon name="zoom_out" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); resetTransform(); }}
             className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            title="还原"
           >
-            <Icon name="west" size={20} />
+            <Icon name="restart_alt" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-2xl border border-white/10 ml-2 hover:scale-105 active:scale-95"
+            title="退出"
           >
             <Icon name="close" size={20} />
           </button>
