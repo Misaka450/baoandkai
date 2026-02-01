@@ -1,3 +1,4 @@
+```
 import { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
@@ -5,6 +6,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 
 interface FoodCheckin {
     id: number
@@ -95,7 +97,7 @@ const AdminFoodCheckin = () => {
         try {
             const payload = { ...formData, recommended_dishes: formData.recommended_dishes.split('，').map(d => d.trim()).filter(Boolean) }
             if (editingId) {
-                const { error } = await apiService.put(`/food/${editingId}`, payload)
+                const { error } = await apiService.put(`/ food / ${ editingId } `, payload)
                 if (error) throw new Error(error)
                 await showAlert('成功', '美食打卡已更新！', 'success')
             } else {
@@ -125,7 +127,7 @@ const AdminFoodCheckin = () => {
     const handleDelete = async (id: number) => {
         if (!await showConfirm('删除打卡', '确定要删除这个美食打卡吗？')) return
         try {
-            const { error } = await apiService.delete(`/food/${id}`)
+            const { error } = await apiService.delete(`/ food / ${ id } `)
             if (error) throw new Error(error)
             await showAlert('成功', '已删除！', 'success'); loadCheckins()
             queryClient.invalidateQueries({ queryKey: ['food'] });
@@ -185,7 +187,7 @@ const AdminFoodCheckin = () => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">推荐指数</label>
-                            <div className="flex items-center h-[56px] gap-2">{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" onClick={() => setFormData({ ...formData, overall_rating: n })} className={`text-2xl transition-all hover:scale-125 ${n <= formData.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]' : 'text-slate-200'}`}>★</button>)}</div>
+                            <div className="flex items-center h-[56px] gap-2">{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" onClick={() => setFormData({ ...formData, overall_rating: n })} className={`text - 2xl transition - all hover: scale - 125 ${ n <= formData.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]' : 'text-slate-200' } `}>★</button>)}</div>
                         </div>
                     </div>
 
@@ -203,8 +205,8 @@ const AdminFoodCheckin = () => {
                         <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">美食照片</label>
                         <div className="flex flex-wrap gap-4">
                             {formData.images.map((img, i) => (
-                                <div key={i} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md">
-                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                 <div key={i} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md">
+                                    <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
                                     <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
                                 </div>
                             ))}
@@ -245,7 +247,7 @@ const AdminFoodCheckin = () => {
                     </div>
                 ) : (
                     checkins.map((c, index) => (
-                        <div key={c.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                        <div key={c.id} className="animate-slide-up" style={{ animationDelay: `${ index * 0.1 } s` }}>
                             <div className="premium-card p-8 group h-full flex flex-col">
                                 <div className="flex items-start justify-between mb-6">
                                     <div className="flex-1 min-w-0">
@@ -271,9 +273,9 @@ const AdminFoodCheckin = () => {
 
                                 {c.images && c.images.length > 0 && (
                                     <div className="grid grid-cols-3 gap-3 mb-6">
-                                        {c.images.slice(0, 3).map((img, i) => (
+                                         {c.images.slice(0, 3).map((img, i) => (
                                             <div key={i} className="aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform duration-500">
-                                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                                <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
                                             </div>
                                         ))}
                                     </div>
@@ -282,7 +284,7 @@ const AdminFoodCheckin = () => {
                                 <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
                                     <div className="flex items-center gap-1">
                                         {[1, 2, 3, 4, 5].map(star => (
-                                            <span key={star} className={`text-lg leading-none transition-all duration-500 ${star <= c.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] scale-110' : 'text-slate-100'}`}>
+                                            <span key={star} className={`text - lg leading - none transition - all duration - 500 ${ star <= c.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] scale-110' : 'text-slate-100' } `}>
                                                 ★
                                             </span>
                                         ))}

@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { createPortal } from 'react-dom'
 import Icon from './icons/Icons'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 interface ModalProps {
     isOpen: boolean
@@ -10,16 +11,7 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden'
-        } else {
-            document.body.style.overflow = 'unset'
-        }
-        return () => {
-            document.body.style.overflow = 'unset'
-        }
-    }, [isOpen])
+    useBodyScrollLock(isOpen)
 
     if (!isOpen) return null
 
