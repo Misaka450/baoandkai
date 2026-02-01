@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Navigation from './Navigation'
 import Icon from './icons/Icons'
+import PageTransition from './PageTransition'
 
 export default function Layout() {
   const location = useLocation()
@@ -57,9 +58,9 @@ export default function Layout() {
       {!isAdminPage && <Navigation />}
 
       <main className="relative z-10">
-        <div className="animate-fade-in">
+        <PageTransition>
           <Outlet />
-        </div>
+        </PageTransition>
       </main>
 
       {/* 背景光晕 - 确保不受字体加载影响 */}
