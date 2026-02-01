@@ -1,4 +1,4 @@
-import { jsonResponse, errorResponse } from '../../../../../utils/response';
+import { jsonResponse, errorResponse } from '../../../../utils/response';
 
 export interface Env {
     DB: D1Database;
