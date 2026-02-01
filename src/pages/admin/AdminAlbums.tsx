@@ -4,7 +4,7 @@ import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
-import Icon from '../../components/icons/Icons'
+import { Icon } from '../../components/icons/Icons'
 
 interface Album {
     id: number
