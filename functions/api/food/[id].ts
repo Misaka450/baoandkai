@@ -147,7 +147,11 @@ export async function onRequestDelete(context: { env: Env; request: Request }) {
             return errorResponse('无效的ID', 400);
         }
 
-        await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?').bind(foodId).run();
+        const result = await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?').bind(foodId).run();
+
+        if (result.meta.changes === 0) {
+            return errorResponse('记录不存在', 404);
+        }
 
         return jsonResponse({ success: true, message: '记录已删除' });
     } catch (error: any) {
