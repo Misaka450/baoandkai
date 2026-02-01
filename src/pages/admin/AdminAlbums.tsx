@@ -41,9 +41,10 @@ const AdminAlbums = () => {
 
     const loadAlbums = async () => {
         try {
-            const { data, error } = await apiService.get<Album[]>('/albums')
+            // API 返回格式为 { data: Album[] }
+            const { data, error } = await apiService.get<{ data: Album[] }>('/albums')
             if (error) throw new Error(error)
-            setAlbums(data || [])
+            setAlbums(data?.data || [])
         } catch (error) {
             console.error('加载相册失败:', error)
         } finally {
@@ -53,9 +54,10 @@ const AdminAlbums = () => {
 
     const loadPhotos = async (albumId: number) => {
         try {
-            const { data, error } = await apiService.get<Photo[]>(`/albums/${albumId}/photos`)
+            // API 返回格式为 { data: Photo[] }
+            const { data, error } = await apiService.get<{ data: Photo[] }>(`/albums/${albumId}/photos`)
             if (error) throw new Error(error)
-            setPhotos(data || [])
+            setPhotos(data?.data || [])
         } catch (error) {
             console.error('加载照片失败:', error)
         }
