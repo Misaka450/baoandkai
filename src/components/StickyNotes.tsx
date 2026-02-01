@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiService } from '../services/apiService'
 import Icon from './icons/Icons'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 interface Note {
   id: number
@@ -38,6 +39,9 @@ export default function StickyNotes() {
   const [loading, setLoading] = useState(true)
   const [newNote, setNewNote] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+
+  // 锁定 body 滚动
+  useBodyScrollLock(showAddModal)
 
   useEffect(() => {
     fetchNotes()
@@ -79,7 +83,6 @@ export default function StickyNotes() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {notes.map((note, idx) => {
-        // 按索引轮换颜色，确保五颜六色
         const colorKeys = Object.keys(colorMap)
         const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
         const style = colorMap[colorKey]!
@@ -87,7 +90,6 @@ export default function StickyNotes() {
         const rotation = rotations[idx % rotations.length]
         return (
           <div key={note.id} className={`${style.bg} p-10 py-12 rounded-2xl border ${style.border} flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] shadow-xl ${style.shadow} cursor-default group relative ${rotation}`}>
-            {/* 图钉装饰 */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 text-stone-400/80 drop-shadow-sm group-hover:scale-110 transition-transform">
               <Icon name="push_pin" size={24} />
             </div>

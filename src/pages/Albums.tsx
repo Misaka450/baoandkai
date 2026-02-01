@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
+import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Album, Photo } from '../types'
 import Icon from '../components/icons/Icons'
 import ImageModal from '../components/ImageModal'
 import { Skeleton, ImageGridSkeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 interface AlbumsResponse {
   data: Album[]
@@ -33,6 +34,9 @@ export default function Albums() {
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
+  // 锁定 body 滚动
+  useBodyScrollLock(!!selectedAlbumId)
+
   const { data: albumsData, isLoading: loading } = useQuery({
     queryKey: ['albums', currentPage, itemsPerPage],
     queryFn: async () => {
@@ -44,7 +48,7 @@ export default function Albums() {
 
   const albums = albumsData?.data || []
 
-  // 使用 React Query 加载相册详情，利用其自动缓存机制
+  // 使用 React Query 加载相册详情
   const { data: albumDetail, isLoading: loadingPhotos } = useQuery({
     queryKey: ['album-detail', selectedAlbumId],
     queryFn: async () => {
@@ -54,7 +58,7 @@ export default function Albums() {
       return data
     },
     enabled: !!selectedAlbumId,
-    staleTime: Infinity, // 除非手动失效，否则永不重新请求（满足用户“仅在上传后重新拉取”的需求）
+    staleTime: Infinity,
   })
 
   // 点击相册 - 设置 ID 触发加载
@@ -115,7 +119,7 @@ export default function Albums() {
                     <LazyImage
                       alt={album.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                      src={album.cover_url}
+                      src={getThumbnailUrl(album.cover_url, 600)}
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-200">
@@ -176,7 +180,7 @@ export default function Albums() {
             </div>
 
             {/* 照片网格 */}
-            <div className="p-10 overflow-y-auto max-h-[70vh] bg-slate-50/30">
+            <div className="p-10 overflow-y-auto max-h-[70vh] bg-slate-50/30 custom-scrollbar">
               {loadingPhotos ? (
                 <div className="text-center py-24">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
@@ -197,7 +201,7 @@ export default function Albums() {
                       onClick={(e) => { e.stopPropagation(); handlePhotoClick(idx); }}
                     >
                       <LazyImage
-                        src={photo.url}
+                        src={getThumbnailUrl(photo.url, 400)}
                         alt={photo.caption || `照片${idx + 1}`}
                         className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-1000"
                       />

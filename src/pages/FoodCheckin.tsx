@@ -6,6 +6,7 @@ import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
+import { getThumbnailUrl } from '../utils/imageUtils'
 
 interface FoodResponse {
   data: FoodCheckin[]
@@ -147,7 +148,7 @@ export default function FoodCheckin() {
                   <LazyImage
                     alt={checkin.restaurant_name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                    src={images[0] || ''}
+                    src={getThumbnailUrl(images[0] || '', 600)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
 
@@ -212,7 +213,7 @@ export default function FoodCheckin() {
                           className="w-12 h-12 rounded-xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-primary/10 transition-all shadow-sm"
                           onClick={() => handleImageClick(images, i)}
                         >
-                          <LazyImage className="w-full h-full object-cover" src={img} alt={`Photo ${i}`} />
+                          <LazyImage className="w-full h-full object-cover" src={getThumbnailUrl(img, 200)} alt={`Photo ${i}`} />
                         </div>
                       ))}
                       {images.length > 4 && (

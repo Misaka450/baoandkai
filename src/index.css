@@ -14,6 +14,18 @@
     @apply bg-background-light text-slate-600 min-h-screen transition-colors duration-300;
   }
 
+  body.overflow-hidden {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: auto;
+    left: 0;
+    right: 0;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
   /* 滚动性能优化 */
   * {
     /* 平滑滚动 */

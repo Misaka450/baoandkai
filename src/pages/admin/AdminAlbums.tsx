@@ -5,7 +5,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import { Icon } from '../../components/icons/Icons'
-import { compressImage } from '../../utils/image'
+import { compressImage, getThumbnailUrl } from '../../utils/imageUtils'
 
 interface Album {
     id: number
@@ -88,7 +88,6 @@ const AdminAlbums = () => {
     const handleDragStart = (e: React.DragEvent, photo: Photo) => {
         setDraggedPhoto(photo)
         e.dataTransfer.effectAllowed = 'move'
-        // Set transparent image to avoid ghosting if desired, or let default behavior happen
     }
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -160,19 +159,6 @@ const AdminAlbums = () => {
         }
     }
 
-    // ... (中间原有代码保持不变) ...
-    // 注意：这里需要你细心保留 handleCreateAlbum 到 handleDeleteAlbum 的所有代码
-    // 由于字数限制，我只展示修改的部分，请确保替换时不要覆盖中间逻辑
-    // 为了安全起见，我会分块使用 replace_file_content，或者只替换 loadAlbums 部分
-    // 这里我只能替换 loadAlbums 函数体，但 view_file 显示它们是紧挨着的
-    // 让我重新组织一下，只替换 loadAlbums 函数
-
-    // (Actual replacement content below for just the specific functions if I use proper range)
-    // But since I selected a large range in my thought process, let me refine the tool call.
-    // I will split this into two tool calls or be very precise.
-    // The user wants me to fix the "Empty State is too big" issue too.
-
-
     const handleCreateAlbum = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
@@ -211,11 +197,11 @@ const AdminAlbums = () => {
 
         setUploadingFiles(prev => [...prev, ...newUploads]);
 
-        // 串行处理：同时上传原图和缩略图
+        // 串行处理
         for (const uploadItem of newUploads) {
             try {
                 // 生成缩略图 (用于管理界面快速显示)
-                const thumbnailFile = await compressImage(uploadItem.file, 400, 0.6); // 更小的尺寸和质量用于缩略图
+                const thumbnailFile = await compressImage(uploadItem.file, 800, 0.7);
 
                 const formDataUpload = new FormData()
                 formDataUpload.append('file', uploadItem.file) // 上传原图
@@ -240,7 +226,7 @@ const AdminAlbums = () => {
                     setPhotos(prev => [data, ...prev]);
                     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
 
-                    // 核心逻辑：通知 React Query 缓存失效，Gallery 页面再次进入该相册时会重新拉取最新数据
+                    // 通知缓存失效
                     queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
                     queryClient.invalidateQueries({ queryKey: ['albums'] });
                 }
@@ -265,7 +251,6 @@ const AdminAlbums = () => {
             setPhotos(prev => prev.filter(p => p.id !== photoId))
             setAlbums(prev => prev.map(a => a.id === selectedAlbum?.id ? { ...a, photo_count: (a.photo_count || 0) - 1 } : a))
 
-            // 核心逻辑：同步失效缓存
             if (selectedAlbum) {
                 queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
                 queryClient.invalidateQueries({ queryKey: ['albums'] });
@@ -339,7 +324,7 @@ const AdminAlbums = () => {
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
                                     {album.cover_url ? (
-                                        <img src={album.cover_url} alt="" className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(album.cover_url, 200)} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                                             <Icon name="photo_library" size={24} />
@@ -436,48 +421,16 @@ const AdminAlbums = () => {
                                             onDrop={(e) => handleDrop(e, photo)}
                                             className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700 cursor-move relative ${draggedPhoto?.id === photo.id ? 'opacity-50' : ''}`}
                                         >
-                                            {/* 拖拽提示图标 */}
                                             <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
                                                 <Icon name="drag_indicator" size={16} className="text-white" />
                                             </div>
-                                            {/* 优先尝试加载缩略图 (约定: albums/ -> thumbnails/ 且文件名追加 _thumb) */}
                                             <img
-                                                src={(() => {
-                                                    // 尝试构建缩略图 URL
-                                                    // 原图: .../albums/Name/file.ext
-                                                    // 缩略图: .../thumbnails/Name/file_thumb.ext
-                                                    const url = photo.url;
-                                                    if (!url.includes('/albums/')) return url;
-
-                                                    const lastDotIndex = url.lastIndexOf('.');
-                                                    if (lastDotIndex === -1) return url;
-
-                                                    // 1. 替换路径前缀
-                                                    let thumbUrl = url.replace('/albums/', '/thumbnails/');
-
-                                                    // 2. 追加 _thumb 后缀
-                                                    // 注意：replace 只替换了一次 albums，现在处理文件名
-                                                    // 我们需要确保只在最后的文件名处追加 _thumb, 且 thumbUrl 目前已经是 .../thumbnails/.../file.ext
-                                                    const newLastDotIndex = thumbUrl.lastIndexOf('.');
-                                                    thumbUrl = thumbUrl.substring(0, newLastDotIndex) + '_thumb' + thumbUrl.substring(newLastDotIndex);
-
-                                                    return thumbUrl;
-                                                })()}
+                                                src={getThumbnailUrl(photo.url, 400)}
                                                 loading="lazy"
                                                 alt=""
-                                                onError={(e) => {
-                                                    // 如果缩略图加载失败 (旧图片没有缩略图)，回退到原图 + 动态压缩参数 (作为兜底)
-                                                    const target = e.target as HTMLImageElement;
-                                                    const fallbackUrl = `${photo.url}${photo.url.includes('?') ? '&' : '?'}width=400&height=400&fit=crop&quality=80`;
-                                                    // 防止死循环: 如果 fallback 也是当前 src，则停止
-                                                    if (target.src !== fallbackUrl) {
-                                                        target.src = fallbackUrl;
-                                                    }
-                                                }}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                             />
 
-                                            {/* 图片说明/标题编辑区 */}
                                             {/* 图片说明/标题编辑区 - 始终显示 */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10">
                                                 {editingCaption?.id === photo.id ? (
@@ -534,8 +487,6 @@ const AdminAlbums = () => {
                 </div>
             </div>
 
-            {/* 相册表单弹窗 */}
-            {/* 相册表单弹窗 */}
             <Modal
                 isOpen={showAlbumForm}
                 onClose={() => setShowAlbumForm(false)}

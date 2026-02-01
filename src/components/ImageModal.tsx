@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
 import Icon from './icons/Icons'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -17,10 +18,10 @@ interface ImageModalProps {
 
 /**
  * Premium 图片查看器
- * 升级视觉效果：
- * 1. 磨砂玻璃背景 + 深色渐变叠加
- * 2. 现代化的控制按钮
- * 3. 顺滑的转场动画
+ * 升级优化：
+ * 1. 渐进式加载：先显示缩略图，再平滑切换到原图
+ * 2. 增强的加载状态提示
+ * 3. 移动端手势优化
  */
 export default function ImageModal({
   isOpen,
@@ -36,7 +37,7 @@ export default function ImageModal({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isFullLoaded, setIsFullLoaded] = useState(false)
   const [hasDragged, setHasDragged] = useState(false)
 
   const touchStart = useRef({ x: 0, y: 0 })
@@ -45,8 +46,10 @@ export default function ImageModal({
   const containerRef = useRef<HTMLDivElement>(null)
   const thumbListRef = useRef<HTMLDivElement>(null)
 
+  useBodyScrollLock(isOpen)
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
+  const thumbnailUrl = currentImage ? getThumbnailUrl(currentImage, 400) : ''
 
   const resetTransform = useCallback(() => {
     setScale(1)
@@ -54,11 +57,18 @@ export default function ImageModal({
   }, [])
 
   useEffect(() => {
-    // 只有当图片不在缓存中时，才显示加载动画
-    if (currentImage && !loadedImagesCache.has(currentImage)) {
-      setIsLoaded(false)
-    } else {
-      setIsLoaded(true)
+    if (currentImage) {
+      if (loadedImagesCache.has(currentImage)) {
+        setIsFullLoaded(true)
+      } else {
+        setIsFullLoaded(false)
+        // 预加载原图
+        preloadImage(currentImage).then(() => {
+          setIsFullLoaded(true)
+        }).catch(() => {
+          setIsFullLoaded(true) // 即使失败也尝试显示
+        })
+      }
     }
     resetTransform()
   }, [currentIndex, currentImage, resetTransform])
@@ -87,18 +97,15 @@ export default function ImageModal({
 
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
     }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose, images.length, onPrevious, onNext])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // 双指操作：准备缩放
       const touch1 = e.touches[0]
       const touch2 = e.touches[1]
       if (!touch1 || !touch2) return
@@ -111,7 +118,6 @@ export default function ImageModal({
       if (touch) {
         touchStart.current = { x: touch.clientX, y: touch.clientY }
         if (scale > 1) {
-          // 缩放状态下，准备拖拽
           setIsDragging(true)
           setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
         }
@@ -121,7 +127,6 @@ export default function ImageModal({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // 双指缩放
       const touch1 = e.touches[0]
       const touch2 = e.touches[1]
       if (!touch1 || !touch2) return
@@ -135,7 +140,6 @@ export default function ImageModal({
       }
       e.preventDefault()
     } else if (e.touches.length === 1 && scale > 1 && isDragging) {
-      // 单指拖拽（仅在缩放状态）
       const touch = e.touches[0]
       if (touch) {
         const newX = touch.clientX - dragStart.x
@@ -150,12 +154,10 @@ export default function ImageModal({
     initialPinchDistance.current = 0
     setIsDragging(false)
 
-    // 如果缩放比例太小，重置
     if (scale < 1) {
       resetTransform()
     }
 
-    // 处理左右滑动切换图片（仅在非缩放状态）
     if (scale <= 1 && !hasDragged) {
       const touch = e.changedTouches[0]
       if (!touch) return
@@ -171,20 +173,13 @@ export default function ImageModal({
     setTimeout(() => setHasDragged(false), 100)
   }
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (scale > 1) resetTransform()
-    else setScale(2)
-  }
-
   if (!isOpen) return null
 
-  // 使用 Portal 确保模态框相对于视口定位
   return createPortal(
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-xl transition-all duration-300 animate-fade-in"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in"
       onClick={() => {
         if (!hasDragged) onClose()
         setHasDragged(false)
@@ -195,13 +190,19 @@ export default function ImageModal({
     >
 
       {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-8 z-50 bg-gradient-to-b from-black/20 to-transparent">
+      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-8 z-50 bg-gradient-to-b from-black/40 to-transparent">
         <div className="flex items-center gap-4">
           <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
-            <span className="text-[10px] font-black text-white/80 uppercase tracking-[0.2em]">
+            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
               {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
             </span>
           </div>
+          {!isFullLoaded && (
+            <div className="flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary/20">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest">Loading High-Res</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -228,7 +229,7 @@ export default function ImageModal({
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-2xl border border-white/10 ml-2 hover:scale-105 active:scale-95"
+            className="w-12 h-12 flex items-center justify-center bg-white text-slate-900 rounded-2xl transition-all shadow-2xl ml-2 hover:scale-105 active:scale-95"
             title="退出"
           >
             <Icon name="close" size={20} />
@@ -240,7 +241,6 @@ export default function ImageModal({
       <div
         className="relative w-full flex-1 flex items-center justify-center overflow-hidden"
         onClick={(e) => {
-          // 点击这个容器（背景区域）会关闭
           if (e.target === e.currentTarget && !hasDragged) onClose()
         }}
         onMouseMove={(e) => {
@@ -278,46 +278,50 @@ export default function ImageModal({
         {/* 图片主体 */}
         <div
           className="relative flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()} // 阻止冒泡到背景容器
+          onClick={(e) => e.stopPropagation()}
           style={{ transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
-          {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-10 h-10 border-4 border-white/10 border-t-white/40 rounded-full animate-spin"></div>
-            </div>
-          )}
+          {/* 渐进式加载支持 */}
+          <div className="relative overflow-hidden group">
+            {/* 缩略图占位层 (模糊) */}
+            <img
+              src={thumbnailUrl}
+              alt="Thumbnail"
+              className={`max-w-[90vw] max-h-[80vh] object-contain transition-opacity duration-500 absolute inset-0 blur-lg scale-105 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              }}
+            />
 
-          <img
-            src={currentImage}
-            alt="Viewer"
-            onLoad={() => {
-              setIsLoaded(true)
-              if (currentImage) loadedImagesCache.add(currentImage)
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (!hasDragged) {
-                if (scale === 1) setScale(2.5)
-                else resetTransform()
-              }
-            }}
-            onDoubleClick={(e) => {
-              e.stopPropagation()
-              resetTransform()
-            }}
-            onMouseDown={(e) => {
-              if (scale > 1) {
-                setIsDragging(true)
-                setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
-              }
-            }}
-            draggable={false}
-            className={`max-w-[90vw] max-h-[80vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-            style={{
-              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
-            }}
-          />
+            {/* 原图层 */}
+            <img
+              src={currentImage}
+              alt="Viewer"
+              className={`max-w-[90vw] max-h-[80vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isFullLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
+              }}
+              onLoad={() => {
+                setIsFullLoaded(true)
+                if (currentImage) loadedImagesCache.add(currentImage)
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (!hasDragged) {
+                  if (scale === 1) setScale(2.5)
+                  else resetTransform()
+                }
+              }}
+              onMouseDown={(e) => {
+                if (scale > 1) {
+                  setIsDragging(true)
+                  setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+                }
+              }}
+              draggable={false}
+            />
+          </div>
         </div>
       </div>
 

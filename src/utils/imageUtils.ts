@@ -64,16 +64,24 @@ export async function compressImage(file: File, maxWidth = 2000, quality = 0.8):
  */
 export function getOriginalImageUrl(url: string): string {
     if (!url) return '';
+    // 如果 URL 已经带有动态参数，则移除它们
+    if (url.includes('?')) {
+        return url.split('?')[0];
+    }
     return url;
 }
 
 /**
  * 生成缩略图 URL
- * 目前直接返回原图，但可以配合 Cloudflare Images 或手动生成的缩略图
+ * 适配 img.980823.xyz 的动态缩放参数
  */
-export function getThumbnailUrl(url: string, _size: number = 150): string {
+export function getThumbnailUrl(url: string, size: number = 400): string {
     if (!url) return '';
-    return url;
+
+    // 如果是 img.980823.xyz 或包含类似结构，则使用动态参数
+    // 这种方式兼容性最好，不依赖预生成的缩略图文件
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${size}&quality=80&format=auto`;
 }
 
 /**
@@ -83,7 +91,10 @@ export function preloadImage(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = url;
-        img.onload = () => resolve();
+        img.onload = () => {
+            loadedImagesCache.add(url);
+            resolve();
+        };
         img.onerror = reject;
     });
 }
