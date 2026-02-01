@@ -101,11 +101,12 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   return (
     <aside className={`
-      w-64 bg-white border-r border-slate-100 flex flex-col fixed h-full z-50 shadow-sm transition-transform duration-300
+      w-64 bg-white border-r border-slate-100 flex flex-col fixed inset-y-0 left-0 z-50 shadow-sm transition-transform duration-300
       lg:translate-x-0
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
-      <div className="p-8 flex justify-between items-center">
+      {/* 顶部标题 - 不收缩 */}
+      <div className="p-8 flex justify-between items-center flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <Icon name="favorite" size={20} />
@@ -120,7 +121,8 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+      {/* 导航菜单 - 可滚动区域 */}
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto min-h-0">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path || (item.path === '/admin/settings' && location.pathname === '/admin')
           return (
@@ -140,7 +142,8 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         })}
       </nav>
 
-      <div className="p-6 space-y-2">
+      {/* 底部按钮 - 固定不收缩 */}
+      <div className="p-6 space-y-2 flex-shrink-0 border-t border-slate-100 mt-auto bg-white">
         <Link
           to="/"
           className="w-full flex items-center justify-center gap-2 py-3 text-primary hover:text-white hover:bg-primary rounded-2xl transition-all text-sm font-medium border border-primary/20"
