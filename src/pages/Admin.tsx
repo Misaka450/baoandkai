@@ -30,7 +30,7 @@ export default function Admin() {
     `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
 
   return (
-    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300 flex relative">
+    <div className="h-screen bg-background-light text-slate-700 transition-colors duration-300 flex relative overflow-hidden">
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Mobile Overlay */}
@@ -41,42 +41,45 @@ export default function Admin() {
         />
       )}
 
-      <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-24 lg:pt-8 min-h-screen w-full">
-        <header className="flex justify-between items-center mb-10">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-800"
-            >
-              <Icon name="menu" size={24} />
-            </button>
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1">早安，{user.username || '主人'} ✨</h2>
-              <p className="text-slate-500 text-xs md:text-sm hidden md:block">今天也要给生活加点甜呀！</p>
+      {/* 右侧内容区域 - 独立滚动 */}
+      <main className="flex-1 lg:ml-64 h-screen overflow-y-auto">
+        <div className="p-4 md:p-8 pt-24 lg:pt-8 min-h-full w-full">
+          <header className="flex justify-between items-center mb-10">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-800"
+              >
+                <Icon name="menu" size={24} />
+              </button>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1">早安，{user.username || '主人'} ✨</h2>
+                <p className="text-slate-500 text-xs md:text-sm hidden md:block">今天也要给生活加点甜呀！</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex -space-x-3">
-              <img alt="Bao Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-pink-100 object-cover" src={config.avatar1 || getDefaultAvatar('Bao', 'ffdfbf')} />
-              <img alt="Kai Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 object-cover" src={config.avatar2 || getDefaultAvatar('Kai', 'b6e3f4')} />
+            <div className="flex items-center gap-4">
+              <div className="flex -space-x-3">
+                <img alt="Bao Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-pink-100 object-cover" src={config.avatar1 || getDefaultAvatar('Bao', 'ffdfbf')} />
+                <img alt="Kai Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 object-cover" src={config.avatar2 || getDefaultAvatar('Kai', 'b6e3f4')} />
+              </div>
+              <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
+              <button className="text-gray-400 hover:text-primary transition-colors hidden md:block">
+                <Icon name="notifications" size={24} />
+              </button>
             </div>
-            <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
-            <button className="text-gray-400 hover:text-primary transition-colors hidden md:block">
-              <Icon name="notifications" size={24} />
-            </button>
-          </div>
-        </header>
+          </header>
 
-        <Suspense fallback={<AdminLoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<AdminSettings />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="timeline" element={<AdminTimeline />} />
-            <Route path="albums" element={<AdminAlbums />} />
-            <Route path="food" element={<AdminFoodCheckin />} />
-            <Route path="todos" element={<AdminTodos />} />
-          </Routes>
-        </Suspense>
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<AdminSettings />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="timeline" element={<AdminTimeline />} />
+              <Route path="albums" element={<AdminAlbums />} />
+              <Route path="food" element={<AdminFoodCheckin />} />
+              <Route path="todos" element={<AdminTodos />} />
+            </Routes>
+          </Suspense>
+        </div>
       </main>
     </div>
   )
