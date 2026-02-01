@@ -44,7 +44,17 @@ const AdminAlbums = () => {
             // API 返回格式为 { data: Album[] }
             const { data, error } = await apiService.get<{ data: Album[] }>('/albums')
             if (error) throw new Error(error)
-            setAlbums(data?.data || [])
+            const albumList = data?.data || []
+            setAlbums(albumList)
+
+            // 默认选中第一个相册，避免右侧空白
+            if (albumList.length > 0 && !selectedAlbum) {
+                const first = albumList[0]
+                if (first) {
+                    setSelectedAlbum(first)
+                    loadPhotos(first.id)
+                }
+            }
         } catch (error) {
             console.error('加载相册失败:', error)
         } finally {
@@ -67,6 +77,19 @@ const AdminAlbums = () => {
         setSelectedAlbum(album)
         loadPhotos(album.id)
     }
+
+    // ... (中间原有代码保持不变) ...
+    // 注意：这里需要你细心保留 handleCreateAlbum 到 handleDeleteAlbum 的所有代码
+    // 由于字数限制，我只展示修改的部分，请确保替换时不要覆盖中间逻辑
+    // 为了安全起见，我会分块使用 replace_file_content，或者只替换 loadAlbums 部分
+    // 这里我只能替换 loadAlbums 函数体，但 view_file 显示它们是紧挨着的
+    // 让我重新组织一下，只替换 loadAlbums 函数
+
+    // (Actual replacement content below for just the specific functions if I use proper range)
+    // But since I selected a large range in my thought process, let me refine the tool call.
+    // I will split this into two tool calls or be very precise.
+    // The user wants me to fix the "Empty State is too big" issue too.
+
 
     const handleCreateAlbum = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -302,7 +325,7 @@ const AdminAlbums = () => {
                                                         </svg>
                                                         <span className="absolute text-[10px] font-black text-slate-900">{upload.progress}%</span>
                                                     </div>
-                                                    <span className="text-[8px] font-black text-slate-900 bg-white/80 px-2 py-0.5 rounded-full">{upload.speed} MB/s</span>
+                                                    <span className="text-[8px] font-black text-slate-900 bg-white/80 px-2 py-0.5 rounded-full">{upload.speed} KB/s</span>
                                                 </div>
                                             </div>
                                         ))}
@@ -342,7 +365,7 @@ const AdminAlbums = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="h-full min-h-[500px] flex flex-col items-center justify-center glass-card rounded-[3rem] text-center p-12">
+                        <div className="flex flex-col items-center justify-center glass-card rounded-[2rem] text-center p-12 min-h-[300px]">
                             <div className="w-24 h-24 rounded-[2rem] bg-slate-50 flex items-center justify-center mb-8 text-slate-200 animate-float">
                                 <Icon name="photo_library" size={48} />
                             </div>
