@@ -11,8 +11,8 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300 overflow-x-hidden">
-      {/* 装饰性背景元素 - 增加更多浮动图标 */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {/* 装饰性背景元素 - 使用 contain 限制重绘范围 */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ contain: 'strict' }}>
         {/* 左上角 */}
         <div className="absolute top-20 left-10 text-stone-300 opacity-20 animate-float">
           <Icon name="auto_awesome" size={60} />
