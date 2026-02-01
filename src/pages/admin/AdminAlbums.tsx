@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
+import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 
@@ -351,7 +352,8 @@ const AdminAlbums = () => {
             </div>
 
             {/* 相册表单弹窗 */}
-            <AdminModal
+            {/* 相册表单弹窗 */}
+            <Modal
                 isOpen={showAlbumForm}
                 onClose={() => setShowAlbumForm(false)}
                 title={editingAlbum ? '编辑相册信息' : '创建新相册'}
@@ -386,7 +388,7 @@ const AdminAlbums = () => {
                         </button>
                     </div>
                 </form>
-            </AdminModal>
+            </Modal>
 
             <AdminModal
                 isOpen={modalState.isOpen}
