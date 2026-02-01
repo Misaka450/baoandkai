@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import AdminLogin from './admin/AdminLogin'
 import Icon, { IconName } from '../components/icons/Icons'
 import { useConfig } from '../hooks/useConfig'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 const AdminSettings = lazy(() => import('./admin/AdminSettings'))
 const AdminTimeline = lazy(() => import('./admin/AdminTimeline'))
@@ -69,16 +70,18 @@ export default function Admin() {
             </div>
           </header>
 
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<AdminSettings />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="timeline" element={<AdminTimeline />} />
-              <Route path="albums" element={<AdminAlbums />} />
-              <Route path="food" element={<AdminFoodCheckin />} />
-              <Route path="todos" element={<AdminTodos />} />
-            </Routes>
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<AdminSettings />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="timeline" element={<AdminTimeline />} />
+                <Route path="albums" element={<AdminAlbums />} />
+                <Route path="food" element={<AdminFoodCheckin />} />
+                <Route path="todos" element={<AdminTodos />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
     </div>
