@@ -52,3 +52,59 @@ export async function onRequestDelete(context: { env: Env; request: Request }) {
         return errorResponse(error.message, 500);
     }
 }
+
+/**
+ * 更新照片信息 (如标题)
+ * PUT /api/albums/[id]/photos/[photoId]
+ */
+export async function onRequestPut(context: { env: Env; request: Request }) {
+    const { env, request } = context;
+
+    try {
+        const url = new URL(request.url);
+        const parts = url.pathname.split('/').filter(Boolean);
+        const albumId = parseInt(parts[2] || '');
+        const photoId = parseInt(parts[4] || '');
+
+        if (isNaN(albumId) || isNaN(photoId)) {
+            return errorResponse('无效的相册ID或照片ID', 400);
+        }
+
+        const data = await request.json() as { caption?: string; sort_order?: number };
+
+        // 构建更新语句
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (data.caption !== undefined) {
+            updates.push('caption = ?');
+            params.push(data.caption);
+        }
+
+        if (data.sort_order !== undefined) {
+            updates.push('sort_order = ?');
+            params.push(data.sort_order);
+        }
+
+        if (updates.length === 0) {
+            return errorResponse('没有提供要更新的字段', 400);
+        }
+
+        params.push(photoId); // condition param
+        params.push(albumId); // condition param
+
+        const query = `UPDATE photos SET ${updates.join(', ')} WHERE id = ? AND album_id = ?`;
+
+        const result = await env.DB.prepare(query).bind(...params).run();
+
+        if (result.meta.changes === 0) {
+            return errorResponse('照片不存在或未更新', 404);
+        }
+
+        return jsonResponse({ success: true, message: '照片更新成功' });
+
+    } catch (error: any) {
+        console.error('更新照片失败:', error);
+        return errorResponse(error.message, 500);
+    }
+}
