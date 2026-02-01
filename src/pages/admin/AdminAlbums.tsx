@@ -5,6 +5,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import { Icon } from '../../components/icons/Icons'
+import { compressImage } from '../../utils/image'
 
 interface Album {
     id: number
@@ -210,11 +211,14 @@ const AdminAlbums = () => {
 
         setUploadingFiles(prev => [...prev, ...newUploads]);
 
-        // 串行处理：直接上传原图（不压缩）
+        // 串行处理：压缩后上传
         for (const uploadItem of newUploads) {
             try {
+                // 前端压缩 (免费优化方案)
+                const compressedFile = await compressImage(uploadItem.file);
+
                 const formDataUpload = new FormData()
-                formDataUpload.append('file', uploadItem.file)
+                formDataUpload.append('file', compressedFile)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
 
                 const { data, error } = await apiService.uploadWithProgress<Photo>(
@@ -439,7 +443,8 @@ const AdminAlbums = () => {
                                             />
 
                                             {/* 图片说明/标题编辑区 */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                                            {/* 图片说明/标题编辑区 - 始终显示 */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10">
                                                 {editingCaption?.id === photo.id ? (
                                                     <input
                                                         type="text"
