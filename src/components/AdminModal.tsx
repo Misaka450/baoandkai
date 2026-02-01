@@ -67,7 +67,7 @@ const AdminModal: React.FC<AdminModalProps> = ({
 
   // 使用 Portal 确保模态框相对于视口定位
   return createPortal(
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[999]" onClick={onClose}>
       <div
         className="bg-white/95 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
