@@ -156,6 +156,7 @@ export default function Albums() {
       {/* 沉浸式相册详情页 */}
       {selectedAlbum && (
         <div
+          id="immersive-album-detail"
           className="fixed inset-0 z-[100] flex flex-col bg-slate-900 overflow-hidden animate-immersive-in"
           style={{ height: '100dvh' }}
         >
