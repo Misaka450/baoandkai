@@ -197,8 +197,16 @@ export default function ImageModal({
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in touch-none"
-      style={{ height: '100dvh' }}
+      className="fixed z-[9999] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in touch-none"
+      style={{
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '-webkit-fill-available'
+      }}
       onClick={() => {
         if (!hasDragged) onClose()
         setHasDragged(false)
