@@ -62,12 +62,20 @@ export default function ImageModal({
         setIsFullLoaded(true)
       } else {
         setIsFullLoaded(false)
-        // 预加载原图
-        preloadImage(currentImage).then(() => {
-          setIsFullLoaded(true)
-        }).catch(() => {
-          setIsFullLoaded(true) // 即使失败也尝试显示
-        })
+        // 预加载原图 - 使用 requestIdleCallback 避免阻塞初始渲染
+        const preload = () => {
+          if (!currentImage) return
+          preloadImage(currentImage).then(() => {
+            setIsFullLoaded(true)
+          }).catch(() => {
+            setIsFullLoaded(true)
+          })
+        }
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(preload)
+        } else {
+          setTimeout(preload, 100)
+        }
       }
     }
     resetTransform()
@@ -76,7 +84,17 @@ export default function ImageModal({
   useEffect(() => {
     if (!images || images.length <= 1) return
     const nextIndex = (currentIndex + 1) % images.length
-    if (images[nextIndex]) preloadImage(images[nextIndex]).catch(() => { })
+    if (images[nextIndex]) {
+      // 预加载下一张图片
+      const preloadNext = () => {
+        preloadImage(images[nextIndex]).catch(() => { })
+      }
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(preloadNext)
+      } else {
+        setTimeout(preloadNext, 200)
+      }
+    }
   }, [currentIndex, images])
 
   useEffect(() => {
@@ -179,7 +197,8 @@ export default function ImageModal({
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in touch-none"
+      style={{ height: '100dvh' }}
       onClick={() => {
         if (!hasDragged) onClose()
         setHasDragged(false)

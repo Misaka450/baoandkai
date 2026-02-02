@@ -155,11 +155,11 @@ export default function Albums() {
 
       {selectedAlbum && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xl flex items-start md:items-center justify-center p-2 md:p-4 pt-16 md:pt-4 overflow-y-auto animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xl animate-fade-in sm:p-6"
           onClick={closeAlbumDetail}
         >
           <div
-            className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl max-w-5xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden border border-white relative my-auto"
+            className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[90dvh] overflow-hidden border border-white relative flex flex-col animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 弹窗头部 - Premium 渐变 */}
@@ -197,7 +197,8 @@ export default function Albums() {
                   {albumPhotos.map((photo, idx) => (
                     <div
                       key={photo.id || idx}
-                      className="aspect-square rounded-[1.5rem] overflow-hidden cursor-pointer group/photo relative shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+                      className="aspect-square rounded-[1.5rem] overflow-hidden cursor-pointer group/photo relative shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 animate-slide-up"
+                      style={{ animationDelay: `${idx * 0.05}s` }}
                       onClick={(e) => { e.stopPropagation(); handlePhotoClick(idx); }}
                     >
                       <LazyImage
