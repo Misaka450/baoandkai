@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 const Home = lazy(() => import('./pages/Home'))
 const Timeline = lazy(() => import('./pages/Timeline'))
 const Albums = lazy(() => import('./pages/Albums'))
+const AlbumDetail = lazy(() => import('./pages/AlbumDetail'))
 const Todos = lazy(() => import('./pages/Todos'))
 const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
 const Admin = lazy(() => import('./pages/Admin'))
@@ -38,6 +39,7 @@ function App(): JSX.Element {
               <Route index element={<Home />} />
               <Route path="timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
               <Route path="albums" element={<ProtectedRoute><Albums /></ProtectedRoute>} />
+              <Route path="albums/:id" element={<ProtectedRoute><AlbumDetail /></ProtectedRoute>} />
               <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
               <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
               <Route path="admin/*" element={
