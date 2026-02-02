@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
@@ -154,67 +153,86 @@ export default function Albums() {
         </div>
       </main>
 
-      {selectedAlbum && createPortal(
+      {/* 沉浸式相册详情页 */}
+      {selectedAlbum && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xl animate-fade-in sm:p-6"
-          onClick={closeAlbumDetail}
+          className="fixed inset-0 z-[100] flex flex-col bg-slate-900 overflow-hidden animate-immersive-in"
+          style={{ height: '100dvh' }}
         >
-          <div
-            className="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[90dvh] overflow-hidden border border-white relative flex flex-col animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 弹窗头部 - Premium 渐变 */}
-            <div className="p-4 md:p-8 lg:p-10 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-4 md:gap-8">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1 md:mb-2">
-                  <span className="premium-badge text-[10px] md:text-xs">GALLERY DETAIL</span>
+          {/* 沉浸式背景 - 毛玻璃模糊效果 */}
+          <div className="absolute inset-0 z-0">
+            {selectedAlbum.cover_url && (
+              <img
+                src={getThumbnailUrl(selectedAlbum.cover_url, 800)}
+                alt="background"
+                className="w-full h-full object-cover blur-3xl opacity-20 scale-110"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/80 to-slate-950"></div>
+          </div>
+
+          {/* 顶部导航栏 */}
+          <header className="relative z-20 px-6 py-6 flex items-center justify-between">
+            <button
+              onClick={closeAlbumDetail}
+              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all border border-white/10 active:scale-90"
+            >
+              <Icon name="west" size={24} />
+            </button>
+            <div className="flex-1 text-center px-4">
+              <h2 className="text-xl font-black text-white truncate tracking-tight">{selectedAlbum.name}</h2>
+              <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                {albumPhotos.length} Memories
+              </p>
+            </div>
+            <div className="w-12"></div> {/* 占位平衡 */}
+          </header>
+
+          {/* 内容滚功区 */}
+          <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-32">
+            {/* 相册头信息 */}
+            <div className="px-8 pt-4 pb-12 text-center max-w-2xl mx-auto">
+              {selectedAlbum.description && (
+                <div className="animate-slide-up">
+                  <p className="text-white/60 font-medium italic leading-relaxed text-sm">
+                    "{selectedAlbum.description}"
+                  </p>
                 </div>
-                <h2 className="text-xl md:text-3xl font-black text-slate-800 truncate tracking-tight">{selectedAlbum.name}</h2>
-                <p className="text-slate-400 font-medium text-xs md:text-sm mt-1 line-clamp-1 md:line-clamp-none">{selectedAlbum.description || '全是最可爱美丽的包包'}</p>
-              </div>
-              <button
-                onClick={closeAlbumDetail}
-                className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 text-white hover:scale-110 active:scale-95 flex items-center justify-center transition-all shadow-xl shadow-slate-200 flex-shrink-0"
-              >
-                <Icon name="west" size={20} />
-              </button>
+              )}
             </div>
 
             {/* 照片网格 */}
-            <div className="p-4 md:p-10 overflow-y-auto max-h-[60vh] md:max-h-[70vh] bg-slate-50/30 custom-scrollbar">
+            <div className="px-4 md:px-8 max-w-6xl mx-auto">
               {loadingPhotos ? (
-                <div className="text-center py-24">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
-                  <p className="text-slate-400 font-black tracking-widest text-xs uppercase">Developing Memories...</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-white/5 rounded-[1.5rem] animate-pulse"></div>
+                  ))}
                 </div>
               ) : albumPhotos.length === 0 ? (
-                <div className="text-center py-24 text-slate-400">
-                  <Icon name="photo_library" size={80} className="mx-auto mb-6 opacity-20 animate-float" />
-                  <p className="text-xl font-black text-slate-800 mb-2">相册空空如也</p>
-                  <p className="text-sm font-medium">去后台写下我们的故事吧~</p>
+                <div className="text-center py-24 text-white/20">
+                  <Icon name="photo_library" size={80} className="mx-auto mb-6 opacity-20" />
+                  <p className="text-xl font-black mb-2">相册空空如也</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                   {albumPhotos.map((photo, idx) => (
                     <div
                       key={photo.id || idx}
-                      className="aspect-square rounded-[1.5rem] overflow-hidden cursor-pointer group/photo relative shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 animate-slide-up"
+                      className="aspect-square rounded-[2rem] overflow-hidden cursor-pointer group/photo relative shadow-2xl animate-scale-in"
                       style={{ animationDelay: `${idx * 0.05}s` }}
                       onClick={(e) => { e.stopPropagation(); handlePhotoClick(idx); }}
                     >
                       <LazyImage
-                        src={getThumbnailUrl(photo.url, 400)}
+                        src={getThumbnailUrl(photo.url, 600)}
                         alt={photo.caption || `照片${idx + 1}`}
                         className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-1000"
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/20 transition-colors flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md opacity-0 group-hover/photo:opacity-100 scale-50 group-hover/photo:scale-100 transition-all duration-500 flex items-center justify-center">
-                          <Icon name="search" size={24} className="text-white" />
-                        </div>
-                      </div>
                       {photo.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-full group-hover/photo:translate-y-0 transition-transform duration-500">
-                          <p className="text-white text-[10px] font-black uppercase tracking-widest line-clamp-1">{photo.caption}</p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                          <p className="text-white text-[10px] font-black uppercase tracking-widest translate-y-2 group-hover/photo:translate-y-0 transition-transform">
+                            {photo.caption}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -222,16 +240,8 @@ export default function Albums() {
                 </div>
               )}
             </div>
-
-            {/* 底部统计 */}
-            {albumPhotos.length > 0 && (
-              <div className="p-4 border-t border-slate-100 text-center text-slate-400 text-sm">
-                共 {albumPhotos.length} 张照片
-              </div>
-            )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {/* 图片查看器 */}
