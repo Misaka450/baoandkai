@@ -19,9 +19,7 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    top: auto;
-    left: 0;
-    right: 0;
+    /* 避免 Safari 下拉刷新 */
     overscroll-behavior: none;
     touch-action: none;
   }
