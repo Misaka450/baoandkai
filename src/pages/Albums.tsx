@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
@@ -154,7 +155,7 @@ export default function Albums() {
       </main>
 
       {/* 沉浸式相册详情页 */}
-      {selectedAlbum && (
+      {selectedAlbum && createPortal(
         <div
           id="immersive-album-detail"
           className="fixed inset-0 z-[100] flex flex-col bg-slate-900 overflow-hidden animate-immersive-in"
@@ -242,7 +243,8 @@ export default function Albums() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 图片查看器 */}
