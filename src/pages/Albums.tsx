@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
@@ -153,9 +154,9 @@ export default function Albums() {
         </div>
       </main>
 
-      {selectedAlbum && (
+      {selectedAlbum && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xl animate-fade-in sm:p-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xl animate-fade-in sm:p-6"
           onClick={closeAlbumDetail}
         >
           <div
@@ -229,7 +230,8 @@ export default function Albums() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 图片查看器 */}
