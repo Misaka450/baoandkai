@@ -305,21 +305,36 @@
   animation: shake 0.3s ease-in-out;
 }
 
-/* 缺失的动画样式 - scale-in（模态框入场动画） */
+/* 缺失的动画样式 - scale-in（模态框/沉浸式元素入场动画） */
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95) translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 .animate-scale-in {
-  animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 沉浸式入场动画 - 整体向上推 */
+@keyframes immersive-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-immersive-in {
+  animation: immersive-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* 自定义滚动条样式 - 用于模态框内容区域 */
