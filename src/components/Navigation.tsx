@@ -41,10 +41,11 @@ export default function Navigation() {
       setLastScrollY(currentScrollY)
     }
 
-    // 检测图片模态框是否打开
+    // 检测详情页或图片模态框是否打开
     const checkModal = () => {
       const modal = document.getElementById('premium-image-modal')
-      setIsModalOpen(!!modal)
+      const immersiveDetail = document.getElementById('immersive-album-detail')
+      setIsModalOpen(!!modal || !!immersiveDetail)
     }
 
     const observer = new MutationObserver(checkModal)
