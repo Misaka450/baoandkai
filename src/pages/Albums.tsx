@@ -155,32 +155,32 @@ export default function Albums() {
 
       {selectedAlbum && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xl flex items-start md:items-center justify-center p-2 md:p-4 pt-16 md:pt-4 overflow-y-auto animate-fade-in"
           onClick={closeAlbumDetail}
         >
           <div
-            className="bg-white rounded-[3rem] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden border border-white relative"
+            className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl max-w-5xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden border border-white relative my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 弹窗头部 - Premium 渐变 */}
-            <div className="p-8 md:p-10 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-8">
+            <div className="p-4 md:p-8 lg:p-10 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-4 md:gap-8">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="premium-badge">GALLERY DETAIL</span>
+                <div className="flex items-center gap-3 mb-1 md:mb-2">
+                  <span className="premium-badge text-[10px] md:text-xs">GALLERY DETAIL</span>
                 </div>
-                <h2 className="text-3xl font-black text-slate-800 truncate tracking-tight">{selectedAlbum.name}</h2>
-                <p className="text-slate-400 font-medium text-sm mt-1">{selectedAlbum.description || '记载生命中的每一个闪光时刻...'}</p>
+                <h2 className="text-xl md:text-3xl font-black text-slate-800 truncate tracking-tight">{selectedAlbum.name}</h2>
+                <p className="text-slate-400 font-medium text-xs md:text-sm mt-1 line-clamp-1 md:line-clamp-none">{selectedAlbum.description || '全是最可爱美丽的包包'}</p>
               </div>
               <button
                 onClick={closeAlbumDetail}
-                className="w-14 h-14 rounded-2xl bg-slate-900 text-white hover:scale-110 active:scale-95 flex items-center justify-center transition-all shadow-xl shadow-slate-200"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-slate-900 text-white hover:scale-110 active:scale-95 flex items-center justify-center transition-all shadow-xl shadow-slate-200 flex-shrink-0"
               >
-                <Icon name="west" size={24} />
+                <Icon name="west" size={20} />
               </button>
             </div>
 
             {/* 照片网格 */}
-            <div className="p-10 overflow-y-auto max-h-[70vh] bg-slate-50/30 custom-scrollbar">
+            <div className="p-4 md:p-10 overflow-y-auto max-h-[60vh] md:max-h-[70vh] bg-slate-50/30 custom-scrollbar">
               {loadingPhotos ? (
                 <div className="text-center py-24">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
