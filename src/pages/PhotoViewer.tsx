@@ -194,16 +194,12 @@ export default function PhotoViewer() {
 
     return (
         <div
-            className="min-h-screen bg-slate-900 flex flex-col touch-none select-none"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            className="min-h-screen bg-slate-900 flex flex-col select-none"
         >
-            {/* 顶部工具栏 */}
-            <header className="flex items-center justify-between px-6 py-4 bg-black/40">
+            <header className="flex items-center justify-between px-6 py-4 bg-black/40 relative z-20">
                 <button
-                    onClick={handleBack}
-                    className="w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all"
+                    onClick={(e) => { e.stopPropagation(); handleBack(); }}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all active:scale-95"
                 >
                     <Icon name="west" size={24} />
                 </button>
@@ -216,14 +212,14 @@ export default function PhotoViewer() {
 
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setScale(prev => Math.min(5, prev * 1.5))}
-                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white"
+                        onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
+                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white active:scale-95"
                     >
                         <Icon name="zoom_in" size={20} />
                     </button>
                     <button
-                        onClick={resetTransform}
-                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white"
+                        onClick={(e) => { e.stopPropagation(); resetTransform(); }}
+                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white active:scale-95"
                     >
                         <Icon name="restart_alt" size={20} />
                     </button>
@@ -232,7 +228,10 @@ export default function PhotoViewer() {
 
             {/* 图片展示区 */}
             <div
-                className="flex-1 flex items-center justify-center overflow-hidden relative"
+                className="flex-1 flex items-center justify-center overflow-hidden relative touch-none"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 onMouseMove={(e) => {
                     if (isDragging) {
                         setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
@@ -248,14 +247,14 @@ export default function PhotoViewer() {
                 {images.length > 1 && (
                     <>
                         <button
-                            onClick={handlePrevious}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20"
+                            onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20 active:scale-95"
                         >
                             <Icon name="chevron_left" size={28} />
                         </button>
                         <button
-                            onClick={handleNext}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20"
+                            onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20 active:scale-95"
                         >
                             <Icon name="chevron_right" size={28} />
                         </button>
@@ -307,13 +306,13 @@ export default function PhotoViewer() {
 
             {/* 底部缩略图 */}
             {images.length > 1 && (
-                <div className="py-4 px-6 overflow-x-auto no-scrollbar">
+                <div className="py-4 px-6 overflow-x-auto no-scrollbar relative z-20">
                     <div className="flex gap-3 justify-center">
                         {images.map((img, idx) => (
                             <div
                                 key={idx}
-                                onClick={() => { setCurrentIndex(idx); resetTransform(); }}
-                                className={`w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all border-2 flex-shrink-0 ${idx === currentIndex
+                                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); resetTransform(); }}
+                                className={`w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all border-2 flex-shrink-0 active:scale-95 ${idx === currentIndex
                                     ? 'border-white scale-110'
                                     : 'border-transparent opacity-40 grayscale hover:opacity-70'
                                     }`}
