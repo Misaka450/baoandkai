@@ -41,7 +41,6 @@ function App(): JSX.Element {
               <Route path="timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
               <Route path="albums" element={<ProtectedRoute><Albums /></ProtectedRoute>} />
               <Route path="albums/:id" element={<ProtectedRoute><AlbumDetail /></ProtectedRoute>} />
-              <Route path="albums/:albumId/photo" element={<ProtectedRoute><PhotoViewer /></ProtectedRoute>} />
               <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
               <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
               <Route path="admin/*" element={
@@ -50,6 +49,8 @@ function App(): JSX.Element {
                 </ProtectedRoute>
               } />
             </Route>
+            {/* 照片查看器 - 独立全屏路由 */}
+            <Route path="/albums/:albumId/photo" element={<ProtectedRoute><PhotoViewer /></ProtectedRoute>} />
           </Routes>
         </Suspense>
       </AuthProvider>
