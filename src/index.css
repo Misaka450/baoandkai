@@ -28,7 +28,7 @@
     scroll-behavior: smooth;
   }
 
-  /* 对滚动容器启用硬件加速 */
+  /* 对滚动容器启用硬件加�?*/
   .scroll-container,
   main,
   [class*="overflow-"] {
@@ -209,7 +209,7 @@
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    
   }
 }
 
@@ -284,7 +284,7 @@
   animation: shimmer 2s infinite linear;
 }
 
-/* 缺失的动画样式 - shake（错误提示抖动） */
+/* 缺失的动画样�?- shake（错误提示抖动） */
 @keyframes shake {
 
   0%,
@@ -305,7 +305,7 @@
   animation: shake 0.3s ease-in-out;
 }
 
-/* 缺失的动画样式 - scale-in（模态框/沉浸式元素入场动画） */
+/* 缺失的动画样�?- scale-in（模态框/沉浸式元素入场动画） */
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -322,14 +322,14 @@
   animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* 沉浸式入场动画 - 整体向上推 */
+/* 沉浸式入场动�?- 整体向上�?*/
 @keyframes immersive-slide-up {
   from {
     transform: translateY(100%);
   }
 
   to {
-    transform: translateY(0);
+    
   }
 }
 
@@ -359,15 +359,14 @@
 @keyframes page-transition {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    
   }
 }
 
 .animate-page-transition {
-  animation: page-transition 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: page-transition 0.25s ease-out;
 }

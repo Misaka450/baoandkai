@@ -197,7 +197,7 @@ export default function ImageModal({
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed z-[9999] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-2xl transition-all duration-300 animate-fade-in touch-none"
+      className="fixed z-[9999] flex flex-col items-center justify-center bg-slate-900 touch-none"
       style={{
         top: 0,
         left: 0,
@@ -205,7 +205,6 @@ export default function ImageModal({
         bottom: 0,
         width: '100vw',
         height: '100vh',
-        minHeight: '-webkit-fill-available'
       }}
       onClick={() => {
         if (!hasDragged) onClose()
