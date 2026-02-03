@@ -56,25 +56,25 @@ export default function PhotoViewer() {
     }, [])
 
     // 返回相册详情
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         navigate(`/albums/${albumId}`)
-    }
+    }, [navigate, albumId])
 
     // 上一张
-    const handlePrevious = () => {
+    const handlePrevious = useCallback(() => {
         if (images.length > 1) {
             setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
             resetTransform()
         }
-    }
+    }, [images.length, resetTransform])
 
     // 下一张
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (images.length > 1) {
             setCurrentIndex(prev => (prev + 1) % images.length)
             resetTransform()
         }
-    }
+    }, [images.length, resetTransform])
 
     // 图片加载逻辑
     useEffect(() => {
@@ -112,9 +112,9 @@ export default function PhotoViewer() {
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [images.length])
+    }, [handleBack, handlePrevious, handleNext])
 
-    // 触摸手势
+    // 触摸手势 - 只用于图片区域
     const handleTouchStart = (e: React.TouchEvent) => {
         if (e.touches.length === 2) {
             const touch1 = e.touches[0]
@@ -193,18 +193,21 @@ export default function PhotoViewer() {
     }
 
     return (
-        <div
-            className="min-h-screen bg-slate-900 flex flex-col select-none"
-        >
-            <header className="flex items-center justify-between px-6 py-4 bg-black/40 relative z-20">
+        <div className="fixed inset-0 bg-slate-900 flex flex-col">
+            {/* 顶部工具栏 - 使用 pointer-events 确保可点击 */}
+            <header
+                className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/60 to-transparent"
+                style={{ zIndex: 100 }}
+            >
                 <button
-                    onClick={(e) => { e.stopPropagation(); handleBack(); }}
-                    className="w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white hover:bg-white/20 transition-all active:scale-95"
+                    type="button"
+                    onClick={handleBack}
+                    className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-2xl text-white hover:bg-white/30 transition-all active:scale-95"
                 >
                     <Icon name="west" size={24} />
                 </button>
 
-                <div className="bg-white/10 px-4 py-2 rounded-2xl">
+                <div className="bg-white/20 px-4 py-2 rounded-2xl">
                     <span className="text-xs font-black text-white uppercase tracking-widest">
                         {currentIndex + 1} / {images.length}
                     </span>
@@ -212,23 +215,26 @@ export default function PhotoViewer() {
 
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
-                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white active:scale-95"
+                        type="button"
+                        onClick={() => setScale(prev => Math.min(5, prev * 1.5))}
+                        className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
                     >
                         <Icon name="zoom_in" size={20} />
                     </button>
                     <button
-                        onClick={(e) => { e.stopPropagation(); resetTransform(); }}
-                        className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl text-white active:scale-95"
+                        type="button"
+                        onClick={resetTransform}
+                        className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
                     >
                         <Icon name="restart_alt" size={20} />
                     </button>
                 </div>
             </header>
 
-            {/* 图片展示区 */}
+            {/* 图片展示区 - 全屏背景 */}
             <div
-                className="flex-1 flex items-center justify-center overflow-hidden relative touch-none"
+                className="absolute inset-0 flex items-center justify-center touch-none select-none"
+                style={{ zIndex: 1 }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -247,14 +253,16 @@ export default function PhotoViewer() {
                 {images.length > 1 && (
                     <>
                         <button
-                            onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20 active:scale-95"
+                            type="button"
+                            onClick={handlePrevious}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/30 active:scale-95"
                         >
                             <Icon name="chevron_left" size={28} />
                         </button>
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/20 active:scale-95"
+                            type="button"
+                            onClick={handleNext}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/20 rounded-2xl text-white z-10 hidden md:flex hover:bg-white/30 active:scale-95"
                         >
                             <Icon name="chevron_right" size={28} />
                         </button>
@@ -297,7 +305,7 @@ export default function PhotoViewer() {
 
                 {/* 加载指示器 */}
                 {!isFullLoaded && (
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-primary/20 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-primary/20 px-3 py-1.5 rounded-xl flex items-center gap-2">
                         <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                         <span className="text-xs font-bold text-primary uppercase">Loading</span>
                     </div>
@@ -306,12 +314,15 @@ export default function PhotoViewer() {
 
             {/* 底部缩略图 */}
             {images.length > 1 && (
-                <div className="py-4 px-6 overflow-x-auto no-scrollbar relative z-20">
+                <div
+                    className="absolute bottom-0 left-0 right-0 py-4 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/60 to-transparent"
+                    style={{ zIndex: 100 }}
+                >
                     <div className="flex gap-3 justify-center">
                         {images.map((img, idx) => (
                             <div
                                 key={idx}
-                                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); resetTransform(); }}
+                                onClick={() => { setCurrentIndex(idx); resetTransform(); }}
                                 className={`w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all border-2 flex-shrink-0 active:scale-95 ${idx === currentIndex
                                     ? 'border-white scale-110'
                                     : 'border-transparent opacity-40 grayscale hover:opacity-70'
