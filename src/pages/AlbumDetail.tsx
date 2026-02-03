@@ -1,13 +1,10 @@
-import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
-import ImageModal from '../components/ImageModal'
 import LazyImage from '../components/LazyImage'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { Skeleton } from '../components/Skeleton'
 
 interface AlbumDetailResponse {
@@ -21,13 +18,6 @@ interface AlbumDetailResponse {
 export default function AlbumDetail() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-
-    // 看图模式状态
-    const [imageModalOpen, setImageModalOpen] = useState(false)
-    const [currentImageIndex, setCurrentImageIndex] = useState(0)
-
-    // 锁定 body 滚动
-    useBodyScrollLock(imageModalOpen)
 
     // 加载相册详情
     const { data: albumDetail, isLoading } = useQuery({
@@ -44,10 +34,9 @@ export default function AlbumDetail() {
 
     const albumPhotos = albumDetail?.photos || []
 
-    // 点击单张照片 - 进入看图模式
+    // 点击单张照片 - 导航到独立的图片查看页面
     const handlePhotoClick = (index: number) => {
-        setCurrentImageIndex(index)
-        setImageModalOpen(true)
+        navigate(`/albums/${id}/photo?index=${index}`)
     }
 
     // 返回相册列表
@@ -168,17 +157,6 @@ export default function AlbumDetail() {
                     </div>
                 )}
             </main>
-
-            {/* 图片查看器 */}
-            <ImageModal
-                isOpen={imageModalOpen}
-                onClose={() => setImageModalOpen(false)}
-                images={albumPhotos.map(p => p.url)}
-                currentIndex={currentImageIndex}
-                onPrevious={() => setCurrentImageIndex(prev => (prev - 1 + albumPhotos.length) % albumPhotos.length)}
-                onNext={() => setCurrentImageIndex(prev => (prev + 1) % albumPhotos.length)}
-                onJumpTo={setCurrentImageIndex}
-            />
         </div>
     )
 }
