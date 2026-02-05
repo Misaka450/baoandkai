@@ -339,6 +339,10 @@ const AdminFoodCheckin = () => {
                                         </div>
 
                                         <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500">
+                                            {/* 显式的拖拽手柄 */}
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 cursor-move flex items-center justify-center shadow-sm hover:text-primary transition-colors">
+                                                <Icon name="drag_indicator" size={20} />
+                                            </div>
                                             <button onClick={() => handleEdit(c)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="edit" size={18} /></button>
                                             <button onClick={() => handleDelete(c.id)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={18} /></button>
                                         </div>
