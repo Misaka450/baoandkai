@@ -33,15 +33,14 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 首屏 Loading 容器 */
-    #root {
+    /* 首屏 Loading - 只在 #root 为空时生效 */
+    #root:empty {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* 首屏 Loading 动画 */
     #root:empty::before {
       content: '';
       width: 40px;
