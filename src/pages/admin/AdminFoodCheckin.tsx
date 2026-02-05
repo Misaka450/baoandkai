@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
@@ -49,6 +50,9 @@ const AdminFoodCheckin = () => {
     })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
+
+    // 拖拽排序状态
+    const [draggedItem, setDraggedItem] = useState<FoodCheckin | null>(null)
 
     useEffect(() => { loadCheckins() }, [])
 
@@ -136,6 +140,55 @@ const AdminFoodCheckin = () => {
     }
 
     const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ restaurant_name: '', description: '', date: '', address: '', cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: [] }) }
+
+    // 拖拽处理函数
+    const handleDragStart = (e: React.DragEvent, item: FoodCheckin) => {
+        setDraggedItem(item)
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move'
+            // 设置透明预览图（可选）
+            const dragImg = new Image()
+            dragImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+            e.dataTransfer.setDragImage(dragImg, 0, 0)
+        }
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+    }
+
+    const handleDragEnter = (targetItem: FoodCheckin) => {
+        if (!draggedItem || draggedItem.id === targetItem.id) return
+
+        const newItems = [...checkins]
+        const draggedIndex = newItems.findIndex(i => i.id === draggedItem.id)
+        const targetIndex = newItems.findIndex(i => i.id === targetItem.id)
+
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            newItems.splice(draggedIndex, 1)
+            newItems.splice(targetIndex, 0, draggedItem)
+            setCheckins(newItems)
+        }
+    }
+
+    const handleDragEnd = async () => {
+        if (!draggedItem) return
+        setDraggedItem(null)
+
+        try {
+            // 同步后端排序
+            // 注意：我们使用的是 sort_order DESC，所以 index 越大（在后面），sort_order 越小
+            const reorderData = checkins.map((item, index) => ({
+                id: item.id,
+                sort_order: checkins.length - index // 保持降序排列
+            }))
+
+            await apiService.post('/food/reorder', reorderData)
+        } catch (error) {
+            console.error('排序更新失败:', error)
+            loadCheckins() // 恢复原始顺序
+        }
+    }
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
@@ -241,66 +294,90 @@ const AdminFoodCheckin = () => {
                 </form>
             </Modal>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
-                {checkins.length === 0 ? (
-                    <div className="col-span-full text-center py-24 glass-card rounded-[3rem]">
-                        <Icon name="restaurant" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
-                        <p className="text-slate-400 font-bold tracking-tight">空空如也，快去探索美食吧！</p>
-                    </div>
-                ) : (
-                    checkins.map((c, index) => (
-                        <div key={c.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                            <div className="premium-card p-8 group h-full flex flex-col">
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                            <span className="premium-badge">{c.cuisine}</span>
-                                            <span className="px-2 py-0.5 bg-slate-100 text-[10px] font-black text-slate-400 rounded-lg">{c.price_range}</span>
-                                        </div>
-                                        <h3 className="text-xl font-black text-slate-800 group-hover:text-primary transition-colors truncate">{c.restaurant_name}</h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{c.date}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500">
-                                        <button onClick={() => handleEdit(c)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="edit" size={18} /></button>
-                                        <button onClick={() => handleDelete(c.id)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={18} /></button>
-                                    </div>
-                                </div>
-
-                                <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6 line-clamp-2 italic">
-                                    "{c.description}"
-                                </p>
-
-                                {c.images && c.images.length > 0 && (
-                                    <div className="grid grid-cols-3 gap-3 mb-6">
-                                        {c.images.slice(0, 3).map((img, i) => (
-                                            <div key={i} className="aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform duration-500">
-                                                <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
+                <AnimatePresence mode="popLayout">
+                    {checkins.length === 0 ? (
+                        <motion.div
+                            key="empty"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="col-span-full text-center py-24 glass-card rounded-[3rem]"
+                        >
+                            <Icon name="restaurant" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
+                            <p className="text-slate-400 font-bold tracking-tight">空空如也，快去探索美食吧！</p>
+                        </motion.div>
+                    ) : (
+                        checkins.map((c) => (
+                            <motion.div
+                                key={c.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{
+                                    layout: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, c)}
+                                onDragOver={handleDragOver}
+                                onDragEnter={() => handleDragEnter(c)}
+                                onDragEnd={handleDragEnd}
+                                className={`group cursor-move relative ${draggedItem?.id === c.id ? 'opacity-20 z-0 scale-95' : 'z-10'}`}
+                            >
+                                <div className="premium-card p-8 group h-full flex flex-col hover:shadow-2xl transition-all duration-500">
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                <span className="premium-badge">{c.cuisine}</span>
+                                                <span className="px-2 py-0.5 bg-slate-100 text-[10px] font-black text-slate-400 rounded-lg">{c.price_range}</span>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            <h3 className="text-xl font-black text-slate-800 group-hover:text-primary transition-colors truncate">{c.restaurant_name}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{c.date}</span>
+                                            </div>
+                                        </div>
 
-                                <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
-                                    <div className="flex items-center gap-1">
-                                        {[1, 2, 3, 4, 5].map(star => (
-                                            <span key={star} className={`text-lg leading-none transition-all duration-500 ${star <= c.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] scale-110' : 'text-slate-100'}`}>
-                                                ★
-                                            </span>
-                                        ))}
+                                        <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500">
+                                            <button onClick={() => handleEdit(c)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="edit" size={18} /></button>
+                                            <button onClick={() => handleDelete(c.id)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={18} /></button>
+                                        </div>
                                     </div>
-                                    {c.address && (
-                                        <span className="text-[10px] font-bold text-slate-300 max-w-[150px] truncate flex items-center gap-1 group-hover:text-slate-400 transition-colors">
-                                            <Icon name="location_on" size={12} className="text-primary/40" />
-                                            {c.address}
-                                        </span>
+
+                                    <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6 line-clamp-2 italic">
+                                        "{c.description}"
+                                    </p>
+
+                                    {c.images && c.images.length > 0 && (
+                                        <div className="grid grid-cols-3 gap-3 mb-6">
+                                            {c.images.slice(0, 3).map((img, i) => (
+                                                <div key={i} className="aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform duration-500">
+                                                    <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
+                                                </div>
+                                            ))}
+                                        </div>
                                     )}
+
+                                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
+                                        <div className="flex items-center gap-1">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <span key={star} className={`text-lg leading-none transition-all duration-500 ${star <= c.overall_rating ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] scale-110' : 'text-slate-100'}`}>
+                                                    ★
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {c.address && (
+                                            <span className="text-[10px] font-bold text-slate-300 max-w-[150px] truncate flex items-center gap-1 group-hover:text-slate-400 transition-colors">
+                                                <Icon name="location_on" size={12} className="text-primary/40" />
+                                                {c.address}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    ))
-                )}
+                            </motion.div>
+                        ))
+                    )}
+                </AnimatePresence>
             </div>
             <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
         </div>
