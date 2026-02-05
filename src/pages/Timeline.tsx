@@ -52,7 +52,7 @@ export default function Timeline() {
   }
 
   if (loading) return (
-    <div className="min-h-screen pt-40 max-w-4xl mx-auto px-6">
+    <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
       <div className="text-center mb-16">
         <Skeleton className="h-12 w-64 mx-auto mb-4" />
         <Skeleton className="h-4 w-48 mx-auto" />
