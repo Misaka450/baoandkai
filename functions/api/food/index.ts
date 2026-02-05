@@ -83,8 +83,11 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       images = []
     } = body;
 
-    if (!restaurant_name || !date) {
-      return errorResponse('餐厅名称和日期不能为空', 400);
+    if (!restaurant_name) {
+      return errorResponse('餐厅名称不能为空', 400);
+    }
+    if (!date) {
+      return errorResponse('日期不能为空', 400);
     }
 
     const result = await env.DB.prepare(`

@@ -70,7 +70,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
     if (!title) {
-      return errorResponse('标题不能为空', 400);
+      return errorResponse('待办标题不能为空', 400);
     }
 
     const result = await env.DB.prepare(`
