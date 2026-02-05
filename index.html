@@ -21,11 +21,47 @@
   <meta property="og:description" content="记录每一个美好瞬间" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://bbkk.980823.xyz/" />
-  <!-- 字体 - 使用本地字体避免Google字体加载超时 -->
+  <!-- 字体 + 关键 CSS 内联 (优化 FCP) -->
   <style>
-    /* 使用系统字体，避免外部依赖 */
+    /* 系统字体栈 */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f3f0 0%, #faf8f5 50%, #f5f3f0 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 首屏 Loading 容器 */
+    #root {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 首屏 Loading 动画 */
+    #root:empty::before {
+      content: '';
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f0e6e0;
+      border-top-color: #C9ADA7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* 主色变量预定义 */
+    :root {
+      --primary: #C9ADA7;
+      --secondary: #9A9EAB;
     }
   </style>
 </head>
