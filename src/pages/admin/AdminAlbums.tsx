@@ -6,6 +6,7 @@ import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import { Icon } from '../../components/icons/Icons'
 import { compressImage, getThumbnailUrl } from '../../utils/imageUtils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Album {
     id: number
@@ -47,13 +48,11 @@ const AdminAlbums = () => {
 
     const loadAlbums = async () => {
         try {
-            // API 返回格式为 { data: Album[] }
             const { data, error } = await apiService.get<{ data: Album[] }>('/albums')
             if (error) throw new Error(error)
             const albumList = data?.data || []
             setAlbums(albumList)
 
-            // 默认选中第一个相册，避免右侧空白
             if (albumList.length > 0 && !selectedAlbum) {
                 const first = albumList[0]
                 if (first) {
@@ -70,7 +69,6 @@ const AdminAlbums = () => {
 
     const loadPhotos = async (albumId: number) => {
         try {
-            // API 返回格式为 { data: Photo[] }
             const { data, error } = await apiService.get<{ data: Photo[] }>(`/albums/${albumId}/photos`)
             if (error) throw new Error(error)
             setPhotos(data?.data || [])
@@ -95,25 +93,26 @@ const AdminAlbums = () => {
         e.dataTransfer.dropEffect = 'move'
     }
 
-    const handleDrop = async (e: React.DragEvent, targetPhoto: Photo) => {
-        e.preventDefault()
-        if (!draggedPhoto || draggedPhoto.id === targetPhoto.id || !selectedAlbum) return
+    const handleDragEnter = (targetPhoto: Photo) => {
+        if (!draggedPhoto || draggedPhoto.id === targetPhoto.id) return
 
         const newPhotos = [...photos]
         const draggedIndex = newPhotos.findIndex(p => p.id === draggedPhoto.id)
         const targetIndex = newPhotos.findIndex(p => p.id === targetPhoto.id)
 
-        // Remove and insert
-        newPhotos.splice(draggedIndex, 1)
-        newPhotos.splice(targetIndex, 0, draggedPhoto)
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            newPhotos.splice(draggedIndex, 1)
+            newPhotos.splice(targetIndex, 0, draggedPhoto)
+            setPhotos(newPhotos)
+        }
+    }
 
-        // Optimistic Update
-        setPhotos(newPhotos)
+    const handleDragEnd = async (e: React.DragEvent | any) => {
+        if (!selectedAlbum || !draggedPhoto) return
         setDraggedPhoto(null)
 
-        // Sync with backend
         try {
-            const reorderData = newPhotos.map((p, index) => ({
+            const reorderData = photos.map((p, index) => ({
                 id: p.id,
                 sort_order: index
             }))
@@ -122,7 +121,7 @@ const AdminAlbums = () => {
         } catch (error) {
             console.error('排序更新失败:', error)
             await showAlert('错误', '排序未保存成功', 'error')
-            loadPhotos(selectedAlbum.id) // Revert
+            loadPhotos(selectedAlbum.id)
         }
     }
 
@@ -140,7 +139,6 @@ const AdminAlbums = () => {
             })
             if (error) throw new Error(error)
 
-            // Update local state
             setPhotos(prev => prev.map(p =>
                 p.id === editingCaption.id ? { ...p, caption: editingCaption.text } : p
             ))
@@ -185,8 +183,6 @@ const AdminAlbums = () => {
         if (!selectedAlbum || !e.target.files?.length) return
 
         const files = Array.from(e.target.files);
-
-        // 准备上传项，显示预览
         const newUploads = files.map(file => ({
             id: Math.random().toString(36).substring(7),
             file,
@@ -197,15 +193,12 @@ const AdminAlbums = () => {
 
         setUploadingFiles(prev => [...prev, ...newUploads]);
 
-        // 串行处理
         for (const uploadItem of newUploads) {
             try {
-                // 生成缩略图 (用于管理界面快速显示)
                 const thumbnailFile = await compressImage(uploadItem.file, 800, 0.7);
-
                 const formDataUpload = new FormData()
-                formDataUpload.append('file', uploadItem.file) // 上传原图
-                formDataUpload.append('thumbnail', thumbnailFile) // 上传缩略图
+                formDataUpload.append('file', uploadItem.file)
+                formDataUpload.append('thumbnail', thumbnailFile)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
 
                 const { data, error } = await apiService.uploadWithProgress<Photo>(
@@ -225,8 +218,6 @@ const AdminAlbums = () => {
                 if (data) {
                     setPhotos(prev => [data, ...prev]);
                     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
-
-                    // 通知缓存失效
                     queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
                     queryClient.invalidateQueries({ queryKey: ['albums'] });
                 }
@@ -412,66 +403,79 @@ const AdminAlbums = () => {
                                         <p className="text-slate-400 font-bold">还没有照片，开始记录吧</p>
                                     </div>
                                 ) : (
-                                    photos.map((photo) => (
-                                        <div
-                                            key={photo.id}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, photo)}
-                                            onDragOver={handleDragOver}
-                                            onDrop={(e) => handleDrop(e, photo)}
-                                            className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-700 cursor-move relative ${draggedPhoto?.id === photo.id ? 'opacity-50' : ''}`}
-                                        >
-                                            <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
-                                                <Icon name="drag_indicator" size={16} className="text-white" />
-                                            </div>
-                                            <img
-                                                src={getThumbnailUrl(photo.url, 400)}
-                                                loading="lazy"
-                                                alt=""
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                            />
+                                    <AnimatePresence mode="popLayout">
+                                        {photos.map((photo) => (
+                                            <motion.div
+                                                key={photo.id}
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                transition={{
+                                                    layout: { type: "spring", stiffness: 300, damping: 30 },
+                                                    opacity: { duration: 0.2 }
+                                                }}
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, photo)}
+                                                onDragOver={handleDragOver}
+                                                onDragEnter={() => handleDragEnter(photo)}
+                                                onDragEnd={handleDragEnd}
+                                                className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-move relative ${draggedPhoto?.id === photo.id ? 'opacity-20 z-0 scale-95' : 'z-10'}`}
+                                            >
+                                                <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
+                                                    <Icon name="drag_indicator" size={16} className="text-white" />
+                                                </div>
+                                                <img
+                                                    src={getThumbnailUrl(photo.url, 400)}
+                                                    loading="lazy"
+                                                    alt=""
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                                />
 
-                                            {/* 图片说明/标题编辑区 - 始终显示 */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10">
-                                                {editingCaption?.id === photo.id ? (
-                                                    <input
-                                                        type="text"
-                                                        value={editingCaption.text}
-                                                        onChange={(e) => setEditingCaption({ ...editingCaption, text: e.target.value })}
-                                                        onBlur={saveCaption}
-                                                        onKeyDown={handleCaptionKeyDown}
-                                                        autoFocus
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="w-full bg-white/20 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-white/30 focus:outline-none focus:bg-white/30"
-                                                    />
-                                                ) : (
-                                                    <p
-                                                        onClick={(e) => { e.stopPropagation(); startEditingCaption(photo); }}
-                                                        className="text-white text-xs font-medium truncate cursor-text hover:underline text-center"
-                                                        title="点击编辑标题"
+                                                {/* 图片说明/标题编辑区 - 始终显示 */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10">
+                                                    {editingCaption?.id === photo.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editingCaption.text}
+                                                            onChange={(e) => setEditingCaption({ ...editingCaption, text: e.target.value })}
+                                                            onBlur={saveCaption}
+                                                            onKeyDown={handleCaptionKeyDown}
+                                                            autoFocus
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="w-full bg-white/20 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-white/30 focus:outline-none focus:bg-white/30"
+                                                        />
+                                                    ) : (
+                                                        <p
+                                                            onClick={(e) => { e.stopPropagation(); startEditingCaption(photo); }}
+                                                            className="text-white text-xs font-medium truncate cursor-text hover:underline text-center"
+                                                            title="点击编辑标题"
+                                                        >
+                                                            {photo.caption || '描述这一刻...'}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {/* 操作按钮 - 仅在悬浮显示 */}
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 z-20">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); setAsCover(photo.url); }}
+                                                        className="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-white/30"
+                                                        title="设为封面"
                                                     >
-                                                        {photo.caption || '未命名图片'}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* 操作层 (Buttons) */}
-                                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 z-20">
-                                                <button
-                                                    onClick={() => setAsCover(photo.url)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedAlbum.cover_url === photo.url ? 'bg-primary text-white' : 'bg-white text-slate-900 hover:bg-primary hover:text-white'}`}
-                                                >
-                                                    {selectedAlbum.cover_url === photo.url ? '当前封面' : '设为封面'}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeletePhoto(photo.id)}
-                                                    className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-red-500/20"
-                                                >
-                                                    <Icon name="delete" size={20} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
+                                                        <Icon name="photo_camera" size={20} className="text-white" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                                                        className="w-10 h-10 bg-rose-500/20 hover:bg-rose-500/40 rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-rose-500/30"
+                                                        title="删除"
+                                                    >
+                                                        <Icon name="delete" size={20} className="text-rose-100" />
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 )}
                             </div>
                         </div>

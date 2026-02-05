@@ -43,7 +43,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
     // 获取分页数据
     const foods = await env.DB.prepare(`
       SELECT * FROM food_checkins 
-      ORDER BY date DESC, created_at DESC
+      ORDER BY sort_order DESC, date DESC, created_at DESC
       LIMIT ? OFFSET ?
     `).bind(limit, offset).all<FoodCheckin>();
 
@@ -90,17 +90,24 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       return errorResponse('日期不能为空', 400);
     }
 
+    // 获取当前最大的 sort_order
+    const maxSortResult = await env.DB.prepare(`
+      SELECT MAX(sort_order) as max_order FROM food_checkins
+    `).first<{ max_order: number }>();
+    const nextSortOrder = (maxSortResult?.max_order || 0) + 1;
+
     const result = await env.DB.prepare(`
       INSERT INTO food_checkins (
         restaurant_name, description, date, address, cuisine, price_range,
         overall_rating, taste_rating, environment_rating, service_rating,
-        recommended_dishes, images, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        recommended_dishes, images, sort_order, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
       restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
       overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
       Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
-      Array.isArray(images) ? images.join(',') : images
+      Array.isArray(images) ? images.join(',') : images,
+      nextSortOrder
     ).run();
 
     const foodId = result.meta.last_row_id;
