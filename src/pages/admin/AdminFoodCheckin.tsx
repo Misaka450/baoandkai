@@ -53,6 +53,7 @@ const AdminFoodCheckin = () => {
 
     // 拖拽排序状态
     const [draggedItem, setDraggedItem] = useState<FoodCheckin | null>(null)
+    const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null)
 
     useEffect(() => { loadCheckins() }, [])
 
@@ -186,8 +187,23 @@ const AdminFoodCheckin = () => {
             await apiService.post('/food/reorder', reorderData)
         } catch (error) {
             console.error('排序更新失败:', error)
-            loadCheckins() // 恢复原始顺序
+            loadCheckins() // 原始顺序
         }
+    }
+
+    // 图片拖拽处理
+    const handleImageDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedImageIndex(index)
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+    }
+
+    const handleImageDragEnter = (index: number) => {
+        if (draggedImageIndex === null || draggedImageIndex === index) return
+        const newImages = [...formData.images]
+        const item = newImages.splice(draggedImageIndex, 1)[0]
+        newImages.splice(index, 0, item)
+        setFormData(prev => ({ ...prev, images: newImages }))
+        setDraggedImageIndex(index)
     }
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
@@ -258,12 +274,35 @@ const AdminFoodCheckin = () => {
                     <div className="space-y-3">
                         <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">美食照片</label>
                         <div className="flex flex-wrap gap-4">
-                            {formData.images.map((img, i) => (
-                                <div key={i} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md">
-                                    <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
-                                    <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
-                                </div>
-                            ))}
+                            <AnimatePresence mode="popLayout">
+                                {formData.images.map((img, i) => (
+                                    <motion.div
+                                        key={`${img}-${i}`}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        draggable
+                                        onDragStart={(e) => handleImageDragStart(e, i)}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDragEnter={() => handleImageDragEnter(i)}
+                                        onDragEnd={() => setDraggedImageIndex(null)}
+                                        className={`relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md cursor-move transition-shadow hover:shadow-xl ${draggedImageIndex === i ? 'opacity-30' : ''}`}
+                                    >
+                                        <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover pointer-events-none" />
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeImage(i);
+                                            }}
+                                            className="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                        >
+                                            <Icon name="delete" size={16} />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                             <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
                                 {uploading ? (
                                     <div className="flex flex-col items-center">
