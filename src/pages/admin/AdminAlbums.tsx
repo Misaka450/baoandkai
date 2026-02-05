@@ -416,7 +416,7 @@ const AdminAlbums = () => {
                                                     opacity: { duration: 0.2 }
                                                 }}
                                                 draggable
-                                                onDragStart={(e) => handleDragStart(e, photo)}
+                                                onDragStart={(e: any) => handleDragStart(e, photo)}
                                                 onDragOver={handleDragOver}
                                                 onDragEnter={() => handleDragEnter(photo)}
                                                 onDragEnd={handleDragEnd}

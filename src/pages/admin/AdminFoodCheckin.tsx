@@ -319,7 +319,7 @@ const AdminFoodCheckin = () => {
                                     opacity: { duration: 0.2 }
                                 }}
                                 draggable
-                                onDragStart={(e) => handleDragStart(e, c)}
+                                onDragStart={(e: any) => handleDragStart(e, c)}
                                 onDragOver={handleDragOver}
                                 onDragEnter={() => handleDragEnter(c)}
                                 onDragEnd={handleDragEnd}
