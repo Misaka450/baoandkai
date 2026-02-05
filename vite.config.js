@@ -30,7 +30,7 @@ export default defineConfig({
           // 代码分割
           vendor: ['react', 'react-dom', 'react-router-dom'],
           query: ['@tanstack/react-query'],
-          sentry: ['@sentry/react', '@sentry/browser'],
+          // sentry 现在通过动态 import 延迟加载，自动分割
           ui: ['lucide-react'],
           utils: ['date-fns'],
         },

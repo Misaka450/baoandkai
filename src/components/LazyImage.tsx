@@ -6,13 +6,28 @@ interface LazyImageProps {
     alt: string
     className?: string
     onClick?: (e: React.MouseEvent) => void
+    /** 图片宽高比，如 "16/9", "4/3", "1/1"，用于预留空间避免 CLS */
+    aspectRatio?: string
+    /** 是否为首屏关键图片 (LCP)，设为 true 会提高加载优先级 */
+    priority?: boolean
 }
 
 /**
  * 懒加载图片组件
  * 专门针对大图优化，提供加载占位符和淡入效果
+ * 性能优化：
+ * - aspectRatio 预留空间避免 CLS
+ * - priority 标记 LCP 图片提高加载优先级
+ * - decoding="async" 异步解码不阻塞渲染
  */
-export default function LazyImage({ src, alt, className = '', onClick }: LazyImageProps) {
+export default function LazyImage({
+    src,
+    alt,
+    className = '',
+    onClick,
+    aspectRatio,
+    priority = false
+}: LazyImageProps) {
     const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(src))
     const [error, setError] = useState(false)
     const lastSrc = useRef(src)
@@ -36,7 +51,10 @@ export default function LazyImage({ src, alt, className = '', onClick }: LazyIma
     }
 
     return (
-        <div className={`relative overflow-hidden ${className}`}>
+        <div
+            className={`relative overflow-hidden ${className}`}
+            style={aspectRatio ? { aspectRatio } : undefined}
+        >
             {/* 加载占位符：磨砂玻璃效果 */}
             {!isLoaded && !error && (
                 <div className="absolute inset-0 bg-slate-100 flex items-center justify-center animate-pulse">
@@ -57,7 +75,10 @@ export default function LazyImage({ src, alt, className = '', onClick }: LazyIma
             <img
                 src={src}
                 alt={alt}
-                loading="lazy"
+                loading={priority ? 'eager' : 'lazy'}
+                decoding="async"
+                // @ts-ignore - fetchpriority 是有效的 HTML 属性但 React 类型定义可能未包含
+                fetchpriority={priority ? 'high' : 'auto'}
                 onLoad={handleLoad}
                 onError={() => setError(true)}
                 onClick={onClick}

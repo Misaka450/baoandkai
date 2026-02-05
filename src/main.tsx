@@ -3,13 +3,24 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
-import { initSentry } from './config/sentry'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-// 初始化Sentry错误监控
-initSentry()
+// 延迟加载 Sentry（不阻塞首屏渲染）
+if (import.meta.env.PROD) {
+  // 使用 requestIdleCallback 在浏览器空闲时初始化 Sentry
+  const initSentryLazy = () => {
+    import('./config/sentry').then(({ initSentry }) => initSentry())
+  }
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(initSentryLazy, { timeout: 2000 })
+  } else {
+    // 降级方案：延迟 2 秒执行
+    setTimeout(initSentryLazy, 2000)
+  }
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
