@@ -5,6 +5,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 
 interface TimelineEvent {
     id: number
@@ -256,7 +257,7 @@ const AdminTimeline = () => {
                         <div className="flex flex-wrap gap-4">
                             {formData.images.map((img, index) => (
                                 <div key={index} className="relative w-28 h-28 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
-                                    <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
+                                    <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f1f5f9" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="12">图片</text></svg>' }} />
                                     <button
                                         type="button"
                                         onClick={() => removeImage(index)}
@@ -334,7 +335,7 @@ const AdminTimeline = () => {
                                                 <div className="grid grid-cols-2 gap-2 relative">
                                                     {event.images.slice(0, 4).map((img, i) => (
                                                         <div key={i} className={`aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:rotate-${i % 2 === 0 ? '3' : '-3'}`}>
-                                                            <img src={img} alt="" className="w-full h-full object-cover" />
+                                                            <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
                                                         </div>
                                                     ))}
                                                     {event.images.length === 1 && <div className="aspect-square bg-slate-50 rounded-2xl border-2 border-white"></div>}
