@@ -5,6 +5,7 @@ import type { Todo } from '../types'
 import ImageModal from '../components/ImageModal'
 import Icon from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
+import { getThumbnailUrl } from '../utils/imageUtils'
 
 interface TodosResponse {
   data: Todo[]
@@ -115,7 +116,7 @@ export default function Todos() {
                         <div className="flex gap-2.5">
                           {photos.slice(0, 3).map((photo, i) => (
                             <div key={i} className="w-12 h-12 rounded-xl overflow-hidden shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer border-2 border-white">
-                              <img src={photo} alt="Done" className="w-full h-full object-cover" onClick={() => setSelectedImage(photo)} />
+                              <img src={getThumbnailUrl(photo, 100)} alt="Done" className="w-full h-full object-cover" onClick={() => setSelectedImage(photo)} />
                             </div>
                           ))}
                         </div>

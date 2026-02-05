@@ -4,6 +4,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 
 interface Todo {
     id: number
@@ -227,7 +228,7 @@ const AdminTodos = () => {
                         <div className="flex flex-wrap gap-4">
                             {formData.images.map((img, i) => (
                                 <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
-                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                    <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
                                     <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
                                 </div>
                             ))}
@@ -276,7 +277,7 @@ const AdminTodos = () => {
                             <div className="flex flex-wrap gap-4">
                                 {completionPhotos.map((img, i) => (
                                     <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeImage(i, true)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
                                     </div>
                                 ))}
@@ -363,7 +364,7 @@ const AdminTodos = () => {
                                             <div className="flex -space-x-3 mb-4">
                                                 {t.images.slice(0, 5).map((img, i) => (
                                                     <div key={i} className="w-12 h-12 rounded-2xl border-2 border-white overflow-hidden shadow-sm hover:translate-y-[-4px] hover:z-10 transition-all duration-300 hover:rotate-2">
-                                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                                        <img src={getThumbnailUrl(img, 100)} alt="" className="w-full h-full object-cover" />
                                                     </div>
                                                 ))}
                                                 {t.images.length > 5 && (
@@ -386,7 +387,7 @@ const AdminTodos = () => {
                                                 {t.completion_photos && t.completion_photos.length > 0 && (
                                                     <div className="flex gap-3 mb-4 flex-wrap relative z-10">
                                                         {t.completion_photos.slice(0, 4).map((img, i) => (
-                                                            <img key={i} src={img} alt="" className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-md hover:scale-110 transition-transform cursor-zoom-in" />
+                                                            <img key={i} src={getThumbnailUrl(img, 160)} alt="" className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-md hover:scale-110 transition-transform cursor-zoom-in" />
                                                         ))}
                                                     </div>
                                                 )}
