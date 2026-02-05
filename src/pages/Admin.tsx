@@ -5,6 +5,7 @@ import AdminLogin from './admin/AdminLogin'
 import Icon, { IconName } from '../components/icons/Icons'
 import { useConfig } from '../hooks/useConfig'
 import ErrorBoundary from '../components/ErrorBoundary'
+import { getOptimizedAvatarUrl } from '../utils/imageUtils'
 
 const AdminSettings = lazy(() => import('./admin/AdminSettings'))
 const AdminTimeline = lazy(() => import('./admin/AdminTimeline'))
@@ -60,8 +61,8 @@ export default function Admin() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
-                <img alt="Bao Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-pink-100 object-cover" src={config.avatar1 || getDefaultAvatar('Bao', 'ffdfbf')} />
-                <img alt="Kai Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 object-cover" src={config.avatar2 || getDefaultAvatar('Kai', 'b6e3f4')} />
+                <img alt="Bao Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-pink-100 object-cover" src={getOptimizedAvatarUrl(config.avatar1, 40) || getDefaultAvatar('Bao', 'ffdfbf')} />
+                <img alt="Kai Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 object-cover" src={getOptimizedAvatarUrl(config.avatar2, 40) || getDefaultAvatar('Kai', 'b6e3f4')} />
               </div>
               <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
               <button className="text-gray-400 hover:text-primary transition-colors hidden md:block">

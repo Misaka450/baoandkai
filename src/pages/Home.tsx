@@ -2,6 +2,7 @@ import { useLoveTimer } from '../hooks/useLoveTimer'
 import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
 import Icon from '../components/icons/Icons'
+import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
 
 export default function Home() {
   const { config } = useConfig()
@@ -21,7 +22,16 @@ export default function Home() {
           <div className="relative group">
             <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">
-              <img alt="Bao Avatar" className="w-full h-full object-cover rounded-full" src={config.avatar1 || getDefaultAvatar('Bao', 'C9ADA7')} />
+              <img
+                alt="Bao Avatar"
+                className="w-full h-full object-cover rounded-full"
+                src={getOptimizedAvatarUrl(config.avatar1, 160) || getDefaultAvatar('Bao', 'C9ADA7')}
+                srcSet={getAvatarSrcSet(config.avatar1)}
+                sizes="(max-width: 768px) 96px, 160px"
+                loading="eager"
+                // @ts-ignore
+                fetchpriority="high"
+              />
             </div>
           </div>
 
@@ -35,7 +45,16 @@ export default function Home() {
           <div className="relative group">
             <div className="absolute inset-0 bg-[#6BBFFF]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-4 border-[#EBF7FF]">
-              <img alt="Kai Avatar" className="w-full h-full object-cover rounded-full" src={config.avatar2 || getDefaultAvatar('Kai', '9A9EAB')} />
+              <img
+                alt="Kai Avatar"
+                className="w-full h-full object-cover rounded-full"
+                src={getOptimizedAvatarUrl(config.avatar2, 160) || getDefaultAvatar('Kai', '9A9EAB')}
+                srcSet={getAvatarSrcSet(config.avatar2)}
+                sizes="(max-width: 768px) 96px, 160px"
+                loading="eager"
+                // @ts-ignore
+                fetchpriority="high"
+              />
             </div>
           </div>
         </div>
