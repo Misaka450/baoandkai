@@ -71,7 +71,7 @@ const AdminTodos = () => {
                 fd.append('file', file)
                 fd.append('folder', 'todos')
                 const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
-                    '/uploads',
+                    '/upload',
                     fd,
                     (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
                 )
@@ -107,14 +107,16 @@ const AdminTodos = () => {
             if (editingId) {
                 const { error } = await apiService.put(`/todos/${editingId}`, formData)
                 if (error) throw new Error(error)
-                await showAlert('成功', '心愿已更新！', 'success')
+                await showAlert('成功', '待办事项已更新！', 'success')
             } else {
                 const { error } = await apiService.post('/todos', formData)
                 if (error) throw new Error(error)
-                await showAlert('成功', '心愿已创建！', 'success')
+                await showAlert('成功', '待办事项已创建！', 'success')
             }
             resetForm(); loadTodos()
-        } catch { await showAlert('错误', '保存失败', 'error') }
+        } catch (err: any) {
+            await showAlert('错误', err.message || '保存失败', 'error')
+        }
     }
 
     const handleEdit = (t: Todo) => {
@@ -124,7 +126,7 @@ const AdminTodos = () => {
     }
 
     const handleDelete = async (id: number) => {
-        if (!await showConfirm('删除心愿', '确定要删除这个心愿吗？')) return
+        if (!await showConfirm('删除待办', '确定要删除这个待办事项吗？')) return
         try {
             const { error } = await apiService.delete(`/todos/${id}`)
             if (error) throw new Error(error)

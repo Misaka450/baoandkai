@@ -38,7 +38,7 @@ export async function onRequest(context: any) {
         '/api/auth/login',
         '/api/auth/check-token',
         '/api/config',  // 公开配置API给首页使用
-        '/api/uploads/', // Allow public access to uploaded files
+        '/api/upload/', // Allow public access to uploaded files
         '/api/images/',  // Allow public access to images
         '/api/debug/',  // TEMP: Allow db debug
     ];

@@ -120,8 +120,8 @@ const AdminTimeline = () => {
             loadEvents()
             // 失效缓存，让 Gallery/Timeline 页面重新加载
             queryClient.invalidateQueries({ queryKey: ['timeline'] });
-        } catch (error) {
-            await showAlert('错误', '保存时间轴事件失败', 'error')
+        } catch (err: any) {
+            await showAlert('错误', err.message || '保存时间轴事件失败', 'error')
         }
     }
 

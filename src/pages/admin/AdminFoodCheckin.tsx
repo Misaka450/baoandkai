@@ -70,7 +70,7 @@ const AdminFoodCheckin = () => {
                 fd.append('file', file)
                 fd.append('folder', 'food')
                 const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
-                    '/uploads',
+                    '/upload',
                     fd,
                     (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
                 )
@@ -106,7 +106,9 @@ const AdminFoodCheckin = () => {
             }
             resetForm(); loadCheckins()
             queryClient.invalidateQueries({ queryKey: ['food'] });
-        } catch { await showAlert('错误', '保存失败', 'error') }
+        } catch (err: any) {
+            await showAlert('错误', err.message || '保存失败', 'error')
+        }
     }
 
     const handleEdit = (c: FoodCheckin) => {

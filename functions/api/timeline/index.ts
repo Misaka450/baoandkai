@@ -64,8 +64,11 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     const body: any = await request.json();
     const { title, description, date, location, category, images = [] } = body;
 
-    if (!title || !date) {
-      return errorResponse('标题和日期不能为空', 400);
+    if (!title) {
+      return errorResponse('标题不能为空', 400);
+    }
+    if (!date) {
+      return errorResponse('日期不能为空', 400);
     }
 
     const result = await env.DB.prepare(`
