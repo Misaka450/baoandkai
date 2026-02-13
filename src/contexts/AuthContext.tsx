@@ -67,8 +67,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } catch (error) {
         console.error('Token 验证失败:', error)
-        // 网络错误时保留 token，允许继续使用
-        setUser({ token, role: 'admin' })
+        // 网络错误时保留 token，但不赋予 admin 权限，需要重新验证
+        setUser({ token, role: 'user' })
       }
 
       setLoading(false)
