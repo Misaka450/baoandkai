@@ -40,7 +40,6 @@ export async function onRequest(context: any) {
         '/api/config',  // 公开配置API给首页使用
         '/api/upload/', // Allow public access to uploaded files
         '/api/images/',  // Allow public access to images
-        '/api/debug/',  // TEMP: Allow db debug
     ];
 
     // Allow GET requests to content APIs (public viewing, editing still requires auth)

@@ -25,21 +25,6 @@ async function verifyPassword(plainPassword: string, hashedPassword: string): Pr
 export async function onRequestPost(context: { request: Request; env: Env }) {
     const { request, env } = context;
 
-    const origin = request.headers.get('Origin');
-    const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : [];
-    let corsOrigin = '*';
-    if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes('*'))) {
-        corsOrigin = origin;
-    } else if (allowedOrigins.length > 0) {
-        corsOrigin = allowedOrigins[0];
-    }
-
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': corsOrigin,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    };
-
     try {
         let body: any;
         try {
@@ -115,23 +100,3 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     }
 }
 
-export async function onRequestOptions(context: { request: Request; env: Env }) {
-    const { request, env } = context;
-    const origin = request.headers.get('Origin');
-    const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',') : [];
-    let corsOrigin = '*';
-    if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes('*'))) {
-        corsOrigin = origin;
-    } else if (allowedOrigins.length > 0) {
-        corsOrigin = allowedOrigins[0];
-    }
-
-    return new Response(null, {
-        headers: {
-            'Access-Control-Allow-Origin': corsOrigin,
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Max-Age': '86400',
-        }
-    });
-}
