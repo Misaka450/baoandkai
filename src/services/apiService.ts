@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react"
 import { API_BASE } from '../config/api'
 
-import { ApiResponse, Note, Todo, Album, TimelineEvent } from '../types'
+import { ApiResponse, Note, Todo, Album, TimelineEvent, MapCheckin } from '../types'
 
 /**
  * 请求配置接口
@@ -380,4 +380,23 @@ export const timelineService = {
  */
 export function createAbortController(): AbortController {
     return new AbortController()
+}
+
+export const mapService = {
+    async getAll(province?: string) {
+        const query = province ? `?province=${encodeURIComponent(province)}` : ''
+        return apiService.get<{ data: MapCheckin[] }>(`/map${query}`)
+    },
+
+    async create(checkin: Omit<MapCheckin, 'id'>) {
+        return apiService.post<MapCheckin>('/map', checkin)
+    },
+
+    async update(id: number | string, checkin: Partial<MapCheckin>) {
+        return apiService.put<MapCheckin>(`/map/${id}`, checkin)
+    },
+
+    async delete(id: number | string) {
+        return apiService.delete(`/map/${id}`)
+    }
 }

@@ -20,6 +20,7 @@ export default function Navigation() {
     { name: '相册', href: '/albums', icon: 'photo_library' },
     { name: '待办', href: '/todos', icon: 'checklist' },
     { name: '美食', href: '/food', icon: 'restaurant' },
+    { name: '足迹', href: '/map', icon: 'map' },
     { name: '管理', href: '/admin', icon: 'settings' }
   ]
 
