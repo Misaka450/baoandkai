@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
+import { getThumbnailUrl } from '../utils/imageUtils'
 import type { TimelineEvent } from '../types'
 import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
@@ -140,7 +141,7 @@ export default function Timeline() {
                         <LazyImage
                           alt={event.title}
                           className="w-full h-64 object-cover"
-                          src={event.images[0] || ''}
+                          src={getThumbnailUrl(event.images[0] || '', 800)}
                         />
                         {event.images.length > 1 && (
                           <div className="absolute bottom-4 right-4 bg-black/50 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-2xl backdrop-blur-md">
