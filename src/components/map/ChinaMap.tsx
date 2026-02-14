@@ -1,11 +1,47 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { provinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
 import type { MapCheckin } from '../../types'
+import MapPin from './MapPin'
 
 interface ChinaMapProps {
     checkins: MapCheckin[]
     onProvinceClick: (province: ProvinceData) => void
 }
+
+// 提取省份路径组件以利用 memo
+const ProvincePath = memo(({
+    province,
+    fill,
+    stroke,
+    strokeWidth,
+    onClick,
+    onMouseEnter,
+    onMouseMove,
+    onMouseLeave
+}: {
+    province: ProvinceData
+    fill: string
+    stroke: string
+    strokeWidth: number
+    onClick: () => void
+    onMouseEnter: (e: React.MouseEvent) => void
+    onMouseMove: (e: React.MouseEvent) => void
+    onMouseLeave: () => void
+}) => (
+    <path
+        d={province.path}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        className="cursor-pointer transition-colors duration-200"
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+    />
+))
+
+ProvincePath.displayName = 'ProvincePath'
 
 export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
     const [hoveredProvince, setHoveredProvince] = useState<string | null>(null)
@@ -20,31 +56,28 @@ export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
         return counts
     }, [checkins])
 
-    const checkedProvinces = new Set(Object.keys(provinceCheckinCounts))
+    const checkedProvinces = useMemo(() => new Set(Object.keys(provinceCheckinCounts)), [provinceCheckinCounts])
 
     const handleMouseEnter = (province: ProvinceData, e: React.MouseEvent) => {
         setHoveredProvince(province.id)
-        const rect = (e.currentTarget as SVGElement).closest('svg')?.getBoundingClientRect()
-        if (rect) {
-            setTooltip({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top - 10,
-                name: province.name,
-                count: provinceCheckinCounts[province.name] || 0
-            })
-        }
+        updateTooltip(province, e)
     }
 
     const handleMouseMove = (province: ProvinceData, e: React.MouseEvent) => {
-        const rect = (e.currentTarget as SVGElement).closest('svg')?.getBoundingClientRect()
-        if (rect) {
-            setTooltip({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top - 10,
-                name: province.name,
-                count: provinceCheckinCounts[province.name] || 0
-            })
-        }
+        updateTooltip(province, e)
+    }
+
+    const updateTooltip = (province: ProvinceData, e: React.MouseEvent) => {
+        const svg = (e.currentTarget as SVGElement).closest('svg')
+        if (!svg) return
+
+        const rect = svg.getBoundingClientRect()
+        setTooltip({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top - 10,
+            name: province.name,
+            count: provinceCheckinCounts[province.name] || 0
+        })
     }
 
     const handleMouseLeave = () => {
@@ -80,32 +113,27 @@ export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
 
                 {/* 省份路径 */}
                 {provinces.map(province => (
-                    <path
+                    <ProvincePath
                         key={province.id}
-                        d={province.path}
+                        province={province}
                         fill={getProvinceFill(province)}
                         stroke={getProvinceStroke(province)}
                         strokeWidth={hoveredProvince === province.id ? 2 : 1}
-                        className="cursor-pointer"
-                        style={{ transition: 'fill 0.2s, stroke-width 0.2s' }}
                         onClick={() => onProvinceClick(province)}
-                        onMouseEnter={(e) => handleMouseEnter(province, e as any)}
-                        onMouseMove={(e) => handleMouseMove(province, e as any)}
+                        onMouseEnter={(e) => handleMouseEnter(province, e)}
+                        onMouseMove={(e) => handleMouseMove(province, e)}
                         onMouseLeave={handleMouseLeave}
                     />
                 ))}
 
-                {/* 有打卡的省份标记点 */}
-                {provinces.filter(p => checkedProvinces.has(p.name)).map(province => (
-                    <circle
-                        key={`marker-${province.id}`}
-                        cx={province.center[0]}
-                        cy={province.center[1]}
-                        r={5}
-                        fill="#C9ADA7"
-                        stroke="white"
-                        strokeWidth={2}
-                        className="pointer-events-none"
+                {/* 有打卡的省份标记点 - 使用 MapPin */}
+                {provinces.filter(p => checkedProvinces.has(p.name)).map((province, idx) => (
+                    <MapPin
+                        key={`pin-${province.id}`}
+                        x={province.center[0]}
+                        y={province.center[1]}
+                        color="#C9ADA7"
+                        delay={idx * 0.05}
                     />
                 ))}
 
