@@ -87,7 +87,7 @@ export default function ImageModal({
     if (images[nextIndex]) {
       // 预加载下一张图片
       const preloadNext = () => {
-        preloadImage(images[nextIndex]).catch(() => { })
+        preloadImage(images[nextIndex]!).catch(() => { })
       }
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(preloadNext)
@@ -313,7 +313,7 @@ export default function ImageModal({
             <img
               src={thumbnailUrl}
               alt="Thumbnail"
-              className={`max-w-[90vw] max-h-[80vh] object-contain transition-opacity duration-500 absolute inset-0 blur-lg scale-105 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
+              className={`max-w-[100vw] max-h-[100vh] object-contain transition-opacity duration-500 absolute inset-0 blur-lg scale-105 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
               }}
@@ -323,7 +323,7 @@ export default function ImageModal({
             <img
               src={currentImage}
               alt="Viewer"
-              className={`max-w-[90vw] max-h-[80vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isFullLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`max-w-[100vw] max-h-[100vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isFullLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                 cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
@@ -353,7 +353,7 @@ export default function ImageModal({
 
       {/* 底部缩略图 */}
       {images.length > 1 && (
-        <div className="w-full pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar">
+        <div className="absolute bottom-0 left-0 right-0 pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar">
           <div
             ref={thumbListRef}
             className="flex gap-4 min-w-max justify-center items-center"
