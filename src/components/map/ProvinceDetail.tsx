@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ProvinceData } from '../../data/chinaMapData'
 import { getCityPathsForProvince } from '../../data/provinceCityPaths'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
+import MapPin from './MapPin'
 
 interface ProvinceDetailProps {
     province: ProvinceData
@@ -12,10 +13,66 @@ interface ProvinceDetailProps {
     onCityClick: (cityName: string, cityCheckins: MapCheckin[]) => void
 }
 
+// 提取城市路径组件以利用 memo
+const CityPath = memo(({
+    city,
+    idx,
+    isHovered,
+    hasCheckins,
+    onClick,
+    onMouseEnter,
+    onMouseLeave
+}: {
+    city: any
+    idx: number
+    isHovered: boolean
+    hasCheckins: boolean
+    onClick: () => void
+    onMouseEnter: () => void
+    onMouseLeave: () => void
+}) => (
+    <g>
+        <motion.path
+            d={city.path}
+            fill={
+                isHovered
+                    ? (hasCheckins ? '#B8999380' : '#D6CFC780')
+                    : (hasCheckins ? '#C9ADA740' : '#F5F0EC')
+            }
+            stroke={hasCheckins ? '#B89993' : '#D6CFC7'}
+            strokeWidth={isHovered ? 0.8 : 0.3}
+            className="cursor-pointer transition-colors duration-200"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: idx * 0.01, duration: 0.3 }}
+            onClick={onClick}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        />
+        {(isHovered || hasCheckins) && (
+            <text
+                x={city.center[0]}
+                y={city.center[1]}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={hasCheckins ? '#6B5B55' : '#9A9EAB'}
+                fontSize={isHovered ? '4' : '3'}
+                fontWeight={hasCheckins ? '700' : '500'}
+                className="pointer-events-none select-none transition-all duration-200"
+                style={{ textShadow: '0 0 3px rgba(255,255,255,0.8)' }}
+            >
+                {city.name.replace(/市$|地区$|自治[州县]$/, '')}
+            </text>
+        )}
+    </g>
+))
+
+CityPath.displayName = 'CityPath'
+
 export default function ProvinceDetail({ province, checkins, onBack, onCityClick }: ProvinceDetailProps) {
     const [hoveredCity, setHoveredCity] = useState<string | null>(null)
 
-    const cityPaths = getCityPathsForProvince(province.name)
+    const cityPaths = useMemo(() => getCityPathsForProvince(province.name), [province.name])
 
     // 按城市分组打卡
     const cityCheckinMap = useMemo(() => {
@@ -30,19 +87,16 @@ export default function ProvinceDetail({ province, checkins, onBack, onCityClick
         return map
     }, [checkins])
 
-    const checkedCities = new Set(Object.keys(cityCheckinMap))
+    const checkedCities = useMemo(() => new Set(Object.keys(cityCheckinMap)), [cityCheckinMap])
 
     // 根据城市 path 数据计算 viewBox（自动适应省份大小）
     const viewBox = useMemo(() => {
         if (cityPaths.length === 0) {
-            // fallback: 使用省份中心
             const s = 200
             return `${province.center[0] - s / 2} ${province.center[1] - s / 2} ${s} ${s}`
         }
-        // 从所有城市中心计算包围盒
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
         for (const city of cityPaths) {
-            // 解析 path 中的坐标来确定边界
             const coords = city.path.match(/[ML]([\d.]+),([\d.]+)/g)
             if (coords) {
                 for (const coord of coords) {
@@ -58,7 +112,6 @@ export default function ProvinceDetail({ province, checkins, onBack, onCityClick
                 }
             }
         }
-        // 添加 padding
         const pad = 8
         return `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`
     }, [cityPaths, province.center])
@@ -103,69 +156,33 @@ export default function ProvinceDetail({ province, checkins, onBack, onCityClick
                     />
 
                     {/* 城市区域 */}
-                    {cityPaths.map((city, idx) => {
-                        const hasCheckins = checkedCities.has(city.name)
-                        const isHovered = hoveredCity === city.name
+                    {cityPaths.map((city, idx) => (
+                        <CityPath
+                            key={city.name}
+                            city={city}
+                            idx={idx}
+                            isHovered={hoveredCity === city.name}
+                            hasCheckins={checkedCities.has(city.name)}
+                            onClick={() => {
+                                if (checkedCities.has(city.name)) {
+                                    onCityClick(city.name, cityCheckinMap[city.name] || [])
+                                }
+                            }}
+                            onMouseEnter={() => setHoveredCity(city.name)}
+                            onMouseLeave={() => setHoveredCity(null)}
+                        />
+                    ))}
 
-                        return (
-                            <g key={city.name}>
-                                {/* 城市区域 path */}
-                                <motion.path
-                                    d={city.path}
-                                    fill={
-                                        isHovered
-                                            ? (hasCheckins ? '#B8999380' : '#D6CFC780')
-                                            : (hasCheckins ? '#C9ADA740' : '#F5F0EC')
-                                    }
-                                    stroke={hasCheckins ? '#B89993' : '#D6CFC7'}
-                                    strokeWidth={isHovered ? 0.8 : 0.3}
-                                    className="cursor-pointer"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: idx * 0.015, duration: 0.3 }}
-                                    onClick={() => {
-                                        if (hasCheckins) {
-                                            onCityClick(city.name, cityCheckinMap[city.name] || [])
-                                        }
-                                    }}
-                                    onMouseEnter={() => setHoveredCity(city.name)}
-                                    onMouseLeave={() => setHoveredCity(null)}
-                                />
-
-                                {/* 城市名称标签 */}
-                                {(isHovered || hasCheckins) && (
-                                    <text
-                                        x={city.center[0]}
-                                        y={city.center[1]}
-                                        textAnchor="middle"
-                                        dominantBaseline="central"
-                                        fill={hasCheckins ? '#6B5B55' : '#9A9EAB'}
-                                        fontSize={isHovered ? '4' : '3'}
-                                        fontWeight={hasCheckins ? '700' : '500'}
-                                        className="pointer-events-none select-none"
-                                        style={{ textShadow: '0 0 3px rgba(255,255,255,0.8)' }}
-                                    >
-                                        {city.name.replace(/市$|地区$|自治[州县]$/, '')}
-                                    </text>
-                                )}
-
-                                {/* 已打卡城市的脉冲标记 */}
-                                {hasCheckins && (
-                                    <motion.circle
-                                        cx={city.center[0]}
-                                        cy={city.center[1]}
-                                        r={2}
-                                        fill="#C9ADA7"
-                                        stroke="white"
-                                        strokeWidth={0.5}
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ delay: idx * 0.02, type: 'spring' }}
-                                    />
-                                )}
-                            </g>
-                        )
-                    })}
+                    {/* 已打卡城市的地图钉 */}
+                    {cityPaths.filter(c => checkedCities.has(c.name)).map((city, idx) => (
+                        <MapPin
+                            key={`pin-${city.name}`}
+                            x={city.center[0]}
+                            y={city.center[1]}
+                            scale={0.4} // 在城市视图下使用更小的缩放
+                            delay={idx * 0.05}
+                        />
+                    ))}
                 </svg>
             </div>
 
