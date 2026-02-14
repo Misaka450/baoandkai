@@ -75,6 +75,18 @@ export interface FoodCheckin {
     images: string[];
 }
 
+export interface MapCheckin {
+    id: number | string;
+    title: string;
+    description?: string;
+    province: string;
+    city?: string;
+    date: string;
+    images: string[];
+    created_at?: string;
+    updated_at?: string;
+}
+
 export interface SiteConfig {
     coupleName1: string;
     coupleName2: string;

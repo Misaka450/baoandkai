@@ -10,7 +10,8 @@ export type IconName =
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu' | 'close'
     | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration'
-    | 'upload' | 'add_a_photo' | 'drag_indicator' | 'zoom_in' | 'zoom_out' | 'restart_alt';
+    | 'upload' | 'add_a_photo' | 'drag_indicator' | 'zoom_in' | 'zoom_out' | 'restart_alt'
+    | 'map' | 'landscape' | 'east';
 
 interface IconProps {
     name: IconName;
@@ -81,7 +82,10 @@ const iconPaths: Record<IconName, string> = {
     drag_indicator: "M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z",
     zoom_in: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM10 10V7H9v3H6v1h3v3h1v-3h3v-1h-3z",
     zoom_out: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 10h5v1H7v-1z",
-    restart_alt: "M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 3.31-2.69 6-6 6s-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+    restart_alt: "M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 3.31-2.69 6-6 6s-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z",
+    map: "M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z",
+    landscape: "M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z",
+    east: "M15 5l-1.41 1.41L18.17 11H2v2h16.17l-4.59 4.59L15 19l7-7-7-7z"
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {

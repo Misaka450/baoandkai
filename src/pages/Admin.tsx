@@ -12,6 +12,7 @@ const AdminTimeline = lazy(() => import('./admin/AdminTimeline'))
 const AdminAlbums = lazy(() => import('./admin/AdminAlbums'))
 const AdminFoodCheckin = lazy(() => import('./admin/AdminFoodCheckin'))
 const AdminTodos = lazy(() => import('./admin/AdminTodos'))
+const AdminTravelMap = lazy(() => import('./admin/AdminTravelMap'))
 
 function AdminLoadingFallback() {
   return (
@@ -80,6 +81,7 @@ export default function Admin() {
                 <Route path="albums" element={<AdminAlbums />} />
                 <Route path="food" element={<AdminFoodCheckin />} />
                 <Route path="todos" element={<AdminTodos />} />
+                <Route path="travel-map" element={<AdminTravelMap />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>
@@ -104,6 +106,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { path: '/admin/albums', label: '相册管理', icon: 'photo_library' },
     { path: '/admin/food', label: '美食管理', icon: 'restaurant' },
     { path: '/admin/todos', label: '待办事项', icon: 'checklist' },
+    { path: '/admin/travel-map', label: '足迹地图', icon: 'map' },
   ]
 
   return (

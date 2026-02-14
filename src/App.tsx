@@ -13,6 +13,7 @@ const AlbumDetail = lazy(() => import('./pages/AlbumDetail'))
 const PhotoViewer = lazy(() => import('./pages/PhotoViewer'))
 const Todos = lazy(() => import('./pages/Todos'))
 const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
+const TravelMap = lazy(() => import('./pages/TravelMap'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 
@@ -43,6 +44,7 @@ function App(): JSX.Element {
               <Route path="albums/:id" element={<ProtectedRoute><AlbumDetail /></ProtectedRoute>} />
               <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
               <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
+              <Route path="map" element={<ProtectedRoute><TravelMap /></ProtectedRoute>} />
               <Route path="admin/*" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />
