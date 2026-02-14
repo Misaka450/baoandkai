@@ -2,6 +2,7 @@ import { useState, useMemo, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ProvinceData } from '../../data/chinaMapData'
 import { getCityPathsForProvince } from '../../data/provinceCityPaths'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import MapPin from './MapPin'
@@ -102,8 +103,8 @@ export default function ProvinceDetail({ province, checkins, onBack, onCityClick
                 for (const coord of coords) {
                     const match = coord.match(/[ML]([\d.]+),([\d.]+)/)
                     if (match) {
-                        const x = parseFloat(match[1])
-                        const y = parseFloat(match[2])
+                        const x = parseFloat(match[1] || '0')
+                        const y = parseFloat(match[2] || '0')
                         if (x < minX) minX = x
                         if (y < minY) minY = y
                         if (x > maxX) maxX = x
@@ -206,7 +207,7 @@ export default function ProvinceDetail({ province, checkins, onBack, onCityClick
                             >
                                 {checkin.images && checkin.images.length > 0 ? (
                                     <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
-                                        <img src={checkin.images[0]} alt={checkin.title} className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(checkin.images[0] || '', 200)} alt={checkin.title} className="w-full h-full object-cover" />
                                     </div>
                                 ) : (
                                     <div className="w-14 h-14 rounded-xl bg-background-light flex items-center justify-center flex-shrink-0">
