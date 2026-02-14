@@ -76,10 +76,6 @@ export default function TravelMap() {
     return (
         <div className="min-h-screen text-slate-700 transition-colors duration-300">
             <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-                {/* 背景光晕 (增强立体感) */}
-                <div className="absolute top-10 left-1/4 w-[500px] h-[500px] bg-morandi-rose/15 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse-slow"></div>
-                <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-morandi-blue/15 blur-[100px] rounded-full pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
-
                 {/* 标题 */}
                 <header className="text-center mb-16 animate-fade-in">
                     <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">足迹地图</h1>
