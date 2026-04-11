@@ -29,8 +29,7 @@ export default function Home() {
                 srcSet={getAvatarSrcSet(config.avatar1)}
                 sizes="(max-width: 768px) 96px, 160px"
                 loading="eager"
-                // @ts-ignore
-                fetchpriority="high"
+                fetchPriority="high"
               />
             </div>
           </div>
@@ -52,8 +51,7 @@ export default function Home() {
                 srcSet={getAvatarSrcSet(config.avatar2)}
                 sizes="(max-width: 768px) 96px, 160px"
                 loading="eager"
-                // @ts-ignore
-                fetchpriority="high"
+                fetchPriority="high"
               />
             </div>
           </div>
