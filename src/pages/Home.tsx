@@ -1,7 +1,8 @@
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
-import Icon from '../components/icons/Icons'
+import Icon, { type IconName } from '../components/icons/Icons'
+import StatCard from '../components/common/StatCard'
 import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
 
 export default function Home() {
@@ -10,6 +11,25 @@ export default function Home() {
 
   const getDefaultAvatar = (seed: string, bg: string) =>
     `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
+
+  // 定义时间统计卡片数据（类型安全）
+  interface TimeStatItem {
+    value: number
+    label: string
+    color: string
+    text: string
+    icon: IconName
+    delay: string
+  }
+
+  const timeStats: TimeStatItem[] = [
+    { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
+    { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
+    { value: timeTogether.days, label: '天', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]', icon: 'auto_awesome', delay: '0.4s' },
+    { value: timeTogether.hours, label: '时', color: 'bg-[#F5F0FF]', text: 'text-[#A688FA]', icon: 'celebration', delay: '0.1s' },
+    { value: timeTogether.minutes, label: '分', color: 'bg-[#FFF9EB]', text: 'text-[#FFB344]', icon: 'wb_cloudy', delay: '0.3s' },
+    { value: timeTogether.seconds, label: '秒', color: 'bg-[#FFF0F0]', text: 'text-[#FF7D7D]', icon: 'star', delay: '0.5s' },
+  ]
 
   return (
     <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative">
@@ -76,28 +96,20 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-16 relative z-10">
-          {[
-            { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
-            { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
-            { value: timeTogether.days, label: '天', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]', icon: 'auto_awesome', delay: '0.4s' },
-            { value: timeTogether.hours, label: '时', color: 'bg-[#F5F0FF]', text: 'text-[#A688FA]', icon: 'celebration', delay: '0.1s' },
-            { value: timeTogether.minutes, label: '分', color: 'bg-[#FFF9EB]', text: 'text-[#FFB344]', icon: 'wb_cloudy', delay: '0.3s' },
-            { value: timeTogether.seconds, label: '秒', color: 'bg-[#FFF0F0]', text: 'text-[#FF7D7D]', icon: 'star', delay: '0.5s' },
-          ].map((item, idx) => (
-            <div
+          {timeStats.map((item, idx) => (
+            <StatCard
               key={idx}
-              className={`px-4 py-8 md:p-10 rounded-[2.5rem] text-center shadow-lg shadow-black/[0.03] hover:scale-105 active:scale-95 transition-all duration-500 border-4 md:border-8 border-white relative group/item overflow-hidden ${item.color}`}
-              style={{ animation: `float 6s ease-in-out infinite ${item.delay}` }}
-            >
-              <div className={`absolute -top-4 -right-4 opacity-10 group-hover/item:opacity-30 transition-opacity rotate-12 ${item.text}`}>
-                <Icon name={item.icon as any} size={idx % 2 === 0 ? 64 : 48} />
-              </div>
-
-              <div className={`text-4xl md:text-5xl lg:text-6xl font-black mb-3 ${item.text} drop-shadow-sm`}>
-                {String(item.value).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] font-black text-slate-400/50 uppercase tracking-[0.2em]">{item.label}</div>
-            </div>
+              value={String(item.value).padStart(2, '0')}
+              label={item.label}
+              icon={item.icon}
+              color={item.color}
+              text={item.text}
+              delay={parseFloat(item.delay)}
+              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 !px-4 !py-8 md:!p-10 group/item"
+              hoverScale={1.05}
+              showDecoration={true}
+              decorationSize={idx % 2 === 0 ? 64 : 48}
+            />
           ))}
         </div>
 

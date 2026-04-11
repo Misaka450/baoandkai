@@ -15,10 +15,27 @@ import PhotoWall from '../components/map/PhotoWall'
 import Slideshow from '../components/map/Slideshow'
 import MemoryLane from '../components/map/MemoryLane'
 import AnnualReport from '../components/map/AnnualReport'
-import Icon from '../components/icons/Icons'
+import Icon, { type IconName } from '../components/icons/Icons'
+import StatCard from '../components/common/StatCard'
 import { Skeleton } from '../components/Skeleton'
 
 type ViewMode = 'country' | 'province' | 'timeline' | 'stats' | 'photos' | 'memories'
+
+// 定义视图模式按钮数据（类型安全）
+interface ViewModeItem {
+    id: ViewMode
+    label: string
+    icon: IconName
+}
+
+// 定义统计数据（类型安全）
+interface StatItem {
+    value: number
+    label: string
+    icon: IconName
+    color: string
+    text: string
+}
 
 export default function TravelMap() {
     const [viewMode, setViewMode] = useState<ViewMode>('country')
@@ -95,6 +112,22 @@ export default function TravelMap() {
         setCheckinCardData({ city: cityName, checkins: cityCheckins })
     }
 
+    // 视图模式按钮数据（类型安全）
+    const viewModeItems: ViewModeItem[] = [
+        { id: 'country', label: '地图', icon: 'map' },
+        { id: 'timeline', label: '时间轴', icon: 'timeline' },
+        { id: 'stats', label: '统计', icon: 'bar_chart' },
+        { id: 'photos', label: '照片墙', icon: 'photo_library' },
+        { id: 'memories', label: '回忆', icon: 'favorite' },
+    ]
+
+    // 统计数据（类型安全）
+    const statItems: StatItem[] = [
+        { value: stats.provinces, label: '省份', icon: 'map', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]' },
+        { value: stats.cities, label: '城市', icon: 'location_on', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]' },
+        { value: stats.totalCheckins, label: '足迹', icon: 'auto_awesome', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]' },
+    ]
+
     if (isLoading) return (
         <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -117,23 +150,17 @@ export default function TravelMap() {
 
                     {/* 视图切换导航 */}
                     <nav className="flex flex-wrap justify-center gap-3 mt-10">
-                        {[
-                            { id: 'country', label: '地图', icon: 'map' },
-                            { id: 'timeline', label: '时间轴', icon: 'timeline' },
-                            { id: 'stats', label: '统计', icon: 'bar_chart' },
-                            { id: 'photos', label: '照片墙', icon: 'photo_library' },
-                            { id: 'memories', label: '回忆', icon: 'favorite' },
-                        ].map(item => (
+                        {viewModeItems.map(item => (
                             <button
                                 key={item.id}
-                                onClick={() => setViewMode(item.id as ViewMode)}
+                                onClick={() => setViewMode(item.id)}
                                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${
                                     viewMode === item.id
                                         ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                                         : 'bg-white/60 text-slate-600 hover:bg-white hover:shadow-md'
                                 }`}
                             >
-                                <Icon name={item.icon as any} size={18} />
+                                <Icon name={item.icon} size={18} />
                                 {item.label}
                             </button>
                         ))}
@@ -142,22 +169,16 @@ export default function TravelMap() {
                     {/* 统计数据 */}
                     {stats.totalCheckins > 0 && (
                         <div className="flex justify-center gap-6 mt-10">
-                            {[
-                                { value: stats.provinces, label: '省份', icon: 'map', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]' },
-                                { value: stats.cities, label: '城市', icon: 'location_on', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]' },
-                                { value: stats.totalCheckins, label: '足迹', icon: 'auto_awesome', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]' },
-                            ].map((stat) => (
-                                <motion.div
+                            {statItems.map((stat, idx) => (
+                                <StatCard
                                     key={stat.label}
-                                    className={`${stat.color} px-6 py-3 rounded-[1.5rem] flex items-center gap-3 shadow-sm border-4 border-white`}
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    <Icon name={stat.icon as any} size={18} className={stat.text} />
-                                    <div className="text-left">
-                                        <div className={`text-2xl font-black ${stat.text}`}>{stat.value}</div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</div>
-                                    </div>
-                                </motion.div>
+                                    value={stat.value}
+                                    label={stat.label}
+                                    icon={stat.icon}
+                                    color={stat.color}
+                                    text={stat.text}
+                                    delay={idx * 0.1}
+                                />
                             ))}
                         </div>
                     )}
