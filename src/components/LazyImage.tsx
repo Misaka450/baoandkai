@@ -77,8 +77,7 @@ export default function LazyImage({
                 alt={alt}
                 loading={priority ? 'eager' : 'lazy'}
                 decoding="async"
-                // @ts-ignore - fetchpriority 是有效的 HTML 属性但 React 类型定义可能未包含
-                fetchpriority={priority ? 'high' : 'auto'}
+                fetchPriority={priority ? 'high' : 'auto'}
                 onLoad={handleLoad}
                 onError={() => setError(true)}
                 onClick={onClick}

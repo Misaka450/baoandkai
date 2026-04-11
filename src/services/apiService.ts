@@ -400,3 +400,28 @@ export const mapService = {
         return apiService.delete(`/map/${id}`)
     }
 }
+
+export interface TimeCapsuleData {
+    id: string
+    title?: string
+    message: string
+    unlock_date: string
+    is_unlocked: boolean
+    created_by: string
+    created_at: string
+    updated_at: string
+}
+
+export const timeCapsuleService = {
+    async getAll() {
+        return apiService.get<{ data: TimeCapsuleData[] }>('/time-capsules')
+    },
+
+    async create(capsule: Omit<TimeCapsuleData, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'is_unlocked'>) {
+        return apiService.post<TimeCapsuleData>('/time-capsules', capsule)
+    },
+
+    async delete(id: number | string) {
+        return apiService.delete(`/time-capsules/${id}`)
+    }
+}

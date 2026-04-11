@@ -16,6 +16,7 @@ const FoodCheckin = lazy(() => import('./pages/FoodCheckin'))
 const TravelMap = lazy(() => import('./pages/TravelMap'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
+const CoupleFeatures = lazy(() => import('./pages/CoupleFeatures'))
 
 import LoadingSpinner from './components/common/LoadingSpinner'
 
@@ -45,6 +46,7 @@ function App(): JSX.Element {
               <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
               <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
               <Route path="map" element={<ProtectedRoute><TravelMap /></ProtectedRoute>} />
+              <Route path="couple" element={<ProtectedRoute><CoupleFeatures /></ProtectedRoute>} />
               <Route path="admin/*" element={
                 <ProtectedRoute requireAdmin>
                   <Admin />
