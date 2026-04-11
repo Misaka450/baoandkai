@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiService } from '../services/apiService'
 import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../constants/styles'
 
 interface Note {
   id: number
@@ -43,11 +44,8 @@ export default function StickyNotes() {
   // 锁定 body 滚动
   useBodyScrollLock(showAddModal)
 
-  useEffect(() => {
-    fetchNotes()
-  }, [])
-
-  const fetchNotes = async () => {
+  // 获取便签列表（使用 useCallback 优化）
+  const fetchNotes = useCallback(async () => {
     try {
       setLoading(true)
       const response = await apiService.get<{ data: Note[] } | Note[]>('/notes')
@@ -61,7 +59,11 @@ export default function StickyNotes() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes])
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return
@@ -81,7 +83,7 @@ export default function StickyNotes() {
   if (loading) return <div className="text-center py-10 opacity-50">加载中...</div>
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className={RESPONSIVE_GRID}>
       {notes.map((note, idx) => {
         const colorKeys = Object.keys(colorMap)
         const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
@@ -144,13 +146,13 @@ export default function StickyNotes() {
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-6 py-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+                className={SECONDARY_BUTTON}
               >
                 取消
               </button>
               <button
                 onClick={handleAddNote}
-                className="px-8 py-2 bg-primary text-white rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                className={PRIMARY_BUTTON}
               >
                 发布
               </button>
