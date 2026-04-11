@@ -1,11 +1,8 @@
-import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'framer-motion'
-import Modal from '../components/Modal'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
 import Icon from '../components/icons/Icons'
-import TimeCapsule from '../components/TimeCapsule'
 import TimeCapsuleList from '../components/TimeCapsuleList'
-import { apiService, timeCapsuleService, TimeCapsuleData } from '../services/apiService'
+import { timeCapsuleService } from '../services/apiService'
 
 interface TimeCapsuleItem {
   id: string
@@ -16,9 +13,6 @@ interface TimeCapsuleItem {
 }
 
 export default function CoupleFeatures() {
-  const queryClient = useQueryClient()
-  const [showTimeCapsule, setShowTimeCapsule] = useState(false)
-
   // 使用 React Query 获取时间胶囊数据
   const { data: capsulesResponse, isLoading: isLoadingCapsules } = useQuery({
     queryKey: ['timeCapsules'],
@@ -38,37 +32,16 @@ export default function CoupleFeatures() {
     isUnlocked: c.is_unlocked
   }))
 
-  // 创建时间胶囊的 mutation
-  const createCapsuleMutation = useMutation({
-    mutationFn: async (newCapsule: { message: string; unlockDate: string }) => {
-      const { data, error } = await timeCapsuleService.create({
-        message: newCapsule.message,
-        unlock_date: newCapsule.unlockDate
-      })
-      if (error) throw new Error(error)
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
-      setShowTimeCapsule(false)
-    }
-  })
-
-  // 删除时间胶囊的 mutation
+  // 删除时间胶囊的 mutation（仅用于已解锁的胶囊）
   const deleteCapsuleMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await timeCapsuleService.delete(id)
       if (error) throw new Error(error)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
+      // 刷新数据
     }
   })
-
-  // 保存时间胶囊
-  const handleSaveTimeCapsule = (message: string, unlockDate: string) => {
-    createCapsuleMutation.mutate({ message, unlockDate })
-  }
 
   // 删除时间胶囊
   const handleDeleteTimeCapsule = (id: string) => {
@@ -100,14 +73,8 @@ export default function CoupleFeatures() {
                 </div>
                 <h2 className="text-2xl font-black text-slate-800">时间胶囊</h2>
               </div>
-              <button
-                onClick={() => setShowTimeCapsule(true)}
-                className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-              >
-                <Icon name="add" size={20} className="text-primary" />
-              </button>
             </div>
-            <p className="text-slate-400 mb-6">创建一个时间胶囊，设置未来的解锁日期，给对方一个惊喜。</p>
+            <p className="text-slate-400 mb-6">查看已创建的时间胶囊，等待未来的惊喜解锁。</p>
 
             <TimeCapsuleList 
               capsules={timeCapsules}
@@ -120,25 +87,6 @@ export default function CoupleFeatures() {
           </motion.div>
         </div>
       </main>
-
-      {/* 时间胶囊弹窗 */}
-      <AnimatePresence>
-        {showTimeCapsule && (
-          <Modal 
-            isOpen={showTimeCapsule}
-            onClose={() => setShowTimeCapsule(false)}
-            title="创建时间胶囊"
-          >
-            <TimeCapsule 
-              onSave={(message: string, unlockDate: string) => {
-                // TODO: 实现保存逻辑
-                setShowTimeCapsule(false)
-              }}
-              onClose={() => setShowTimeCapsule(false)}
-            />
-          </Modal>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

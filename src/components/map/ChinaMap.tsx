@@ -260,14 +260,12 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
                     />
                 ))}
 
-                {/* 省份名称标签 - 只在较大省份显示 */}
-                {provinces.filter(p =>
-                    ['新疆', '西藏', '内蒙古', '青海', '四川', '黑龙江'].includes(p.name)
-                ).map(province => (
+                {/* 省份名称标签 - 显示所有有打卡的省份 */}
+                {provinces.filter(p => checkedProvinces.has(p.name)).map(province => (
                     <text
                         key={`label-${province.id}`}
                         x={province.center[0]}
-                        y={province.center[1] + (checkedProvinces.has(province.name) ? -15 : 0)}
+                        y={province.center[1] - 15}
                         textAnchor="middle"
                         className="pointer-events-none select-none"
                         fill="#9A9EAB"
