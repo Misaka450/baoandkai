@@ -93,12 +93,18 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     }, [translate])
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        if (!isDragging) return
-        e.preventDefault()
-        setTranslate({
-            x: e.clientX - dragStart.current.x,
-            y: e.clientY - dragStart.current.y
-        })
+        // 拖拽逻辑
+        if (isDragging) {
+            e.preventDefault()
+            setTranslate({
+                x: e.clientX - dragStart.current.x,
+                y: e.clientY - dragStart.current.y
+            })
+        }
+        // tooltip 位置更新
+        if (tooltipRef.current && tooltipData) {
+            updateTooltipPosition(e)
+        }
     }, [isDragging])
 
     const handleMouseUp = useCallback(() => {
@@ -156,13 +162,6 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
         const y = e.clientY - rect.top - 10
 
         tooltipRef.current.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`
-    }
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        // 仅在已有 tooltip 数据时更新位置
-        if (tooltipRef.current && tooltipData) {
-            updateTooltipPosition(e)
-        }
     }
 
     const getProvinceFill = useCallback((province: ProvinceData, isHovered: boolean) => {
