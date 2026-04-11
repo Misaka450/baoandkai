@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import Icon from '../components/icons/Icons'
 import TimeCapsuleList from '../components/TimeCapsuleList'
+import Modal from '../components/Modal'
 import { timeCapsuleService } from '../services/apiService'
 
 interface TimeCapsuleItem {
@@ -13,6 +15,9 @@ interface TimeCapsuleItem {
 }
 
 export default function CoupleFeatures() {
+  const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+
   // 使用 React Query 获取时间胶囊数据
   const { data: capsulesResponse, isLoading: isLoadingCapsules } = useQuery({
     queryKey: ['timeCapsules'],
@@ -40,12 +45,28 @@ export default function CoupleFeatures() {
     },
     onSuccess: () => {
       // 刷新数据
+      setShowDeleteConfirm(null)
     }
   })
 
   // 删除时间胶囊
   const handleDeleteTimeCapsule = (id: string) => {
     deleteCapsuleMutation.mutate(id)
+  }
+
+  // 打开时间胶囊
+  const handleOpenCapsule = (capsule: TimeCapsuleItem) => {
+    if (capsule.isUnlocked) {
+      setSelectedCapsule(capsule)
+    } else {
+      // 未解锁，显示提示信息
+      alert('时间胶囊尚未到解锁日期，请耐心等待～')
+    }
+  }
+
+  // 关闭胶囊详情
+  const handleCloseCapsule = () => {
+    setSelectedCapsule(null)
   }
 
   return (
@@ -79,14 +100,93 @@ export default function CoupleFeatures() {
             <TimeCapsuleList 
               capsules={timeCapsules}
               isLoading={isLoadingCapsules}
-              onOpenCapsule={(capsule: TimeCapsuleItem) => {
-                // TODO: 实现打开胶囊逻辑
-              }}
-              onDeleteCapsule={handleDeleteTimeCapsule}
+              onOpenCapsule={handleOpenCapsule}
+              onDeleteCapsule={(id) => setShowDeleteConfirm(id)}
             />
           </motion.div>
         </div>
       </main>
+
+      {/* 时间胶囊详情弹窗 */}
+      <Modal
+        isOpen={!!selectedCapsule}
+        onClose={handleCloseCapsule}
+        title={selectedCapsule?.isUnlocked ? '💌 已解锁的时间胶囊' : '🔒 时间胶囊'}
+      >
+        {selectedCapsule && (
+          <div className="space-y-4">
+            <div className="bg-slate-50 rounded-xl p-4">
+              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                {selectedCapsule.message}
+              </p>
+            </div>
+            <div className="flex items-center justify-between text-sm text-slate-400">
+              <span>创建于：{new Date(selectedCapsule.createdAt).toLocaleDateString()}</span>
+              <span>解锁于：{new Date(selectedCapsule.unlockDate).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(selectedCapsule.id)
+                  handleCloseCapsule()
+                }}
+                className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                删除胶囊
+              </button>
+              <button
+                onClick={handleCloseCapsule}
+                className="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 删除确认弹窗 */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="text-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
+                  <Icon name="warning" size={24} className="text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800">确认删除</h3>
+                <p className="text-slate-400 text-sm mt-2">确定要删除这个时间胶囊吗？此操作不可恢复。</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => handleDeleteTimeCapsule(showDeleteConfirm)}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  删除
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

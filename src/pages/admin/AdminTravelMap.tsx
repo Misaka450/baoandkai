@@ -6,7 +6,8 @@ import { apiService } from '../../services/apiService'
 import type { MapCheckin } from '../../types'
 import { getAllProvinceNames } from '../../data/chinaMapData'
 import { getCitiesForProvince } from '../../data/provinceCities'
-import Icon from '../../components/icons/Icons'
+import Icon, { type IconName } from '../../components/icons/Icons'
+import StatCard from '../../components/common/StatCard'
 
 const provinceNames = getAllProvinceNames()
 
@@ -17,6 +18,14 @@ interface CheckinFormData {
     city: string
     date: string
     images: string[]
+}
+
+interface StatItem {
+    label: string
+    value: number
+    icon: IconName
+    color: string
+    bg: string
 }
 
 const emptyForm: CheckinFormData = {
@@ -77,7 +86,7 @@ export default function AdminTravelMap() {
             if (editingId) {
                 await mapService.update(editingId, formData)
             } else {
-                await mapService.create(formData as any)
+                await mapService.create(formData)
             }
             queryClient.invalidateQueries({ queryKey: ['mapCheckins'] })
             setShowModal(false)
@@ -97,6 +106,13 @@ export default function AdminTravelMap() {
             console.error('删除失败:', error)
         }
     }
+
+    // 统计数据（类型安全）
+    const statItems: StatItem[] = [
+        { label: '总打卡', value: checkins.length, icon: 'auto_awesome', color: 'text-[#6BCB77]', bg: 'bg-[#F0FFF4]' },
+        { label: '省份', value: new Set(checkins.map(c => c.province)).size, icon: 'map', color: 'text-[#FF8BB1]', bg: 'bg-[#FFEDF3]' },
+        { label: '城市', value: new Set(checkins.filter(c => c.city).map(c => c.city)).size, icon: 'location_on', color: 'text-[#6BBFFF]', bg: 'bg-[#EBF7FF]' },
+    ]
 
     const handleImageUpload = async (files: FileList) => {
         for (let i = 0; i < files.length; i++) {
@@ -148,18 +164,17 @@ export default function AdminTravelMap() {
 
             {/* 统计卡片 */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-                {[
-                    { label: '总打卡', value: checkins.length, icon: 'auto_awesome', color: 'text-[#6BCB77]', bg: 'bg-[#F0FFF4]' },
-                    { label: '省份', value: new Set(checkins.map(c => c.province)).size, icon: 'map', color: 'text-[#FF8BB1]', bg: 'bg-[#FFEDF3]' },
-                    { label: '城市', value: new Set(checkins.filter(c => c.city).map(c => c.city)).size, icon: 'location_on', color: 'text-[#6BBFFF]', bg: 'bg-[#EBF7FF]' },
-                ].map(stat => (
-                    <div key={stat.label} className={`${stat.bg} rounded-2xl p-4 flex items-center gap-3`}>
-                        <Icon name={stat.icon as any} size={20} className={stat.color} />
-                        <div>
-                            <div className={`text-2xl font-black ${stat.color}`}>{stat.value}</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</div>
-                        </div>
-                    </div>
+                {statItems.map((stat, idx) => (
+                    <StatCard
+                        key={stat.label}
+                        value={stat.value}
+                        label={stat.label}
+                        icon={stat.icon}
+                        color={stat.color}
+                        text={stat.text}
+                        delay={idx * 0.1}
+                        className="!rounded-2xl !border-0"
+                    />
                 ))}
             </div>
 
