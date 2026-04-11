@@ -12,11 +12,12 @@ interface TimeCapsuleItem {
 
 interface TimeCapsuleListProps {
   capsules: TimeCapsuleItem[]
-  onOpenCapsule: (capsule: TimeCapsuleItem) => void
-  onDeleteCapsule: (id: string) => void
+  isLoading?: boolean
+  onOpenCapsule?: (capsule: TimeCapsuleItem) => void
+  onDeleteCapsule?: (id: string) => void
 }
 
-export default function TimeCapsuleList({ capsules, onOpenCapsule, onDeleteCapsule }: TimeCapsuleListProps) {
+export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, onDeleteCapsule }: TimeCapsuleListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   // 计算剩余时间
@@ -42,7 +43,12 @@ export default function TimeCapsuleList({ capsules, onOpenCapsule, onDeleteCapsu
         <h3 className="text-xl font-black text-slate-800">时间胶囊</h3>
       </div>
 
-      {capsules.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400 text-sm">加载中...</p>
+        </div>
+      ) : capsules.length === 0 ? (
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
             <Icon name="lock" size={32} className="text-slate-300" />
