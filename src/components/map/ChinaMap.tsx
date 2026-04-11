@@ -2,10 +2,12 @@ import { useState, useMemo, memo, useRef, useCallback } from 'react'
 import { provinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
 import type { MapCheckin } from '../../types'
 import MapPin from './MapPin'
+import Icon from '../icons/Icons'
 
 interface ChinaMapProps {
     checkins: MapCheckin[]
     onProvinceClick: (province: ProvinceData) => void
+    showHeatmap?: boolean
 }
 
 // 提取省份路径组件以利用 memo
@@ -52,11 +54,16 @@ const ProvincePath = memo(({
 
 ProvincePath.displayName = 'ProvincePath'
 
-export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
+export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = false }: ChinaMapProps) {
     const [hoveredProvince, setHoveredProvince] = useState<string | null>(null)
     const [tooltipData, setTooltipData] = useState<{ name: string; count: number } | null>(null)
+    const [scale, setScale] = useState(1)
+    const [translate, setTranslate] = useState({ x: 0, y: 0 })
+    const [isDragging, setIsDragging] = useState(false)
+    const dragStart = useRef({ x: 0, y: 0 })
     const tooltipRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
+    const svgRef = useRef<SVGSVGElement>(null)
 
     // 统计每个省份的打卡数量
     const provinceCheckinCounts = useMemo(() => {
@@ -67,7 +74,61 @@ export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
         return counts
     }, [checkins])
 
+    const maxCount = useMemo(() => {
+        return Math.max(...Object.values(provinceCheckinCounts), 1)
+    }, [provinceCheckinCounts])
+
     const checkedProvinces = useMemo(() => new Set(Object.keys(provinceCheckinCounts)), [provinceCheckinCounts])
+
+    // 缩放控制
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? -0.1 : 0.1
+        setScale(prev => Math.min(Math.max(prev + delta, 1), 3))
+    }, [])
+
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        setIsDragging(true)
+        dragStart.current = { x: e.clientX - translate.x, y: e.clientY - translate.y }
+    }, [translate])
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!isDragging) return
+        e.preventDefault()
+        setTranslate({
+            x: e.clientX - dragStart.current.x,
+            y: e.clientY - dragStart.current.y
+        })
+    }, [isDragging])
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false)
+    }, [])
+
+    const handleReset = useCallback(() => {
+        setScale(1)
+        setTranslate({ x: 0, y: 0 })
+    }, [])
+
+    // 热力图颜色生成
+    const getHeatmapColor = useCallback((province: ProvinceData) => {
+        const count = provinceCheckinCounts[province.name] || 0
+        if (count === 0) return '#F0ECE8'
+
+        const ratio = count / maxCount
+        
+        // 从浅黄到橙到红的渐变
+        if (ratio < 0.33) {
+            const t = ratio / 0.33
+            return `rgb(${255}, ${Math.round(255 - t * 100)}, ${Math.round(200 - t * 100)})`
+        } else if (ratio < 0.66) {
+            const t = (ratio - 0.33) / 0.33
+            return `rgb(${255}, ${Math.round(155 - t * 50)}, ${Math.round(100 - t * 50)})`
+        } else {
+            const t = (ratio - 0.66) / 0.34
+            return `rgb(${255}, ${Math.round(105 - t * 30)}, ${Math.round(50 - t * 20)})`
+        }
+    }, [provinceCheckinCounts, maxCount])
 
     // 使用 useCallback 保持引用稳定
     const handleProvinceMouseEnter = useCallback((province: ProvinceData, e: React.MouseEvent) => {
@@ -122,13 +183,53 @@ export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
     return (
         <div
             ref={containerRef}
-            className="relative w-full"
+            className="relative w-full overflow-hidden"
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
+            {/* 缩放控制按钮 */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
+                <button
+                    onClick={() => setScale(prev => Math.min(prev + 0.2, 3))}
+                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    title="放大"
+                >
+                    <Icon name="add" size={20} />
+                </button>
+                <button
+                    onClick={() => setScale(prev => Math.max(prev - 0.2, 1))}
+                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    title="缩小"
+                >
+                    <Icon name="remove" size={20} />
+                </button>
+                <button
+                    onClick={handleReset}
+                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    title="复位"
+                >
+                    <Icon name="refresh" size={20} />
+                </button>
+            </div>
+
+            {/* 缩放百分比显示 */}
+            <div className="absolute left-4 top-4 z-20 bg-white/90 backdrop-blur-sm shadow-lg rounded-xl px-4 py-2 text-sm font-bold text-slate-600">
+                {Math.round(scale * 100)}%
+            </div>
+
             <svg
+                ref={svgRef}
                 viewBox={CHINA_MAP_VIEWBOX}
-                className="w-full h-auto"
+                className="w-full h-auto transition-transform duration-100"
                 xmlns="http://www.w3.org/2000/svg"
+                style={{
+                    transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
+                    transformOrigin: 'center center'
+                }}
             >
                 {/* 背景 */}
                 <rect width="900" height="700" fill="transparent" />
@@ -139,7 +240,7 @@ export default function ChinaMap({ checkins, onProvinceClick }: ChinaMapProps) {
                         <ProvincePath
                             key={province.id}
                             province={province}
-                            fill={getProvinceFill(province, hoveredProvince === province.id)}
+                            fill={showHeatmap ? getHeatmapColor(province) : getProvinceFill(province, hoveredProvince === province.id)}
                             stroke={getProvinceStroke(province)}
                             strokeWidth={hoveredProvince === province.id ? 2 : 1}
                             onClick={onProvinceClick}
