@@ -17,7 +17,7 @@ export default function TravelMap() {
     const [selectedProvince, setSelectedProvince] = useState<ProvinceData | null>(null)
     const [checkinCardData, setCheckinCardData] = useState<{ city: string; checkins: MapCheckin[] } | null>(null)
 
-    const { data: mapData, isLoading } = useQuery({
+    const { data: mapData, isLoading, refetch } = useQuery({
         queryKey: ['mapCheckins'],
         queryFn: async () => {
             const response = await mapService.getAll()
@@ -134,6 +134,18 @@ export default function TravelMap() {
                     </AnimatePresence>
                 </div>
 
+                {/* 打卡详情弹窗 */}
+                <AnimatePresence>
+                    {checkinCardData && (
+                        <CheckinCard
+                            checkins={checkinCardData.checkins}
+                            cityName={checkinCardData.city}
+                            onClose={() => setCheckinCardData(null)}
+                            onRefresh={refetch}
+                        />
+                    )}
+                </AnimatePresence>
+
                 {/* 全国视图下的打卡时间线 */}
                 {viewMode === 'country' && checkins.length > 0 && (
                     <section className="mt-16 animate-slide-up" style={{ animationDelay: '0.2s' }}>
@@ -194,7 +206,7 @@ export default function TravelMap() {
                             <Icon name="map" size={32} className="text-slate-300" />
                         </div>
                         <h3 className="text-xl font-black text-slate-400 mb-2">还没有足迹</h3>
-                        <p className="text-slate-300 text-sm">在管理后台添加你们的第一个打卡吧 ✈️</p>
+                        <p className="text-slate-300 text-sm">在管理后台添加你们的第一个打卡地点吧 ✈️</p>
                     </div>
                 )}
             </main>
