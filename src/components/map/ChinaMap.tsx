@@ -197,21 +197,21 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
                     className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
                     title="放大"
                 >
-                    <Icon name="add" size={20} />
+                    <Icon name="zoom_in" size={20} />
                 </button>
                 <button
                     onClick={() => setScale(prev => Math.max(prev - 0.2, 1))}
                     className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
                     title="缩小"
                 >
-                    <Icon name="remove" size={20} />
+                    <Icon name="zoom_out" size={20} />
                 </button>
                 <button
                     onClick={handleReset}
                     className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
                     title="复位"
                 >
-                    <Icon name="refresh" size={20} />
+                    <Icon name="restart_alt" size={20} />
                 </button>
             </div>
 
