@@ -4,18 +4,31 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { mapService } from '../services/apiService'
 import type { MapCheckin } from '../types'
 import type { ProvinceData } from '../data/chinaMapData'
+import { provinces } from '../data/chinaMapData'
 import ChinaMap from '../components/map/ChinaMap'
 import ProvinceDetail from '../components/map/ProvinceDetail'
 import CheckinCard from '../components/map/CheckinCard'
+import TimeFilter from '../components/map/TimeFilter'
+import Timeline from '../components/map/Timeline'
+import TravelStats from '../components/map/TravelStats'
+import PhotoWall from '../components/map/PhotoWall'
+import Slideshow from '../components/map/Slideshow'
+import MemoryLane from '../components/map/MemoryLane'
+import AnnualReport from '../components/map/AnnualReport'
 import Icon from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
 
-type ViewMode = 'country' | 'province'
+type ViewMode = 'country' | 'province' | 'timeline' | 'stats' | 'photos' | 'memories'
 
 export default function TravelMap() {
     const [viewMode, setViewMode] = useState<ViewMode>('country')
     const [selectedProvince, setSelectedProvince] = useState<ProvinceData | null>(null)
     const [checkinCardData, setCheckinCardData] = useState<{ city: string; checkins: MapCheckin[] } | null>(null)
+    const [selectedYear, setSelectedYear] = useState<string | null>(null)
+    const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+    const [showHeatmap, setShowHeatmap] = useState(false)
+    const [showSlideshow, setShowSlideshow] = useState(false)
+    const [showAnnualReport, setShowAnnualReport] = useState(false)
 
     const { data: mapData, isLoading, refetch } = useQuery({
         queryKey: ['mapCheckins'],
@@ -26,7 +39,26 @@ export default function TravelMap() {
         staleTime: Infinity,
     })
 
-    const checkins = mapData?.data || []
+    // 按时间筛选
+    const allCheckins = mapData?.data || []
+    const checkins = useMemo(() => {
+        if (!selectedYear && !selectedMonth) return allCheckins
+        
+        return allCheckins.filter(checkin => {
+            const date = new Date(checkin.date)
+            const year = date.getFullYear().toString()
+            const month = (date.getMonth() + 1).toString().padStart(2, '0')
+            
+            if (selectedYear && year !== selectedYear) return false
+            if (selectedMonth && month !== selectedMonth) return false
+            return true
+        })
+    }, [allCheckins, selectedYear, selectedMonth])
+
+    // 提取所有日期用于筛选器
+    const allDates = useMemo(() => {
+        return allCheckins.map(c => c.date)
+    }, [allCheckins])
 
     // 统计数据
     const stats = useMemo(() => {
@@ -83,6 +115,30 @@ export default function TravelMap() {
                         Every place we've been, every memory we've made
                     </p>
 
+                    {/* 视图切换导航 */}
+                    <nav className="flex flex-wrap justify-center gap-3 mt-10">
+                        {[
+                            { id: 'country', label: '地图', icon: 'map' },
+                            { id: 'timeline', label: '时间轴', icon: 'timeline' },
+                            { id: 'stats', label: '统计', icon: 'bar_chart' },
+                            { id: 'photos', label: '照片墙', icon: 'photo_library' },
+                            { id: 'memories', label: '回忆', icon: 'favorite' },
+                        ].map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setViewMode(item.id as ViewMode)}
+                                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${
+                                    viewMode === item.id
+                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
+                                        : 'bg-white/60 text-slate-600 hover:bg-white hover:shadow-md'
+                                }`}
+                            >
+                                <Icon name={item.icon as any} size={18} />
+                                {item.label}
+                            </button>
+                        ))}
+                    </nav>
+
                     {/* 统计数据 */}
                     {stats.totalCheckins > 0 && (
                         <div className="flex justify-center gap-6 mt-10">
@@ -105,34 +161,141 @@ export default function TravelMap() {
                             ))}
                         </div>
                     )}
+
+                    {/* 功能按钮 */}
+                    {checkins.length > 0 && (
+                        <div className="flex justify-center gap-3 mt-8">
+                            <button
+                                onClick={() => setShowAnnualReport(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-xl font-bold text-sm text-primary transition-all shadow-sm"
+                            >
+                                <Icon name="auto_awesome" size={18} />
+                                年度报告
+                            </button>
+                            <button
+                                onClick={() => setShowSlideshow(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-xl font-bold text-sm text-primary transition-all shadow-sm"
+                            >
+                                <Icon name="slideshow" size={18} />
+                                幻灯片
+                            </button>
+                            <button
+                                onClick={() => setShowHeatmap(!showHeatmap)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                                    showHeatmap
+                                        ? 'bg-gradient-to-r from-orange-100 to-red-100 text-red-600'
+                                        : 'bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 text-primary'
+                                }`}
+                            >
+                                <Icon name="whatshot" size={18} />
+                                热力图 {showHeatmap ? '已开启' : '已关闭'}
+                            </button>
+                        </div>
+                    )}
                 </header>
 
+                {/* 时间筛选器 */}
+                {(viewMode === 'country' || viewMode === 'timeline' || viewMode === 'photos') && allCheckins.length > 0 && (
+                    <TimeFilter
+                        selectedYear={selectedYear}
+                        selectedMonth={selectedMonth}
+                        onYearChange={setSelectedYear}
+                        onMonthChange={setSelectedMonth}
+                        onReset={() => {
+                            setSelectedYear(null)
+                            setSelectedMonth(null)
+                        }}
+                        dates={allDates}
+                    />
+                )}
+
                 {/* 地图区域 */}
-                <div className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up">
-                    <AnimatePresence mode="wait">
-                        {viewMode === 'country' ? (
-                            <motion.div
-                                key="country"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                            >
-                                <ChinaMap
-                                    checkins={checkins}
-                                    onProvinceClick={handleProvinceClick}
+                {viewMode === 'country' && (
+                    <div className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up">
+                        <AnimatePresence mode="wait">
+                            {viewMode === 'country' ? (
+                                <motion.div
+                                    key="country"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                >
+                                    <ChinaMap
+                                        checkins={checkins}
+                                        onProvinceClick={handleProvinceClick}
+                                        showHeatmap={showHeatmap}
+                                    />
+                                </motion.div>
+                            ) : selectedProvince ? (
+                                <ProvinceDetail
+                                    key="province"
+                                    province={selectedProvince}
+                                    checkins={provinceCheckins}
+                                    onBack={handleBack}
+                                    onCityClick={handleCityClick}
                                 />
-                            </motion.div>
-                        ) : selectedProvince ? (
-                            <ProvinceDetail
-                                key="province"
-                                province={selectedProvince}
-                                checkins={provinceCheckins}
-                                onBack={handleBack}
-                                onCityClick={handleCityClick}
-                            />
-                        ) : null}
-                    </AnimatePresence>
-                </div>
+                            ) : null}
+                        </AnimatePresence>
+                    </div>
+                )}
+
+                {/* 时间线视图 */}
+                {viewMode === 'timeline' && (
+                    <motion.div
+                        className="premium-card !p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <Timeline
+                            checkins={checkins}
+                            onCheckinClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
+                        />
+                    </motion.div>
+                )}
+
+                {/* 统计视图 */}
+                {viewMode === 'stats' && (
+                    <motion.div
+                        className="max-w-4xl mx-auto animate-slide-up"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <TravelStats
+                            checkins={checkins}
+                            onProvinceClick={(province) => {
+                                const provinceData = provinces.find(p => p.name === province)
+                                if (provinceData) {
+                                    handleProvinceClick(provinceData)
+                                }
+                            }}
+                        />
+                    </motion.div>
+                )}
+
+                {/* 照片墙视图 */}
+                {viewMode === 'photos' && (
+                    <motion.div
+                        className="premium-card !p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <PhotoWall
+                            checkins={checkins}
+                            onPhotoClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
+                        />
+                    </motion.div>
+                )}
+
+                {/* 回忆视图 */}
+                {viewMode === 'memories' && (
+                    <motion.div
+                        className="animate-slide-up"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <MemoryLane checkins={allCheckins} />
+                    </motion.div>
+                )}
 
                 {/* 打卡详情弹窗 */}
                 <AnimatePresence>
@@ -142,6 +305,27 @@ export default function TravelMap() {
                             cityName={checkinCardData.city}
                             onClose={() => setCheckinCardData(null)}
                             onRefresh={refetch}
+                        />
+                    )}
+                </AnimatePresence>
+
+                {/* 幻灯片弹窗 */}
+                <AnimatePresence>
+                    {showSlideshow && (
+                        <Slideshow
+                            checkins={allCheckins}
+                            onClose={() => setShowSlideshow(false)}
+                        />
+                    )}
+                </AnimatePresence>
+
+                {/* 年度报告弹窗 */}
+                <AnimatePresence>
+                    {showAnnualReport && (
+                        <AnnualReport
+                            checkins={allCheckins}
+                            year={new Date().getFullYear()}
+                            onClose={() => setShowAnnualReport(false)}
                         />
                     )}
                 </AnimatePresence>
