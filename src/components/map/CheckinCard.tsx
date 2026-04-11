@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
+import { mapService } from '../../services/apiService'
 import ImageModal from '../ImageModal'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
@@ -10,11 +11,14 @@ interface CheckinCardProps {
     checkins: MapCheckin[]
     cityName: string
     onClose: () => void
+    onRefresh?: () => void
 }
 
-export default function CheckinCard({ checkins, cityName, onClose }: CheckinCardProps) {
+export default function CheckinCard({ checkins, cityName, onClose, onRefresh }: CheckinCardProps) {
     const [selectedImages, setSelectedImages] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [deletingId, setDeletingId] = useState<number | string | null>(null)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | string | null>(null)
 
     const handleImageClick = (images: string[], startIndex: number = 0) => {
         if (images && images.length > 0) {
@@ -31,6 +35,24 @@ export default function CheckinCard({ checkins, cityName, onClose }: CheckinCard
             return dateStr
         }
     }
+
+    const handleDelete = async (id: number | string) => {
+        setDeletingId(id)
+        try {
+            await mapService.delete(id)
+            if (onRefresh) {
+                onRefresh()
+            }
+            setShowDeleteConfirm(null)
+        } catch (error) {
+            console.error('删除失败:', error)
+            alert('删除失败，请重试')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
+    const isAdmin = localStorage.getItem('token') !== null
 
     return (
         <>
@@ -120,7 +142,7 @@ export default function CheckinCard({ checkins, cityName, onClose }: CheckinCard
                                     )}
 
                                     {/* 文字内容 */}
-                                    <div>
+                                    <div className="relative">
                                         <h4 className="font-black text-xl text-slate-800 mb-2">{checkin.title}</h4>
                                         {checkin.description && (
                                             <p className="text-slate-500 text-sm leading-relaxed mb-3">{checkin.description}</p>
@@ -128,6 +150,18 @@ export default function CheckinCard({ checkins, cityName, onClose }: CheckinCard
                                         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
                                             {formatDate(checkin.date)}
                                         </p>
+
+                                        {/* 管理员删除按钮 */}
+                                        {isAdmin && (
+                                            <button
+                                                onClick={() => setShowDeleteConfirm(checkin.id)}
+                                                disabled={deletingId === checkin.id}
+                                                className="absolute top-0 right-0 p-2 text-slate-300 hover:text-red-500 transition-colors disabled:opacity-50"
+                                                title="删除足迹"
+                                            >
+                                                <Icon name="delete" size={16} />
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* 分隔线 */}
@@ -151,6 +185,59 @@ export default function CheckinCard({ checkins, cityName, onClose }: CheckinCard
                 onNext={() => setCurrentImageIndex(prev => (prev + 1) % selectedImages.length)}
                 onJumpTo={setCurrentImageIndex}
             />
+
+            {/* 删除确认弹窗 */}
+            <AnimatePresence>
+                {showDeleteConfirm !== null && (
+                    <motion.div
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(null)} />
+                        <motion.div
+                            className="relative z-10 bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-white/80"
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            transition={{ type: 'spring', duration: 0.3 }}
+                        >
+                            <div className="text-center">
+                                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                                    <Icon name="delete" size={32} className="text-red-500" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-800 mb-2">确认删除</h3>
+                                <p className="text-slate-400 text-sm mb-6">确定要删除这条足迹记录吗？此操作不可恢复。</p>
+                                
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(null)}
+                                        disabled={deletingId !== null}
+                                        className="flex-1 px-6 py-3 rounded-2xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(showDeleteConfirm)}
+                                        disabled={deletingId !== null}
+                                        className="flex-1 px-6 py-3 rounded-2xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {deletingId === showDeleteConfirm ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                删除中...
+                                            </>
+                                        ) : (
+                                            '删除'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     )
 }
