@@ -18,7 +18,6 @@ interface TimeCapsuleItem {
 export default function CoupleFeatures() {
   const queryClient = useQueryClient()
   const [showTimeCapsule, setShowTimeCapsule] = useState(false)
-  const [timeCapsules, setTimeCapsules] = useState<TimeCapsuleItem[]>([])
 
   // 使用 React Query 获取时间胶囊数据
   const { data: capsulesResponse, isLoading: isLoadingCapsules } = useQuery({
@@ -30,6 +29,7 @@ export default function CoupleFeatures() {
     }
   })
 
+  // 处理时间胶囊数据
   const timeCapsules: TimeCapsuleItem[] = (capsulesResponse?.data || []).map(c => ({
     id: c.id,
     message: c.message,
