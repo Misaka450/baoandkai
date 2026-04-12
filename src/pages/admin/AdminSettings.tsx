@@ -207,9 +207,10 @@ const AdminSettings = () => {
                                 头像设置
                             </h3>
 
-                                {/* TA的头像 */}
-                                <div className="mb-6">
-                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">TA的头像</label>
+                            <div className="space-y-6">
+                                {/* TA 的头像 */}
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">TA 的头像</label>
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {presetAvatars.slice(0, 4).map((avatar) => (
                                             <button
@@ -263,7 +264,7 @@ const AdminSettings = () => {
                                 </div>
 
                                 {/* 你的头像 */}
-                                <div className="mb-6">
+                                <div>
                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">你的头像</label>
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {presetAvatars.slice(4, 8).map((avatar) => (
@@ -316,6 +317,7 @@ const AdminSettings = () => {
                                     </div>
                                     {config.avatar2 && <div className="text-xs text-slate-400">当前：自定义头像</div>}
                                 </div>
+                            </div>
                         </Card>
                     </form>
                 </div>
