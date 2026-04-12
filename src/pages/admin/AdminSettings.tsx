@@ -5,7 +5,6 @@ import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { useConfig } from '../../hooks/useConfig'
 import { SiteConfig } from '../../types'
-import AdminLayout from '../../components/admin/AdminLayout'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 
@@ -111,7 +110,7 @@ const AdminSettings = () => {
         : 0
 
     return (
-        <AdminLayout title="小窝设置" subtitle="Personalize your sweet home">
+        <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <form onSubmit={handleSubmit}>
@@ -380,7 +379,7 @@ const AdminSettings = () => {
                 showCancel={modalState.showCancel}
                 confirmText={modalState.confirmText}
             />
-        </AdminLayout>
+        </div>
     )
 }
 

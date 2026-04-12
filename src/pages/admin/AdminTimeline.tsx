@@ -6,7 +6,6 @@ import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { getThumbnailUrl } from '../../utils/imageUtils'
-import AdminLayout from '../../components/admin/AdminLayout'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 
@@ -170,7 +169,7 @@ const AdminTimeline = () => {
     }
 
     return (
-        <AdminLayout title="时间轴" subtitle="Memories are timeless treasures">
+        <div className="space-y-8">
             {/* 顶部操作栏 */}
             <div className="flex justify-end mb-6">
                 <Button
@@ -391,7 +390,7 @@ const AdminTimeline = () => {
                 )}
             </div>
             <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
-        </AdminLayout>
+        </div>
     )
 }
 

@@ -8,7 +8,6 @@ import { getAllProvinceNames } from '../../data/chinaMapData'
 import { getCitiesForProvince } from '../../data/provinceCities'
 import Icon, { type IconName } from '../../components/icons/Icons'
 import StatCard from '../../components/common/StatCard'
-import AdminLayout from '../../components/admin/AdminLayout'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 
@@ -146,7 +145,7 @@ export default function AdminTravelMap() {
     }
 
     return (
-        <AdminLayout title="足迹地图管理" subtitle="Manage your travel footprints">
+        <div className="space-y-8">
             {/* 顶部操作栏 */}
             <div className="flex justify-between items-center mb-8">
                 <div>
@@ -421,6 +420,6 @@ export default function AdminTravelMap() {
                     </div>
                 </div>
             )}
-        </AdminLayout>
+        </div>
     )
 }
