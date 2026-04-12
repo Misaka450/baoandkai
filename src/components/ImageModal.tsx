@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
+import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, downloadOriginalImage } from '../utils/imageUtils'
 import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
@@ -252,6 +252,18 @@ export default function ImageModal({
             title="还原"
           >
             <Icon name="restart_alt" size={20} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (currentImage) {
+                downloadOriginalImage(currentImage);
+              }
+            }}
+            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            title="下载原图"
+          >
+            <Icon name="download" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
