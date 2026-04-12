@@ -259,11 +259,11 @@ const AdminSettings = () => {
                                             )}
                                         </div>
                                     </div>
-                                    {config.avatar1 && <div className="text-xs text-slate-400">当前: 自定义头像</div>}
+                                    {config.avatar1 && <div className="text-xs text-slate-400">当前：自定义头像</div>}
                                 </div>
 
                                 {/* 你的头像 */}
-                                <div>
+                                <div className="mb-6">
                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">你的头像</label>
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {presetAvatars.slice(4, 8).map((avatar) => (
@@ -314,21 +314,10 @@ const AdminSettings = () => {
                                             )}
                                         </div>
                                     </div>
-                                    {config.avatar2 && <div className="text-xs text-slate-400">当前: 自定义头像</div>}
+                                    {config.avatar2 && <div className="text-xs text-slate-400">当前：自定义头像</div>}
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="mt-8">
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Icon name="auto_awesome" size={20} />
-                                {saving ? '保存中...' : '保存设置'}
-                            </button>
-                        </div>
+                        </Card>
                     </form>
                 </div>
 
