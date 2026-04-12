@@ -58,15 +58,18 @@ export default function StatCard({
       transition={{ delay, duration: 0.3 }}
       whileHover={{ scale: hoverScale }}
     >
+      {/* 装饰图标 - 降低透明度，减小尺寸，避免喧宾夺主 */}
       {showDecoration && (
-        <div className={`absolute -top-4 -right-4 opacity-10 group-hover/item:opacity-30 transition-opacity rotate-12 ${text}`}>
-          <Icon name={icon} size={decorationSize} />
+        <div className={`absolute -top-2 -right-2 opacity-[0.08] group-hover/item:opacity-20 transition-opacity rotate-12 ${text}`}>
+          <Icon name={icon} size={decorationSize * 0.7} />
         </div>
       )}
-      <Icon name={icon} size={18} className={text} />
+      {/* 主图标 - 稍微增大 */}
+      <Icon name={icon} size={20} className={text} />
+      {/* 数字和标签 - 增大数字字体 */}
       <div className="text-left">
-        <div className={`text-2xl font-black ${text} drop-shadow-sm`}>{value}</div>
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</div>
+        <div className={`text-3xl md:text-4xl font-black ${text} drop-shadow-sm leading-none`}>{value}</div>
+        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">{label}</div>
       </div>
     </motion.div>
   )
