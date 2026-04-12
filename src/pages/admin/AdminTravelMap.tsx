@@ -146,27 +146,28 @@ export default function AdminTravelMap() {
     }
 
     return (
-        <div>
-            {/* 头部 */}
-            <div className="flex items-center justify-between mb-8">
+        <AdminLayout title="足迹地图管理" subtitle="Manage your travel footprints">
+            {/* 顶部操作栏 */}
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                        <Icon name="map" size={24} className="text-primary" />
-                        足迹地图管理
+                    <h2 className="text-lg font-bold text-slate-600 flex items-center gap-2">
+                        <Icon name="map" size={20} className="text-primary" />
+                        管理地图打卡记录
                     </h2>
-                    <p className="text-slate-400 text-sm mt-1">管理地图打卡记录</p>
                 </div>
-                <button
+                <Button
                     onClick={handleAdd}
-                    className="bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                    variant="primary"
+                    size="lg"
+                    className="flex items-center gap-2"
                 >
                     <Icon name="add" size={18} />
                     添加打卡
-                </button>
+                </Button>
             </div>
 
             {/* 统计卡片 */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 {statItems.map((stat, idx) => (
                     <StatCard
                         key={stat.label}
@@ -187,11 +188,11 @@ export default function AdminTravelMap() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
             ) : checkins.length === 0 ? (
-                <div className="text-center py-20 bg-white/40 rounded-[2rem] border border-white">
+                <Card padding="lg" className="text-center py-20">
                     <Icon name="map" size={48} className="text-slate-200 mx-auto mb-4" />
                     <p className="text-slate-400 font-bold">还没有打卡记录</p>
                     <p className="text-slate-300 text-sm mt-1">点击上方按钮添加第一个足迹吧！</p>
-                </div>
+                </Card>
             ) : (
                 <div className="space-y-3">
                     <AnimatePresence>
@@ -203,48 +204,55 @@ export default function AdminTravelMap() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -100 }}
                                 transition={{ delay: idx * 0.03 }}
-                                className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 border border-white/80 shadow-sm hover:shadow-md transition-all group"
                             >
-                                {/* 缩略图 */}
-                                {checkin.images && checkin.images.length > 0 ? (
-                                    <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                                        <img src={checkin.images[0]} alt={checkin.title} className="w-full h-full object-cover" />
-                                    </div>
-                                ) : (
-                                    <div className="w-16 h-16 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
-                                        <Icon name="landscape" size={24} className="text-slate-200" />
-                                    </div>
-                                )}
+                                <Card padding="sm" className="group hover:shadow-md transition-all">
+                                    <div className="flex items-center gap-4">
+                                        {/* 缩略图 */}
+                                        {checkin.images && checkin.images.length > 0 ? (
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                                                <img src={checkin.images[0]} alt={checkin.title} className="w-full h-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
+                                                <Icon name="landscape" size={24} className="text-slate-200" />
+                                            </div>
+                                        )}
 
-                                {/* 信息 */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-slate-800 truncate">{checkin.title}</h3>
-                                    <div className="flex items-center gap-2 text-slate-400 mt-1">
-                                        <Icon name="location_on" size={12} className="text-primary/50" />
-                                        <span className="text-xs font-medium">{checkin.province}{checkin.city ? ` · ${checkin.city}` : ''}</span>
-                                        <span className="text-slate-200">•</span>
-                                        <span className="text-xs">{formatDate(checkin.date)}</span>
-                                    </div>
-                                    {checkin.description && (
-                                        <p className="text-xs text-slate-400 truncate mt-1">{checkin.description}</p>
-                                    )}
-                                </div>
+                                        {/* 信息 */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-slate-800 truncate">{checkin.title}</h3>
+                                            <div className="flex items-center gap-2 text-slate-400 mt-1">
+                                                <Icon name="location_on" size={12} className="text-primary/50" />
+                                                <span className="text-xs font-medium">{checkin.province}{checkin.city ? ` · ${checkin.city}` : ''}</span>
+                                                <span className="text-slate-200">•</span>
+                                                <span className="text-xs">{formatDate(checkin.date)}</span>
+                                            </div>
+                                            {checkin.description && (
+                                                <p className="text-xs text-slate-400 truncate mt-1">{checkin.description}</p>
+                                            )}
+                                        </div>
 
-                                {/* 操作按钮 */}
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                    <button
-                                        onClick={() => handleEdit(checkin)}
-                                        className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-all"
-                                    >
-                                        <Icon name="edit" size={16} />
-                                    </button>
-                                    <button
-                                        onClick={() => setDeleteConfirm(checkin.id)}
-                                        className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                                    >
-                                        <Icon name="delete" size={16} />
-                                    </button>
-                                </div>
+                                        {/* 操作按钮 */}
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleEdit(checkin)}
+                                                className="!p-2"
+                                            >
+                                                <Icon name="edit" size={16} />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setDeleteConfirm(checkin.id)}
+                                                className="!p-2 text-red-500 hover:bg-red-50 hover:text-red-600"
+                                            >
+                                                <Icon name="delete" size={16} />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
                             </motion.div>
                         ))}
                     </AnimatePresence>
@@ -366,19 +374,22 @@ export default function AdminTravelMap() {
 
                         {/* 底部按钮 */}
                         <div className="sticky bottom-0 bg-white/90 backdrop-blur-xl px-6 py-4 border-t border-slate-100/50 flex gap-3 rounded-b-[2rem]">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-500 font-medium text-sm hover:bg-slate-50 transition-all"
+                                className="flex-1"
                             >
                                 取消
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="primary"
                                 onClick={handleSave}
                                 disabled={saving || !formData.title || !formData.province || !formData.date}
-                                className="flex-1 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                loading={saving}
+                                className="flex-1"
                             >
                                 {saving ? '保存中...' : '保存'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -392,22 +403,24 @@ export default function AdminTravelMap() {
                         <h3 className="font-bold text-lg text-slate-800 mb-2">确认删除</h3>
                         <p className="text-slate-500 text-sm mb-6">删除后将无法恢复，确定要删除这条打卡记录吗？</p>
                         <div className="flex gap-3">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => setDeleteConfirm(null)}
-                                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-500 font-medium text-sm hover:bg-slate-50 transition-all"
+                                className="flex-1"
                             >
                                 取消
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="danger"
                                 onClick={() => handleDelete(deleteConfirm)}
-                                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-all"
+                                className="flex-1"
                             >
                                 确认删除
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </AdminLayout>
     )
 }
