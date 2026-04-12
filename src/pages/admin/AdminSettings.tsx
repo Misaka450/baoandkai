@@ -5,6 +5,9 @@ import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { useConfig } from '../../hooks/useConfig'
 import { SiteConfig } from '../../types'
+import AdminLayout from '../../components/admin/AdminLayout'
+import Button from '../../components/admin/ui/Button'
+import Card from '../../components/admin/ui/Card'
 
 // 预设卡通头像列表
 const presetAvatars = [
@@ -108,109 +111,101 @@ const AdminSettings = () => {
         : 0
 
     return (
-        <div className="animate-fade-in text-slate-700">
-            {/* 粘性玻璃头部 */}
-            <header className="premium-glass -mx-4 px-4 py-6 mb-10 flex items-center justify-between backdrop-blur-xl">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">小窝设置<span className="text-primary tracking-tighter ml-1">CONFIG</span></h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Personalize your sweet home</p>
-                </div>
-            </header>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 pb-20">
+        <AdminLayout title="小窝设置" subtitle="Personalize your sweet home">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <form onSubmit={handleSubmit} className="premium-card p-10">
+                    <form onSubmit={handleSubmit}>
+                        <Card padding="lg" className="mb-8">
                         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
                             <Icon name="favorite" size={20} className="text-primary" />
                             基本信息
                         </h2>
 
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">TA的昵称</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                        <Icon name="female" size={20} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={config.coupleName1}
-                                        onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
-                                        className="premium-input pl-12"
-                                        placeholder="例如：包包"
-                                    />
+                        <div className="space-y-5">
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
+                                    <Icon name="female" size={20} />
                                 </div>
+                                <input
+                                    type="text"
+                                    value={config.coupleName1}
+                                    onChange={(e) => setConfig({ ...config, coupleName1: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="TA 的昵称（例如：包包）"
+                                />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">你的昵称</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                        <Icon name="male" size={20} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={config.coupleName2}
-                                        onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
-                                        className="premium-input pl-12"
-                                        placeholder="例如：恺恺"
-                                    />
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
+                                    <Icon name="male" size={20} />
                                 </div>
+                                <input
+                                    type="text"
+                                    value={config.coupleName2}
+                                    onChange={(e) => setConfig({ ...config, coupleName2: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="你的昵称（例如：恺恺）"
+                                />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">纪念日</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                        <Icon name="calendar_month" size={20} />
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={config.anniversaryDate}
-                                        onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
-                                        className="premium-input pl-12"
-                                    />
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
+                                    <Icon name="calendar_month" size={20} />
                                 </div>
+                                <input
+                                    type="date"
+                                    value={config.anniversaryDate}
+                                    onChange={(e) => setConfig({ ...config, anniversaryDate: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">首页标题</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                        <Icon name="home" size={20} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={config.homeTitle || ''}
-                                        onChange={(e) => setConfig({ ...config, homeTitle: e.target.value })}
-                                        className="premium-input pl-12"
-                                        placeholder="例如：包包和恺恺的小窝"
-                                    />
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
+                                    <Icon name="home" size={20} />
                                 </div>
+                                <input
+                                    type="text"
+                                    value={config.homeTitle || ''}
+                                    onChange={(e) => setConfig({ ...config, homeTitle: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="首页标题（例如：包包和恺恺的小窝）"
+                                />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">首页副标题</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                        <Icon name="favorite" size={20} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={config.homeSubtitle || ''}
-                                        onChange={(e) => setConfig({ ...config, homeSubtitle: e.target.value })}
-                                        className="premium-input pl-12"
-                                        placeholder="例如：遇见你，是银河赠予我的糖。"
-                                    />
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
+                                    <Icon name="favorite" size={20} />
                                 </div>
+                                <input
+                                    type="text"
+                                    value={config.homeSubtitle || ''}
+                                    onChange={(e) => setConfig({ ...config, homeSubtitle: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="首页副标题（例如：遇见你，是银河赠予我的糖。）"
+                                />
                             </div>
 
-                            {/* 头像设置区域 */}
-                            <div className="pt-6 border-t border-slate-100">
-                                <h3 className="text-sm font-bold text-slate-600 mb-4 flex items-center gap-2">
-                                    <Icon name="person" size={18} className="text-primary" />
-                                    头像设置
-                                </h3>
+                            {/* 保存按钮 */}
+                            <div className="pt-4 flex gap-3">
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    size="lg"
+                                    loading={saving}
+                                    className="flex-1"
+                                >
+                                    {saving ? '保存中...' : '保存设置'}
+                                </Button>
+                            </div>
+                        </Card>
+
+                        {/* 头像设置区域 */}
+                        <Card padding="lg" className="mb-8">
+                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
+                                <Icon name="person" size={20} className="text-primary" />
+                                头像设置
+                            </h3>
 
                                 {/* TA的头像 */}
                                 <div className="mb-6">
@@ -337,38 +332,50 @@ const AdminSettings = () => {
                     </form>
                 </div>
 
-                <div className="space-y-8">
-                    <div className="premium-card p-8 text-center group">
-                        <div className="text-7xl font-black text-gradient mb-2 group-hover:scale-110 transition-transform duration-700">{daysCount}</div>
-                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Our Love Story Index</p>
-                        <div className="mt-8 pt-8 border-t border-dashed border-slate-100">
-                            <h2 className="text-xl font-black text-slate-800 leading-tight mb-2 tracking-tight">{config.coupleName1} & {config.coupleName2}</h2>
-                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Since {config.anniversaryDate || '---'}</p>
-                        </div>
-                    </div>
-
-                    <div className="premium-card p-10 bg-white border-slate-100 shadow-xl shadow-slate-200/60 group">
-                        <h2 className="text-lg font-black mb-6 flex items-center gap-3 text-slate-800">
-                            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
-                                <Icon name="auto_fix_high" size={20} />
+                <div className="lg:col-span-1 space-y-6">
+                    {/* 纪念日统计卡片 */}
+                    {config.anniversaryDate && (
+                        <Card padding="lg" className="relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                            <div className="relative">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Icon name="favorite" size={20} className="text-primary" />
+                                    <h3 className="text-sm font-bold text-slate-600">相爱纪念日</h3>
+                                </div>
+                                <div className="text-4xl font-black text-primary mb-1">
+                                    {daysCount}
+                                </div>
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    DAYS TOGETHER
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                                    从 {config.anniversaryDate} 开始
+                                </div>
                             </div>
-                            智慧小窝
-                        </h2>
-                        <ul className="space-y-6">
-                            <li className="flex items-start gap-4">
-                                <div className="w-6 h-6 rounded-lg bg-pink-50 flex items-center justify-center shrink-0 mt-1">
-                                    <Icon name="favorite" size={12} className="text-primary" />
-                                </div>
-                                <span className="text-sm font-bold text-slate-500 leading-relaxed">昵称将应用于全站，作为你们独特的数字足迹。</span>
+                        </Card>
+                    )}
+
+                    {/* 提示卡片 */}
+                    <Card padding="md" className="bg-gradient-to-br from-slate-50 to-slate-100/50">
+                        <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                            <Icon name="info" size={16} className="text-primary" />
+                            设置提示
+                        </h3>
+                        <ul className="space-y-3">
+                            <li className="flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                                <span className="text-xs text-slate-600 leading-relaxed">昵称将应用于全站，作为你们独特的数字足迹</span>
                             </li>
-                            <li className="flex items-start gap-4">
-                                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 mt-1">
-                                    <Icon name="calendar_month" size={12} className="text-blue-400" />
-                                </div>
-                                <span className="text-sm font-bold text-slate-500 leading-relaxed">相爱的每一天都会被精心记录并呈现在首页。</span>
+                            <li className="flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                                <span className="text-xs text-slate-600 leading-relaxed">相爱的每一天都会被精心记录并呈现在首页</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                                <span className="text-xs text-slate-600 leading-relaxed">头像支持自定义上传或选择预设样式</span>
                             </li>
                         </ul>
-                    </div>
+                    </Card>
                 </div>
             </div>
 
@@ -382,7 +389,7 @@ const AdminSettings = () => {
                 showCancel={modalState.showCancel}
                 confirmText={modalState.confirmText}
             />
-        </div>
+        </AdminLayout>
     )
 }
 
