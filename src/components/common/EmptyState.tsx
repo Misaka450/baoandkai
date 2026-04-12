@@ -1,5 +1,5 @@
 import React from 'react'
-import Icon from '../icons/Icons'
+import Icon, { IconName } from '../icons/Icons'
 
 type EmptyStateType = 'albums' | 'timeline' | 'photos' | 'food' | 'map' | 'todos' | 'search' | 'general'
 
@@ -12,19 +12,19 @@ interface EmptyStateProps {
   className?: string
 }
 
-const emptyStateConfig: Record<EmptyStateType, { icon: string; title: string; description: string }> = {
+const emptyStateConfig: Record<EmptyStateType, { icon: IconName; title: string; description: string }> = {
   albums: {
     icon: 'photo_library',
     title: '还没有相册',
     description: '在管理后台创建第一个相册，记录你们的美好回忆吧'
   },
   timeline: {
-    icon: 'timeline',
+    icon: 'schedule',
     title: '还没有时光轴记录',
     description: '在管理后台创建第一个时光轴事件，记录你们的美好时刻'
   },
   photos: {
-    icon: 'photo',
+    icon: 'photo_album',
     title: '还没有照片',
     description: '这个相册还没有照片，上传一些照片开始记录吧'
   },
@@ -34,7 +34,7 @@ const emptyStateConfig: Record<EmptyStateType, { icon: string; title: string; de
     description: '记录你们品尝过的美食，留下美味回忆'
   },
   map: {
-    icon: 'public',
+    icon: 'location_on',
     title: '还没有旅行足迹',
     description: '开始记录你们的旅行足迹，探索更多城市'
   },
@@ -44,12 +44,12 @@ const emptyStateConfig: Record<EmptyStateType, { icon: string; title: string; de
     description: '添加你们想要一起完成的愿望，开始逐梦之旅'
   },
   search: {
-    icon: 'search_off',
+    icon: 'search',
     title: '没有找到匹配的',
     description: '尝试其他关键词搜索'
   },
   general: {
-    icon: 'inbox',
+    icon: 'info',
     title: '暂无数据',
     description: '这里还没有内容'
   }

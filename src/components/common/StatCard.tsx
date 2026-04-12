@@ -7,7 +7,7 @@ interface StatCardProps {
   label: string
   icon: IconName
   color: string
-  text: string
+  text?: string
   hoverScale?: number
   delay?: number
   className?: string

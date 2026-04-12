@@ -18,7 +18,7 @@ const pageVariants = {
         scale: 1,
         transition: {
             duration: 0.4,
-            ease: [0.22, 1, 0.36, 1]
+            ease: [0.22, 1, 0.36, 1] as const
         }
     },
     exit: {
@@ -27,7 +27,7 @@ const pageVariants = {
         scale: 1.02,
         transition: {
             duration: 0.2,
-            ease: [0.55, 0, 1, 0.45]
+            ease: [0.55, 0, 1, 0.45] as const
         }
     }
 }

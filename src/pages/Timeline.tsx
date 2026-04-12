@@ -60,7 +60,7 @@ export default function Timeline() {
 
   // 里程碑事件（纪念类别）
   const milestoneEvents = useMemo(() => {
-    return events.filter(event => event.category === '纪念' && event.images?.length > 0)
+    return events.filter(event => event.category === '纪念' && (event.images?.length ?? 0) > 0)
   }, [events])
 
   // 过滤事件（按年份）
@@ -191,7 +191,7 @@ export default function Timeline() {
         {filteredEvents.length === 0 ? (
           <div className="text-center py-20 animate-fade-in">
             <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-6">
-              <Icon name="timeline" size={48} className="text-slate-200" />
+              <Icon name="schedule" size={48} className="text-slate-200" />
             </div>
             <h3 className="text-2xl font-black text-slate-400 mb-3">
               {selectedYear ? `${selectedYear}年还没有记录` : '还没有时光轴记录'}

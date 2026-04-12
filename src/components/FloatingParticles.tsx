@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import Icon from '../icons/Icons'
+import Icon from './icons/Icons'
 
 interface FloatingParticlesProps {
   count?: number

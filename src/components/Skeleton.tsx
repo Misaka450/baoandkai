@@ -2,15 +2,16 @@ import React from 'react'
 
 interface SkeletonProps {
     className?: string
+    style?: React.CSSProperties
 }
 
 /**
  * 基础骨架屏组件 - 渐变流光动画
  */
-export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => (
+export const Skeleton: React.FC<SkeletonProps> = ({ className = '', style }) => (
     <div
         className={`animate-pulse bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] rounded-lg ${className}`}
-        style={{ animation: 'shimmer 1.5s ease-in-out infinite' }}
+        style={{ animation: 'shimmer 1.5s ease-in-out infinite', ...style }}
     />
 )
 
