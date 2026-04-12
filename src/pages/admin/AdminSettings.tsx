@@ -116,12 +116,12 @@ const AdminSettings = () => {
                 <div className="lg:col-span-2">
                     <form onSubmit={handleSubmit}>
                         <Card padding="lg" className="mb-8">
-                        <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
-                            <Icon name="favorite" size={20} className="text-primary" />
-                            基本信息
-                        </h2>
+                            <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
+                                <Icon name="favorite" size={20} className="text-primary" />
+                                基本信息
+                            </h2>
 
-                        <div className="space-y-5">
+                            <div className="space-y-5">
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
                                     <Icon name="female" size={20} />
@@ -316,7 +316,6 @@ const AdminSettings = () => {
                                     </div>
                                     {config.avatar2 && <div className="text-xs text-slate-400">当前：自定义头像</div>}
                                 </div>
-                            </div>
                         </Card>
                     </form>
                 </div>
