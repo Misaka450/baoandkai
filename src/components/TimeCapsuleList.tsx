@@ -15,10 +15,13 @@ interface TimeCapsuleListProps {
   isLoading?: boolean
   onOpenCapsule?: (capsule: TimeCapsuleItem) => void
   onDeleteCapsule?: (id: string) => void
+  /** 是否显示删除确认弹窗，如果不传则使用内置弹窗 */
+  showDeleteConfirm?: boolean
 }
 
-export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, onDeleteCapsule }: TimeCapsuleListProps) {
+export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, onDeleteCapsule, showDeleteConfirm = false }: TimeCapsuleListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   // 计算剩余时间
   const getTimeRemaining = (unlockDate: string): string => {
@@ -121,12 +124,21 @@ export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, on
                         </div>
                       )}
                       <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => onDeleteCapsule(capsule.id)}
-                          className="px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded transition-colors"
-                        >
-                          删除
-                        </button>
+                        {showDeleteConfirm ? (
+                          <button
+                            onClick={() => onDeleteCapsule && onDeleteCapsule(capsule.id)}
+                            className="px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded transition-colors"
+                          >
+                            删除
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(capsule.id)}
+                            className="px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded transition-colors"
+                          >
+                            删除
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -134,6 +146,38 @@ export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, on
               </AnimatePresence>
             </motion.div>
           ))}
+        </div>
+      )}
+
+      {/* 内置删除确认弹窗 */}
+      {!showDeleteConfirm && deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
+                <Icon name="warning" size={24} className="text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800">确认删除</h3>
+              <p className="text-slate-400 text-sm mt-2">确定要删除这个时间胶囊吗？此操作不可恢复。</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  onDeleteCapsule && onDeleteCapsule(deleteConfirmId)
+                  setDeleteConfirmId(null)
+                }}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                删除
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

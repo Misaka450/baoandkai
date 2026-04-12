@@ -105,10 +105,11 @@ export default function Home() {
               color={item.color}
               text={item.text}
               delay={parseFloat(item.delay)}
-              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 !px-4 !py-8 md:!p-10 group/item"
+              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 md:!p-10 group/item"
               hoverScale={1.05}
               showDecoration={true}
               decorationSize={idx % 2 === 0 ? 64 : 48}
+              size="large"
             />
           ))}
         </div>

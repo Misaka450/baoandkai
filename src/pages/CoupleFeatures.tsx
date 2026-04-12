@@ -59,8 +59,36 @@ export default function CoupleFeatures() {
     if (capsule.isUnlocked) {
       setSelectedCapsule(capsule)
     } else {
-      // 未解锁，显示提示信息
-      alert('时间胶囊尚未到解锁日期，请耐心等待～')
+      // 未解锁，显示友好提示（使用自定义弹窗而不是 alert）
+      const confirmDiv = document.createElement('div')
+      confirmDiv.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in'
+      confirmDiv.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">还未到解锁日期</h3>
+            <p class="text-slate-400 text-sm mt-2">时间胶囊尚未到解锁日期，请耐心等待～</p>
+          </div>
+          <button class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+            知道了
+          </button>
+        </div>
+      `
+      document.body.appendChild(confirmDiv)
+      confirmDiv.querySelector('button')?.addEventListener('click', () => {
+        confirmDiv.style.opacity = '0'
+        setTimeout(() => confirmDiv.remove(), 300)
+      })
+      confirmDiv.addEventListener('click', (e) => {
+        if (e.target === confirmDiv) {
+          confirmDiv.style.opacity = '0'
+          setTimeout(() => confirmDiv.remove(), 300)
+        }
+      })
     }
   }
 
@@ -102,6 +130,7 @@ export default function CoupleFeatures() {
               isLoading={isLoadingCapsules}
               onOpenCapsule={handleOpenCapsule}
               onDeleteCapsule={(id) => setShowDeleteConfirm(id)}
+              showDeleteConfirm={true}
             />
           </motion.div>
         </div>

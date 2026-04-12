@@ -22,6 +22,8 @@ interface StatCardProps {
   showDecoration?: boolean
   /** 装饰图标大小 */
   decorationSize?: number
+  /** 卡片尺寸，默认 normal */
+  size?: 'small' | 'normal' | 'large'
 }
 
 /**
@@ -38,11 +40,19 @@ export default function StatCard({
   delay = 0,
   className = '',
   showDecoration = false,
-  decorationSize = 48
+  decorationSize = 48,
+  size = 'normal'
 }: StatCardProps) {
+  // 根据尺寸定义样式
+  const sizeStyles = {
+    small: 'px-4 py-2 rounded-xl',
+    normal: 'px-6 py-3 rounded-[1.5rem]',
+    large: 'px-8 py-4 rounded-[2rem]'
+  }
+
   return (
     <motion.div
-      className={`${color} px-6 py-3 rounded-[1.5rem] flex items-center gap-3 shadow-sm border-4 border-white relative overflow-hidden ${className}`}
+      className={`${color} ${sizeStyles[size]} flex items-center gap-3 shadow-sm border-4 border-white relative overflow-hidden ${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
