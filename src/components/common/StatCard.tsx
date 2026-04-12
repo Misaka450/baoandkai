@@ -52,7 +52,7 @@ export default function StatCard({
 
   return (
     <motion.div
-      className={`${color} ${sizeStyles[size]} flex items-center gap-3 shadow-sm border-4 border-white relative overflow-hidden ${className}`}
+      className={`${color} ${sizeStyles[size]} flex flex-col items-center justify-center shadow-sm border-4 border-white relative overflow-hidden ${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
@@ -64,12 +64,10 @@ export default function StatCard({
           <Icon name={icon} size={decorationSize * 0.7} />
         </div>
       )}
-      {/* 主图标 - 稍微增大 */}
-      <Icon name={icon} size={20} className={text} />
-      {/* 数字和标签 - 增大数字字体 */}
-      <div className="text-left">
-        <div className={`text-3xl md:text-4xl font-black ${text} drop-shadow-sm leading-none`}>{value}</div>
-        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">{label}</div>
+      {/* 数字居中显示 */}
+      <div className="text-center">
+        <div className={`text-3xl md:text-4xl font-black ${text} drop-shadow-sm leading-none mb-1`}>{value}</div>
+        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{label}</div>
       </div>
     </motion.div>
   )
