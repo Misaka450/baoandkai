@@ -101,11 +101,11 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
                 </div>
             </div>
 
-            {/* 照片展示 */}
+            {/* 照片展示 - 移动端优化 */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentIndex}
-                    className="max-w-7xl max-h-[80vh] mx-auto"
+                    className="max-w-7xl max-h-[60vh] sm:max-h-[80vh] mx-auto px-4"
                     initial={{ opacity: 0, scale: 1.1 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -144,18 +144,18 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
                 </div>
             </div>
 
-            {/* 导航按钮 */}
+            {/* 导航按钮 - 移动端优化 */}
             <button
                 onClick={goToPrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
             >
-                <Icon name="chevron_left" size={24} />
+                <Icon name="chevron_left" size={20} />
             </button>
             <button
                 onClick={goToNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
             >
-                <Icon name="chevron_right" size={24} />
+                <Icon name="chevron_right" size={20} />
             </button>
 
             {/* 缩略图导航 */}

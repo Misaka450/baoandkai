@@ -95,7 +95,7 @@ export default function Home() {
           <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">Memory since Oct 8, 2023</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-16 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-6 mb-16 relative z-10">
           {timeStats.map((item, idx) => (
             <StatCard
               key={idx}
@@ -105,10 +105,10 @@ export default function Home() {
               color={item.color}
               text={item.text}
               delay={parseFloat(item.delay)}
-              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 md:!p-10 group/item"
+              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 !py-3 md:!py-8 !px-3 md:!p-10 group/item"
               hoverScale={1.05}
               showDecoration={true}
-              decorationSize={idx % 2 === 0 ? 64 : 48}
+              decorationSize={idx % 2 === 0 ? 48 : 36}
               size="large"
             />
           ))}

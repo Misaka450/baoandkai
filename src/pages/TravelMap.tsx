@@ -148,20 +148,20 @@ export default function TravelMap() {
                         Every place we've been, every memory we've made
                     </p>
 
-                    {/* 视图切换导航 */}
-                    <nav className="flex flex-wrap justify-center gap-3 mt-10">
+                    {/* 视图切换导航 - 移动端优化 */}
+                    <nav className="flex flex-wrap justify-center gap-2 md:gap-3 mt-10">
                         {viewModeItems.map(item => (
                             <button
                                 key={item.id}
                                 onClick={() => setViewMode(item.id)}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${
+                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all ${
                                     viewMode === item.id
                                         ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                                         : 'bg-white/60 text-slate-600 hover:bg-white hover:shadow-md'
                                 }`}
                             >
-                                <Icon name={item.icon} size={18} />
-                                {item.label}
+                                <Icon name={item.icon} size={16} />
+                                <span className="hidden sm:inline">{item.label}</span>
                             </button>
                         ))}
                     </nav>
@@ -183,33 +183,33 @@ export default function TravelMap() {
                         </div>
                     )}
 
-                    {/* 功能按钮 */}
+                    {/* 功能按钮 - 移动端优化 */}
                     {checkins.length > 0 && (
-                        <div className="flex justify-center gap-3 mt-8">
+                        <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8">
                             <button
                                 onClick={() => setShowAnnualReport(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-xl font-bold text-sm text-primary transition-all shadow-sm"
+                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-primary transition-all shadow-sm"
                             >
-                                <Icon name="auto_awesome" size={18} />
-                                年度报告
+                                <Icon name="auto_awesome" size={16} />
+                                <span className="hidden sm:inline">年度报告</span>
                             </button>
                             <button
                                 onClick={() => setShowSlideshow(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-xl font-bold text-sm text-primary transition-all shadow-sm"
+                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-primary transition-all shadow-sm"
                             >
-                                <Icon name="slideshow" size={18} />
-                                幻灯片
+                                <Icon name="slideshow" size={16} />
+                                <span className="hidden sm:inline">幻灯片</span>
                             </button>
                             <button
                                 onClick={() => setShowHeatmap(!showHeatmap)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
                                     showHeatmap
                                         ? 'bg-gradient-to-r from-orange-100 to-red-100 text-red-600'
                                         : 'bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 text-primary'
                                 }`}
                             >
-                                <Icon name="whatshot" size={18} />
-                                热力图 {showHeatmap ? '已开启' : '已关闭'}
+                                <Icon name="whatshot" size={16} />
+                                <span className="hidden sm:inline">热力图 {showHeatmap ? '已开启' : '已关闭'}</span>
                             </button>
                         </div>
                     )}

@@ -49,14 +49,14 @@ export default function TimeFilter({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
         >
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
                 {/* 年份选择 */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Icon name="calendar_today" size={18} className="text-slate-400" />
                     <select
                         value={selectedYear || ''}
                         onChange={(e) => onYearChange(e.target.value || null)}
-                        className="bg-white/80 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-white transition-colors"
+                        className="bg-white/80 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-white transition-colors flex-1 sm:flex-none"
                     >
                         <option value="">全部年份</option>
                         {years.map(year => (
@@ -66,13 +66,13 @@ export default function TimeFilter({
                 </div>
 
                 {/* 月份选择 */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Icon name="event" size={18} className="text-slate-400" />
                     <select
                         value={selectedMonth || ''}
                         onChange={(e) => onMonthChange(e.target.value || null)}
                         disabled={!selectedYear}
-                        className="bg-white/80 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-white/80 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none"
                     >
                         <option value="">全部月份</option>
                         {months.map((month, idx) => (
@@ -88,7 +88,7 @@ export default function TimeFilter({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         onClick={onReset}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-medium text-slate-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-medium text-slate-600 transition-colors w-full sm:w-auto"
                     >
                         <Icon name="refresh" size={16} />
                         重置
@@ -97,7 +97,7 @@ export default function TimeFilter({
 
                 {/* 筛选结果提示 */}
                 {hasActiveFilter && (
-                    <div className="ml-auto text-sm text-slate-500 font-medium">
+                    <div className="text-sm text-slate-500 font-medium w-full sm:w-auto sm:ml-auto">
                         <span className="text-primary">
                             {selectedYear ? `${selectedYear}年` : ''}
                             {selectedMonth ? `${monthNames[parseInt(selectedMonth)]}` : ''}
