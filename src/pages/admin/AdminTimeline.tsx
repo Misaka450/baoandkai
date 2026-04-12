@@ -6,6 +6,9 @@ import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import AdminLayout from '../../components/admin/AdminLayout'
+import Button from '../../components/admin/ui/Button'
+import Card from '../../components/admin/ui/Card'
 
 interface TimelineEvent {
     id: number
@@ -167,21 +170,19 @@ const AdminTimeline = () => {
     }
 
     return (
-        <div className="animate-fade-in text-slate-700">
-            {/* 粘性玻璃头部 */}
-            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">时间轴<span className="text-primary tracking-tighter ml-1">JOURNAL</span></h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Memories are timeless treasures</p>
-                </div>
-                <button
+        <AdminLayout title="时间轴" subtitle="Memories are timeless treasures">
+            {/* 顶部操作栏 */}
+            <div className="flex justify-end mb-6">
+                <Button
                     onClick={() => setShowForm(true)}
-                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                    variant="primary"
+                    size="lg"
+                    className="flex items-center gap-2"
                 >
-                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                    <Icon name="add" size={20} />
                     添加事件
-                </button>
-            </header>
+                </Button>
+            </div>
 
             {/* 统一的 Modal 弹窗表单 */}
             <Modal
@@ -299,33 +300,36 @@ const AdminTimeline = () => {
                     </div>
 
                     <div className="flex gap-4 pt-4 sticky bottom-0 bg-white py-4 border-t border-slate-50">
-                        <button
+                        <Button
                             type="submit"
-                            className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                            variant="primary"
+                            size="lg"
+                            className="flex-1"
                         >
                             {editingId ? '保存更改' : '记录此刻'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
+                            variant="secondary"
+                            size="lg"
                             onClick={resetForm}
-                            className="px-10 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
                         >
                             取消
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </Modal>
 
-            <div className="space-y-8 pb-20">
+            <div className="space-y-6 pb-8">
                 {events.length === 0 ? (
-                    <div className="text-center py-24 glass-card rounded-[3rem]">
+                    <Card padding="lg" className="text-center py-24">
                         <Icon name="auto_awesome" size={64} className="mx-auto mb-6 text-primary/20 animate-float" />
                         <p className="text-slate-400 font-bold tracking-tight">我们的故事，正等待被书写...</p>
-                    </div>
+                    </Card>
                 ) : (
                     events.map((event, index) => (
                         <div key={event.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                            <div className={`premium-card p-10 group ${editingId === event.id ? 'ring-4 ring-primary/20' : ''}`}>
+                            <Card padding="lg" className={`group ${editingId === event.id ? 'ring-4 ring-primary/20' : ''}`}>
                                 <div className="flex flex-col lg:flex-row gap-8">
                                     {/* 左侧：图片墙或占位 */}
                                     {event.images && event.images.length > 0 && (
@@ -363,37 +367,31 @@ const AdminTimeline = () => {
 
                                     {/* 右侧：悬浮出现的控制按钮 */}
                                     <div className="flex flex-row lg:flex-col gap-3 opacity-70 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => editingId === event.id ? resetForm() : handleEdit(event)}
-                                            className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center font-black"
+                                            className="w-12 h-12 !p-0"
                                         >
                                             <Icon name={editingId === event.id ? "expand_less" : "edit"} size={20} />
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => handleDelete(event.id)}
-                                            className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
+                                            className="w-12 h-12 !p-0 text-red-500 hover:bg-red-500 hover:text-white"
                                         >
                                             <Icon name="delete" size={20} />
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         </div>
                     ))
                 )}
             </div>
-
-            <AdminModal
-                isOpen={modalState.isOpen}
-                onClose={closeModal}
-                title={modalState.title}
-                message={modalState.message}
-                type={modalState.type}
-                onConfirm={modalState.onConfirm || undefined}
-                showCancel={modalState.showCancel}
-                confirmText={modalState.confirmText}
-            />
-        </div>
+            <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
+        </AdminLayout>
     )
 }
 
