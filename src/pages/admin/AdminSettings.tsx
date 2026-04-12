@@ -122,7 +122,7 @@ const AdminSettings = () => {
                             </h2>
 
                             <div className="space-y-5">
-                            <div className="relative">
+                                <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10">
                                     <Icon name="female" size={20} />
                                 </div>
@@ -197,6 +197,7 @@ const AdminSettings = () => {
                                 >
                                     {saving ? '保存中...' : '保存设置'}
                                 </Button>
+                            </div>
                             </div>
                         </Card>
 
