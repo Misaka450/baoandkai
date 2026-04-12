@@ -5,14 +5,7 @@ import Icon from '../components/icons/Icons'
 import TimeCapsuleList from '../components/TimeCapsuleList'
 import Modal from '../components/Modal'
 import { timeCapsuleService } from '../services/apiService'
-
-interface TimeCapsuleItem {
-  id: string
-  message: string
-  unlockDate: string
-  createdAt: string
-  isUnlocked: boolean
-}
+import type { TimeCapsule, TimeCapsuleItem } from '../types'
 
 export default function CoupleFeatures() {
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)

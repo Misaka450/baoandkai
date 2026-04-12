@@ -1,14 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Icon from './icons/Icons'
-
-interface TimeCapsuleItem {
-  id: string
-  message: string
-  unlockDate: string
-  createdAt: string
-  isUnlocked: boolean
-}
+import type { TimeCapsuleItem } from '../types'
 
 interface TimeCapsuleListProps {
   capsules: TimeCapsuleItem[]

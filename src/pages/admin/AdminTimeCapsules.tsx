@@ -5,14 +5,7 @@ import { timeCapsuleService } from '../../services/apiService'
 import Icon from '../../components/icons/Icons'
 import Modal from '../../components/Modal'
 import TimeCapsule from '../../components/TimeCapsule'
-
-interface TimeCapsuleItem {
-  id: string
-  message: string
-  unlockDate: string
-  createdAt: string
-  isUnlocked: boolean
-}
+import type { TimeCapsuleItem } from '../../types'
 
 export default function AdminTimeCapsules() {
   const queryClient = useQueryClient()
