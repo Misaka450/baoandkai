@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { loadedImagesCache } from '../utils/imageUtils'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { loadedImagesCache, getOptimizedImageUrl } from '../utils/imageUtils'
 
 interface LazyImageProps {
     src: string
@@ -10,6 +10,10 @@ interface LazyImageProps {
     aspectRatio?: string
     /** 是否为首屏关键图片 (LCP)，设为 true 会提高加载优先级 */
     priority?: boolean
+    /** 图片宽度，用于 Cloudflare Image Resizing 优化 */
+    width?: number
+    /** 是否跳过优化（用于下载等场景） */
+    noOptimize?: boolean
 }
 
 /**
@@ -19,6 +23,7 @@ interface LazyImageProps {
  * - aspectRatio 预留空间避免 CLS
  * - priority 标记 LCP 图片提高加载优先级
  * - decoding="async" 异步解码不阻塞渲染
+ * - Cloudflare Image Resizing 自动转 WebP/AVIF
  */
 export default function LazyImage({
     src,
@@ -26,27 +31,35 @@ export default function LazyImage({
     className = '',
     onClick,
     aspectRatio,
-    priority = false
+    priority = false,
+    width,
+    noOptimize = false
 }: LazyImageProps) {
-    const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(src))
+    // 对 R2 图片使用 Cloudflare 转换
+    const optimizedSrc = useMemo(() => {
+        if (noOptimize || !src) return src;
+        return getOptimizedImageUrl(src, { width, quality: 80, format: 'auto' });
+    }, [src, width, noOptimize]);
+
+    const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(optimizedSrc))
     const [error, setError] = useState(false)
-    const lastSrc = useRef(src)
+    const lastSrc = useRef(optimizedSrc)
 
     // 如果 src 改变，且不在缓存中，才重置状态
     useEffect(() => {
-        if (lastSrc.current !== src) {
-            lastSrc.current = src
-            if (!loadedImagesCache.has(src)) {
+        if (lastSrc.current !== optimizedSrc) {
+            lastSrc.current = optimizedSrc
+            if (!loadedImagesCache.has(optimizedSrc)) {
                 setIsLoaded(false)
                 setError(false)
             } else {
                 setIsLoaded(true)
             }
         }
-    }, [src])
+    }, [optimizedSrc])
 
     const handleLoad = () => {
-        loadedImagesCache.add(src)
+        loadedImagesCache.add(optimizedSrc)
         setIsLoaded(true)
     }
 
@@ -73,7 +86,7 @@ export default function LazyImage({
             )}
 
             <img
-                src={src}
+                src={optimizedSrc}
                 alt={alt}
                 loading={priority ? 'eager' : 'lazy'}
                 decoding="async"

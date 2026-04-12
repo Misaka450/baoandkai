@@ -5,6 +5,89 @@
 // 全局已加载图片缓存记录 (内存中)
 export const loadedImagesCache = new Set<string>();
 
+// Cloudflare Image Resizing 配置
+const CF_IMAGE_CONFIG = {
+    // 你的 R2 自定义域名
+    domain: 'img.980823.xyz',
+    // 默认质量
+    quality: 80,
+    // 是否启用 WebP 转换
+    format: 'auto' as 'auto' | 'webp' | 'avif',
+}
+
+// 判断是否为 R2 图片 URL
+function isR2ImageUrl(url: string): boolean {
+    if (!url) return false;
+    return url.includes(CF_IMAGE_CONFIG.domain) || url.includes('.r2.dev');
+}
+
+/**
+ * 生成 Cloudflare Image Resizing 转换后的 URL
+ * 用于网站展示（自动转 WebP/AVIF）
+ * @param url 原始图片 URL
+ * @param options 转换选项
+ */
+export function getOptimizedImageUrl(
+    url: string,
+    options: {
+        width?: number;
+        height?: number;
+        quality?: number;
+        format?: 'auto' | 'webp' | 'avif';
+        fit?: 'contain' | 'cover' | 'crop' | 'pad';
+    } = {}
+): string {
+    if (!url) return '';
+
+    // 如果不是 R2 图片，直接返回原 URL
+    if (!isR2ImageUrl(url)) return url;
+
+    // 提取原始路径（去除查询参数）
+    const originalUrl = url.split('?')[0];
+
+    // 解析原始 URL 获取路径部分
+    try {
+        const urlObj = new URL(originalUrl);
+        const pathname = originalUrl.replace(`https://${urlObj.host}`, '');
+
+        const { width, height, quality = CF_IMAGE_CONFIG.quality, format = CF_IMAGE_CONFIG.format, fit = 'cover' } = options;
+
+        // 构建转换参数
+        const transforms: string[] = [];
+        if (width) transforms.push(`width=${width}`);
+        if (height) transforms.push(`height=${height}`);
+        transforms.push(`quality=${quality}`);
+        transforms.push(`format=${format}`);
+        transforms.push(`fit=${fit}`);
+
+        const params = transforms.join(',');
+
+        // 构建新 URL: https://img.980823.xyz/cdn-cgi/image/width=400,quality=80,format=auto/albums/xxx.jpg
+        return `https://${urlObj.host}/cdn-cgi/image/${params}${pathname}`;
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * 获取原图 URL（不带任何转换参数）
+ */
+export function getOriginalImageUrl(url: string): string {
+    if (!url) return '';
+    // 移除 cdn-cgi/image 参数
+    if (url.includes('cdn-cgi/image')) {
+        const parts = url.split('/');
+        const domain = parts[2];
+        const pathStart = parts.findIndex(p => p === 'image') + 2;
+        return `https://${domain}/${parts.slice(pathStart).join('/')}`;
+    }
+    // 如果 URL 带有其他动态参数，则移除它们
+    if (url.includes('?')) {
+        return url.split('?')[0];
+    }
+    return url;
+}
+
 /**
  * 压缩图片
  * @param file 原始文件
@@ -60,11 +143,32 @@ export async function compressImage(file: File, maxWidth = 2000, quality = 0.8):
 }
 
 /**
- * 获取原图 URL
+ * 生成缩略图 URL
+ * 使用 Cloudflare Image Resizing 转换
+ */
+export function getThumbnailUrl(url: string, size: number = 400): string {
+    if (!url) return '';
+    return getOptimizedImageUrl(url, { width: size, quality: 80, format: 'auto' });
+}
+
+/**
+ * 获取原图 URL（用于下载，不经过任何转换）
  */
 export function getOriginalImageUrl(url: string): string {
     if (!url) return '';
-    // 如果 URL 已经带有动态参数，则移除它们
+    // 移除 cdn-cgi/image 参数
+    if (url.includes('cdn-cgi/image')) {
+        try {
+            const parts = url.split('/');
+            const domain = parts[2];
+            const imageIndex = parts.findIndex(p => p === 'image');
+            const pathStart = imageIndex + 2;
+            return `https://${domain}/${parts.slice(pathStart).join('/')}`.split('?')[0];
+        } catch {
+            return url.split('?')[0];
+        }
+    }
+    // 如果 URL 带有其他动态参数，则移除它们
     if (url.includes('?')) {
         return url.split('?')[0];
     }
@@ -72,16 +176,19 @@ export function getOriginalImageUrl(url: string): string {
 }
 
 /**
- * 生成缩略图 URL
- * 适配 img.980823.xyz 的动态缩放参数
+ * 下载原图（绕过 Cloudflare 转换）
  */
-export function getThumbnailUrl(url: string, size: number = 400): string {
-    if (!url) return '';
+export function downloadOriginalImage(url: string, filename?: string): void {
+    const originalUrl = getOriginalImageUrl(url);
+    const name = filename || originalUrl.split('/').pop() || 'image.jpg';
 
-    // 如果是 img.980823.xyz 或包含类似结构，则使用动态参数
-    // 这种方式兼容性最好，不依赖预生成的缩略图文件
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}width=${size}&quality=80&format=auto`;
+    const link = document.createElement('a');
+    link.href = originalUrl;
+    link.download = name;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 /**
