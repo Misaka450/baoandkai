@@ -5,6 +5,9 @@ import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import AdminLayout from '../../components/admin/AdminLayout'
+import Button from '../../components/admin/ui/Button'
+import Card from '../../components/admin/ui/Card'
 
 interface Todo {
     id: number
@@ -177,21 +180,19 @@ const AdminTodos = () => {
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
     return (
-        <div className="animate-fade-in text-slate-700">
-            {/* 粘性玻璃头部 */}
-            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">心愿清单<span className="text-primary tracking-tighter ml-1">WISHES</span></h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dreams to be shared, moments to be lived</p>
-                </div>
-                <button
+        <AdminLayout title="心愿清单" subtitle="Dreams to be shared, moments to be lived">
+            {/* 顶部操作栏 */}
+            <div className="flex justify-end mb-6">
+                <Button
                     onClick={() => setShowForm(true)}
-                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                    variant="primary"
+                    size="lg"
+                    className="flex items-center gap-2"
                 >
-                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                    <Icon name="add" size={20} />
                     新增心愿
-                </button>
-            </header>
+                </Button>
+            </div>
 
             {/* 统一的 Modal 弹窗表单 */}
             <Modal
@@ -321,7 +322,7 @@ const AdminTodos = () => {
                 ) : (
                     todos.map((t, index) => (
                         <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
-                            <div className={`premium-card p-8 group transition-all duration-500 ${t.status === 'completed' ? 'bg-slate-50/50' : 'hover:bg-white'}`}>
+                            <Card padding="lg" className={`group transition-all duration-500 mb-4 ${t.status === 'completed' ? 'bg-slate-50/50' : 'hover:shadow-md'}`}>
                                 <div className="flex items-start gap-6">
                                     {/* 弹性交互式复选框 */}
                                     <button
@@ -404,17 +405,31 @@ const AdminTodos = () => {
 
                                     {/* 悬浮操作按钮 */}
                                     <div className="flex flex-col gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                                        <button onClick={() => handleEdit(t)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="edit" size={18} /></button>
-                                        <button onClick={() => handleDelete(t.id)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={18} /></button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEdit(t)}
+                                            className="w-10 h-10 !p-0"
+                                        >
+                                            <Icon name="edit" size={18} />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDelete(t.id)}
+                                            className="w-10 h-10 !p-0 text-red-500 hover:bg-red-500 hover:text-white"
+                                        >
+                                            <Icon name="delete" size={18} />
+                                        </Button>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         </div>
                     ))
                 )}
             </div>
             <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
-        </div>
+        </AdminLayout>
     )
 }
 
