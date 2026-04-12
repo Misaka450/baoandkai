@@ -1,9 +1,11 @@
+import React, { useMemo } from 'react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
 import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
+import FloatingParticles from '../components/FloatingParticles'
 
 export default function Home() {
   const { config } = useConfig()
@@ -12,7 +14,6 @@ export default function Home() {
   const getDefaultAvatar = (seed: string, bg: string) =>
     `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
 
-  // 定义时间统计卡片数据（类型安全）
   interface TimeStatItem {
     value: number
     label: string
@@ -32,10 +33,12 @@ export default function Home() {
   ]
 
   return (
-    <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative">
-      {/* 背景光晕 - 升级为多彩混色 */}
+    <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative overflow-hidden">
+      <FloatingParticles count={20} />
+
       <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
       <div className="absolute top-20 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-40 left-1/3 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-purple-200/15 blur-[60px] md:blur-[100px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
 
       <header className="text-center mb-24 relative animate-fade-in">
         <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-12 relative">

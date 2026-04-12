@@ -1,23 +1,49 @@
 import { useLocation } from 'react-router-dom'
 import { ReactNode } from 'react'
+import { motion } from 'framer-motion'
 
 interface PageTransitionProps {
     children: ReactNode
 }
 
-/**
- * 页面过渡动画组件
- * 使用 location.key 作为 React key，确保每次页面切换时都会重新触发动画
- */
+const pageVariants = {
+    initial: {
+        opacity: 0,
+        y: 20,
+        scale: 0.98
+    },
+    enter: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.4,
+            ease: [0.22, 1, 0.36, 1]
+        }
+    },
+    exit: {
+        opacity: 0,
+        y: -10,
+        scale: 1.02,
+        transition: {
+            duration: 0.2,
+            ease: [0.55, 0, 1, 0.45]
+        }
+    }
+}
+
 export default function PageTransition({ children }: PageTransitionProps) {
     const location = useLocation()
 
     return (
-        <div
+        <motion.div
             key={location.key}
-            className="animate-page-transition"
+            variants={pageVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
         >
             {children}
-        </div>
+        </motion.div>
     )
 }
