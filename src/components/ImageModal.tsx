@@ -197,14 +197,14 @@ export default function ImageModal({
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed z-[9999] flex flex-col items-center justify-center bg-slate-900 touch-none"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/95 touch-none overflow-hidden"
       style={{
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        width: '100vw',
-        height: '100vh',
+        margin: 0,
+        padding: 0,
       }}
       onClick={() => {
         if (!hasDragged) onClose()
