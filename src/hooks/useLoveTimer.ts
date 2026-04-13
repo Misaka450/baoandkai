@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 
-// 定义时间对象接口
 interface TimeTogether {
   years: number
   months: number
@@ -12,112 +11,90 @@ interface TimeTogether {
 }
 
 export function useLoveTimer(anniversaryDate: string | null): TimeTogether {
-  const [timeTogether, setTimeTogether] = useState<TimeTogether>({
+  const baseTimeRef = useRef<Omit<TimeTogether, 'seconds'>>({
     years: 0,
     months: 0,
     days: 0,
     hours: 0,
     minutes: 0,
-    seconds: 0,
     totalDays: 0
   })
 
-  const calculateTime = (): void => {
-    if (!anniversaryDate) return
-
-    const now = new Date()
-    const anniversary = new Date(anniversaryDate)
-    const diff = now.getTime() - anniversary.getTime()
-
-    if (diff < 0) {
-      setTimeTogether({
-        years: 0,
-        months: 0,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        totalDays: 0
-      })
-      return
-    }
-
-    const totalSeconds = Math.floor(diff / 1000)
-    const totalMinutes = Math.floor(totalSeconds / 60)
-    const totalHours = Math.floor(totalMinutes / 60)
-    const totalDays = Math.floor(totalHours / 24)
-
-    // 计算年、月、日
-    let years = now.getFullYear() - anniversary.getFullYear()
-    let months = now.getMonth() - anniversary.getMonth()
-    let days = now.getDate() - anniversary.getDate()
-
-    if (days < 0) {
-      months--
-      const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
-      days += lastMonth.getDate()
-    }
-
-    if (months < 0) {
-      years--
-      months += 12
-    }
-
-    const hours = now.getHours() - anniversary.getHours()
-    const minutes = now.getMinutes() - anniversary.getMinutes()
-    const seconds = now.getSeconds() - anniversary.getSeconds()
-
-    setTimeTogether({
-      years,
-      months,
-      days,
-      hours: hours >= 0 ? hours : hours + 24,
-      minutes: minutes >= 0 ? minutes : minutes + 60,
-      seconds: seconds >= 0 ? seconds : seconds + 60,
-      totalDays
-    })
-  }
+  const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
     if (!anniversaryDate) return
 
-    let interval: ReturnType<typeof setInterval> | null = null
+    const calculateBaseTime = () => {
+      const now = new Date()
+      const anniversary = new Date(anniversaryDate)
+      const diff = now.getTime() - anniversary.getTime()
 
-    const startTimer = () => {
-      if (interval) return
-      calculateTime()
-      interval = setInterval(calculateTime, 1000)
-    }
-
-    const stopTimer = () => {
-      if (interval) {
-        clearInterval(interval)
-        interval = null
+      if (diff < 0) {
+        baseTimeRef.current = {
+          years: 0,
+          months: 0,
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          totalDays: 0
+        }
+        setSeconds(0)
+        return
       }
-    }
 
-    // 页面可见性变化处理
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        startTimer()
-      } else {
-        stopTimer()
+      const totalSeconds = Math.floor(diff / 1000)
+      const totalMinutes = Math.floor(totalSeconds / 60)
+      const totalHours = Math.floor(totalMinutes / 60)
+      const totalDays = Math.floor(totalHours / 24)
+
+      let years = now.getFullYear() - anniversary.getFullYear()
+      let months = now.getMonth() - anniversary.getMonth()
+      let days = now.getDate() - anniversary.getDate()
+
+      if (days < 0) {
+        months--
+        const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+        days += lastMonth.getDate()
       }
+
+      if (months < 0) {
+        years--
+        months += 12
+      }
+
+      const hours = now.getHours() - anniversary.getHours()
+      const minutes = now.getMinutes() - anniversary.getMinutes()
+
+      baseTimeRef.current = {
+        years,
+        months,
+        days,
+        hours: hours >= 0 ? hours : hours + 24,
+        minutes: minutes >= 0 ? minutes : minutes + 60,
+        totalDays
+      }
+
+      setSeconds(now.getSeconds() - anniversary.getSeconds())
     }
 
-    // 初始启动
-    if (document.visibilityState === 'visible') {
-      startTimer()
+    const tick = () => {
+      const now = new Date()
+      const anniversary = new Date(anniversaryDate)
+      const currentSeconds = now.getSeconds() - anniversary.getSeconds()
+      setSeconds(currentSeconds >= 0 ? currentSeconds : currentSeconds + 60)
     }
 
-    // 监听页面可见性变化
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    calculateBaseTime()
+    const interval = setInterval(tick, 1000)
 
-    return () => {
-      stopTimer()
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
+    return () => clearInterval(interval)
   }, [anniversaryDate])
+
+  const timeTogether = useMemo<TimeTogether>(() => ({
+    ...baseTimeRef.current,
+    seconds
+  }), [seconds])
 
   return timeTogether
 }

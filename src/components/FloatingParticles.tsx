@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, memo } from 'react'
 import Icon from './icons/Icons'
 
 interface FloatingParticlesProps {
@@ -6,15 +6,46 @@ interface FloatingParticlesProps {
   className?: string
 }
 
-const FloatingParticles: React.FC<FloatingParticlesProps> = ({
+interface Particle {
+  id: number
+  icon: 'favorite' | 'star' | 'auto_awesome'
+  size: number
+  left: number
+  delay: number
+  duration: number
+  opacity: number
+  rotate: number
+}
+
+const iconList: Particle['icon'][] = ['favorite', 'star', 'favorite', 'auto_awesome', 'star', 'favorite', 'star', 'auto_awesome']
+
+const ParticleElement = memo(({ particle }: { particle: Particle }) => (
+  <div
+    className="absolute text-primary animate-float"
+    style={{
+      left: `${particle.left}%`,
+      top: '-5%',
+      animationDelay: `${particle.delay}s`,
+      animationDuration: `${particle.duration}s`,
+      opacity: particle.opacity,
+      transform: `rotate(${particle.rotate}deg)`,
+      willChange: 'transform, opacity',
+    }}
+  >
+    <Icon name={particle.icon} size={particle.size} />
+  </div>
+))
+
+ParticleElement.displayName = 'ParticleElement'
+
+const FloatingParticlesComponent: React.FC<FloatingParticlesProps> = ({
   count = 15,
   className = ''
 }) => {
-  const particles = useMemo(() => {
-    const icons = ['favorite', 'star', 'favorite', 'auto_awesome', 'star', 'favorite', 'star', 'auto_awesome']
-    return Array.from({ length: count }, (_, i) => ({
+  const particles = useMemo<Particle[]>(() => {
+    return Array.from({ length: count }, (_, i): Particle => ({
       id: i,
-      icon: icons[i % icons.length],
+      icon: iconList[i % iconList.length] ?? 'favorite',
       size: Math.random() * 20 + 12,
       left: Math.random() * 100,
       delay: Math.random() * 15,
@@ -27,24 +58,14 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
       {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className="absolute text-primary animate-float"
-          style={{
-            left: `${particle.left}%`,
-            top: '-5%',
-            animationDelay: `${particle.delay}s`,
-            animationDuration: `${particle.duration}s`,
-            opacity: particle.opacity,
-            transform: `rotate(${particle.rotate}deg)`,
-            willChange: 'transform, opacity',
-          }}
-        >
-          <Icon name={particle.icon as any} size={particle.size} />
-        </div>
+        <ParticleElement key={particle.id} particle={particle} />
       ))}
     </div>
   )
 }
+
+const FloatingParticles = memo(FloatingParticlesComponent)
+
+FloatingParticles.displayName = 'FloatingParticles'
 
 export default FloatingParticles
