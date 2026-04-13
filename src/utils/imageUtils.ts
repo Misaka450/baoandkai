@@ -70,25 +70,6 @@ export function getOptimizedImageUrl(
 }
 
 /**
- * 获取原图 URL（不带任何转换参数）
- */
-export function getOriginalImageUrl(url: string): string {
-    if (!url) return '';
-    // 移除 cdn-cgi/image 参数
-    if (url.includes('cdn-cgi/image')) {
-        const parts = url.split('/');
-        const domain = parts[2];
-        const pathStart = parts.findIndex(p => p === 'image') + 2;
-        return `https://${domain}/${parts.slice(pathStart).join('/')}`;
-    }
-    // 如果 URL 带有其他动态参数，则移除它们
-    if (url.includes('?')) {
-        return url.split('?')[0];
-    }
-    return url;
-}
-
-/**
  * 压缩图片
  * @param file 原始文件
  * @param maxWidth 最大宽度
