@@ -160,6 +160,8 @@ export function useImageUpload(): UseImageUploadReturn {
             }
 
             const file = fileArray[index]
+            if (!file) return
+
             setCurrentFile(`${file.name} (${index + 1}/${fileArray.length})`)
 
             const result = await uploadSingle(
@@ -192,12 +194,14 @@ export function useImageUpload(): UseImageUploadReturn {
             chunks.push([i, Math.min(i + maxConcurrent, fileArray.length)])
         }
 
-        for (const [start, end] of chunks) {
+        for (const chunkRange of chunks) {
             if (abortControllerRef.current?.signal.aborted) {
                 break
             }
 
-            const chunk = []
+            const start = chunkRange[0] ?? 0
+            const end = chunkRange[1] ?? start
+            const chunk: Promise<void>[] = []
             for (let j = start; j < end; j++) {
                 chunk.push(uploadWithIndex(j))
             }
