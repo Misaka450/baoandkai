@@ -5,7 +5,7 @@ import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import { Icon } from '../../components/icons/Icons'
-import { compressImage, getThumbnailUrl } from '../../utils/imageUtils'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Album {
@@ -195,10 +195,8 @@ const AdminAlbums = () => {
 
         for (const uploadItem of newUploads) {
             try {
-                const thumbnailFile = await compressImage(uploadItem.file, 800, 0.7);
                 const formDataUpload = new FormData()
                 formDataUpload.append('file', uploadItem.file)
-                formDataUpload.append('thumbnail', thumbnailFile)
                 formDataUpload.append('album_id', String(selectedAlbum.id))
 
                 const { data, error } = await apiService.uploadWithProgress<Photo>(
