@@ -42,7 +42,8 @@ export default function Timeline() {
       const response = await apiService.get<TimelineResponse>(`/timeline?page=${currentPage}&limit=20&category=${filter === 'all' ? '' : filter}`)
       return response.data
     },
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
   })
 
   const events = timelineData?.data || []

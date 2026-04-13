@@ -43,7 +43,8 @@ export default function PhotoViewer() {
             return data
         },
         enabled: !!albumId,
-        staleTime: Infinity,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: true,
     })
 
     const images = albumDetail?.photos?.map(p => p.url) || []

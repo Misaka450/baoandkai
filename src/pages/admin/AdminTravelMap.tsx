@@ -122,6 +122,7 @@ export default function AdminTravelMap() {
             if (!file) continue
             const uploadData = new globalThis.FormData()
             uploadData.append('file', file)
+            uploadData.append('folder', 'map')
             const response = await apiService.upload<{ url: string }>('/upload', uploadData)
             if (response.data?.url) {
                 setFormData(prev => ({ ...prev, images: [...prev.images, response.data!.url] }))

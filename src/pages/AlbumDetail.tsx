@@ -29,7 +29,8 @@ export default function AlbumDetail() {
             return data
         },
         enabled: !!id,
-        staleTime: Infinity,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: true,
     })
 
     const albumPhotos = albumDetail?.photos || []

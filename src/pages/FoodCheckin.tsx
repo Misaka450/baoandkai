@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
 import type { FoodCheckin } from '../types'
@@ -6,7 +7,10 @@ import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
+import FoodStats from '../components/map/FoodStats'
 import { getThumbnailUrl } from '../utils/imageUtils'
+
+type ViewMode = 'grid' | 'stats'
 
 interface FoodResponse {
   data: FoodCheckin[]
@@ -33,6 +37,7 @@ const cuisines: CuisineConfig[] = [
 export default function FoodCheckin() {
   const [currentPage, setCurrentPage] = useState(1)
   const [filter, setFilter] = useState('all')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
   // 多图查看状态
   const [selectedImages, setSelectedImages] = useState<string[]>([])
@@ -44,7 +49,8 @@ export default function FoodCheckin() {
       const response = await apiService.get<FoodResponse>(`/food?page=${currentPage}&limit=12&cuisine=${filter === 'all' ? '' : filter}`)
       return response.data
     },
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
   })
 
   const checkins = foodData?.data || []
@@ -137,9 +143,46 @@ export default function FoodCheckin() {
               </button>
             ))}
           </div>
+
+          {/* 视图切换 */}
+          {checkins.length > 0 && (
+            <div className="flex justify-center gap-2 mt-6">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-white/50 text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Icon name="grid_view" size={16} />
+                卡片
+              </button>
+              <button
+                onClick={() => setViewMode('stats')}
+                className={`px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                  viewMode === 'stats'
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-white/50 text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Icon name="bar_chart" size={16} />
+                统计
+              </button>
+            </div>
+          )}
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {viewMode === 'stats' ? (
+          <motion.div
+            className="max-w-4xl mx-auto animate-slide-up"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <FoodStats checkins={checkins} />
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {checkins.map((checkin, index) => {
             const images = checkin.images || []
             return (
@@ -230,6 +273,7 @@ export default function FoodCheckin() {
             )
           })}
         </div>
+        )}
       </main>
 
       <ImageModal

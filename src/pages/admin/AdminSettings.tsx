@@ -8,6 +8,21 @@ import { SiteConfig } from '../../types'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 
+// 数据导出格式接口
+interface ExportData {
+    version: string
+    exportDate: string
+    config: SiteConfig
+    albums: unknown[]
+    photos: unknown[]
+    timeline: unknown[]
+    food: unknown[]
+    map: unknown[]
+    notes: unknown[]
+    todos: unknown[]
+    capsules: unknown[]
+}
+
 // 预设卡通头像列表
 const presetAvatars = [
     { seed: 'Bao', bg: 'C9ADA7' },
@@ -88,6 +103,93 @@ const AdminSettings = () => {
             console.error('删除头像物理文件失败:', error)
             setConfig(prev => ({ ...prev, [field]: '' }))
         }
+    }
+
+    // 导出数据为 JSON 文件
+    const handleExportData = async () => {
+        try {
+            const [
+                { data: albums },
+                { data: timeline },
+                { data: food },
+                { data: map },
+                { data: notes },
+                { data: todos },
+                { data: capsules }
+            ] = await Promise.all([
+                apiService.get<{ data: unknown[] }>('/albums'),
+                apiService.get<{ data: unknown[] }>('/timeline'),
+                apiService.get<{ data: unknown[] }>('/food'),
+                apiService.get<{ data: unknown[] }>('/map'),
+                apiService.get<{ data: unknown[] }>('/notes'),
+                apiService.get<{ data: unknown[] }>('/todos'),
+                apiService.get<{ data: unknown[] }>('/time-capsules')
+            ])
+
+            const exportData: ExportData = {
+                version: '1.0.0',
+                exportDate: new Date().toISOString(),
+                config: globalConfig,
+                albums: albums?.data || [],
+                timeline: timeline?.data || [],
+                food: food?.data || [],
+                map: map?.data || [],
+                notes: notes?.data || [],
+                todos: todos?.data || [],
+                capsules: capsules?.data || []
+            }
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `bbkk-backup-${new Date().toISOString().split('T')[0]}.json`
+            a.click()
+            URL.revokeObjectURL(url)
+
+            await showAlert('成功', `已导出 ${exportData.exportDate.split('T')[0]} 的数据备份`, 'success')
+        } catch (error) {
+            console.error('导出数据失败:', error)
+            await showAlert('错误', '导出数据失败，请稍后重试', 'error')
+        }
+    }
+
+    // 导入数据
+    const handleImportData = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        try {
+            const text = await file.text()
+            const importData: ExportData = JSON.parse(text)
+
+            if (!importData.version || !importData.config) {
+                throw new Error('无效的备份文件格式')
+            }
+
+            await showAlert(
+                '确认导入',
+                `即将导入 ${importData.exportDate.split('T')[0]} 的备份数据，这将覆盖现有数据。是否继续？`,
+                'warning',
+                async () => {
+                    try {
+                        await updateConfig(importData.config)
+                        await showAlert('成功', '数据导入成功，页面将刷新', 'success')
+                        setTimeout(() => window.location.reload(), 1500)
+                    } catch (error) {
+                        console.error('导入数据失败:', error)
+                        await showAlert('错误', '数据导入失败', 'error')
+                    }
+                },
+                true,
+                '导入'
+            )
+        } catch (error) {
+            console.error('解析备份文件失败:', error)
+            await showAlert('错误', '无法读取备份文件，请确保选择正确的 JSON 文件', 'error')
+        }
+
+        e.target.value = ''
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -344,6 +446,43 @@ const AdminSettings = () => {
                             </div>
                         </Card>
                     )}
+
+                    {/* 数据管理卡片 */}
+                    <Card padding="lg" className="bg-gradient-to-br from-amber-50 to-orange-50/30">
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <Icon name="cloud_download" size={16} className="text-amber-500" />
+                            数据备份
+                        </h3>
+                        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                            导出全站数据为 JSON 格式备份，方便迁移或保存珍贵回忆
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <Button
+                                variant="outline"
+                                size="md"
+                                onClick={handleExportData}
+                                className="w-full justify-center"
+                            >
+                                <Icon name="download" size={16} />
+                                导出数据备份
+                            </Button>
+                            <label className="w-full">
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handleImportData}
+                                    className="hidden"
+                                />
+                                <div className="w-full px-4 py-2 text-sm border border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-2 text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer">
+                                    <Icon name="upload" size={16} />
+                                    导入数据备份
+                                </div>
+                            </label>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-3 text-center">
+                            提示：导入会覆盖现有设置
+                        </p>
+                    </Card>
 
                     {/* 提示卡片 */}
                     <Card padding="md" className="bg-gradient-to-br from-slate-50 to-slate-100/50">

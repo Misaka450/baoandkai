@@ -1,11 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { mapService } from '../services/apiService'
 import type { MapCheckin } from '../types'
 import type { ProvinceData } from '../data/chinaMapData'
-import { provinces } from '../data/chinaMapData'
-import ChinaMap from '../components/map/ChinaMap'
+import { provinces } from '../../data/chinaMapData'
 import ProvinceDetail from '../components/map/ProvinceDetail'
 import CheckinCard from '../components/map/CheckinCard'
 import TimeFilter from '../components/map/TimeFilter'
@@ -18,6 +17,9 @@ import AnnualReport from '../components/map/AnnualReport'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
 import { Skeleton } from '../components/Skeleton'
+
+// 使用动态导入优化地图组件加载，按需加载减少首屏 bundle 大小
+const ChinaMap = lazy(() => import('../components/map/ChinaMap').then(module => ({ default: module.default })))
 
 type ViewMode = 'country' | 'province' | 'timeline' | 'stats' | 'photos' | 'memories'
 
@@ -44,6 +46,7 @@ export default function TravelMap() {
     const [selectedYear, setSelectedYear] = useState<string | null>(null)
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
     const [showHeatmap, setShowHeatmap] = useState(false)
+    const [showRoute, setShowRoute] = useState(true)
     const [showSlideshow, setShowSlideshow] = useState(false)
     const [showAnnualReport, setShowAnnualReport] = useState(false)
 
@@ -53,7 +56,9 @@ export default function TravelMap() {
             const response = await mapService.getAll()
             return response.data
         },
-        staleTime: Infinity,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: true,
+        refetchInterval: false,
     })
 
     // 按时间筛选
@@ -211,6 +216,17 @@ export default function TravelMap() {
                                 <Icon name="whatshot" size={16} />
                                 <span className="hidden sm:inline">热力图 {showHeatmap ? '已开启' : '已关闭'}</span>
                             </button>
+                            <button
+                                onClick={() => setShowRoute(!showRoute)}
+                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
+                                    showRoute
+                                        ? 'bg-gradient-to-r from-emerald-100 to-emerald-100 text-emerald-600'
+                                        : 'bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 text-primary'
+                                }`}
+                            >
+                                <Icon name="route" size={16} />
+                                <span className="hidden sm:inline">路线 {showRoute ? '已开启' : '已关闭'}</span>
+                            </button>
                         </div>
                     )}
                 </header>
@@ -241,11 +257,21 @@ export default function TravelMap() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                 >
-                                    <ChinaMap
-                                        checkins={checkins}
-                                        onProvinceClick={handleProvinceClick}
-                                        showHeatmap={showHeatmap}
-                                    />
+                                    <Suspense fallback={
+                                        <div className="h-[500px] flex items-center justify-center">
+                                            <div className="text-center">
+                                                <Skeleton className="w-64 h-8 mx-auto mb-4" />
+                                                <Skeleton className="w-full h-[400px] rounded-2xl" />
+                                            </div>
+                                        </div>
+                                    }>
+                                        <ChinaMap
+                                            checkins={checkins}
+                                            onProvinceClick={handleProvinceClick}
+                                            showHeatmap={showHeatmap}
+                                            showRoute={showRoute}
+                                        />
+                                    </Suspense>
                                 </motion.div>
                             ) : selectedProvince ? (
                                 <ProvinceDetail
