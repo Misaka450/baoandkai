@@ -42,36 +42,26 @@ export function getOptimizedImageUrl(
     // 如果不是 R2 图片，直接返回原 URL
     if (!isR2ImageUrl(url)) return url;
 
-    // 提取原始路径（去除查询参数和 cdn-cgi/image 参数）
-    let cleanUrl = url.split('?')[0];
-    
-    // 如果 URL 已经包含 cdn-cgi/image，移除它，获取原始路径
-    if (cleanUrl.includes('/cdn-cgi/image/')) {
-        const match = cleanUrl.match(/https?:\/\/[^/]+\/cdn-cgi\/image\/[^/]+(.+)$/);
-        if (match && match[1]) {
-            cleanUrl = match[1];
-        }
+    // 如果 URL 已经包含 cdn-cgi/image，说明已经是优化过的 URL，直接返回
+    if (url.includes('/cdn-cgi/image/')) {
+        return url;
     }
 
-    // 解析原始 URL 获取路径部分
+    // 构建转换参数
+    const { width, height, quality = CF_IMAGE_CONFIG.quality, format = CF_IMAGE_CONFIG.format, fit = 'cover' } = options;
+    const transforms: string[] = [];
+    if (width) transforms.push(`width=${width}`);
+    if (height) transforms.push(`height=${height}`);
+    transforms.push(`quality=${quality}`);
+    transforms.push(`format=${format}`);
+    transforms.push(`fit=${fit}`);
+    const params = transforms.join(',');
+
+    // 解析 URL 并构建新 URL
     try {
-        const urlObj = new URL(cleanUrl);
-        const pathname = cleanUrl.replace(`https://${urlObj.host}`, '');
-
-        const { width, height, quality = CF_IMAGE_CONFIG.quality, format = CF_IMAGE_CONFIG.format, fit = 'cover' } = options;
-
-        // 构建转换参数
-        const transforms: string[] = [];
-        if (width) transforms.push(`width=${width}`);
-        if (height) transforms.push(`height=${height}`);
-        transforms.push(`quality=${quality}`);
-        transforms.push(`format=${format}`);
-        transforms.push(`fit=${fit}`);
-
-        const params = transforms.join(',');
-
+        const urlObj = new URL(url);
         // 构建新 URL: https://img.980823.xyz/cdn-cgi/image/width=400,quality=80,format=auto/albums/xxx.jpg
-        return `https://${urlObj.host}/cdn-cgi/image/${params}${pathname}`;
+        return `https://${urlObj.host}/cdn-cgi/image/${params}${urlObj.pathname}`;
     } catch {
         return url;
     }

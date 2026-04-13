@@ -230,10 +230,11 @@ export default function ImageModal({
                 downloadOriginalImage(currentImage);
               }
             }}
-            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg md:rounded-xl transition-all border border-white/20 active:scale-95 shadow-lg"
+            className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center bg-blue-500/80 hover:bg-blue-500 text-white rounded-xl md:rounded-2xl transition-all border border-blue-400/50 active:scale-95 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 gap-1.5 md:gap-2"
             title="下载原图"
           >
             <Icon name="download" size={18} />
+            <span className="text-[10px] font-bold hidden md:inline">下载</span>
           </button>
           {!isFullLoaded && (
             <div className="hidden md:flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary/20">
