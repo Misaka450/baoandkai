@@ -216,9 +216,9 @@ export default function ImageModal({
     >
 
       {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-8 z-50 bg-gradient-to-b from-black/40 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-50 bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="bg-black/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-white/10">
             <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
               {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
             </span>
@@ -230,44 +230,44 @@ export default function ImageModal({
                 downloadOriginalImage(currentImage);
               }
             }}
-            className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all border border-white/5"
+            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-lg md:rounded-xl transition-all border border-white/20 active:scale-95"
             title="下载原图"
           >
             <Icon name="download" size={18} />
           </button>
           {!isFullLoaded && (
-            <div className="flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary/20">
+            <div className="hidden md:flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary/20">
               <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">Loading High-Res</span>
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest">Loading</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
-            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
             title="放大"
           >
             <Icon name="zoom_in" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setScale(prev => Math.max(0.5, prev / 1.5)); }}
-            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
             title="缩小"
           >
             <Icon name="zoom_out" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); resetTransform(); }}
-            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
             title="还原"
           >
             <Icon name="restart_alt" size={20} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="w-12 h-12 flex items-center justify-center bg-white text-slate-900 rounded-2xl transition-all shadow-2xl ml-2 hover:scale-105 active:scale-95"
+            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white text-slate-900 rounded-lg md:rounded-2xl transition-all shadow-lg md:shadow-2xl ml-1 md:ml-2 hover:scale-105 active:scale-95"
             title="退出"
           >
             <Icon name="close" size={20} />
