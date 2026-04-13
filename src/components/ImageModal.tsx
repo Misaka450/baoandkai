@@ -216,8 +216,8 @@ export default function ImageModal({
     >
 
       {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-50 bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm">
-        <div className="flex items-center gap-2 md:gap-3">
+      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-[100] bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm pointer-events-auto">
+        <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
           <div className="bg-black/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-white/10">
             <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
               {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
@@ -230,7 +230,7 @@ export default function ImageModal({
                 downloadOriginalImage(currentImage);
               }
             }}
-            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-lg md:rounded-xl transition-all border border-white/20 active:scale-95"
+            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg md:rounded-xl transition-all border border-white/20 active:scale-95 shadow-lg"
             title="下载原图"
           >
             <Icon name="download" size={18} />
@@ -243,7 +243,7 @@ export default function ImageModal({
           )}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-1 md:gap-2 pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
             className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
@@ -277,7 +277,7 @@ export default function ImageModal({
 
       {/* 主展示区 */}
       <div
-        className="relative w-full flex-1 flex items-center justify-center overflow-hidden"
+        className="relative w-full flex-1 flex items-center justify-center overflow-visible"
         onClick={(e) => {
           if (e.target === e.currentTarget && !hasDragged) onClose()
         }}
