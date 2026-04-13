@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import AdminLogin from './admin/AdminLogin'
 import Icon, { IconName } from '../components/icons/Icons'
 import { useConfig } from '../hooks/useConfig'
-import ErrorBoundary from '../components/ErrorBoundary'
+import ErrorBoundary from '../components/common/ErrorBoundary'
 import { getOptimizedAvatarUrl } from '../utils/imageUtils'
 
 const AdminSettings = lazy(() => import('./admin/AdminSettings'))
