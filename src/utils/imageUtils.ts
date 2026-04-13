@@ -42,13 +42,21 @@ export function getOptimizedImageUrl(
     // 如果不是 R2 图片，直接返回原 URL
     if (!isR2ImageUrl(url)) return url;
 
-    // 提取原始路径（去除查询参数）
-    const originalUrl = url.split('?')[0];
+    // 提取原始路径（去除查询参数和 cdn-cgi/image 参数）
+    let cleanUrl = url.split('?')[0];
+    
+    // 如果 URL 已经包含 cdn-cgi/image，移除它，获取原始路径
+    if (cleanUrl.includes('/cdn-cgi/image/')) {
+        const match = cleanUrl.match(/https?:\/\/[^/]+\/cdn-cgi\/image\/[^/]+(.+)$/);
+        if (match && match[1]) {
+            cleanUrl = match[1];
+        }
+    }
 
     // 解析原始 URL 获取路径部分
     try {
-        const urlObj = new URL(originalUrl);
-        const pathname = originalUrl.replace(`https://${urlObj.host}`, '');
+        const urlObj = new URL(cleanUrl);
+        const pathname = cleanUrl.replace(`https://${urlObj.host}`, '');
 
         const { width, height, quality = CF_IMAGE_CONFIG.quality, format = CF_IMAGE_CONFIG.format, fit = 'cover' } = options;
 
