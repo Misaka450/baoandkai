@@ -131,6 +131,23 @@ export function getThumbnailUrl(url: string, size: number = 400): string {
 }
 
 /**
+ * 生成大图/全屏展示用优化 URL
+ * 用于相册大图查看器，自动转换为 WebP/AVIF
+ * 根据屏幕 dpi 和尺寸提供合适的图片
+ * @param url 原始图片 URL
+ * @param maxSize 最大尺寸（宽度），默认 2000
+ */
+export function getFullImageUrl(url: string, maxSize: number = 2000): string {
+    if (!url) return '';
+    return getOptimizedImageUrl(url, {
+        width: maxSize,
+        quality: 90,
+        format: 'auto',
+        fit: 'contain'
+    });
+}
+
+/**
  * 获取原图 URL（用于下载，不经过任何转换）
  */
 export function getOriginalImageUrl(url: string): string {

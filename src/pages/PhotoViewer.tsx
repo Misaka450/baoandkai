@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { preloadImage, getThumbnailUrl, loadedImagesCache } from '../utils/imageUtils'
+import { preloadImage, getThumbnailUrl, getFullImageUrl, loadedImagesCache } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
@@ -50,6 +50,7 @@ export default function PhotoViewer() {
     const images = albumDetail?.photos?.map(p => p.url) || []
     const currentImage = images[currentIndex]
     const thumbnailUrl = currentImage ? getThumbnailUrl(currentImage, 400) : ''
+    const optimizedFullImageUrl = currentImage ? getFullImageUrl(currentImage) : ''
 
     const resetTransform = useCallback(() => {
         setScale(1)
@@ -77,14 +78,14 @@ export default function PhotoViewer() {
         }
     }, [images.length, resetTransform])
 
-    // 图片加载逻辑
+    // 图片加载逻辑 - 使用优化后的大图 URL 进行预加载和缓存
     useEffect(() => {
-        if (currentImage) {
-            if (loadedImagesCache.has(currentImage)) {
+        if (optimizedFullImageUrl) {
+            if (loadedImagesCache.has(optimizedFullImageUrl)) {
                 setIsFullLoaded(true)
             } else {
                 setIsFullLoaded(false)
-                preloadImage(currentImage).then(() => {
+                preloadImage(optimizedFullImageUrl).then(() => {
                     setIsFullLoaded(true)
                 }).catch(() => {
                     setIsFullLoaded(true)
@@ -92,14 +93,14 @@ export default function PhotoViewer() {
             }
         }
         resetTransform()
-    }, [currentIndex, currentImage, resetTransform])
+    }, [currentIndex, optimizedFullImageUrl, resetTransform])
 
-    // 预加载下一张
+    // 预加载下一张 - 使用优化后的大图 URL
     useEffect(() => {
         if (images.length > 1) {
             const nextIndex = (currentIndex + 1) % images.length
             if (images[nextIndex]) {
-                preloadImage(images[nextIndex]).catch(() => { })
+                preloadImage(getFullImageUrl(images[nextIndex])).catch(() => { })
             }
         }
     }, [currentIndex, images])
@@ -279,9 +280,9 @@ export default function PhotoViewer() {
                         className={`max-w-[95vw] max-h-[80vh] object-contain absolute inset-0 blur-lg scale-105 transition-opacity duration-300 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
                         style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
                     />
-                    {/* 原图 */}
+                    {/* 优化后的大图（WebP/AVIF） */}
                     <img
-                        src={currentImage}
+                        src={optimizedFullImageUrl}
                         alt="Photo"
                         className={`max-w-[95vw] max-h-[80vh] object-contain transition-opacity duration-300 ${isFullLoaded ? 'opacity-100' : 'opacity-0'}`}
                         style={{
