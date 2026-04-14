@@ -221,6 +221,7 @@ npm run setup-db
 - 🧼 **代码规范化**: 统一错误处理（ErrorBoundary）与加载动画（LoadingSpinner），修复冗余路由，确保代码整洁
 - 🎨 **智能媒体处理**: 优化前端图片预压缩流程，显著降低存储带宽占用
 - 🔐 **安全加固**: JWT 认证、密码 bcrypt 加密、XSS 防护等安全措施
+- 🚀 **Node 24 就绪**: GitHub Actions 已配置 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` 环境变量，确保在 Node.js 20 停用前完成迁移
 
 ---
 
