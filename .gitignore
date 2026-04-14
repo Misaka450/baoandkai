@@ -98,6 +98,9 @@ temp/
 *.ntvs*
 *.njsproj
 *.sln
+
+# Cloudflare Wrangler
+wrangler.toml
 *.sw?
 .DS_Store
 Thumbs.db
