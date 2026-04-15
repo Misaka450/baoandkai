@@ -5,7 +5,7 @@ export type IconName =
     | 'favorite' | 'auto_awesome' | 'star' | 'cloud' | 'notifications' | 'logout'
     | 'dashboard' | 'female' | 'male' | 'calendar_month' | 'auto_fix_high'
     | 'local_fire_department' | 'icecream' | 'outdoor_grill' | 'ramen_dining'
-    | 'receipt' | 'location_on' | 'chevron_left' | 'chevron_right' | 'folder_special'
+    | 'receipt' | 'location_on' | 'chevron_left' | 'chevron_right' | 'chevron_up' | 'chevron_down' | 'folder_special'
     | 'photo_album' | 'push_pin' | 'add_circle' | 'delete' | 'search' | 'verified' | 'report_problem'
     | 'cake' | 'flight' | 'chat_bubble' | 'restaurant_menu' | 'wb_cloudy' | 'auto_fix_normal'
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu' | 'close'
@@ -48,6 +48,8 @@ const iconPaths: Record<IconName, string> = {
     location_on: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
     chevron_left: "M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z",
     chevron_right: "M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z",
+    chevron_up: "M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z",
+    chevron_down: "M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z",
     folder_special: "M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2.06 11L15 15.28 12.06 17l.78-3.33-2.59-2.24 3.41-.29L15 8l1.34 3.14 3.41.29-2.59 2.24.78 3.33z",
     photo_album: "M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8V4zm12 16H6v-6h12v6zm0-8h-5V4h5v8z",
     push_pin: "M16 9V4l2-2V0H6v2l2 2v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z",

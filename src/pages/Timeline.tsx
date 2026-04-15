@@ -367,7 +367,9 @@ export default function Timeline() {
             className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.95 }}
-          />
+          >
+            <Icon name="chevron_up" size={24} />
+          </motion.button>
         )}
       </AnimatePresence>
     </div>
