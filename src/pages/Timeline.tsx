@@ -242,12 +242,6 @@ export default function Timeline() {
                     {/* 内容卡片 */}
                     <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
                       <div className={`premium-card p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isOldest ? 'ring-4 ring-primary shadow-2xl shadow-primary/10' : ''}`}>
-                        {isOldest && (
-                          <div className="absolute -top-3 -right-3 px-3 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg flex items-center gap-1.5">
-                            <Icon name="flag" size={12} />
-                            起点
-                          </div>
-                        )}
                         {isMilestone && !isOldest && (
                           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shadow-lg">
                             <Icon name="star" size={16} className="text-amber-500" />
@@ -274,9 +268,15 @@ export default function Timeline() {
 
                     {/* 中间圆圈 */}
                     <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center p-1.5 bg-white border border-slate-100 rounded-full z-10 shadow-xl">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 border border-slate-100 shadow-inner`}>
-                        <Icon name={config.icon} size={14} className="text-slate-400" />
-                      </div>
+                      {isOldest ? (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-white">
+                          <Icon name="favorite" size={18} className="text-white" />
+                        </div>
+                      ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 border border-slate-100 shadow-inner`}>
+                          <Icon name={config.icon} size={14} className="text-slate-400" />
+                        </div>
+                      )}
                     </div>
 
                     {/* 图片展示 */}
