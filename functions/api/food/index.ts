@@ -145,7 +145,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
       overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
       Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
-      Array.isArray(images) ? images.join(',') : images,
+      // 统一使用 JSON 数组格式存储图片，保持数据一致性
+      JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])),
       nextSortOrder
     ).run();
 

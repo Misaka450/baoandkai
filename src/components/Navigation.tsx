@@ -1,64 +1,67 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon, { IconName } from './icons/Icons'
 
 interface NavItem {
-  name: string
-  href: string
-  icon: IconName
+    name: string
+    href: string
+    icon: IconName
 }
 
 export default function Navigation() {
-  const location = useLocation()
-  const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+    const location = useLocation()
+    const [isVisible, setIsVisible] = useState(true)
+    // 使用 useRef 存储 lastScrollY，避免放入 useEffect 依赖数组导致重复注册事件
+    const lastScrollYRef = useRef(0)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const navigation: NavItem[] = [
-    { name: '首页', href: '/', icon: 'home' },
-    { name: '时间轴', href: '/timeline', icon: 'schedule' },
-    { name: '相册', href: '/albums', icon: 'photo_library' },
-    { name: '情侣', href: '/couple', icon: 'favorite' },
-    { name: '待办', href: '/todos', icon: 'checklist' },
-    { name: '美食', href: '/food', icon: 'restaurant' },
-    { name: '足迹', href: '/map', icon: 'map' },
-    { name: '管理', href: '/admin', icon: 'settings' }
-  ]
+    const navigation: NavItem[] = [
+        { name: '首页', href: '/', icon: 'home' },
+        { name: '时间轴', href: '/timeline', icon: 'schedule' },
+        { name: '相册', href: '/albums', icon: 'photo_library' },
+        { name: '情侣', href: '/couple', icon: 'favorite' },
+        { name: '待办', href: '/todos', icon: 'checklist' },
+        { name: '美食', href: '/food', icon: 'restaurant' },
+        { name: '足迹', href: '/map', icon: 'map' },
+        { name: '管理', href: '/admin', icon: 'settings' }
+    ]
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY
+            const lastScrollY = lastScrollYRef.current
 
-      // 在顶部时始终显示
-      if (currentScrollY < 50) {
-        setIsVisible(true)
-      }
-      // 向上滚动显示，向下滚动隐藏
-      else if (currentScrollY < lastScrollY) {
-        setIsVisible(true)
-      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false)
-      }
+            // 在顶部时始终显示
+            if (currentScrollY < 50) {
+                setIsVisible(true)
+            }
+            // 向上滚动显示，向下滚动隐藏
+            else if (currentScrollY < lastScrollY) {
+                setIsVisible(true)
+            } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setIsVisible(false)
+            }
 
-      setLastScrollY(currentScrollY)
-    }
+            // 更新 ref 而非 state，避免触发重渲染和重新注册事件
+            lastScrollYRef.current = currentScrollY
+        }
 
-    // 检测详情页或图片模态框是否打开
-    const checkModal = () => {
-      const modal = document.getElementById('premium-image-modal')
-      const immersiveDetail = document.getElementById('immersive-album-detail')
-      setIsModalOpen(!!modal || !!immersiveDetail)
-    }
+        // 检测详情页或图片模态框是否打开
+        const checkModal = () => {
+            const modal = document.getElementById('premium-image-modal')
+            const immersiveDetail = document.getElementById('immersive-album-detail')
+            setIsModalOpen(!!modal || !!immersiveDetail)
+        }
 
-    const observer = new MutationObserver(checkModal)
-    observer.observe(document.body, { childList: true, subtree: true })
+        const observer = new MutationObserver(checkModal)
+        observer.observe(document.body, { childList: true, subtree: true })
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      observer.disconnect()
-    }
-  }, [lastScrollY])
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => {
+            window.removeEventListener('scroll', handleScroll)
+            observer.disconnect()
+        }
+    }, [])
 
   return (
     <nav

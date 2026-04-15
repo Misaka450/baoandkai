@@ -80,7 +80,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       date,
       location || '',
       category || '日常',
-      Array.isArray(images) ? images.join(',') : images
+      // 统一使用 JSON 数组格式存储图片
+      JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : []))
     ).run();
 
     const eventId = result.meta.last_row_id;

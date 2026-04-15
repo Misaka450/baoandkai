@@ -85,8 +85,8 @@ export default function StickyNotes() {
   return (
     <div className={RESPONSIVE_GRID}>
       {notes.map((note, idx) => {
-        const colorKeys = Object.keys(colorMap)
-        const colorKey = colorKeys[idx % colorKeys.length] || 'pink'
+        // 优先使用服务端返回的颜色，不在映射中则回退为按索引分配
+        const colorKey = (note.color && colorMap[note.color]) ? note.color : Object.keys(colorMap)[idx % Object.keys(colorMap).length] || 'pink'
         const style = colorMap[colorKey]!
         const rotations = ['rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]']
         const rotation = rotations[idx % rotations.length]

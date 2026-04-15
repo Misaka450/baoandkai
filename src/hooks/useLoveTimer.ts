@@ -1,100 +1,96 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 
 interface TimeTogether {
-  years: number
-  months: number
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-  totalDays: number
+    years: number
+    months: number
+    days: number
+    hours: number
+    minutes: number
+    seconds: number
+    totalDays: number
 }
 
 export function useLoveTimer(anniversaryDate: string | null): TimeTogether {
-  const baseTimeRef = useRef<Omit<TimeTogether, 'seconds'>>({
-    years: 0,
-    months: 0,
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    totalDays: 0
-  })
+    const baseTimeRef = useRef<Omit<TimeTogether, 'seconds'>>({
+        years: 0,
+        months: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        totalDays: 0
+    })
 
-  const [seconds, setSeconds] = useState(0)
+    const [seconds, setSeconds] = useState(0)
 
-  useEffect(() => {
-    if (!anniversaryDate) return
+    useEffect(() => {
+        if (!anniversaryDate) return
 
-    const calculateBaseTime = () => {
-      const now = new Date()
-      const anniversary = new Date(anniversaryDate)
-      const diff = now.getTime() - anniversary.getTime()
+        // 使用总毫秒差精确计算各时间单位，避免逐级减法导致的借位遗漏
+        const calculateTime = () => {
+            const now = new Date()
+            const anniversary = new Date(anniversaryDate)
+            const diffMs = now.getTime() - anniversary.getTime()
 
-      if (diff < 0) {
-        baseTimeRef.current = {
-          years: 0,
-          months: 0,
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          totalDays: 0
+            if (diffMs < 0) {
+                baseTimeRef.current = {
+                    years: 0, months: 0, days: 0,
+                    hours: 0, minutes: 0, totalDays: 0
+                }
+                setSeconds(0)
+                return
+            }
+
+            // 计算总天数
+            const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+            // 计算年、月、日（考虑月份天数差异）
+            let years = now.getFullYear() - anniversary.getFullYear()
+            let months = now.getMonth() - anniversary.getMonth()
+            let days = now.getDate() - anniversary.getDate()
+
+            // 日借位：如果日差为负，从月份借一天数
+            if (days < 0) {
+                months--
+                // 获取上个月的总天数
+                const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+                days += lastMonth.getDate()
+            }
+
+            // 月借位：如果月差为负，从年份借12个月
+            if (months < 0) {
+                years--
+                months += 12
+            }
+
+            // 计算剩余的时、分、秒（基于毫秒差，精确无借位问题）
+            const remainingMs = diffMs % (1000 * 60 * 60 * 24)
+            const hours = Math.floor(remainingMs / (1000 * 60 * 60))
+            const remainingMins = remainingMs % (1000 * 60 * 60)
+            const minutes = Math.floor(remainingMins / (1000 * 60))
+            const secs = Math.floor((remainingMins % (1000 * 60)) / 1000)
+
+            baseTimeRef.current = {
+                years,
+                months,
+                days,
+                hours,
+                minutes,
+                totalDays
+            }
+
+            setSeconds(secs)
         }
-        setSeconds(0)
-        return
-      }
 
-      const totalSeconds = Math.floor(diff / 1000)
-      const totalMinutes = Math.floor(totalSeconds / 60)
-      const totalHours = Math.floor(totalMinutes / 60)
-      const totalDays = Math.floor(totalHours / 24)
+        calculateTime()
+        const interval = setInterval(calculateTime, 1000)
 
-      let years = now.getFullYear() - anniversary.getFullYear()
-      let months = now.getMonth() - anniversary.getMonth()
-      let days = now.getDate() - anniversary.getDate()
+        return () => clearInterval(interval)
+    }, [anniversaryDate])
 
-      if (days < 0) {
-        months--
-        const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
-        days += lastMonth.getDate()
-      }
+    const timeTogether = useMemo<TimeTogether>(() => ({
+        ...baseTimeRef.current,
+        seconds
+    }), [seconds])
 
-      if (months < 0) {
-        years--
-        months += 12
-      }
-
-      const hours = now.getHours() - anniversary.getHours()
-      const minutes = now.getMinutes() - anniversary.getMinutes()
-
-      baseTimeRef.current = {
-        years,
-        months,
-        days,
-        hours: hours >= 0 ? hours : hours + 24,
-        minutes: minutes >= 0 ? minutes : minutes + 60,
-        totalDays
-      }
-
-      setSeconds(now.getSeconds() - anniversary.getSeconds())
-    }
-
-    const tick = () => {
-      const now = new Date()
-      const anniversary = new Date(anniversaryDate)
-      const currentSeconds = now.getSeconds() - anniversary.getSeconds()
-      setSeconds(currentSeconds >= 0 ? currentSeconds : currentSeconds + 60)
-    }
-
-    calculateBaseTime()
-    const interval = setInterval(tick, 1000)
-
-    return () => clearInterval(interval)
-  }, [anniversaryDate])
-
-  const timeTogether = useMemo<TimeTogether>(() => ({
-    ...baseTimeRef.current,
-    seconds
-  }), [seconds])
-
-  return timeTogether
+    return timeTogether
 }

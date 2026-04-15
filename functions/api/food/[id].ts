@@ -116,7 +116,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             environment_rating !== undefined ? environment_rating : currentFood.environment_rating,
             service_rating !== undefined ? service_rating : currentFood.service_rating,
             recommended_dishes !== undefined ? (Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes) : currentFood.recommended_dishes,
-            images !== undefined ? (Array.isArray(images) ? images.join(',') : images) : currentFood.images,
+            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : currentFood.images,
             foodId
         ).run();
 

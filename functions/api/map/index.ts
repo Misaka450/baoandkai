@@ -70,6 +70,9 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
             return errorResponse('日期不能为空', 400);
         }
 
+        // 统一使用 JSON 数组格式存储图片，保持数据一致性
+        const imagesJson = JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : []))
+
         const result = await env.DB.prepare(`
       INSERT INTO map_checkins (title, description, province, city, date, images, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
@@ -79,7 +82,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
             province,
             city || '',
             date,
-            Array.isArray(images) ? images.join(',') : images
+            imagesJson
         ).run();
 
         const newId = result.meta.last_row_id;

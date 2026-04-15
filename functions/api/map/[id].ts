@@ -55,7 +55,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             province !== undefined ? province : current.province,
             city !== undefined ? city : current.city,
             date !== undefined ? date : current.date,
-            images !== undefined ? (Array.isArray(images) ? images.join(',') : images) : current.images,
+            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : current.images,
             checkinId
         ).run();
 

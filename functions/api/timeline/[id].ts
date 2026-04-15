@@ -83,7 +83,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             date !== undefined ? date : currentEvent.date,
             location !== undefined ? location : currentEvent.location,
             category !== undefined ? category : currentEvent.category,
-            images !== undefined ? (Array.isArray(images) ? images.join(',') : images) : currentEvent.images,
+            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : currentEvent.images,
             eventId
         ).run();
 

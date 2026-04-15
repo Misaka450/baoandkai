@@ -9,6 +9,7 @@ interface Album {
     id: number;
     name: string;
     description: string;
+    cover_url?: string;
 }
 
 interface Photo {
@@ -18,41 +19,35 @@ interface Photo {
     sort_order: number;
 }
 
-// Cloudflare Pages Functions - 相册列表API
+// 使用子查询一次性获取相册列表+封面+照片数，避免N+1查询
 export async function onRequestGet(context: { env: Env }) {
     const { env } = context;
 
     try {
-        // 获取所有相册
+        // 一次查询获取所有相册及其封面和照片数（使用子查询替代N+1查询）
         const albums = await env.DB.prepare(`
-      SELECT * FROM albums ORDER BY id DESC
-    `).all<Album>();
+            SELECT 
+                a.*,
+                (SELECT url FROM photos WHERE album_id = a.id ORDER BY sort_order ASC, id ASC LIMIT 1) AS cover_url,
+                (SELECT COUNT(*) FROM photos WHERE album_id = a.id) AS photo_count
+            FROM albums a
+            ORDER BY a.id DESC
+        `).all<Album & { cover_url: string | null; photo_count: number }>();
 
-        // 为每个相册获取封面照片和照片总数
-        const albumsWithPhotos = await Promise.all(albums.results.map(async (album) => {
-            // 获取第一张照片作为封面
-            const coverPhoto = await env.DB.prepare(`
-        SELECT * FROM photos WHERE album_id = ? ORDER BY sort_order ASC, id ASC LIMIT 1
-      `).bind(album.id).all<Photo>();
-
-            // 统计相册照片总数
-            const countResult = await env.DB.prepare(`
-        SELECT COUNT(*) as count FROM photos WHERE album_id = ?
-      `).bind(album.id).first<{ count: number }>();
-
-            return {
-                ...album,
-                photos: coverPhoto.results.map(p => ({
-                    ...p,
-                    url: transformImageUrl(p.url)
-                })),
-                photo_count: countResult?.count || 0
-            };
+        const albumsWithPhotos = albums.results.map(album => ({
+            ...album,
+            cover_url: transformImageUrl(album.cover_url || album.cover_image),
+            photos: album.cover_url ? [{
+                id: 0,
+                album_id: album.id,
+                url: transformImageUrl(album.cover_url),
+                sort_order: 0
+            }] : []
         }));
 
         return jsonResponse({
             data: albumsWithPhotos,
-            count: albumsWithPhotos.length
+            count: albums.results.length
         });
     } catch (error: any) {
         return errorResponse(error.message, 500);
@@ -72,13 +67,13 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         }
 
         const result = await env.DB.prepare(`
-      INSERT INTO albums (name, description) 
-      VALUES (?, ?)
-    `).bind(name, description || '').run();
+            INSERT INTO albums (name, description) 
+            VALUES (?, ?)
+        `).bind(name, description || '').run();
 
         const newAlbum = await env.DB.prepare(`
-      SELECT * FROM albums WHERE id = ?
-    `).bind(result.meta.last_row_id).first<Album>();
+            SELECT * FROM albums WHERE id = ?
+        `).bind(result.meta.last_row_id).first<Album>();
 
         return jsonResponse(newAlbum, 201);
     } catch (error: any) {
