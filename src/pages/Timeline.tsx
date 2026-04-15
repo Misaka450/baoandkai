@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'framer-motion'
 import { apiService } from '../services/apiService'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import type { TimelineEvent } from '../types'
@@ -35,6 +36,21 @@ export default function Timeline() {
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [showBackToTop, setShowBackToTop] = useState(false)
+
+  // 监听滚动，显示/隐藏返回顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 500)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // 返回顶部
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const { data: timelineData, isLoading: loading } = useQuery({
     queryKey: ['timeline', currentPage, filter],
@@ -219,13 +235,20 @@ export default function Timeline() {
                 const isEven = idx % 2 === 0
                 const config = categoryConfigs[event.category] || categoryConfigs.default!
                 const isMilestone = event.category === '纪念'
+                const isFirst = idx === 0
 
                 return (
                   <div key={event.id} className={`relative flex flex-col md:flex-row items-center animate-slide-up ${isEven ? 'md:flex-row-reverse' : ''}`} style={{ animationDelay: `${idx * 0.1}s` }}>
                     {/* 内容卡片 */}
                     <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
-                      <div className={`premium-card p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''}`}>
-                        {isMilestone && (
+                      <div className={`premium-card p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isFirst ? 'ring-4 ring-primary shadow-2xl shadow-primary/10' : ''}`}>
+                        {isFirst && (
+                          <div className="absolute -top-3 -right-3 px-3 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg flex items-center gap-1.5">
+                            <Icon name="flag" size={12} />
+                            起点
+                          </div>
+                        )}
+                        {isMilestone && !isFirst && (
                           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shadow-lg">
                             <Icon name="star" size={16} className="text-amber-500" />
                           </div>
@@ -332,6 +355,23 @@ export default function Timeline() {
         onNext={() => setCurrentImageIndex(prev => (prev + 1) % currentImages.length)}
         onJumpTo={setCurrentImageIndex}
       />
+
+      {/* 返回顶部按钮 */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Icon name="arrow_upward" size={24} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
