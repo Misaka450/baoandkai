@@ -309,6 +309,7 @@ export default function FoodCheckin() {
             )
           })}
         </div>
+        )}
 
         {/* 分页 */}
         {foodData && foodData.totalPages > 1 && (
