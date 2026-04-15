@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image, CheckCircle, AlertCircle } from 'lucide-react';
+import { apiService } from '../services/apiService';
 
 // 定义图片上传组件的属性接口
 interface ImageUploaderProps {
@@ -81,73 +82,50 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const uploadSingleFile = async (file: File): Promise<void> => {
     const uploadId = Math.random().toString(36).substr(2, 9);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', folder);
 
-      const xhr = new XMLHttpRequest();
-      
-      // 创建上传任务
-      setUploadingFiles(prev => prev.map(item => 
-        item.file === file ? { ...item, id: uploadId } : item
+      // 更新状态为上传中
+      setUploadingFiles(prev => prev.map(item =>
+        item.file === file ? { ...item, id: uploadId, status: 'uploading' as const, progress: 0 } : item
       ));
 
-      // 监听进度
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          setUploadingFiles(prev => prev.map(item => 
-            item.id === uploadId ? { ...item, progress } : item
+      // 使用统一的 apiService 上传
+      const { data, error } = await apiService.uploadWithProgress<{ url: string; urls: string[] }>(
+        '/upload',
+        formData,
+        (p) => {
+          setUploadingFiles(prev => prev.map(item =>
+            item.id === uploadId ? { ...item, progress: p.percent } : item
           ));
         }
-      };
+      );
 
-      // 使用 Promise 包装 XMLHttpRequest
-      const result = await new Promise<string>((resolve, reject) => {
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            try {
-              const result = JSON.parse(xhr.responseText);
-              const url = result.urls ? result.urls[0] : result.url;
-              resolve(url);
-            } catch (error) {
-              reject(new Error('服务器响应格式错误'));
-            }
-          } else {
-            try {
-              const errorData = JSON.parse(xhr.responseText);
-              reject(new Error(errorData.error || `上传失败: ${xhr.status}`));
-            } catch {
-              reject(new Error(`上传失败: ${xhr.status}`));
-            }
-          }
-        };
-        xhr.onerror = () => reject(new Error('网络连接失败，请检查网络后重试'));
-        xhr.ontimeout = () => reject(new Error('上传超时，请重试'));
-        
-        // 使用正确的API路径上传图片
-        xhr.open('POST', '/api/upload');
-        xhr.timeout = 60000; // 60秒超时
-        xhr.send(formData);
-      });
+      if (error) {
+        throw new Error(error);
+      }
+
+      const url = data?.urls?.[0] || data?.url || '';
 
       // 更新状态为成功
-      setUploadingFiles(prev => prev.map(item => 
-        item.id === uploadId ? { ...item, status: 'success', url: result } : item
+      setUploadingFiles(prev => prev.map(item =>
+        item.id === uploadId ? { ...item, status: 'success' as const, url, progress: 100 } : item
       ));
 
       // 通知父组件
-      onImagesUploaded([result]);
+      onImagesUploaded([url]);
 
     } catch (error) {
-      setUploadingFiles(prev => prev.map(item => 
-        item.file === file ? { 
-          ...item, 
-          status: 'error' as const, 
-          error: error instanceof Error ? error.message : '上传失败'
-        } : item
+      setUploadingFiles(prev => prev.map(item =>
+        item.file === file ?
+          {
+            ...item,
+            status: 'error' as const,
+            error: error instanceof Error ? error.message : '上传失败'
+          } : item
       ));
     }
   };

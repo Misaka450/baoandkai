@@ -17,6 +17,7 @@ const TravelMap = lazy(() => import('./pages/TravelMap'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 const CoupleFeatures = lazy(() => import('./pages/CoupleFeatures'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 import LoadingSpinner from './components/common/LoadingSpinner'
 
@@ -55,6 +56,8 @@ function App(): JSX.Element {
             </Route>
             {/* 照片查看器 - 独立全屏路由 */}
             <Route path="/albums/:albumId/photo" element={<ProtectedRoute><PhotoViewer /></ProtectedRoute>} />
+            {/* 404 页面 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </AuthProvider>

@@ -95,7 +95,9 @@ export default function Home() {
 
         <div className="text-center mb-16">
           <span className="premium-badge !bg-[#FFEDF3] !text-[#FF8BB1] mb-6">LOVE TIMER</span>
-          <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">Memory since Oct 8, 2023</p>
+          <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">
+            Memory since {new Date(config.anniversaryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-6 mb-16 relative z-10">
@@ -120,7 +122,9 @@ export default function Home() {
         <div className="flex flex-col md:flex-row items-center justify-center gap-8">
           <div className="bg-white/60 border border-white px-10 py-4 rounded-[2rem] flex items-center shadow-sm">
             <Icon name="calendar_month" className="text-[#FF8BB1] mr-3" size={20} />
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">STARTING LINE: 2023.10.8</span>
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+              STARTING LINE: {new Date(config.anniversaryDate).toLocaleDateString('en-CA').replace(/\//g, '.')}
+            </span>
           </div>
           <p className="text-slate-400 font-bold text-sm tracking-[0.05em]">
             已经一起度过了 <span className="text-3xl font-black text-[#FF8BB1] mx-2 drop-shadow-sm font-mono">{timeTogether.totalDays}</span> 个温柔的日子

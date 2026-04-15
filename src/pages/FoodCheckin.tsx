@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
@@ -26,13 +26,19 @@ interface CuisineConfig {
   color?: string
 }
 
-const cuisines: CuisineConfig[] = [
-  { name: 'all', label: 'Everything', icon: 'restaurant_menu' },
-  { name: '火锅', label: 'Hot Pot', icon: 'local_fire_department' },
-  { name: '甜点', label: 'Dessert', icon: 'icecream' },
-  { name: '烧烤', label: 'Barbecue', icon: 'outdoor_grill' },
-  { name: '面食', label: 'Noodles', icon: 'ramen_dining' }
-]
+// 分类中文名到英文标签和图标的映射表
+const cuisineLabelMap: Record<string, { label: string; icon: IconName }> = {
+  '火锅': { label: 'Hot Pot', icon: 'local_fire_department' },
+  '甜点': { label: 'Dessert', icon: 'icecream' },
+  '烧烤': { label: 'Barbecue', icon: 'outdoor_grill' },
+  '面食': { label: 'Noodles', icon: 'ramen_dining' },
+  '日料': { label: 'Japanese', icon: 'restaurant' },
+  '韩料': { label: 'Korean', icon: 'restaurant' },
+  '西餐': { label: 'Western', icon: 'restaurant' },
+  '中餐': { label: 'Chinese', icon: 'restaurant' },
+  '小吃': { label: 'Snacks', icon: 'fastfood' },
+  '饮品': { label: 'Drinks', icon: 'local_cafe' }
+}
 
 export default function FoodCheckin() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -42,6 +48,36 @@ export default function FoodCheckin() {
   // 多图查看状态
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // 从API获取已使用的分类列表
+  const { data: cuisinesData } = useQuery({
+    queryKey: ['foodCuisines'],
+    queryFn: async () => {
+      const response = await apiService.get<{ data: string[] }>('/food?cuisines=true')
+      return response.data?.data || []
+    },
+    staleTime: 60 * 60 * 1000, // 分类数据缓存1小时
+  })
+
+  // 动态构建分类列表：将API返回的分类与预定义映射结合
+  const cuisines = useMemo(() => {
+    const apiCuisines = cuisinesData || []
+    const allCuisines: CuisineConfig[] = [
+      { name: 'all', label: 'Everything', icon: 'restaurant_menu' }
+    ]
+
+    // 添加API返回的分类
+    apiCuisines.forEach(name => {
+      const mapping = cuisineLabelMap[name]
+      allCuisines.push({
+        name,
+        label: mapping?.label || name,
+        icon: mapping?.icon || 'restaurant'
+      })
+    })
+
+    return allCuisines
+  }, [cuisinesData])
 
   const { data: foodData, isLoading: loading } = useQuery({
     queryKey: ['food', currentPage, filter],
@@ -273,6 +309,56 @@ export default function FoodCheckin() {
             )
           })}
         </div>
+
+        {/* 分页 */}
+        {foodData && foodData.totalPages > 1 && (
+          <div className="relative flex flex-col items-center justify-center py-16 mt-8">
+            <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] animate-pulse"></div>
+            <div className="mt-8 flex gap-3">
+              <button
+                onClick={() => {
+                  setCurrentPage(prev => prev - 1)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                disabled={currentPage === 1}
+                className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+              >
+                <Icon name="chevron_left" size={24} />
+              </button>
+              {Array.from({ length: Math.min(foodData.totalPages, 7) }).map((_, i) => {
+                const pageNum = i + 1
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentPage(pageNum)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    className={`w-12 h-12 rounded-2xl transition-all text-sm font-black active:scale-95 ${
+                      currentPage === pageNum
+                        ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
+                        : 'bg-white text-gray-400 hover:text-primary'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+              <button
+                onClick={() => {
+                  setCurrentPage(prev => prev + 1)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                disabled={currentPage === foodData.totalPages}
+                className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+              >
+                <Icon name="chevron_right" size={24} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-4 font-medium">
+              第 {currentPage} / {foodData.totalPages} 页，共 {foodData.totalCount} 条
+            </p>
+          </div>
         )}
       </main>
 

@@ -7,6 +7,7 @@ import type { Album } from '../types'
 import Icon from '../components/icons/Icons'
 import { Skeleton, ImageGridSkeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 interface AlbumsResponse {
   data: Album[]
@@ -24,6 +25,9 @@ export default function Albums() {
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const itemsPerPage = 12
 
+  // 使用防抖优化搜索输入，避免频繁请求
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300)
+
   const { data: albumsData, isLoading: loading } = useQuery({
     queryKey: ['albums', currentPage, itemsPerPage],
     queryFn: async () => {
@@ -35,13 +39,13 @@ export default function Albums() {
 
   const albums = albumsData?.data || []
 
-  // 搜索和排序
+  // 搜索和排序（使用防抖后的搜索词）
   const filteredAndSortedAlbums = useMemo(() => {
     let result = [...albums]
 
     // 搜索过滤
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase()
       result = result.filter(album =>
         album.name.toLowerCase().includes(query) ||
         album.description?.toLowerCase().includes(query)
@@ -65,7 +69,7 @@ export default function Albums() {
     })
 
     return result
-  }, [albums, searchQuery, sortBy])
+  }, [albums, debouncedSearchQuery, sortBy])
 
   const handleAlbumClick = (album: Album) => {
     navigate(`/albums/${album.id}`)
@@ -137,8 +141,8 @@ export default function Albums() {
           </div>
         </div>
 
-        {/* 结果统计 */}
-        {searchQuery && (
+        {/* 结果统计（使用防抖后的搜索词保持一致） */}
+        {debouncedSearchQuery && (
           <div className="text-center mb-8 animate-fade-in">
             <p className="text-sm text-slate-400">
               找到 <span className="font-bold text-primary">{filteredAndSortedAlbums.length}</span> 个相册
@@ -153,10 +157,10 @@ export default function Albums() {
               <Icon name="photo_library" size={48} className="text-slate-200" />
             </div>
             <h3 className="text-2xl font-black text-slate-400 mb-3">
-              {searchQuery ? '没有找到匹配的相册' : '还没有相册'}
+              {debouncedSearchQuery ? '没有找到匹配的相册' : '还没有相册'}
             </h3>
             <p className="text-slate-300 text-sm max-w-md mx-auto">
-              {searchQuery ? '尝试其他关键词搜索' : '在管理后台创建第一个相册，记录你们的美好回忆吧'}
+              {debouncedSearchQuery ? '尝试其他关键词搜索' : '在管理后台创建第一个相册，记录你们的美好回忆吧'}
             </p>
           </div>
         ) : (

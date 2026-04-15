@@ -27,25 +27,64 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
   const { env, request } = context;
 
   try {
-    // 获取分页参数
     const url = new URL(request.url);
+
+    // 检查是否为获取分类列表的请求
+    if (url.pathname.endsWith('/food/cuisines') || url.searchParams.get('cuisines') === 'true') {
+      const cuisinesResult = await env.DB.prepare(`
+        SELECT DISTINCT cuisine FROM food_checkins WHERE cuisine IS NOT NULL AND cuisine != '' ORDER BY cuisine
+      `).all<{ cuisine: string }>();
+
+      const cuisines = cuisinesResult.results.map(r => r.cuisine).filter(Boolean);
+
+      return jsonResponse({
+        data: cuisines,
+        labels: {
+          '火锅': 'Hot Pot',
+          '甜点': 'Dessert',
+          '烧烤': 'Barbecue',
+          '面食': 'Noodles',
+          '日料': 'Japanese',
+          '韩料': 'Korean',
+          '西餐': 'Western',
+          '中餐': 'Chinese',
+          '小吃': 'Snacks',
+          '饮品': 'Drinks'
+        }
+      });
+    }
+
+    // 获取分页参数
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const limit = parseInt(url.searchParams.get('limit') || '12', 10);
     const offset = (page - 1) * limit;
+    const cuisine = url.searchParams.get('cuisine') || '';
+
+    // 构建查询条件
+    let whereClause = '';
+    const queryParams: (string | number)[] = [];
+
+    if (cuisine) {
+      whereClause = ' WHERE cuisine = ?';
+      queryParams.push(cuisine);
+    }
 
     // 获取总数
     const countResult = await env.DB.prepare(`
-      SELECT COUNT(*) as total FROM food_checkins
+      SELECT COUNT(*) as total FROM food_checkins${whereClause}
     `).first<{ total: number }>();
     const total = countResult?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
     // 获取分页数据
-    const foods = await env.DB.prepare(`
-      SELECT * FROM food_checkins 
+    const foodsQuery = `
+      SELECT * FROM food_checkins${whereClause}
       ORDER BY sort_order DESC, date DESC, created_at DESC
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all<FoodCheckin>();
+    `;
+    const foods = whereClause
+      ? await env.DB.prepare(foodsQuery).bind(...queryParams, limit, offset).all<FoodCheckin>()
+      : await env.DB.prepare(foodsQuery).bind(limit, offset).all<FoodCheckin>();
 
     const foodsWithImages = foods.results.map(food => ({
       ...food,

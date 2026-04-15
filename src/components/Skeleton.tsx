@@ -6,12 +6,12 @@ interface SkeletonProps {
 }
 
 /**
- * 基础骨架屏组件 - 渐变流光动画
+ * 基础骨架屏组件 - 流光渐变动画
  */
 export const Skeleton: React.FC<SkeletonProps> = ({ className = '', style }) => (
     <div
-        className={`animate-pulse bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] rounded-lg ${className}`}
-        style={{ animation: 'shimmer 1.5s ease-in-out infinite', ...style }}
+        className={`bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] rounded-lg animate-shimmer ${className}`}
+        style={style}
     />
 )
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { mapService } from '../../services/apiService'
@@ -58,8 +58,10 @@ export default function AdminTravelMap() {
 
     const checkins = mapData?.data || []
 
-    // 当前选中省份的城市列表
-    const cityOptions = formData.province ? getCitiesForProvince(formData.province) : []
+    // 使用 useMemo 确保城市列表在省份变化时正确更新
+    const cityOptions = useMemo(() => {
+        return formData.province ? getCitiesForProvince(formData.province) : []
+    }, [formData.province])
 
     const handleAdd = () => {
         setFormData(emptyForm)
