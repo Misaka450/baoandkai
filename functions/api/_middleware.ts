@@ -1,7 +1,17 @@
 import { errorResponse } from '../utils/response';
 
 /**
- * 全局中间件：处理 CORS、公共路径验证以及 Token 鉴权逻辑
+ * 从请求的Cookie中解析指定名称的值
+ */
+function getCookieValue(request: Request, name: string): string | null {
+    const cookieHeader = request.headers.get('Cookie')
+    if (!cookieHeader) return null
+    const match = cookieHeader.split(';').find(c => c.trim().startsWith(`${name}=`))
+    return match ? match.split('=').slice(1).join('=').trim() : null
+}
+
+/**
+ * 全局中间件：处理 CORS、公共路径验证、CSRF防护以及 Token 鉴权逻辑
  */
 export async function onRequest(context: any) {
     const { request, env, next } = context;
@@ -11,14 +21,12 @@ export async function onRequest(context: any) {
     const origin = request.headers.get('Origin');
     const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map((s: string) => s.trim()) : [];
 
-    // 确定允许的来源：不再默认允许 *
     let corsOrigin = '';
     if (origin && allowedOrigins.length > 0) {
         if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             corsOrigin = origin;
         }
     }
-    // 开发环境回退：如果没有配置 ALLOWED_ORIGINS，允许 localhost
     if (!corsOrigin && env.ENVIRONMENT === 'development') {
         corsOrigin = origin || '*';
     }
@@ -28,20 +36,19 @@ export async function onRequest(context: any) {
             headers: {
                 'Access-Control-Allow-Origin': corsOrigin,
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token',
                 'Access-Control-Max-Age': '86400',
                 'Access-Control-Allow-Credentials': 'true',
             },
         });
     }
 
-    // 2. 定义公开路径（无需认证）
-    // 注意：数据读取接口不再公开，所有数据API都需要认证
+    // 2. 定义公开路径（无需认证和CSRF验证）
     const publicPaths = [
-        '/api/auth/login',     // 登录接口
-        '/api/auth/check-token', // Token验证接口
-        '/api/config',         // 公开配置API（首页展示需要）
-        '/api/images/',        // 图片资源访问（CDN直链需要）
+        '/api/auth/login',
+        '/api/auth/check-token',
+        '/api/config',
+        '/api/images/',
     ];
 
     const pathname = url.pathname;
@@ -52,12 +59,37 @@ export async function onRequest(context: any) {
     // 3. 非公开路径需要认证
     if (!isPublic) {
         try {
-            const authHeader = request.headers.get('Authorization');
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            // 优先从Cookie读取Token，回退到Authorization头（兼容过渡期）
+            let token: string | null = getCookieValue(request, 'auth_token')
+
+            if (!token) {
+                const authHeader = request.headers.get('Authorization');
+                if (authHeader && authHeader.startsWith('Bearer ')) {
+                    token = authHeader.split(' ')[1];
+                }
+            }
+
+            if (!token) {
                 return errorResponse('未授权访问', 401);
             }
 
-            const token = authHeader.split(' ')[1];
+            // CSRF验证：非GET请求必须携带有效的CSRF令牌
+            if (request.method !== 'GET') {
+                const csrfFromHeader = request.headers.get('X-CSRF-Token')
+                const csrfFromCookie = getCookieValue(request, 'csrf_token')
+
+                if (!csrfFromHeader || !csrfFromCookie || csrfFromHeader !== csrfFromCookie) {
+                    return errorResponse('CSRF验证失败', 403);
+                }
+
+                // 进一步验证CSRF令牌与认证Token的绑定关系
+                if (env.KV) {
+                    const storedCsrf = await env.KV.get(`csrf:${token}`)
+                    if (storedCsrf !== csrfFromHeader) {
+                        return errorResponse('CSRF令牌不匹配', 403);
+                    }
+                }
+            }
 
             // 优先从 KV 缓存中获取用户信息
             let user = null;
@@ -67,8 +99,8 @@ export async function onRequest(context: any) {
                     if (new Date(cached.token_expires) > new Date()) {
                         user = cached;
                     } else {
-                        // Token 已过期，清理 KV 缓存
                         await env.KV.delete(`token:${token}`);
+                        await env.KV.delete(`csrf:${token}`);
                     }
                 }
             }
@@ -81,7 +113,6 @@ export async function onRequest(context: any) {
                     WHERE token = ? AND token_expires > ?
                 `).bind(token, new Date().toISOString()).first();
 
-                // 数据库命中后同步到 KV 缓存
                 if (user && env.KV) {
                     const ttl = Math.floor((new Date(user.token_expires).getTime() - Date.now()) / 1000);
                     if (ttl > 0) {
@@ -94,7 +125,6 @@ export async function onRequest(context: any) {
                 return errorResponse('Token无效或已过期', 401);
             }
 
-            // 将用户信息注入上下文，供下游API使用
             context.data.user = user;
 
         } catch (err: any) {
@@ -127,7 +157,33 @@ export async function onRequest(context: any) {
         newResponse.headers.set('X-Content-Type-Options', 'nosniff');
         newResponse.headers.set('X-Frame-Options', 'DENY');
         newResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+        newResponse.headers.set('X-XSS-Protection', '0');
+        // HSTS - 强制HTTPS（生产环境生效，max-age 1年，包含子域名）
+        if (env.ENVIRONMENT === 'production') {
+            newResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        }
+        // 权限策略 - 限制浏览器功能访问
+        newResponse.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+        // CSP - 内容安全策略，防止XSS和数据注入攻击
+        // 允许的脚本来源：自身、Cloudflare CDN
+        // 允许的图片来源：自身、data:、blob:、R2域名、DiceBear头像API
+        // 允许的样式来源：自身、inline（Tailwind需要）
+        if (env.ENVIRONMENT === 'production') {
+            newResponse.headers.set(
+                'Content-Security-Policy',
+                [
+                    "default-src 'self'",
+                    "script-src 'self' https://static.cloudflareinsights.com",
+                    "style-src 'self' 'unsafe-inline'",
+                    "img-src 'self' data: blob: https://img.980823.xyz https://api.dicebear.com https://*.r2.dev",
+                    "font-src 'self'",
+                    "connect-src 'self' https://img.980823.xyz https://*.r2.dev https://o*.ingest.sentry.io",
+                    "frame-ancestors 'none'",
+                    "base-uri 'self'",
+                    "form-action 'self'",
+                ].join('; ')
+            );
+        }
 
         return newResponse;
     } catch (err: any) {

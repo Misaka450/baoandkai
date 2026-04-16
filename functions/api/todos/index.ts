@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray } from '../../utils/url';
+import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
   DB: D1Database;
@@ -69,21 +70,32 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     const body: any = await request.json();
     const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
-    if (!title) {
-      return errorResponse('待办标题不能为空', 400);
+    // 输入验证
+    const validationError = validate([
+      validateRequired(title, '待办标题'),
+      validateLength(title, '待办标题', 1, 100),
+    ])
+    if (validationError) return errorResponse(validationError, 400)
+
+    // XSS检测
+    if (hasXSS(title) || (description && hasXSS(description))) {
+      return errorResponse('输入内容包含不安全字符', 400)
     }
+
+    // 消毒输入数据
+    const sanitized = sanitizeObject({ title, description, category, completion_notes }, ['images', 'completion_photos'])
 
     const result = await env.DB.prepare(`
       INSERT INTO todos (title, description, status, priority, category, due_date, completion_notes, completion_photos, images, created_at) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
-      title,
-      description || '',
+      sanitized.title,
+      sanitized.description || '',
       status || 'pending',
       priority || 2,
-      category || 'general',
+      sanitized.category || 'general',
       due_date || null,
-      completion_notes || null,
+      sanitized.completion_notes || null,
       completion_photos ? JSON.stringify(completion_photos) : null,
       images ? JSON.stringify(images) : null
     ).run();

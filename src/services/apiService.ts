@@ -13,12 +13,20 @@ interface RequestConfig extends Omit<RequestInit, 'signal'> {
 }
 
 /**
+ * 从浏览器Cookie中读取指定名称的值
+ */
+function getCookieValue(name: string): string | null {
+    const match = document.cookie.split(';').find(c => c.trim().startsWith(`${name}=`))
+    return match ? match.split('=').slice(1).join('=').trim() : null
+}
+
+/**
  * 统一的API服务类
- * 提供统一的错误处理、请求取消和超时处理
+ * 使用HttpOnly Cookie认证 + CSRF Token防护
  */
 class ApiService {
     private baseURL: string
-    private defaultTimeout: number = 30000 // 默认30秒超时
+    private defaultTimeout: number = 30000
 
     constructor() {
         this.baseURL = API_BASE
@@ -30,12 +38,10 @@ class ApiService {
     private createTimeoutController(timeout: number, externalSignal?: AbortSignal): { controller: AbortController; cleanup: () => void } {
         const controller = new AbortController()
 
-        // 超时自动取消
         const timeoutId = setTimeout(() => {
             controller.abort(new DOMException('Request timeout', 'TimeoutError'))
         }, timeout)
 
-        // 如果传入外部 signal，当外部取消时也取消此请求
         if (externalSignal) {
             externalSignal.addEventListener('abort', () => {
                 controller.abort(externalSignal.reason)
@@ -48,37 +54,48 @@ class ApiService {
     }
 
     /**
+     * 构建请求头，包含CSRF Token（非GET请求）
+     * Cookie由浏览器自动携带（credentials: same-origin）
+     */
+    private buildHeaders(method: string, extraHeaders?: Record<string, string>): Record<string, string> {
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            ...extraHeaders,
+        }
+
+        // 非GET请求添加CSRF Token头
+        if (method !== 'GET') {
+            const csrf = getCookieValue('csrf_token')
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf
+            }
+        }
+
+        return headers
+    }
+
+    /**
      * 通用请求方法
      */
     async request<T = unknown>(endpoint: string, options: RequestConfig = {}): Promise<ApiResponse<T>> {
         const url = `${this.baseURL}${endpoint}`
         const timeout = options.timeout ?? this.defaultTimeout
 
-        // 创建超时控制器
         const { controller, cleanup } = this.createTimeoutController(timeout, options.signal)
 
-        // 获取Token
-        const token = localStorage.getItem('token')
-
+        const method = options.method || 'GET'
         const config: RequestInit = {
             ...options,
             signal: controller.signal,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                ...options.headers,
-            },
+            credentials: 'same-origin',
+            headers: this.buildHeaders(method, options.headers),
         }
 
         try {
             const response = await fetch(url, config)
-            cleanup() // 清理超时定时器
+            cleanup()
 
             if (response.status === 401) {
-                localStorage.removeItem('token')
-                localStorage.removeItem('user')
-
-                // 如果是401且不在登录页，重定向到登录页
                 if (window.location.pathname !== '/login') {
                     window.location.href = '/login'
                 }
@@ -86,7 +103,6 @@ class ApiService {
             }
 
             if (!response.ok) {
-                // 对于非200响应，尝试获取错误信息
                 let errorData: { error?: string; message?: string } | null = null
                 try {
                     const contentType = response.headers.get('content-type')
@@ -94,7 +110,6 @@ class ApiService {
                         errorData = await response.json()
                     }
                 } catch {
-                    // 忽略JSON解析错误
                 }
                 const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`
 
@@ -177,25 +192,23 @@ class ApiService {
     }
 
     /**
-     * 上传文件
+     * 上传文件（Cookie认证 + CSRF防护）
      */
     async upload<T = unknown>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
         const url = `${this.baseURL}${endpoint}`
-        const token = localStorage.getItem('token')
+        const csrf = getCookieValue('csrf_token')
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                    ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
                 },
                 body: formData,
             })
 
             if (response.status === 401) {
-                localStorage.removeItem('token')
-                localStorage.removeItem('user')
-
                 if (window.location.pathname !== '/login') {
                     window.location.href = '/login'
                 }
@@ -215,10 +228,7 @@ class ApiService {
     }
 
     /**
-     * 上传文件（带进度回调）
-     * @param endpoint 上传端点
-     * @param formData 表单数据
-     * @param onProgress 进度回调函数，接收 { percent: 百分比, speed: 速率(KB/s), loaded: 已上传字节, total: 总字节 }
+     * 上传文件（带进度回调，Cookie认证 + CSRF防护）
      */
     uploadWithProgress<T = unknown>(
         endpoint: string,
@@ -227,7 +237,7 @@ class ApiService {
     ): Promise<ApiResponse<T>> {
         return new Promise((resolve) => {
             const url = `${this.baseURL}${endpoint}`
-            const token = localStorage.getItem('token')
+            const csrf = getCookieValue('csrf_token')
             const xhr = new XMLHttpRequest()
             let startTime = Date.now()
             let lastLoaded = 0
@@ -235,11 +245,10 @@ class ApiService {
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable && onProgress) {
                     const now = Date.now()
-                    const elapsed = (now - startTime) / 1000 // 秒
+                    const elapsed = (now - startTime) / 1000
                     const bytesLoaded = e.loaded - lastLoaded
-                    const speed = elapsed > 0 ? (bytesLoaded / 1024) / elapsed : 0 // KB/s
+                    const speed = elapsed > 0 ? (bytesLoaded / 1024) / elapsed : 0
 
-                    // 更新基准
                     startTime = now
                     lastLoaded = e.loaded
 
@@ -254,8 +263,6 @@ class ApiService {
 
             xhr.addEventListener('load', () => {
                 if (xhr.status === 401) {
-                    localStorage.removeItem('token')
-                    localStorage.removeItem('user')
                     if (window.location.pathname !== '/login') {
                         window.location.href = '/login'
                     }
@@ -284,8 +291,10 @@ class ApiService {
             })
 
             xhr.open('POST', url)
-            if (token) {
-                xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+            // XHR也需要携带Cookie凭证
+            xhr.withCredentials = true
+            if (csrf) {
+                xhr.setRequestHeader('X-CSRF-Token', csrf)
             }
             xhr.send(formData)
         })
@@ -423,5 +432,49 @@ export const timeCapsuleService = {
 
     async delete(id: number | string) {
         return apiService.delete(`/time-capsules/${id}`)
+    }
+}
+
+// 统计数据类型定义
+export interface StatsOverview {
+    photos: number
+    albums: number
+    timeline: number
+    food: number
+    map: number
+    checkins: number
+    todos: number
+    todosCompleted: number
+    capsules: number
+    capsulesUnlocked: number
+    notes: number
+    recentPhotos: number
+}
+
+export interface MonthlyActivity {
+    timeline: number
+    food: number
+    map: number
+    total: number
+}
+
+export interface DistributionItem {
+    cuisine?: string
+    province?: string
+    category?: string
+    count: number
+}
+
+export interface StatsData {
+    overview: StatsOverview
+    activityTrend: Record<string, MonthlyActivity>
+    cuisineDistribution: DistributionItem[]
+    provinceDistribution: DistributionItem[]
+    categoryDistribution: DistributionItem[]
+}
+
+export const statsService = {
+    async getDashboard() {
+        return apiService.get<StatsData>('/stats')
     }
 }

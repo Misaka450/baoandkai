@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, validateRating, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
   DB: D1Database;
@@ -122,12 +123,31 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       images = []
     } = body;
 
-    if (!restaurant_name) {
-      return errorResponse('餐厅名称不能为空', 400);
+    // 输入验证
+    const validationError = validate([
+      validateRequired(restaurant_name, '餐厅名称'),
+      validateLength(restaurant_name, '餐厅名称', 1, 100),
+      validateRequired(date, '日期'),
+      validateDate(date, '日期'),
+    ])
+    if (validationError) return errorResponse(validationError, 400)
+
+    // 评分验证
+    if (overall_rating) {
+      const ratingError = validateRating(Number(overall_rating), '综合评分')
+      if (ratingError) return errorResponse(ratingError, 400)
     }
-    if (!date) {
-      return errorResponse('日期不能为空', 400);
+
+    // XSS检测
+    if (hasXSS(restaurant_name) || (description && hasXSS(description))) {
+      return errorResponse('输入内容包含不安全字符', 400)
     }
+
+    // 消毒输入数据
+    const sanitized = sanitizeObject(
+      { restaurant_name, description, address, cuisine, price_range, recommended_dishes },
+      ['images']
+    )
 
     // 获取当前最大的 sort_order
     const maxSortResult = await env.DB.prepare(`
@@ -142,7 +162,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         recommended_dishes, images, sort_order, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).bind(
-      restaurant_name, description || '', date, address || '', cuisine || '', price_range || '',
+      sanitized.restaurant_name, sanitized.description || '', date, sanitized.address || '', sanitized.cuisine || '', sanitized.price_range || '',
       overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
       Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
       // 统一使用 JSON 数组格式存储图片，保持数据一致性

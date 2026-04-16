@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
@@ -21,6 +21,37 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 import LoadingSpinner from './components/common/LoadingSpinner'
 
+/**
+ * 路由预加载映射表
+ * 首页加载完成后，在浏览器空闲时预加载其他常用页面
+ */
+const prefetchRoutes: Record<string, () => Promise<any>> = {
+  '/timeline': () => import('./pages/Timeline'),
+  '/albums': () => import('./pages/Albums'),
+  '/todos': () => import('./pages/Todos'),
+  '/food': () => import('./pages/FoodCheckin'),
+  '/map': () => import('./pages/TravelMap'),
+  '/couple': () => import('./pages/CoupleFeatures'),
+}
+
+/**
+ * 在浏览器空闲时预加载路由模块
+ * 使用 requestIdleCallback 避免阻塞主线程
+ */
+function prefetchCommonRoutes() {
+  const prefetch = () => {
+    Object.values(prefetchRoutes).forEach(loader => {
+      loader().catch(() => {})
+    })
+  }
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(prefetch, { timeout: 3000 })
+  } else {
+    setTimeout(prefetch, 2000)
+  }
+}
+
 // 加载占位组件
 function LoadingFallback() {
   return (
@@ -31,14 +62,17 @@ function LoadingFallback() {
 }
 
 function App(): JSX.Element {
+  // 首页渲染后预加载常用路由
+  useEffect(() => {
+    prefetchCommonRoutes()
+  }, [])
+
   return (
     <ErrorBoundary>
       <AuthProvider>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* 登录页面 - 顶级路由 */}
             <Route path="/login" element={<Login />} />
-            {/* 主应用布局 */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
@@ -54,9 +88,7 @@ function App(): JSX.Element {
                 </ProtectedRoute>
               } />
             </Route>
-            {/* 照片查看器 - 独立全屏路由 */}
             <Route path="/albums/:albumId/photo" element={<ProtectedRoute><PhotoViewer /></ProtectedRoute>} />
-            {/* 404 页面 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

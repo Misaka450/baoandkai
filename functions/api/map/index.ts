@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -60,15 +61,23 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         const body: any = await request.json();
         const { title, description, province, city, date, images = [] } = body;
 
-        if (!title) {
-            return errorResponse('标题不能为空', 400);
+        // 输入验证
+        const validationError = validate([
+            validateRequired(title, '标题'),
+            validateLength(title, '标题', 1, 100),
+            validateRequired(province, '省份'),
+            validateRequired(date, '日期'),
+            validateDate(date, '日期'),
+        ])
+        if (validationError) return errorResponse(validationError, 400)
+
+        // XSS检测
+        if (hasXSS(title) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400)
         }
-        if (!province) {
-            return errorResponse('省份不能为空', 400);
-        }
-        if (!date) {
-            return errorResponse('日期不能为空', 400);
-        }
+
+        // 消毒输入数据
+        const sanitized = sanitizeObject({ title, description, province, city }, ['images'])
 
         // 统一使用 JSON 数组格式存储图片，保持数据一致性
         const imagesJson = JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : []))
@@ -77,10 +86,10 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       INSERT INTO map_checkins (title, description, province, city, date, images, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
     `).bind(
-            title,
-            description || '',
-            province,
-            city || '',
+            sanitized.title,
+            sanitized.description || '',
+            sanitized.province,
+            sanitized.city || '',
             date,
             imagesJson
         ).run();

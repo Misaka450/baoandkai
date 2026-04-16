@@ -14,6 +14,7 @@ const AdminFoodCheckin = lazy(() => import('./admin/AdminFoodCheckin'))
 const AdminTodos = lazy(() => import('./admin/AdminTodos'))
 const AdminTravelMap = lazy(() => import('./admin/AdminTravelMap'))
 const AdminTimeCapsules = lazy(() => import('./admin/AdminTimeCapsules'))
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 
 function AdminLoadingFallback() {
   return (
@@ -76,7 +77,7 @@ export default function Admin() {
           <ErrorBoundary>
             <Suspense fallback={<AdminLoadingFallback />}>
               <Routes>
-                <Route path="/" element={<AdminSettings />} />
+                <Route path="/" element={<AdminDashboard />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="timeline" element={<AdminTimeline />} />
                 <Route path="albums" element={<AdminAlbums />} />
@@ -103,7 +104,8 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const { logout } = useAuth()
 
   const menuItems: { path: string, label: string, icon: IconName }[] = [
-    { path: '/admin/settings', label: '管理概览', icon: 'dashboard' },
+    { path: '/admin', label: '数据看板', icon: 'dashboard' },
+    { path: '/admin/settings', label: '站点设置', icon: 'settings' },
     { path: '/admin/timeline', label: '时间轴管理', icon: 'schedule' },
     { path: '/admin/albums', label: '相册管理', icon: 'photo_library' },
     { path: '/admin/food', label: '美食管理', icon: 'restaurant' },
@@ -137,7 +139,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* 导航菜单 - 可滚动区域 */}
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto min-h-0">
         {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path === '/admin/settings' && location.pathname === '/admin')
+          const isActive = location.pathname === item.path || (item.path === '/admin' && location.pathname === '/admin/')
           return (
             <Link
               key={item.path}

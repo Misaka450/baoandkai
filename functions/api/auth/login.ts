@@ -11,9 +11,48 @@ export interface Env {
 
 // 登录速率限制配置
 const RATE_LIMIT = {
-    MAX_ATTEMPTS: 5,          // 最大尝试次数
-    WINDOW_SECONDS: 300,      // 时间窗口（5分钟）
-    LOCKOUT_SECONDS: 1800,    // 封禁时长（30分钟）
+    MAX_ATTEMPTS: 5,
+    WINDOW_SECONDS: 300,
+    LOCKOUT_SECONDS: 1800,
+}
+
+/**
+ * 生成CSRF令牌（16字节随机hex字符串）
+ */
+function generateCsrfToken(): string {
+    const bytes = new Uint8Array(16)
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * 构建HttpOnly Cookie字符串
+ * SameSite=Strict 防止CSRF攻击
+ * Secure 仅HTTPS传输
+ * Path=/ 覆盖全站
+ */
+function buildAuthCookie(token: string, maxAge: number): string {
+    return [
+        `auth_token=${token}`,
+        `Max-Age=${maxAge}`,
+        'Path=/',
+        'HttpOnly',
+        'SameSite=Strict',
+        'Secure',
+    ].join('; ')
+}
+
+/**
+ * 构建CSRF Token Cookie（非HttpOnly，前端JS需要读取）
+ */
+function buildCsrfCookie(csrfToken: string, maxAge: number): string {
+    return [
+        `csrf_token=${csrfToken}`,
+        `Max-Age=${maxAge}`,
+        'Path=/',
+        'SameSite=Strict',
+        'Secure',
+    ].join('; ')
 }
 
 /**
@@ -148,7 +187,10 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
 
         // 生成安全的随机token（每次登录都生成唯一token）
         const token = crypto.randomUUID();
+        // 生成CSRF令牌，用于前端非GET请求的二次验证
+        const csrfToken = generateCsrfToken();
         const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const maxAge = 7 * 24 * 60 * 60; // 7天，单位秒
 
         try {
             await env.DB.prepare(`
@@ -166,14 +208,17 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
                 };
                 const ttl = 7 * 24 * 60 * 60;
                 await env.KV.put(`token:${token}`, JSON.stringify(cacheUser), { expirationTtl: ttl });
+                // 在KV中存储CSRF令牌，与认证Token绑定
+                await env.KV.put(`csrf:${token}`, csrfToken, { expirationTtl: ttl });
             }
         } catch (error) {
             console.error('更新token或写入KV失败:', error);
         }
 
-        return jsonResponse({
+        // 构建响应，设置HttpOnly认证Cookie和CSRF Cookie
+        const response = jsonResponse({
             success: true,
-            token: token,
+            csrfToken,
             user: {
                 id: user.id,
                 username: user.username,
@@ -181,6 +226,13 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
                 role: 'admin'
             }
         });
+
+        // 设置HttpOnly Cookie（浏览器自动携带，JS无法读取）
+        response.headers.append('Set-Cookie', buildAuthCookie(token, maxAge));
+        // 设置CSRF Token Cookie（前端JS可读取，用于请求头验证）
+        response.headers.append('Set-Cookie', buildCsrfCookie(csrfToken, maxAge));
+
+        return response;
 
     } catch (error: any) {
         console.error('登录API错误:', error);

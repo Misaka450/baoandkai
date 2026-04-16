@@ -53,7 +53,7 @@ export default function AdminTravelMap() {
             const response = await mapService.getAll()
             return response.data
         },
-        staleTime: Infinity,
+        staleTime: 2 * 60 * 1000,
     })
 
     const checkins = mapData?.data || []

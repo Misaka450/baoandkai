@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
   DB: D1Database;
@@ -64,22 +65,32 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     const body: any = await request.json();
     const { title, description, date, location, category, images = [] } = body;
 
-    if (!title) {
-      return errorResponse('标题不能为空', 400);
+    // 输入验证
+    const validationError = validate([
+      validateRequired(title, '标题'),
+      validateLength(title, '标题', 1, 100),
+      validateRequired(date, '日期'),
+      validateDate(date, '日期'),
+    ])
+    if (validationError) return errorResponse(validationError, 400)
+
+    // XSS检测
+    if (hasXSS(title) || (description && hasXSS(description))) {
+      return errorResponse('输入内容包含不安全字符', 400)
     }
-    if (!date) {
-      return errorResponse('日期不能为空', 400);
-    }
+
+    // 消毒输入数据
+    const sanitized = sanitizeObject({ title, description, location, category }, ['images'])
 
     const result = await env.DB.prepare(`
         INSERT INTO timeline_events (title, description, date, location, category, images, created_at) 
         VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
       `).bind(
-      title,
-      description || '',
+      sanitized.title,
+      sanitized.description || '',
       date,
-      location || '',
-      category || '日常',
+      sanitized.location || '',
+      sanitized.category || '日常',
       // 统一使用 JSON 数组格式存储图片
       JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : []))
     ).run();

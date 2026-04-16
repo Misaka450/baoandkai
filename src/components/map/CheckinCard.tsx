@@ -52,7 +52,8 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh }: 
         }
     }
 
-    const isAdmin = localStorage.getItem('token') !== null
+    // 通过Cookie判断是否为管理员（auth_token为HttpOnly，用csrf_token判断登录状态）
+    const isAdmin = document.cookie.split(';').some(c => c.trim().startsWith('csrf_token='))
 
     return (
         <>

@@ -25,10 +25,13 @@ if (import.meta.env.PROD) {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      // 窗口聚焦时重新获取数据，保证数据新鲜度
+      refetchOnWindowFocus: true,
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5分钟内数据被视为新鲜，不会重新请求
-      gcTime: 30 * 60 * 1000,   // 30分钟后清理缓存
+      // 5分钟内数据被视为新鲜，不会重新请求
+      staleTime: 5 * 60 * 1000,
+      // 30分钟后清理缓存
+      gcTime: 30 * 60 * 1000,
     },
   },
 })

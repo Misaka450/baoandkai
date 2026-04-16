@@ -1,13 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 
-// 定义用户接口
 interface User {
-  token: string
   username?: string
   role: string
 }
 
-// 定义认证上下文接口
 interface AuthContextType {
   user: User | null
   login: (username: string, password: string) => Promise<any>
@@ -15,15 +12,29 @@ interface AuthContextType {
   loading: boolean
   isAdmin: boolean
   isLoggedIn: boolean
-  token: string | null
+  csrfToken: string | null
 }
 
-// 定义Provider属性接口
 interface AuthProviderProps {
   children: ReactNode
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+/**
+ * 从浏览器Cookie中读取指定名称的值
+ */
+function getCookieValue(name: string): string | null {
+  const match = document.cookie.split(';').find(c => c.trim().startsWith(`${name}=`))
+  return match ? match.split('=').slice(1).join('=').trim() : null
+}
+
+/**
+ * 删除指定Cookie
+ */
+function deleteCookie(name: string): void {
+  document.cookie = `${name}=; Max-Age=0; Path=/; Secure; SameSite=Strict`
+}
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
@@ -35,53 +46,58 @@ export function useAuth(): AuthContextType {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
+  const [csrfToken, setCsrfToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // 检查本地存储中的登录状态并验证 token
-    const validateToken = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        // 调用后端验证 token 有效性
-        const response = await fetch('/api/auth/check-token', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        const data = await response.json()
-
-        if (data.valid && data.user) {
-          setUser({
-            token,
-            username: data.user.username,
-            role: 'admin'
-          })
-        } else {
-          // Token 无效，清除本地存储
-          localStorage.removeItem('token')
-        }
-      } catch (error) {
-        console.error('Token 验证失败:', error)
-        // 网络错误时保留 token，但不赋予 admin 权限，需要重新验证
-        setUser({ token, role: 'user' })
-      }
-
+  // 验证Cookie中的Token有效性
+  const validateToken = useCallback(async () => {
+    const token = getCookieValue('auth_token')
+    if (!token) {
       setLoading(false)
+      return
     }
 
-    validateToken()
+    try {
+      const response = await fetch('/api/auth/check-token', {
+        credentials: 'same-origin',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+
+      if (data.valid && data.user) {
+        const csrf = getCookieValue('csrf_token')
+        setCsrfToken(csrf)
+        setUser({
+          username: data.user.username,
+          role: 'admin'
+        })
+      } else {
+        deleteCookie('auth_token')
+        deleteCookie('csrf_token')
+      }
+    } catch (error) {
+      console.error('Token 验证失败:', error)
+      const csrf = getCookieValue('csrf_token')
+      if (csrf) {
+        setCsrfToken(csrf)
+        setUser({ role: 'user' })
+      }
+    }
+
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    validateToken()
+  }, [validateToken])
 
   const login = async (username: string, password: string): Promise<any> => {
     try {
-      // 使用后端API进行真正的数据库验证
       const response = await fetch('/api/auth/login', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -94,9 +110,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(data.error || '登录失败')
       }
 
-      // 保存返回的token
-      localStorage.setItem('token', data.token)
-      setUser({ token: data.token, username: data.user.username, role: data.user.role })
+      // 登录成功后，后端已设置HttpOnly Cookie
+      // 从Cookie读取CSRF Token供前端使用
+      const csrf = getCookieValue('csrf_token')
+      setCsrfToken(csrf)
+      setUser({ username: data.user.username, role: data.user.role })
       return data
     } catch (error) {
       throw error
@@ -104,7 +122,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const logout = (): void => {
+    // 清除Cookie（HttpOnly Cookie只能通过设置过期时间删除）
+    deleteCookie('auth_token')
+    deleteCookie('csrf_token')
+    // 清除localStorage中可能残留的旧Token
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setCsrfToken(null)
     setUser(null)
   }
 
@@ -115,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loading,
     isAdmin: user?.role === 'admin',
     isLoggedIn: !!user,
-    token: user?.token || null,
+    csrfToken,
   }
 
   return (

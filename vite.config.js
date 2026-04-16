@@ -27,11 +27,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // 代码分割
+          // 核心框架
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          // 数据请求
           query: ['@tanstack/react-query'],
-          // sentry 现在通过动态 import 延迟加载，自动分割
+          // 动画库单独分包，按需加载
+          animation: ['framer-motion'],
+          // 图标库
           ui: ['lucide-react'],
+          // 日期工具
           utils: ['date-fns'],
         },
       },

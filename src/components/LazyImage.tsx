@@ -14,16 +14,43 @@ interface LazyImageProps {
     width?: number
     /** 是否跳过优化（用于下载等场景） */
     noOptimize?: boolean
+    /** 图片尺寸提示，用于srcset响应式加载，如 "(max-width: 768px) 100vw, 50vw" */
+    sizes?: string
+}
+
+/**
+ * 生成响应式图片srcset
+ * 根据不同屏幕宽度提供不同尺寸的图片
+ */
+function generateSrcSet(src: string): string | undefined {
+    if (!src) return undefined
+    // 仅对R2图片生成srcset
+    if (!src.includes('img.980823.xyz') && !src.includes('.r2.dev')) return undefined
+    // 已有cdn-cgi/image的不再嵌套
+    if (src.includes('/cdn-cgi/image/')) return undefined
+
+    try {
+        const urlObj = new URL(src)
+        const basePath = urlObj.pathname
+        const base = `https://${urlObj.host}/cdn-cgi/image`
+        return [
+            `${base}/width=400,quality=75,format=auto,fit=cover${basePath} 400w`,
+            `${base}/width=800,quality=80,format=auto,fit=cover${basePath} 800w`,
+            `${base}/width=1200,quality=85,format=auto,fit=cover${basePath} 1200w`,
+        ].join(', ')
+    } catch {
+        return undefined
+    }
 }
 
 /**
  * 懒加载图片组件
- * 专门针对大图优化，提供加载占位符和淡入效果
  * 性能优化：
  * - aspectRatio 预留空间避免 CLS
  * - priority 标记 LCP 图片提高加载优先级
  * - decoding="async" 异步解码不阻塞渲染
  * - Cloudflare Image Resizing 自动转 WebP/AVIF
+ * - srcset 响应式图片，按设备宽度加载合适尺寸
  */
 export default function LazyImage({
     src,
@@ -33,13 +60,20 @@ export default function LazyImage({
     aspectRatio,
     priority = false,
     width,
-    noOptimize = false
+    noOptimize = false,
+    sizes
 }: LazyImageProps) {
     // 对 R2 图片使用 Cloudflare 转换
     const optimizedSrc = useMemo(() => {
         if (noOptimize || !src) return src;
         return getOptimizedImageUrl(src, { width, quality: 80, format: 'auto' });
     }, [src, width, noOptimize]);
+
+    // 生成响应式srcset（仅对R2图片）
+    const srcSet = useMemo(() => {
+        if (noOptimize || !src) return undefined
+        return generateSrcSet(src)
+    }, [src, noOptimize])
 
     const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(optimizedSrc))
     const [error, setError] = useState(false)
@@ -88,6 +122,8 @@ export default function LazyImage({
             <img
                 src={optimizedSrc}
                 alt={alt}
+                srcSet={srcSet}
+                sizes={sizes || (srcSet ? '(max-width: 768px) 100vw, 50vw' : undefined)}
                 loading={priority ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchPriority={priority ? 'high' : 'auto'}
