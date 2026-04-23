@@ -12,9 +12,10 @@ interface CheckinCardProps {
     cityName: string
     onClose: () => void
     onRefresh?: () => void
+    onNavigateToTimeline?: (province: string, city?: string) => void
 }
 
-export default function CheckinCard({ checkins, cityName, onClose, onRefresh }: CheckinCardProps) {
+export default function CheckinCard({ checkins, cityName, onClose, onRefresh, onNavigateToTimeline }: CheckinCardProps) {
     const [selectedImages, setSelectedImages] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [deletingId, setDeletingId] = useState<number | string | null>(null)
@@ -85,6 +86,19 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh }: 
                                     <h3 className="font-black text-lg text-slate-800">{cityName}</h3>
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{checkins.length} 个足迹</p>
                                 </div>
+                                {/* 联动按钮：查看时间轴 */}
+                                {onNavigateToTimeline && checkins.length > 0 && (
+                                    <button
+                                        onClick={() => {
+                                            const firstCheckin = checkins[0]
+                                            if (firstCheckin) onNavigateToTimeline(firstCheckin.province, firstCheckin.city || undefined)
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary text-[11px] font-bold transition-all ml-2"
+                                    >
+                                        <Icon name="timeline" size={14} />
+                                        查看时间轴
+                                    </button>
+                                )}
                             </div>
                             <button
                                 onClick={onClose}

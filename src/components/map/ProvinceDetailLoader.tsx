@@ -9,13 +9,15 @@ interface ProvinceDetailLoaderProps {
     checkins: MapCheckin[]
     onBack: () => void
     onCityClick: (cityName: string, cityCheckins: MapCheckin[]) => void
+    onNavigateToTimeline?: (province: string, city?: string) => void
 }
 
 export default function ProvinceDetailLoader({
     provinceName,
     checkins,
     onBack,
-    onCityClick
+    onCityClick,
+    onNavigateToTimeline
 }: ProvinceDetailLoaderProps) {
     const [cityPaths, setCityPaths] = useState<CityPathData[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -82,6 +84,7 @@ export default function ProvinceDetailLoader({
             checkins={checkins}
             onBack={onBack}
             onCityClick={onCityClick}
+            onNavigateToTimeline={onNavigateToTimeline}
         />
     )
 }

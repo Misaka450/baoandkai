@@ -8,9 +8,10 @@ import { getThumbnailUrl } from '../../utils/imageUtils'
 interface TimelineProps {
     checkins: MapCheckin[]
     onCheckinClick?: (checkin: MapCheckin) => void
+    onNavigateToMap?: (province: string, city?: string) => void
 }
 
-export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
+export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: TimelineProps) {
     const [expandedId, setExpandedId] = useState<number | string | null>(null)
 
     const formatDate = (dateStr: string) => {
@@ -142,6 +143,20 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                                                             </div>
                                                         )}
                                                     </div>
+
+                                                    {/* 联动按钮：在地图上查看 */}
+                                                    {onNavigateToMap && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                onNavigateToMap(checkin.province, checkin.city || undefined)
+                                                            }}
+                                                            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary text-[11px] font-bold transition-all"
+                                                        >
+                                                            <Icon name="map" size={12} />
+                                                            在地图上查看
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </motion.div>

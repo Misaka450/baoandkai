@@ -13,6 +13,7 @@ interface ProvinceDetailProps {
     checkins: MapCheckin[]
     onBack: () => void
     onCityClick: (cityName: string, cityCheckins: MapCheckin[]) => void
+    onNavigateToTimeline?: (province: string, city?: string) => void
 }
 
 // 提取城市路径组件以利用 memo
@@ -71,7 +72,7 @@ const CityPath = memo(({
 
 CityPath.displayName = 'CityPath'
 
-export default function ProvinceDetail({ province, cityPaths, checkins, onBack, onCityClick }: ProvinceDetailProps) {
+export default function ProvinceDetail({ province, cityPaths, checkins, onBack, onCityClick, onNavigateToTimeline }: ProvinceDetailProps) {
     const [hoveredCity, setHoveredCity] = useState<string | null>(null)
 
     // 按城市分组打卡
@@ -125,13 +126,25 @@ export default function ProvinceDetail({ province, cityPaths, checkins, onBack, 
         >
             {/* 头部 */}
             <div className="flex items-center justify-between mb-8">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors group"
-                >
-                    <Icon name="west" size={18} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-sm font-bold">返回全国</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors group"
+                    >
+                        <Icon name="west" size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-sm font-bold">返回全国</span>
+                    </button>
+                    {/* 联动按钮：查看时间轴 */}
+                    {onNavigateToTimeline && checkins.length > 0 && (
+                        <button
+                            onClick={() => onNavigateToTimeline(province.name)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary text-xs font-bold transition-all ml-2"
+                        >
+                            <Icon name="timeline" size={14} />
+                            查看时间轴
+                        </button>
+                    )}
+                </div>
                 <div className="text-right">
                     <h3 className="text-2xl font-black text-slate-800">{province.name}</h3>
                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">

@@ -40,6 +40,7 @@ interface StatItem {
 export default function TravelMap() {
     const [viewMode, setViewMode] = useState<ViewMode>('country')
     const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null)
+    const [selectedCityName, setSelectedCityName] = useState<string | null>(null)
     const [checkinCardData, setCheckinCardData] = useState<{ city: string; checkins: MapCheckin[] } | null>(null)
     const [selectedYear, setSelectedYear] = useState<string | null>(null)
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
@@ -109,10 +110,31 @@ export default function TravelMap() {
     const handleBack = () => {
         setViewMode('country')
         setSelectedProvinceName(null)
+        setSelectedCityName(null)
     }
 
     const handleCityClick = (cityName: string, cityCheckins: MapCheckin[]) => {
         setCheckinCardData({ city: cityName, checkins: cityCheckins })
+    }
+
+    // 时间轴→地图联动：点击时间轴记录跳转到对应省份地图
+    const handleNavigateToMap = (province: string, city?: string) => {
+        setSelectedProvinceName(province)
+        setSelectedCityName(city || null)
+        setViewMode('province')
+    }
+
+    // 地图→时间轴联动：点击城市后跳转到时间轴视图
+    const handleNavigateToTimeline = (province: string, city?: string) => {
+        setSelectedProvinceName(province)
+        setSelectedCityName(city || null)
+        setCheckinCardData(null)
+        setViewMode('timeline')
+    }
+
+    // 清除联动状态
+    const clearLinkage = () => {
+        setSelectedCityName(null)
     }
 
     // 视图模式按钮数据（类型安全）
@@ -236,6 +258,26 @@ export default function TravelMap() {
                             </button>
                         </div>
                     )}
+
+                    {/* 联动状态面包屑指示器 */}
+                    {selectedCityName && (viewMode === 'province' || viewMode === 'timeline') && (
+                        <motion.div
+                            className="flex items-center justify-center gap-2 mt-4"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/5 rounded-full text-xs font-bold text-primary">
+                                <Icon name="location_on" size={14} />
+                                <span>{selectedProvinceName}{selectedCityName ? ` · ${selectedCityName}` : ''}</span>
+                                <button
+                                    onClick={clearLinkage}
+                                    className="ml-1 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                                >
+                                    <Icon name="close" size={10} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
                 </header>
 
                 {/* 时间筛选器 */}
@@ -286,6 +328,7 @@ export default function TravelMap() {
                                 checkins={provinceCheckins}
                                 onBack={handleBack}
                                 onCityClick={handleCityClick}
+                                onNavigateToTimeline={handleNavigateToTimeline}
                             />
                         </Suspense>
                     </motion.div>
@@ -302,6 +345,7 @@ export default function TravelMap() {
                             <Timeline
                                 checkins={checkins}
                                 onCheckinClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
+                                onNavigateToMap={handleNavigateToMap}
                             />
                         </Suspense>
                     </motion.div>
@@ -364,6 +408,7 @@ export default function TravelMap() {
                                 cityName={checkinCardData.city}
                                 onClose={() => setCheckinCardData(null)}
                                 onRefresh={refetch}
+                                onNavigateToTimeline={handleNavigateToTimeline}
                             />
                         </Suspense>
                     )}
