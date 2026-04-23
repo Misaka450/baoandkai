@@ -73,7 +73,7 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                             {memoryToday.images && memoryToday.images.length > 0 ? (
                                 <div className="w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0 shadow-md">
                                     <LazyImage
-                                        src={getThumbnailUrl(memoryToday.images[0], 300)}
+                                        src={getThumbnailUrl(memoryToday.images[0] || '', 300)}
                                         alt={memoryToday.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
@@ -131,7 +131,7 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                             {randomMemory.images && randomMemory.images.length > 0 ? (
                                 <div className="w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0 shadow-md">
                                     <LazyImage
-                                        src={getThumbnailUrl(randomMemory.images[0], 300)}
+                                        src={getThumbnailUrl(randomMemory.images[0] || '', 300)}
                                         alt={randomMemory.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
@@ -208,7 +208,7 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                                 {currentMemory.images && currentMemory.images.length > 0 && (
                                     <div className="mb-6 rounded-2xl overflow-hidden shadow-lg">
                                         <LazyImage
-                                            src={currentMemory.images[0]}
+                                            src={currentMemory.images[0] || ''}
                                             alt={currentMemory.title}
                                             className="w-full h-64 object-cover"
                                         />

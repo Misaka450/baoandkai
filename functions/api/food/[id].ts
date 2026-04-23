@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
     DB: D1Database;
@@ -44,7 +45,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
         return jsonResponse({
             ...food,
-            images: food.images ? food.images.split(',') : [],
+            images: transformImageArray(food.images),
             recommended_dishes: food.recommended_dishes ? food.recommended_dishes.split(',') : []
         });
     } catch (error: any) {
@@ -124,7 +125,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
 
         return jsonResponse({
             ...updatedFood,
-            images: updatedFood?.images ? updatedFood.images.split(',') : [],
+            images: transformImageArray(updatedFood?.images),
             recommended_dishes: updatedFood?.recommended_dishes ? updatedFood.recommended_dishes.split(',') : []
         });
     } catch (error: any) {

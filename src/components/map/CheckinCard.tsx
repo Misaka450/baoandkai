@@ -112,13 +112,15 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh }: 
                                                     onClick={() => handleImageClick(checkin.images, 0)}
                                                 >
                                                     <LazyImage
-                                                        src={getThumbnailUrl(checkin.images[0], 600)}
+                                                        src={getThumbnailUrl(checkin.images[0] || '', 600)}
                                                         alt={checkin.title}
                                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div
+                                                    className="grid grid-cols-2 gap-2"
+                                                >
                                                     {checkin.images.slice(0, 4).map((img, i) => (
                                                         <div
                                                             key={i}

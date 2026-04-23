@@ -49,6 +49,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
             favoriteCity: favoriteCity ? { name: favoriteCity[0], count: favoriteCity[1] } : null,
             firstTrip,
             lastTrip,
+            monthCounts,
             busiestMonth: { month: busiestMonth.month + 1, count: busiestMonth.count }
         }
     }, [checkins])
@@ -151,7 +152,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                             <h3 className="text-lg font-black text-slate-800">月度足迹分布</h3>
                         </div>
                         <div className="grid grid-cols-12 gap-2">
-                            {monthCounts.map((count, idx) => (
+                            {stats.monthCounts.map((count, idx) => (
                                 <div key={idx} className="text-center">
                                     <div 
                                         className={`w-full rounded-lg mb-2 transition-all ${
@@ -181,8 +182,8 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                                 </div>
                                 <h4 className="font-bold text-slate-600 text-sm">第一次旅行</h4>
                             </div>
-                            <p className="text-sm font-bold text-slate-800 mb-1">{stats.firstTrip.title}</p>
-                            <p className="text-xs text-slate-400">{new Date(stats.firstTrip.date).toLocaleDateString('zh-CN')}</p>
+                            <p className="text-sm font-bold text-slate-800 mb-1">{stats.firstTrip?.title || '暂无记录'}</p>
+                            <p className="text-xs text-slate-400">{stats.firstTrip ? new Date(stats.firstTrip.date).toLocaleDateString('zh-CN') : '-'}</p>
                         </motion.div>
 
                         <motion.div
@@ -197,8 +198,8 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                                 </div>
                                 <h4 className="font-bold text-slate-600 text-sm">最后一次旅行</h4>
                             </div>
-                            <p className="text-sm font-bold text-slate-800 mb-1">{stats.lastTrip.title}</p>
-                            <p className="text-xs text-slate-400">{new Date(stats.lastTrip.date).toLocaleDateString('zh-CN')}</p>
+                            <p className="text-sm font-bold text-slate-800 mb-1">{stats.lastTrip?.title || '暂无记录'}</p>
+                            <p className="text-xs text-slate-400">{stats.lastTrip ? new Date(stats.lastTrip.date).toLocaleDateString('zh-CN') : '-'}</p>
                         </motion.div>
                     </div>
                 </div>

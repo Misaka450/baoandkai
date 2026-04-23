@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
 import type { Todo } from '../types'
@@ -11,6 +11,7 @@ interface TodosResponse {
   data: Todo[]
   totalPages: number
   totalCount: number
+  completedCount: number
   currentPage: number
 }
 
@@ -38,7 +39,7 @@ export default function Todos() {
 
   const todos = todosData?.data || []
   const totalCount = todosData?.totalCount || 0
-  const completedCount = useMemo(() => todos.filter(t => t.status === 'completed').length, [todos])
+  const completedCount = todosData?.completedCount || 0
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   if (loading) return (

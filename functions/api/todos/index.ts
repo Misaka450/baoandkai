@@ -37,6 +37,10 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
       SELECT COUNT(*) as total FROM todos
     `).first<{ total: number }>();
     const total = countResult?.total || 0;
+    const completedResult = await env.DB.prepare(`
+      SELECT COUNT(*) as total FROM todos WHERE status = 'completed'
+    `).first<{ total: number }>();
+    const completedCount = completedResult?.total || 0;
 
     const todos = await env.DB.prepare(`
       SELECT * FROM todos 
@@ -55,6 +59,7 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalCount: total,
+      completedCount,
       limit: limit
     });
   } catch (error: any) {

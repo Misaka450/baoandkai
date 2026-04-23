@@ -43,7 +43,7 @@ const AdminSettings = () => {
     const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef1 = useRef<HTMLInputElement>(null)
     const fileInputRef2 = useRef<HTMLInputElement>(null)
-    const { modalState, showAlert, closeModal } = useAdminModal()
+    const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
     useEffect(() => {
         setConfig(globalConfig)
@@ -131,6 +131,7 @@ const AdminSettings = () => {
                 exportDate: new Date().toISOString(),
                 config: globalConfig,
                 albums: albums?.data || [],
+                photos: [],
                 timeline: timeline?.data || [],
                 food: food?.data || [],
                 map: map?.data || [],
@@ -167,23 +168,25 @@ const AdminSettings = () => {
                 throw new Error('无效的备份文件格式')
             }
 
-            await showAlert(
+            const confirmed = await showConfirm(
                 '确认导入',
                 `即将导入 ${importData.exportDate.split('T')[0]} 的备份数据，这将覆盖现有数据。是否继续？`,
-                'warning',
-                async () => {
-                    try {
-                        await updateConfig(importData.config)
-                        await showAlert('成功', '数据导入成功，页面将刷新', 'success')
-                        setTimeout(() => window.location.reload(), 1500)
-                    } catch (error) {
-                        console.error('导入数据失败:', error)
-                        await showAlert('错误', '数据导入失败', 'error')
-                    }
-                },
-                true,
                 '导入'
             )
+
+            if (!confirmed) {
+                e.target.value = ''
+                return
+            }
+
+            try {
+                await updateConfig(importData.config)
+                await showAlert('成功', '数据导入成功，页面将刷新', 'success')
+                setTimeout(() => window.location.reload(), 1500)
+            } catch (error) {
+                console.error('导入数据失败:', error)
+                await showAlert('错误', '数据导入失败', 'error')
+            }
         } catch (error) {
             console.error('解析备份文件失败:', error)
             await showAlert('错误', '无法读取备份文件，请确保选择正确的 JSON 文件', 'error')
@@ -458,7 +461,7 @@ const AdminSettings = () => {
                         </p>
                         <div className="flex flex-col gap-3">
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 size="md"
                                 onClick={handleExportData}
                                 className="w-full justify-center"

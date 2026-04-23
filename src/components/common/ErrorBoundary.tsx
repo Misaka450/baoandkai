@@ -129,7 +129,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               </p>
 
               {/* 开发环境显示详细错误信息 */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
                   <h3 className="font-semibold text-gray-900 mb-2">错误详情：</h3>
                   <p className="text-sm text-red-600 mb-2">{this.state.error.toString()}</p>

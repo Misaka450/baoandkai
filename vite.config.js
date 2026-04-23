@@ -35,8 +35,6 @@ export default defineConfig({
           animation: ['framer-motion'],
           // 图标库
           ui: ['lucide-react'],
-          // 日期工具
-          utils: ['date-fns'],
         },
       },
     },

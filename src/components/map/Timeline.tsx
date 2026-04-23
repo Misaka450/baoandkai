@@ -42,7 +42,10 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
 
     return (
         <div className="space-y-12">
-            {sortedYears.map(year => (
+            {sortedYears.map(year => {
+                const yearCheckins = groupedByYear[year] || []
+
+                return (
                 <div key={year}>
                     {/* 年份标题 */}
                     <div className="flex items-center gap-4 mb-8">
@@ -54,7 +57,7 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                         </div>
                         <div className="flex-1 h-px bg-gradient-to-r from-primary/20 to-transparent" />
                         <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                            {groupedByYear[year].length} 次足迹
+                            {yearCheckins.length} 次足迹
                         </span>
                     </div>
 
@@ -64,9 +67,11 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                         <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-primary/30 via-primary/10 to-transparent" />
 
                         <div className="space-y-6">
-                            {groupedByYear[year].map((checkin, idx) => {
+                            {yearCheckins.map((checkin, idx) => {
                                 const dateInfo = formatDate(checkin.date)
                                 const isExpanded = expandedId === checkin.id
+                                const weekday = ['日', '一', '二', '三', '四', '五', '六'][new Date(checkin.date).getDay()] || ''
+                                const coverImage = checkin.images[0]
 
                                 return (
                                     <motion.div
@@ -100,7 +105,7 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                                                         {dateInfo.month}.{dateInfo.day}
                                                     </span>
                                                     <span className="text-[10px] font-bold text-slate-300 uppercase mt-1">
-                                                        {['日', '一', '二', '三', '四', '五', '六'][new Date(checkin.date).getDay()]}
+                                                        {weekday}
                                                     </span>
                                                 </div>
 
@@ -129,7 +134,7 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                                                             <div className="flex-shrink-0">
                                                                 <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm">
                                                                     <LazyImage
-                                                                        src={getThumbnailUrl(checkin.images[0], 200)}
+                                                                        src={getThumbnailUrl(coverImage || '', 200)}
                                                                         alt={checkin.title}
                                                                         className="w-full h-full object-cover"
                                                                     />
@@ -146,7 +151,7 @@ export default function Timeline({ checkins, onCheckinClick }: TimelineProps) {
                         </div>
                     </div>
                 </div>
-            ))}
+            )})}
         </div>
     )
 }

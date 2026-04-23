@@ -27,20 +27,32 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const limit = parseInt(url.searchParams.get('limit') || '10', 10);
     const offset = (page - 1) * limit;
+    const category = (url.searchParams.get('category') || '').trim();
+
+    const whereClause = category ? ' WHERE category = ?' : '';
+    const countStmt = category
+      ? env.DB.prepare(`SELECT COUNT(*) as total FROM timeline_events${whereClause}`).bind(category)
+      : env.DB.prepare(`SELECT COUNT(*) as total FROM timeline_events`);
 
     // 获取总数
-    const countResult = await env.DB.prepare(`
-      SELECT COUNT(*) as total FROM timeline_events
-    `).first<{ total: number }>();
+    const countResult = await countStmt.first<{ total: number }>();
     const total = countResult?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
     // 获取分页数据
-    const events = await env.DB.prepare(`
-      SELECT * FROM timeline_events 
-      ORDER BY date DESC, created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(limit, offset).all<TimelineEvent>();
+    const eventsStmt = category
+      ? env.DB.prepare(`
+          SELECT * FROM timeline_events
+          WHERE category = ?
+          ORDER BY date DESC, created_at DESC
+          LIMIT ? OFFSET ?
+        `).bind(category, limit, offset)
+      : env.DB.prepare(`
+          SELECT * FROM timeline_events
+          ORDER BY date DESC, created_at DESC
+          LIMIT ? OFFSET ?
+        `).bind(limit, offset);
+    const events = await eventsStmt.all<TimelineEvent>();
 
     const eventsWithImages = events.results.map(event => ({
       ...event,
@@ -106,7 +118,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
 
     return jsonResponse({
       ...newEvent,
-      images: newEvent.images ? newEvent.images.split(',') : []
+      images: transformImageArray(newEvent.images)
     });
   } catch (error: any) {
     console.error('时间轴创建失败:', error);

@@ -192,15 +192,17 @@ const AdminFoodCheckin = () => {
     }
 
     // 图片拖拽处理
-    const handleImageDragStart = (e: React.DragEvent, index: number) => {
+    const handleImageDragStart = (e: unknown, index: number) => {
         setDraggedImageIndex(index)
-        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+        const dataTransfer = (e as { dataTransfer?: DataTransfer | null })?.dataTransfer
+        if (dataTransfer) dataTransfer.effectAllowed = 'move'
     }
 
     const handleImageDragEnter = (index: number) => {
         if (draggedImageIndex === null || draggedImageIndex === index) return
         const newImages = [...formData.images]
         const item = newImages.splice(draggedImageIndex, 1)[0]
+        if (!item) return
         newImages.splice(index, 0, item)
         setFormData(prev => ({ ...prev, images: newImages }))
         setDraggedImageIndex(index)

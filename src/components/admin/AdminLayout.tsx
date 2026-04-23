@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import Icon from '../icons/Icons'
+import Icon, { IconName } from '../icons/Icons'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -12,7 +12,7 @@ interface AdminLayoutProps {
 interface NavItem {
   name: string
   href: string
-  icon: string
+  icon: IconName
 }
 
 const navigation: NavItem[] = [

@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
     DB: D1Database;
@@ -37,7 +38,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
 
         return jsonResponse({
             ...event,
-            images: event.images ? event.images.split(',') : []
+            images: transformImageArray(event.images)
         });
     } catch (error: any) {
         return errorResponse(error.message, 500);
@@ -91,7 +92,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
 
         return jsonResponse({
             ...updatedEvent,
-            images: updatedEvent?.images ? updatedEvent.images.split(',') : []
+            images: transformImageArray(updatedEvent?.images)
         });
     } catch (error: any) {
         return errorResponse(error.message, 500);

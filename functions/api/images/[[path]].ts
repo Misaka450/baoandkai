@@ -5,7 +5,11 @@ export interface Env {
 }
 
 // Cloudflare Pages Functions - 图片代理/直链API (带边缘缓存)
-export async function onRequestGet(context: { request: Request; env: Env }) {
+export async function onRequestGet(context: {
+    request: Request;
+    env: Env;
+    waitUntil: (promise: Promise<unknown>) => void;
+}) {
     const { request, env } = context;
 
     try {
@@ -54,7 +58,7 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
         // 3. 构建响应
         const headers = new Headers();
         object.writeHttpMetadata(headers);
-        headers.set('etag', object.httpEtag);
+        headers.set('etag', object.httpEtag || '');
         // 浏览器缓存 1 个月，边缘缓存 1 年
         headers.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
         headers.set('X-Cache', 'MISS');

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
+import { getThumbnailUrl } from '../../utils/imageUtils'
 
 interface SlideshowProps {
     checkins: MapCheckin[]

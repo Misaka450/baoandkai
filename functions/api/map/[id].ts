@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { transformImageArray } from '../../utils/url';
 
 export interface Env {
     DB: D1Database;
@@ -64,7 +65,7 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
 
         return jsonResponse({
             ...updated,
-            images: updated?.images ? updated.images.split(',').filter(Boolean) : []
+            images: transformImageArray(updated?.images)
         });
     } catch (error: any) {
         return errorResponse(error.message, 500);

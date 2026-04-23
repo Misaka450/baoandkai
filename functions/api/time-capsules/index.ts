@@ -33,7 +33,7 @@ export async function onRequestGet(context: { env: Env }): Promise<Response> {
         const capsules = result.results || []
 
         // 批量检查并解锁到期的胶囊
-        const now = new Date().toISOString().split('T')[0]
+        const now = new Date().toISOString().split('T')[0] || ''
         const toUnlock = capsules.filter(c => c.unlock_date <= now && c.is_unlocked === 0)
 
         // 使用批量更新优化，避免逐条执行

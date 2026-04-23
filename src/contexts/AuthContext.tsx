@@ -79,11 +79,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } catch (error) {
       console.error('Token 验证失败:', error)
-      const csrf = getCookieValue('csrf_token')
-      if (csrf) {
-        setCsrfToken(csrf)
-        setUser({ role: 'user' })
-      }
+      setCsrfToken(null)
+      setUser(null)
     }
 
     setLoading(false)

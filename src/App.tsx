@@ -30,7 +30,6 @@ const prefetchRoutes: Record<string, () => Promise<any>> = {
   '/albums': () => import('./pages/Albums'),
   '/todos': () => import('./pages/Todos'),
   '/food': () => import('./pages/FoodCheckin'),
-  '/map': () => import('./pages/TravelMap'),
   '/couple': () => import('./pages/CoupleFeatures'),
 }
 
@@ -61,7 +60,7 @@ function LoadingFallback() {
   )
 }
 
-function App(): JSX.Element {
+function App() {
   // 首页渲染后预加载常用路由
   useEffect(() => {
     prefetchCommonRoutes()

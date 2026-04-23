@@ -114,8 +114,10 @@ export async function onRequestGet(context: { env: Env }) {
             if (!activityByMonth[row.month]) {
                 activityByMonth[row.month] = { timeline: 0, food: 0, map: 0, total: 0 };
             }
-            activityByMonth[row.month][row.type as 'timeline' | 'food' | 'map'] = row.count;
-            activityByMonth[row.month].total += row.count;
+            const monthStats = activityByMonth[row.month];
+            if (!monthStats) continue;
+            monthStats[row.type as 'timeline' | 'food' | 'map'] = row.count;
+            monthStats.total += row.count;
         }
 
         return jsonResponse({

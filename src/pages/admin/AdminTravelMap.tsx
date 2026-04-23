@@ -176,8 +176,8 @@ export default function AdminTravelMap() {
                         value={stat.value}
                         label={stat.label}
                         icon={stat.icon}
-                        color={stat.color}
-                        text={stat.text}
+                        color={stat.bg}
+                        text={stat.color}
                         delay={idx * 0.1}
                         className="!rounded-2xl !border-0"
                     />

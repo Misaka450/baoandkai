@@ -23,9 +23,12 @@ interface CategoryConfig {
 
 const categoryConfigs: Record<string, CategoryConfig> = {
   '生活': { icon: 'favorite', color: 'morandi-pink' },
+  '日常': { icon: 'favorite', color: 'morandi-pink' },
   '旅行': { icon: 'flight', color: 'morandi-blue' },
-  '美食': { icon: 'restaurant', color: 'morandi-green' },
   '纪念': { icon: 'star', color: 'morandi-purple' },
+  '纪念日': { icon: 'star', color: 'morandi-purple' },
+  '特别时刻': { icon: 'celebration', color: 'primary' },
+  '其他': { icon: 'auto_awesome', color: 'primary' },
   'default': { icon: 'auto_awesome', color: 'primary' }
 }
 
@@ -77,7 +80,9 @@ export default function Timeline() {
 
   // 里程碑事件（纪念类别）
   const milestoneEvents = useMemo(() => {
-    return events.filter(event => event.category === '纪念' && (event.images?.length ?? 0) > 0)
+    return events.filter(
+      event => ['纪念', '纪念日', '特别时刻'].includes(event.category) && (event.images?.length ?? 0) > 0
+    )
   }, [events])
 
   // 过滤事件（按年份）
@@ -146,7 +151,7 @@ export default function Timeline() {
 
           {/* 分类筛选 */}
           <div className="flex flex-wrap justify-center gap-3 mt-8 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
-            {['all', '生活', '旅行', '美食', '纪念'].map((cat) => (
+            {['all', '日常', '旅行', '纪念日', '特别时刻', '其他'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
@@ -234,7 +239,7 @@ export default function Timeline() {
               {filteredEvents.map((event, idx) => {
                 const isEven = idx % 2 === 0
                 const config = categoryConfigs[event.category] || categoryConfigs.default!
-                const isMilestone = event.category === '纪念'
+                const isMilestone = ['纪念', '纪念日', '特别时刻'].includes(event.category)
                 const isOldest = idx === filteredEvents.length - 1
 
                 return (

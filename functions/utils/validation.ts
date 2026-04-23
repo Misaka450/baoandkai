@@ -111,13 +111,13 @@ export function validate(rules: (string | null)[]): string | null {
  * 递归处理嵌套对象，跳过images等URL数组字段
  */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T, skipFields: string[] = []): T {
-    const result = { ...obj }
+    const result: Record<string, unknown> = { ...obj }
     for (const key of Object.keys(result)) {
         if (skipFields.includes(key)) continue
         const value = result[key]
         if (typeof value === 'string') {
-            result[key] = cleanString(value) as unknown as T[Extract<keyof T, string>]
+            result[key] = cleanString(value)
         }
     }
-    return result
+    return result as T
 }

@@ -156,17 +156,18 @@ export function getOriginalImageUrl(url: string): string {
     if (url.includes('cdn-cgi/image')) {
         try {
             const parts = url.split('/');
-            const domain = parts[2];
+            const domain = parts[2] || CF_IMAGE_CONFIG.domain;
             const imageIndex = parts.findIndex(p => p === 'image');
             const pathStart = imageIndex + 2;
-            return `https://${domain}/${parts.slice(pathStart).join('/')}`.split('?')[0];
+            const originalPath = parts.slice(pathStart).join('/');
+            return (`https://${domain}/${originalPath}`).split('?')[0] || '';
         } catch {
-            return url.split('?')[0];
+            return url.split('?')[0] || '';
         }
     }
     // 如果 URL 带有其他动态参数，则移除它们
     if (url.includes('?')) {
-        return url.split('?')[0];
+        return url.split('?')[0] || '';
     }
     return url;
 }

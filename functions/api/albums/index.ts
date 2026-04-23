@@ -36,7 +36,7 @@ export async function onRequestGet(context: { env: Env }) {
 
         const albumsWithPhotos = albums.results.map(album => ({
             ...album,
-            cover_url: transformImageUrl(album.cover_url || album.cover_image),
+            cover_url: transformImageUrl(album.cover_url || ''),
             photos: album.cover_url ? [{
                 id: 0,
                 album_id: album.id,

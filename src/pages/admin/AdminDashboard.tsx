@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { statsService } from '../../services/apiService'
-import Icon from '../../components/icons/Icons'
+import Icon, { IconName } from '../../components/icons/Icons'
 
 export default function AdminDashboard() {
     const { data: statsResponse, isLoading, error } = useQuery({
@@ -100,10 +100,10 @@ export default function AdminDashboard() {
 }
 
 // 区块标题
-function SectionTitle({ icon, text, color = '#C9ADA7' }: { icon: string; text: string; color?: string }) {
+function SectionTitle({ icon, text, color = '#C9ADA7' }: { icon: IconName; text: string; color?: string }) {
     return (
         <h3 className="text-base font-bold text-[#4A4E69] mb-4 flex items-center gap-2">
-            <Icon name={icon as any} size={18} style={{ color }} />
+            <Icon name={icon} size={18} style={{ color }} />
             {text}
         </h3>
     )
@@ -125,7 +125,7 @@ function DataCard({ value, label, icon, color, delay }: {
                 className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: `${color}20` }}
             >
-                <Icon name={icon as any} size={22} style={{ color }} />
+                <Icon name={icon as IconName} size={22} style={{ color }} />
             </div>
             <div className="min-w-0">
                 <div className="text-2xl font-black text-[#4A4E69] leading-tight">{value}</div>
@@ -139,13 +139,19 @@ function DataCard({ value, label, icon, color, delay }: {
 function MetricCard({ icon, label, value, sub, gradient }: {
     icon: string; label: string; value: string | number; sub?: string; gradient: string
 }) {
+    const [fromColor = '#6BBFFF', toColor = '#9A9EAB'] = gradient
+        .replace('from-[', '')
+        .replace(']', '')
+        .replace(' to-[', '|')
+        .split('|')
+
     return (
         <div
             className="rounded-2xl p-5 flex items-center gap-4 text-white border border-white/10"
-            style={{ background: `linear-gradient(135deg, ${gradient.replace('from-', '').split(' to-')[0]}CC, ${gradient.replace('from-', '').split(' to-')[1]}CC)` }}
+            style={{ background: `linear-gradient(135deg, ${fromColor}CC, ${toColor}CC)` }}
         >
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon name={icon as any} size={24} />
+                <Icon name={icon as IconName} size={24} />
             </div>
             <div>
                 <div className="text-2xl font-black leading-tight">{value}</div>
@@ -163,11 +169,11 @@ function ActivityChart({ data }: { data: Record<string, { timeline: number; food
         return <div className="text-center text-[#9A9EAB] py-10 text-sm">暂无活跃度数据</div>
     }
 
-    const maxTotal = Math.max(...months.map(m => data[m].total), 1)
+    const maxTotal = Math.max(...months.map(m => data[m]?.total || 0), 1)
 
     const formatMonth = (m: string) => {
-        const parts = m.split('-')
-        return `${parseInt(parts[1])}月`
+        const [yearPart = '', monthPart = ''] = m.split('-')
+        return `${parseInt(monthPart || yearPart || '0', 10)}月`
     }
 
     return (
@@ -183,6 +189,7 @@ function ActivityChart({ data }: { data: Record<string, { timeline: number; food
             <div className="flex items-end gap-1.5 h-40">
                 {months.map(month => {
                     const d = data[month]
+                    if (!d) return null
                     const totalH = (d.total / maxTotal) * 100
                     const timelineH = d.timeline > 0 ? (d.timeline / d.total) * totalH : 0
                     const foodH = d.food > 0 ? (d.food / d.total) * totalH : 0

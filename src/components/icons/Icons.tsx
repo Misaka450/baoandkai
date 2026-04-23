@@ -11,7 +11,10 @@ export type IconName =
     | 'person' | 'lock' | 'west' | 'add' | 'edit' | 'check' | 'add_photo_alternate' | 'menu' | 'close'
     | 'expand_less' | 'expand_more' | 'info' | 'warning' | 'error' | 'check_circle' | 'event' | 'celebration'
     | 'upload' | 'download' | 'add_a_photo' | 'drag_indicator' | 'zoom_in' | 'zoom_out' | 'restart_alt'
-    | 'map' | 'landscape' | 'east' | 'photo_camera' | 'route' | 'cloud_download' | 'grid_view' | 'bar_chart' | 'menu_open' | 'trending_up' | 'flight_takeoff' | 'flight_land' | 'history' | 'photo' | 'arrow_forward' | 'casino' | 'view_list';
+    | 'map' | 'landscape' | 'east' | 'photo_camera' | 'route' | 'cloud_download' | 'grid_view' | 'bar_chart' | 'menu_open' | 'trending_up' | 'flight_takeoff' | 'flight_land' | 'history' | 'photo' | 'arrow_forward' | 'casino' | 'view_list'
+    | 'pause' | 'play_arrow' | 'fullscreen' | 'fullscreen_exit' | 'calendar_today' | 'refresh'
+    | 'emoji_events' | 'location_city' | 'timeline' | 'slideshow' | 'whatshot' | 'fastfood'
+    | 'local_cafe' | 'arrow_back' | 'lock_open' | 'show_chart';
 
 interface IconProps {
     name: IconName;
@@ -102,7 +105,23 @@ const iconPaths: Record<IconName, string> = {
     photo: "M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z",
     arrow_forward: "M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
     casino: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z",
-    view_list: "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
+    view_list: "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z",
+    pause: "M6 19h4V5H6v14zm8-14v14h4V5h-4z",
+    play_arrow: "M8 5v14l11-7z",
+    fullscreen: "M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H5v5zm10 7h-3v2h5v-5h-2v3zm0-12h-3v2h3v3h2V5h-2z",
+    fullscreen_exit: "M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z",
+    calendar_today: "M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zm0-13H5V5h14v1z",
+    refresh: "M17.65 6.35C16.2 4.9 14.21 4 12 4 7.58 4 4 7.58 4 12s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z",
+    emoji_events: "M7 4V2h10v2h3v3c0 2.21-1.79 4-4 4-.55 0-1.07-.11-1.54-.31A5.99 5.99 0 0113 13.92V17h3v2H8v-2h3v-3.08a5.99 5.99 0 01-1.46-3.23C9.07 10.89 8.55 11 8 11c-2.21 0-4-1.79-4-4V4h3zm10 2v1c0 1.1.9 2 2 2V6h-2zM7 6H5v3c1.1 0 2-.9 2-2V6z",
+    location_city: "M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4.17L12.17 5H13v1.83zM19 19h-2v-2h2v2zm0-4h-2v-2h2v2z",
+    timeline: "M23 8c0-1.1-.9-2-2-2-1.3 0-2.4.84-2.82 2H13c-.34-1.16-1.42-2-2.68-2S8 6.84 7.68 8H2v2h5.18C7.6 11.16 8.7 12 10 12s2.4-.84 2.82-2h5.36c.32 1.16 1.42 2 2.82 2 1.1 0 2-.9 2-2zm-13 2c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm11 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zM2 14h8v2H2zm12 0h8v2h-8zm-6 4h14v2H8z",
+    slideshow: "M10 8v8l5-4-5-4zm10-5H4c-1.1 0-2 .9-2 2v10h2V5h16v14H8v2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z",
+    whatshot: "M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.07 4 12.99 4 17.41 7.58 21 12 21s8-3.59 8-8.01C20 7.57 17.1 3.79 13.5.67zM12.1 18.99c-1.96 0-3.55-1.59-3.55-3.55 0-1.48.87-2.9 2.33-3.64 1.82-.92 3.03-2.77 3.03-4.81l-.01-.41c2.41 2.12 4.1 5.11 4.1 8.4 0 2.22-1.8 4.01-4.01 4.01-.65 0-1.27-.16-1.82-.44.28-.39.45-.87.45-1.41 0-1.31-1.06-2.37-2.37-2.37-.1 0-.2.01-.29.02-.01-.07-.01-.14-.01-.21 0-.98.8-1.78 1.78-1.78.42 0 .81.15 1.12.4-.21-2.24-1.95-4.08-4.17-4.43-.47.64-.74 1.43-.74 2.27 0 .54.11 1.06.31 1.53-1.29.64-2.15 1.98-2.15 3.45 0 2.11 1.71 3.82 3.82 3.82.87 0 1.67-.29 2.31-.78-.63 1.1-1.81 1.85-3.17 1.85z",
+    fastfood: "M18 6V4h-1V1h-2v3H9V1H7v3H6v2h12zm-1 3H7l1 12h8l1-12z",
+    local_cafe: "M2 19h15v2H2v-2zm13-9h1a4 4 0 010 8h-1v1H4V5h11v5zm0 6h1a2 2 0 000-4h-1v4z",
+    arrow_back: "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
+    lock_open: "M12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6-9h-8V6c0-1.1.9-2 2-2h4V2h-4c-2.21 0-4 1.79-4 4v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z",
+    show_chart: "M3.5 18.49l6-6.01 4 4L22 6.92 20.59 5.5l-7.09 7.1-4-4L2 16.99z",
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {

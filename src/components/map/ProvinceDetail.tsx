@@ -1,7 +1,7 @@
 import { useState, useMemo, memo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import type { ProvinceData } from '../../data/chinaMapData'
-import { getCityPathsForProvince } from '../../data/provinceCityPaths'
+import type { CityPathData } from '../../data/provinceCityPaths'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
@@ -9,6 +9,7 @@ import MapPin from './MapPin'
 
 interface ProvinceDetailProps {
     province: ProvinceData
+    cityPaths: CityPathData[]
     checkins: MapCheckin[]
     onBack: () => void
     onCityClick: (cityName: string, cityCheckins: MapCheckin[]) => void
@@ -24,7 +25,7 @@ const CityPath = memo(({
     onMouseEnter,
     onMouseLeave
 }: {
-    city: any
+    city: CityPathData
     idx: number
     isHovered: boolean
     hasCheckins: boolean
@@ -70,10 +71,8 @@ const CityPath = memo(({
 
 CityPath.displayName = 'CityPath'
 
-export default function ProvinceDetail({ province, checkins, onBack, onCityClick }: ProvinceDetailProps) {
+export default function ProvinceDetail({ province, cityPaths, checkins, onBack, onCityClick }: ProvinceDetailProps) {
     const [hoveredCity, setHoveredCity] = useState<string | null>(null)
-
-    const cityPaths = useMemo(() => getCityPathsForProvince(province.name), [province.name])
 
     // 按城市分组打卡
     const cityCheckinMap = useMemo(() => {

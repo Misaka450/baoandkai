@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
  * 路由守卫组件
  * 用于保护需要登录或管理员权限的路由
  */
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps): JSX.Element {
+export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
     const { isLoggedIn, isAdmin, loading } = useAuth()
     const location = useLocation()
 

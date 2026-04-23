@@ -4,22 +4,20 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { mapService } from '../services/apiService'
 import type { MapCheckin } from '../types'
 import type { ProvinceData } from '../data/chinaMapData'
-import { provinces } from '../data/chinaMapData'
-import ProvinceDetail from '../components/map/ProvinceDetail'
-import CheckinCard from '../components/map/CheckinCard'
 import TimeFilter from '../components/map/TimeFilter'
-import Timeline from '../components/map/Timeline'
-import TravelStats from '../components/map/TravelStats'
-import PhotoWall from '../components/map/PhotoWall'
-import Slideshow from '../components/map/Slideshow'
-import MemoryLane from '../components/map/MemoryLane'
-import AnnualReport from '../components/map/AnnualReport'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
 import { Skeleton } from '../components/Skeleton'
 
-// 使用动态导入优化地图组件加载，按需加载减少首屏 bundle 大小
-const ChinaMap = lazy(() => import('../components/map/ChinaMap').then(module => ({ default: module.default })))
+const ChinaMap = lazy(() => import('../components/map/ChinaMap'))
+const ProvinceDetailLoader = lazy(() => import('../components/map/ProvinceDetailLoader'))
+const CheckinCard = lazy(() => import('../components/map/CheckinCard'))
+const Timeline = lazy(() => import('../components/map/Timeline'))
+const TravelStats = lazy(() => import('../components/map/TravelStats'))
+const PhotoWall = lazy(() => import('../components/map/PhotoWall'))
+const Slideshow = lazy(() => import('../components/map/Slideshow'))
+const MemoryLane = lazy(() => import('../components/map/MemoryLane'))
+const AnnualReport = lazy(() => import('../components/map/AnnualReport'))
 
 type ViewMode = 'country' | 'province' | 'timeline' | 'stats' | 'photos' | 'memories'
 
@@ -41,7 +39,7 @@ interface StatItem {
 
 export default function TravelMap() {
     const [viewMode, setViewMode] = useState<ViewMode>('country')
-    const [selectedProvince, setSelectedProvince] = useState<ProvinceData | null>(null)
+    const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null)
     const [checkinCardData, setCheckinCardData] = useState<{ city: string; checkins: MapCheckin[] } | null>(null)
     const [selectedYear, setSelectedYear] = useState<string | null>(null)
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
@@ -99,18 +97,18 @@ export default function TravelMap() {
 
     // 选中省份的打卡记录
     const provinceCheckins = useMemo(() => {
-        if (!selectedProvince) return []
-        return checkins.filter(c => c.province === selectedProvince.name)
-    }, [checkins, selectedProvince])
+        if (!selectedProvinceName) return []
+        return checkins.filter(c => c.province === selectedProvinceName)
+    }, [checkins, selectedProvinceName])
 
     const handleProvinceClick = (province: ProvinceData) => {
-        setSelectedProvince(province)
+        setSelectedProvinceName(province.name)
         setViewMode('province')
     }
 
     const handleBack = () => {
         setViewMode('country')
-        setSelectedProvince(null)
+        setSelectedProvinceName(null)
     }
 
     const handleCityClick = (cityName: string, cityCheckins: MapCheckin[]) => {
@@ -140,6 +138,15 @@ export default function TravelMap() {
                 <Skeleton className="h-4 w-48 mx-auto" />
             </div>
             <Skeleton className="h-[400px] w-full rounded-[2rem]" />
+        </div>
+    )
+
+    const sectionFallback = (
+        <div className="h-[320px] flex items-center justify-center">
+            <div className="w-full space-y-4">
+                <Skeleton className="h-8 w-48 mx-auto" />
+                <Skeleton className="h-[240px] w-full rounded-[2rem]" />
+            </div>
         </div>
     )
 
@@ -249,41 +256,39 @@ export default function TravelMap() {
                 {/* 地图区域 */}
                 {viewMode === 'country' && (
                     <div className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up">
-                        <AnimatePresence mode="wait">
-                            {viewMode === 'country' ? (
-                                <motion.div
-                                    key="country"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <Suspense fallback={
-                                        <div className="h-[500px] flex items-center justify-center">
-                                            <div className="text-center">
-                                                <Skeleton className="w-64 h-8 mx-auto mb-4" />
-                                                <Skeleton className="w-full h-[400px] rounded-2xl" />
-                                            </div>
-                                        </div>
-                                    }>
-                                        <ChinaMap
-                                            checkins={checkins}
-                                            onProvinceClick={handleProvinceClick}
-                                            showHeatmap={showHeatmap}
-                                            showRoute={showRoute}
-                                        />
-                                    </Suspense>
-                                </motion.div>
-                            ) : selectedProvince ? (
-                                <ProvinceDetail
-                                    key="province"
-                                    province={selectedProvince}
-                                    checkins={provinceCheckins}
-                                    onBack={handleBack}
-                                    onCityClick={handleCityClick}
+                        <motion.div
+                            key="country"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <Suspense fallback={sectionFallback}>
+                                <ChinaMap
+                                    checkins={checkins}
+                                    onProvinceClick={handleProvinceClick}
+                                    showHeatmap={showHeatmap}
+                                    showRoute={showRoute}
                                 />
-                            ) : null}
-                        </AnimatePresence>
+                            </Suspense>
+                        </motion.div>
                     </div>
+                )}
+
+                {viewMode === 'province' && selectedProvinceName && (
+                    <motion.div
+                        className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <Suspense fallback={sectionFallback}>
+                            <ProvinceDetailLoader
+                                provinceName={selectedProvinceName}
+                                checkins={provinceCheckins}
+                                onBack={handleBack}
+                                onCityClick={handleCityClick}
+                            />
+                        </Suspense>
+                    </motion.div>
                 )}
 
                 {/* 时间线视图 */}
@@ -293,10 +298,12 @@ export default function TravelMap() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <Timeline
-                            checkins={checkins}
-                            onCheckinClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
-                        />
+                        <Suspense fallback={sectionFallback}>
+                            <Timeline
+                                checkins={checkins}
+                                onCheckinClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
+                            />
+                        </Suspense>
                     </motion.div>
                 )}
 
@@ -307,15 +314,15 @@ export default function TravelMap() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <TravelStats
-                            checkins={checkins}
-                            onProvinceClick={(province) => {
-                                const provinceData = provinces.find(p => p.name === province)
-                                if (provinceData) {
-                                    handleProvinceClick(provinceData)
-                                }
-                            }}
-                        />
+                        <Suspense fallback={sectionFallback}>
+                            <TravelStats
+                                checkins={checkins}
+                                onProvinceClick={(province) => {
+                                    setSelectedProvinceName(province)
+                                    setViewMode('province')
+                                }}
+                            />
+                        </Suspense>
                     </motion.div>
                 )}
 
@@ -326,10 +333,12 @@ export default function TravelMap() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <PhotoWall
-                            checkins={checkins}
-                            onPhotoClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
-                        />
+                        <Suspense fallback={sectionFallback}>
+                            <PhotoWall
+                                checkins={checkins}
+                                onPhotoClick={(checkin) => setCheckinCardData({ city: checkin.city || checkin.province, checkins: [checkin] })}
+                            />
+                        </Suspense>
                     </motion.div>
                 )}
 
@@ -340,40 +349,48 @@ export default function TravelMap() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <MemoryLane checkins={allCheckins} />
+                        <Suspense fallback={sectionFallback}>
+                            <MemoryLane checkins={allCheckins} />
+                        </Suspense>
                     </motion.div>
                 )}
 
                 {/* 打卡详情弹窗 */}
                 <AnimatePresence>
                     {checkinCardData && (
-                        <CheckinCard
-                            checkins={checkinCardData.checkins}
-                            cityName={checkinCardData.city}
-                            onClose={() => setCheckinCardData(null)}
-                            onRefresh={refetch}
-                        />
+                        <Suspense fallback={null}>
+                            <CheckinCard
+                                checkins={checkinCardData.checkins}
+                                cityName={checkinCardData.city}
+                                onClose={() => setCheckinCardData(null)}
+                                onRefresh={refetch}
+                            />
+                        </Suspense>
                     )}
                 </AnimatePresence>
 
                 {/* 幻灯片弹窗 */}
                 <AnimatePresence>
                     {showSlideshow && (
-                        <Slideshow
-                            checkins={allCheckins}
-                            onClose={() => setShowSlideshow(false)}
-                        />
+                        <Suspense fallback={null}>
+                            <Slideshow
+                                checkins={allCheckins}
+                                onClose={() => setShowSlideshow(false)}
+                            />
+                        </Suspense>
                     )}
                 </AnimatePresence>
 
                 {/* 年度报告弹窗 */}
                 <AnimatePresence>
                     {showAnnualReport && (
-                        <AnnualReport
-                            checkins={allCheckins}
-                            year={new Date().getFullYear()}
-                            onClose={() => setShowAnnualReport(false)}
-                        />
+                        <Suspense fallback={null}>
+                            <AnnualReport
+                                checkins={allCheckins}
+                                year={new Date().getFullYear()}
+                                onClose={() => setShowAnnualReport(false)}
+                            />
+                        </Suspense>
                     )}
                 </AnimatePresence>
 
@@ -441,15 +458,6 @@ export default function TravelMap() {
                     </div>
                 )}
             </main>
-
-            {/* 打卡详情弹窗 */}
-            {checkinCardData && (
-                <CheckinCard
-                    checkins={checkinCardData.checkins}
-                    cityName={checkinCardData.city}
-                    onClose={() => setCheckinCardData(null)}
-                />
-            )}
         </div>
     )
 }
