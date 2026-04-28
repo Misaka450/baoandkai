@@ -111,24 +111,26 @@ export default function AdminTravelMap() {
         }
     }
 
-    // 统计数据（类型安全）
-    const statItems: StatItem[] = [
+    // 统计数据（用 useMemo 避免每次渲染重建 Set）
+    const statItems: StatItem[] = useMemo(() => [
         { label: '总打卡', value: checkins.length, icon: 'auto_awesome', color: 'text-[#6BCB77]', bg: 'bg-[#F0FFF4]' },
         { label: '省份', value: new Set(checkins.map(c => c.province)).size, icon: 'map', color: 'text-[#FF8BB1]', bg: 'bg-[#FFEDF3]' },
         { label: '城市', value: new Set(checkins.filter(c => c.city).map(c => c.city)).size, icon: 'location_on', color: 'text-[#6BBFFF]', bg: 'bg-[#EBF7FF]' },
-    ]
+    ], [checkins])
 
+    // 并行上传图片，比串行上传更快
     const handleImageUpload = async (files: FileList) => {
-        for (let i = 0; i < files.length; i++) {
-            const file = files.item(i)
-            if (!file) continue
+        const uploadPromises = Array.from(files).map(async (file) => {
             const uploadData = new globalThis.FormData()
             uploadData.append('file', file)
             uploadData.append('folder', 'map')
             const response = await apiService.upload<{ url: string }>('/upload', uploadData)
-            if (response.data?.url) {
-                setFormData(prev => ({ ...prev, images: [...prev.images, response.data!.url] }))
-            }
+            return response.data?.url
+        })
+        const urls = await Promise.all(uploadPromises)
+        const validUrls = urls.filter((url): url is string => !!url)
+        if (validUrls.length > 0) {
+            setFormData(prev => ({ ...prev, images: [...prev.images, ...validUrls] }))
         }
     }
 

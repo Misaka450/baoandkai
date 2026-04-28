@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, downloadOriginalImage } from '../utils/imageUtils'
 import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { openModal, closeModal } from '../utils/modalState'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -47,6 +48,14 @@ export default function ImageModal({
   const thumbListRef = useRef<HTMLDivElement>(null)
 
   useBodyScrollLock(isOpen)
+
+  // 模态框打开/关闭时通知 Navigation
+  useEffect(() => {
+    if (isOpen) {
+      openModal()
+      return () => closeModal()
+    }
+  }, [isOpen])
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
   const thumbnailUrl = currentImage ? getThumbnailUrl(currentImage, 400) : ''

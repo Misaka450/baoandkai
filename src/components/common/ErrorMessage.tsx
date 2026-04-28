@@ -1,4 +1,4 @@
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import Icon from '../icons/Icons'
 
 // 定义组件属性接口
 interface ErrorMessageProps {
@@ -22,7 +22,7 @@ export default function ErrorMessage({
   return (
     <div className={`flex flex-col items-center justify-center space-y-4 p-8 text-center ${className}`}>
       <div className="rounded-full bg-red-100 p-3">
-        <AlertCircle className="h-8 w-8 text-red-500" />
+        <Icon name="error" size={32} className="text-red-500" />
       </div>
       <p className="text-gray-600">{message}</p>
       {onRetry && (
@@ -30,7 +30,7 @@ export default function ErrorMessage({
           onClick={onRetry}
           className="flex items-center space-x-2 rounded-lg bg-pink-500 px-4 py-2 text-white transition-colors hover:bg-pink-600"
         >
-          <RefreshCw className="h-4 w-4" />
+          <Icon name="refresh" size={16} />
           <span>重试</span>
         </button>
       )}

@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import Icon from '../icons/Icons'
 
 // 定义组件属性接口
 interface LoadingSpinnerProps {
@@ -27,7 +27,7 @@ export default function LoadingSpinner({
 
   return (
     <div className={`flex flex-col items-center justify-center space-y-2 ${className}`}>
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-pink-500`} />
+      <Icon name="loading" size={size === 'sm' ? 16 : size === 'md' ? 32 : 48} className={`animate-spin text-pink-500`} />
       {text && <p className="text-sm text-gray-500">{text}</p>}
     </div>
   )

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import Icon from '../icons/Icons';
 import * as Sentry from '@sentry/react';
 
 interface ErrorBoundaryProps {
@@ -117,7 +117,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full mx-4">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
+                <Icon name="warning" size={32} className="text-red-600" />
               </div>
               
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -150,7 +150,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                   onClick={this.resetError}
                   className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <Icon name="refresh" size={16} className="mr-2" />
                   重试
                 </button>
                 
@@ -165,7 +165,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                   onClick={this.goHome}
                   className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  <Home className="w-4 h-4 mr-2" />
+                  <Icon name="home" size={16} className="mr-2" />
                   返回首页
                 </button>
               </div>

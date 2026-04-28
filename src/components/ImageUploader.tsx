@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image, CheckCircle, AlertCircle } from 'lucide-react';
+import Icon from './icons/Icons';
 import { apiService } from '../services/apiService';
 
 // 定义图片上传组件的属性接口
@@ -167,7 +167,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <Icon name="upload" size={48} className="mx-auto text-gray-400 mb-4" />
         <p className="text-lg font-medium text-gray-700 mb-2">
           拖拽图片到这里上传
         </p>
@@ -199,7 +199,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <div key={item.id} className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <Image className="h-4 w-4 text-gray-400" />
+                  <Icon name="photo" size={16} className="text-gray-400" />
                   <span className="text-sm text-gray-600 truncate max-w-xs">
                     {item.file.name}
                   </span>
@@ -213,17 +213,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                     onClick={() => removeUploadingFile(item.id)}
                     className="text-gray-400 hover:text-gray-600"
                   >
-                    <X className="h-4 w-4" />
+                    <Icon name="close" size={16} />
                   </button>
                 )}
                 
                 {item.status === 'success' && (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <Icon name="check_circle" size={20} className="text-green-500" />
                 )}
                 
                 {item.status === 'error' && (
                   <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <Icon name="error" size={20} className="text-red-500" />
                     <button
                       onClick={() => retryUpload(item.file)}
                       className="text-sm text-red-600 hover:text-red-800"

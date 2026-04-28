@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
+import RouteErrorBoundary from './components/common/RouteErrorBoundary'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // 懒加载页面组件 - 优化首屏加载性能
@@ -73,21 +74,23 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="timeline" element={<ProtectedRoute><Timeline /></ProtectedRoute>} />
-              <Route path="albums" element={<ProtectedRoute><Albums /></ProtectedRoute>} />
-              <Route path="albums/:id" element={<ProtectedRoute><AlbumDetail /></ProtectedRoute>} />
-              <Route path="todos" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
-              <Route path="food" element={<ProtectedRoute><FoodCheckin /></ProtectedRoute>} />
-              <Route path="map" element={<ProtectedRoute><TravelMap /></ProtectedRoute>} />
-              <Route path="couple" element={<ProtectedRoute><CoupleFeatures /></ProtectedRoute>} />
+              <Route index element={<RouteErrorBoundary><Home /></RouteErrorBoundary>} />
+              <Route path="timeline" element={<RouteErrorBoundary><ProtectedRoute><Timeline /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="albums" element={<RouteErrorBoundary><ProtectedRoute><Albums /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="albums/:id" element={<RouteErrorBoundary><ProtectedRoute><AlbumDetail /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="todos" element={<RouteErrorBoundary><ProtectedRoute><Todos /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="food" element={<RouteErrorBoundary><ProtectedRoute><FoodCheckin /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="map" element={<RouteErrorBoundary><ProtectedRoute><TravelMap /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="couple" element={<RouteErrorBoundary><ProtectedRoute><CoupleFeatures /></ProtectedRoute></RouteErrorBoundary>} />
               <Route path="admin/*" element={
-                <ProtectedRoute requireAdmin>
-                  <Admin />
-                </ProtectedRoute>
+                <RouteErrorBoundary>
+                  <ProtectedRoute requireAdmin>
+                    <Admin />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               } />
             </Route>
-            <Route path="/albums/:albumId/photo" element={<ProtectedRoute><PhotoViewer /></ProtectedRoute>} />
+            <Route path="/albums/:albumId/photo" element={<RouteErrorBoundary><ProtectedRoute><PhotoViewer /></ProtectedRoute></RouteErrorBoundary>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

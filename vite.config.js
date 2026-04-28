@@ -33,8 +33,8 @@ export default defineConfig({
           query: ['@tanstack/react-query'],
           // 动画库单独分包，按需加载
           animation: ['framer-motion'],
-          // 图标库
-          ui: ['lucide-react'],
+          // 工具库
+          utils: ['date-fns'],
         },
       },
     },

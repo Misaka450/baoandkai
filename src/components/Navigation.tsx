@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon, { IconName } from './icons/Icons'
+import { subscribeModalState } from '../utils/modalState'
 
 interface NavItem {
     name: string
@@ -31,35 +32,25 @@ export default function Navigation() {
             const currentScrollY = window.scrollY
             const lastScrollY = lastScrollYRef.current
 
-            // 在顶部时始终显示
             if (currentScrollY < 50) {
                 setIsVisible(true)
             }
-            // 向上滚动显示，向下滚动隐藏
             else if (currentScrollY < lastScrollY) {
                 setIsVisible(true)
             } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
                 setIsVisible(false)
             }
 
-            // 更新 ref 而非 state，避免触发重渲染和重新注册事件
             lastScrollYRef.current = currentScrollY
         }
 
-        // 检测详情页或图片模态框是否打开
-        const checkModal = () => {
-            const modal = document.getElementById('premium-image-modal')
-            const immersiveDetail = document.getElementById('immersive-album-detail')
-            setIsModalOpen(!!modal || !!immersiveDetail)
-        }
-
-        const observer = new MutationObserver(checkModal)
-        observer.observe(document.body, { childList: true, subtree: true })
+        // 订阅模态框状态，替代 MutationObserver
+        const unsubscribe = subscribeModalState(setIsModalOpen)
 
         window.addEventListener('scroll', handleScroll, { passive: true })
         return () => {
             window.removeEventListener('scroll', handleScroll)
-            observer.disconnect()
+            unsubscribe()
         }
     }, [])
 

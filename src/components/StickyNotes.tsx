@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
-import { apiService } from '../services/apiService'
+import { notesService } from '../services/apiService'
 import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../constants/styles'
@@ -36,56 +37,49 @@ const getRandomColorName = () => {
 
 export default function StickyNotes() {
   const { isAdmin } = useAuth()
-  const [notes, setNotes] = useState<Note[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [newNote, setNewNote] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  // 锁定 body 滚动
   useBodyScrollLock(showAddModal)
 
-  // 获取便签列表（使用 useCallback 优化）
-  const fetchNotes = useCallback(async () => {
-    try {
-      setLoading(true)
-      const response = await apiService.get<{ data: Note[] } | Note[]>('/notes')
+  // 使用 React Query 获取便签数据，自动缓存和刷新
+  const { data: notesData, isLoading } = useQuery({
+    queryKey: ['notes'],
+    queryFn: async () => {
+      const response = await notesService.getAll()
       const responseData = response.data
-      let notesData: Note[] = []
-      if (responseData) {
-        if (Array.isArray(responseData)) notesData = responseData
-        else if ('data' in responseData && Array.isArray(responseData.data)) notesData = responseData.data
-      }
-      setNotes(notesData)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+      if (Array.isArray(responseData)) return responseData
+      if (responseData && 'data' in responseData && Array.isArray(responseData.data)) return responseData.data
+      return []
+    },
+    staleTime: 2 * 60 * 1000,
+  })
 
-  useEffect(() => {
-    fetchNotes()
-  }, [fetchNotes])
+  const notes = notesData || []
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return
     const color = getRandomColorName()
-    await apiService.post('/notes', { content: newNote, color })
+    await notesService.create({ content: newNote, color })
     setNewNote('')
     setShowAddModal(false)
-    fetchNotes()
+    // 创建后刷新缓存
+    queryClient.invalidateQueries({ queryKey: ['notes'] })
   }
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('确定要删除这条碎碎念吗？')) return
-    await apiService.delete(`/notes/${id}`)
-    fetchNotes()
+    await notesService.delete(id)
+    // 删除后刷新缓存
+    queryClient.invalidateQueries({ queryKey: ['notes'] })
   }
 
-  if (loading) return <div className="text-center py-10 opacity-50">加载中...</div>
+  if (isLoading) return <div className="text-center py-10 opacity-50">加载中...</div>
 
   return (
     <div className={RESPONSIVE_GRID}>
       {notes.map((note, idx) => {
-        // 优先使用服务端返回的颜色，不在映射中则回退为按索引分配
         const colorKey = (note.color && colorMap[note.color]) ? note.color : Object.keys(colorMap)[idx % Object.keys(colorMap).length] || 'pink'
         const style = colorMap[colorKey]!
         const rotations = ['rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]']
@@ -96,7 +90,7 @@ export default function StickyNotes() {
               <Icon name="push_pin" size={24} />
             </div>
 
-            <p className={`${style.text} text-xl leading-relaxed mb-10 font-medium font-handwriting tracking-wide`}>“{note.content}”</p>
+            <p className={`${style.text} text-xl leading-relaxed mb-10 font-medium font-handwriting tracking-wide`}>"{note.content}"</p>
             <div className={`flex items-center justify-between border-t ${style.border} pt-6 mt-auto`}>
               <div className={`flex items-center space-x-5 ${style.icon}`}>
                 <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">

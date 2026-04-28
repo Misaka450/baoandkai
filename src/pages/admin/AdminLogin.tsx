@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { Heart, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Icon from '../../components/icons/Icons'
 
 const AdminLogin: React.FC = () => {
   const [username, setUsername] = useState('')
@@ -35,7 +35,7 @@ const AdminLogin: React.FC = () => {
         {/* 头部 */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl mb-4 shadow-lg shadow-rose-100/50">
-            <Heart className="w-8 h-8 text-rose-500" />
+            <Icon name="favorite" size={32} className="text-rose-500" />
           </div>
           <h1 className="text-2xl font-semibold text-stone-800 mb-2">后台管理</h1>
           <p className="text-stone-500 text-sm">请输入账号密码登录管理后台</p>
@@ -49,7 +49,7 @@ const AdminLogin: React.FC = () => {
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">
-                <User className="w-5 h-5" />
+                <Icon name="person" size={20} className="text-stone-400" />
               </div>
               <input
                 type="text"
@@ -69,7 +69,7 @@ const AdminLogin: React.FC = () => {
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">
-                <Lock className="w-5 h-5" />
+                <Icon name="lock" size={20} className="text-stone-400" />
               </div>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -84,7 +84,7 @@ const AdminLogin: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <Icon name="visibility_off" size={20} /> : <Icon name="visibility" size={20} />}
               </button>
             </div>
           </div>
@@ -107,7 +107,7 @@ const AdminLogin: React.FC = () => {
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Icon name="loading" size={20} className="animate-spin" />
                 登录中...
               </>
             ) : (

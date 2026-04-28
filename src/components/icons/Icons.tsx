@@ -14,7 +14,8 @@ export type IconName =
     | 'map' | 'landscape' | 'east' | 'photo_camera' | 'route' | 'cloud_download' | 'grid_view' | 'bar_chart' | 'menu_open' | 'trending_up' | 'flight_takeoff' | 'flight_land' | 'history' | 'photo' | 'arrow_forward' | 'casino' | 'view_list'
     | 'pause' | 'play_arrow' | 'fullscreen' | 'fullscreen_exit' | 'calendar_today' | 'refresh'
     | 'emoji_events' | 'location_city' | 'timeline' | 'slideshow' | 'whatshot' | 'fastfood'
-    | 'local_cafe' | 'arrow_back' | 'lock_open' | 'show_chart';
+    | 'local_cafe' | 'arrow_back' | 'lock_open' | 'show_chart'
+    | 'visibility' | 'visibility_off' | 'loading';
 
 interface IconProps {
     name: IconName;
@@ -122,6 +123,9 @@ const iconPaths: Record<IconName, string> = {
     arrow_back: "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
     lock_open: "M12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6-9h-8V6c0-1.1.9-2 2-2h4V2h-4c-2.21 0-4 1.79-4 4v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z",
     show_chart: "M3.5 18.49l6-6.01 4 4L22 6.92 20.59 5.5l-7.09 7.1-4-4L2 16.99z",
+    visibility: "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z",
+    visibility_off: "M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z",
+    loading: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z",
 };
 
 export const Icon: React.FC<IconProps> = ({ name, className = "", size = 24, style }) => {
