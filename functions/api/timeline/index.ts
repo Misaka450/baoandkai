@@ -1,5 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
-import { transformImageArray } from '../../utils/url';
+import { transformImageArray, serializeImages } from '../../utils/url';
 import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
@@ -104,7 +104,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       sanitized.location || '',
       sanitized.category || '日常',
       // 统一使用 JSON 数组格式存储图片
-      JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : []))
+      serializeImages(images)
     ).run();
 
     const eventId = result.meta.last_row_id;

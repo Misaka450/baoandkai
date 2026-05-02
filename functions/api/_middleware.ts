@@ -1,6 +1,36 @@
 import { errorResponse } from '../utils/response';
 
 /**
+ * 中间件上下文环境变量
+ */
+interface MiddlewareEnv {
+    DB: D1Database;
+    KV?: KVNamespace;
+    ALLOWED_ORIGINS?: string;
+    ENVIRONMENT?: string;
+}
+
+/**
+ * KV 缓存的用户信息
+ */
+interface CachedUser {
+    id: number;
+    username: string;
+    email: string;
+    token_expires: string;
+}
+
+/**
+ * 中间件上下文类型
+ */
+interface MiddlewareContext {
+    request: Request;
+    env: MiddlewareEnv;
+    next: () => Promise<Response>;
+    data: Record<string, unknown>;
+}
+
+/**
  * 从请求的Cookie中解析指定名称的值
  */
 function getCookieValue(request: Request, name: string): string | null {
@@ -13,7 +43,7 @@ function getCookieValue(request: Request, name: string): string | null {
 /**
  * 全局中间件：处理 CORS、公共路径验证、CSRF防护以及 Token 鉴权逻辑
  */
-export async function onRequest(context: any) {
+export async function onRequest(context: MiddlewareContext) {
     const { request, env, next } = context;
     const url = new URL(request.url);
 
@@ -65,7 +95,7 @@ export async function onRequest(context: any) {
             if (!token) {
                 const authHeader = request.headers.get('Authorization');
                 if (authHeader && authHeader.startsWith('Bearer ')) {
-                    token = authHeader.split(' ')[1];
+                    token = authHeader.split(' ')[1] ?? null;
                 }
             }
 
@@ -92,9 +122,9 @@ export async function onRequest(context: any) {
             }
 
             // 优先从 KV 缓存中获取用户信息
-            let user = null;
+            let user: CachedUser | null = null;
             if (env.KV) {
-                const cached = await env.KV.get(`token:${token}`, { type: 'json' });
+                const cached = await env.KV.get<CachedUser>(`token:${token}`, { type: 'json' });
                 if (cached) {
                     if (new Date(cached.token_expires) > new Date()) {
                         user = cached;
@@ -127,9 +157,9 @@ export async function onRequest(context: any) {
 
             context.data.user = user;
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('中间件认证错误:', err);
-            const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '认证失败';
+            const errorMessage = env.ENVIRONMENT === 'development' ? (err instanceof Error ? err.message : String(err)) : '认证失败';
             return errorResponse('服务器内部错误: ' + errorMessage, 500);
         }
     }
@@ -186,9 +216,9 @@ export async function onRequest(context: any) {
         }
 
         return newResponse;
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('中间件处理错误:', err);
-        const errorMessage = env.ENVIRONMENT === 'development' ? err.message : '请稍后重试';
+        const errorMessage = env.ENVIRONMENT === 'development' ? (err instanceof Error ? err.message : String(err)) : '请稍后重试';
         return errorResponse('服务器内部错误: ' + errorMessage, 500);
     }
 }

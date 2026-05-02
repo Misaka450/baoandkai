@@ -55,6 +55,7 @@ export default function ImageModal({
       openModal()
       return () => closeModal()
     }
+    return undefined
   }, [isOpen])
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl

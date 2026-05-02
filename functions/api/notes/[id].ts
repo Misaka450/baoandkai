@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -61,6 +62,21 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             return errorResponse('笔记不存在', 404);
         }
 
+        // 输入验证（仅验证用户实际传入的字段）
+        const rules: (string | null)[] = []
+        if (content !== undefined) {
+            rules.push(validateRequired(content, '内容'))
+            rules.push(validateLength(content, '内容', 1, 500))
+        }
+        const validationError = validate(rules)
+        if (validationError) return errorResponse(validationError, 400)
+
+        if (content && hasXSS(content)) {
+            return errorResponse('输入内容包含不安全字符', 400)
+        }
+
+        const sanitized = sanitizeObject({ content, color }, [])
+
         await env.DB.prepare(`
       UPDATE notes SET 
         content = ?, 
@@ -68,8 +84,8 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
         updated_at = datetime('now') 
       WHERE id = ?
     `).bind(
-            content !== undefined ? content : currentNote.content,
-            color !== undefined ? color : currentNote.color,
+            content !== undefined ? sanitized.content : currentNote.content,
+            color !== undefined ? sanitized.color : currentNote.color,
             noteId
         ).run();
 

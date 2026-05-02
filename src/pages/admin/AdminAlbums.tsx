@@ -48,7 +48,7 @@ const AdminAlbums = () => {
 
     const loadAlbums = async () => {
         try {
-            const { data, error } = await apiService.get<{ data: Album[] }>('/albums')
+            const { data, error } = await apiService.get<{ data: Album[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/albums')
             if (error) throw new Error(error)
             const albumList = data?.data || []
             setAlbums(albumList)

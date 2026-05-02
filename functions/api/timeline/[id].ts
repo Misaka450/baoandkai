@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
-import { transformImageArray } from '../../utils/url';
+import { transformImageArray, serializeImages } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -68,6 +69,25 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             return errorResponse('事件不存在', 404);
         }
 
+        // 输入验证（仅验证用户实际传入的字段）
+        const rules: (string | null)[] = []
+        if (title !== undefined) {
+            rules.push(validateRequired(title, '标题'))
+            rules.push(validateLength(title, '标题', 1, 100))
+        }
+        if (date !== undefined) {
+            rules.push(validateRequired(date, '日期'))
+            rules.push(validateDate(date, '日期'))
+        }
+        const validationError = validate(rules)
+        if (validationError) return errorResponse(validationError, 400)
+
+        if ((title && hasXSS(title)) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400)
+        }
+
+        const sanitized = sanitizeObject({ title, description, location, category }, ['images'])
+
         await env.DB.prepare(`
       UPDATE timeline_events SET 
         title = ?, 
@@ -79,12 +99,12 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
         updated_at = datetime('now') 
       WHERE id = ?
     `).bind(
-            title !== undefined ? title : currentEvent.title,
-            description !== undefined ? description : currentEvent.description,
+            title !== undefined ? sanitized.title : currentEvent.title,
+            description !== undefined ? sanitized.description : currentEvent.description,
             date !== undefined ? date : currentEvent.date,
-            location !== undefined ? location : currentEvent.location,
-            category !== undefined ? category : currentEvent.category,
-            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : currentEvent.images,
+            location !== undefined ? sanitized.location : currentEvent.location,
+            category !== undefined ? sanitized.category : currentEvent.category,
+            images !== undefined ? serializeImages(images) : currentEvent.images,
             eventId
         ).run();
 

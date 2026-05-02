@@ -16,6 +16,7 @@
 - 📅 **时光轴** - 以时间为序梳理重要里程碑，铭记每一个高光时刻
 - ⏳ **时光胶囊** - 封存美好瞬间，在约定时间开启的惊喜
 - ✅ **甜蜜清单** - 共同完成的生活目标，带状态追踪与精美完成动画
+- 📊 **数据统计** - 后台数据总览，活跃度趋势、分类分布等多维度分析
 - 👨‍💻 **全能后台** - 一站式内容管控中心，支持实时数据预览与系统全局配置
 - 🎨 **极致适配** - 完美适配从手机到 4K 巨屏的各终端设备，提供丝滑的操作体验
 
@@ -43,44 +44,50 @@
 
 ```
 bbkk/
-├── functions/              # Cloudflare Pages Functions 后端函数
-│   ├── api/                # REST API 路由
-│   │   ├── albums/         # 相册管理 API
-│   │   ├── auth/           # 认证 API
-│   │   ├── config/         # 系统配置 API
-│   │   ├── food/           # 美食打卡 API
-│   │   ├── map/            # 地图打卡 API
-│   │   ├── notes/          # 碎碎念 API
-│   │   ├── time-capsules/  # 时光胶囊 API
-│   │   ├── timeline/       # 时光轴 API
-│   │   ├── todos/          # 清单 API
-│   │   ├── upload/         # 文件上传 API
-│   │   └── images/         # 图片访问 API
-│   └── utils/              # 后端工具函数
-│       ├── db.ts           # 数据库连接
-│       ├── response.ts     # 响应封装
-│       └── url.ts          # URL 处理工具
-├── migrations/             # 数据库迁移文件
-├── scripts/                # 数据转换脚本
-├── src/                    # 前端源代码
-│   ├── components/         # React 组件
-│   │   ├── admin/          # 管理后台组件
-│   │   ├── common/         # 通用组件
-│   │   ├── icons/          # 图标组件
-│   │   ├── map/            # 地图相关组件
-│   │   └── ui/             # UI 基础组件
-│   ├── config/             # 前端配置
-│   ├── constants/          # 常量定义
-│   ├── contexts/           # React Context
-│   ├── data/               # 静态数据（省份、城市路径等）
-│   ├── hooks/              # 自定义 Hooks
-│   ├── pages/              # 页面组件
-│   │   └── admin/          # 管理后台页面
-│   ├── services/           # API 服务层
-│   ├── types/              # TypeScript 类型定义
-│   └── utils/              # 工具函数
-├── schema.sql              # 数据库完整结构
-└── wrangler.toml           # Cloudflare 配置
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # GitHub Actions 自动部署配置
+├── functions/               # Cloudflare Pages Functions 后端函数
+│   ├── api/                 # REST API 路由
+│   │   ├── albums/          # 相册管理 API
+│   │   ├── auth/            # 认证 API
+│   │   ├── config/          # 系统配置 API
+│   │   ├── delete/          # 照片删除 API
+│   │   ├── food/            # 美食打卡 API
+│   │   ├── images/          # 图片访问 API
+│   │   ├── map/             # 地图打卡 API
+│   │   ├── notes/           # 碎碎念 API
+│   │   ├── stats/           # 数据统计 API
+│   │   ├── time-capsules/   # 时光胶囊 API
+│   │   ├── timeline/        # 时光轴 API
+│   │   ├── todos/           # 清单 API
+│   │   ├── upload/          # 文件上传 API
+│   │   └── _middleware.ts   # API 中间件（认证/日志）
+│   └── utils/               # 后端工具函数
+│       ├── db.ts            # 数据库连接
+│       ├── response.ts      # 响应封装
+│       ├── url.ts           # URL 处理工具
+│       └── validation.ts    # 数据校验工具
+├── scripts/                 # 运维脚本（R2迁移等）
+├── src/                     # 前端源代码
+│   ├── components/          # React 组件
+│   │   ├── admin/           # 管理后台组件
+│   │   │   └── ui/          # 后台 UI 基础组件
+│   │   ├── common/          # 通用组件（Loading/Error/Empty等）
+│   │   ├── icons/           # 图标组件
+│   │   └── map/             # 地图相关组件（中国地图/省份详情等）
+│   ├── config/              # 前端配置（API/Sentry/性能）
+│   ├── constants/           # 常量定义（动画/API/样式）
+│   ├── contexts/            # React Context（认证状态）
+│   ├── data/                # 静态数据（省份城市路径/地图数据）
+│   ├── hooks/               # 自定义 Hooks
+│   ├── pages/               # 页面组件
+│   │   └── admin/           # 管理后台页面
+│   ├── services/            # API 服务层
+│   ├── types/               # TypeScript 类型定义
+│   └── utils/               # 工具函数
+├── schema.sql               # 数据库完整结构定义
+└── index.html               # 入口 HTML
 ```
 
 ---
@@ -97,43 +104,46 @@ cd baoandkai
 # 安装依赖
 npm install
 
-# 启动开发服务器（前端 + 后端）
+# 启动前端开发服务器（端口 3000）
 npm run dev
-npm run dev:wrangler  # 可选：启动本地 Wrangler 后端
+
+# 启动本地 Wrangler 后端（端口 8788，需另开终端）
+npm run dev:wrangler
 ```
 
-> **提示**: 开发环境通过 Vite 代理将 `/api` 请求转发到本地 Wrangler (端口 8788)。
+> **提示**: 开发环境通过 Vite 代理将 `/api` 请求自动转发到本地 Wrangler (端口 8788)，两个服务需同时运行。
 
 ### 2. 环境变量配置
 
 复制环境变量模板并配置：
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
 关键配置项说明：
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
-| `JWT_SECRET` | JWT 签名密钥 | `your-secret-key` |
+| `VITE_SENTRY_DSN` | Sentry 错误监控 DSN | `https://xxx@sentry.io/123` |
+| `ADMIN_TOKEN` | 管理员令牌（生产环境使用） | `your-secure-token` |
+| `DEFAULT_PASSWORD_HASH` | 默认密码哈希（bcrypt） | `$2a$10$...` |
 | `ENVIRONMENT` | 环境标识 | `production` / `development` |
-| `IMAGE_BASE_URL` | 图片 CDN 基础 URL | `https://img.xxx.com` |
+| `ALLOWED_ORIGINS` | 允许的 CORS 来源 | `https://baoandkai.pages.dev` |
 
-> **安全提醒**: `.env.production` 中的敏感信息仅用于构建时注入，生产环境请在 Cloudflare Pages 控制台配置。
+> **安全提醒**: 敏感信息请勿提交到仓库，生产环境请在 Cloudflare Pages 控制台配置环境变量。
 
 ### 3. 数据库初始化
 
 ```bash
-# 初始化本地数据库
+# 初始化本地数据库（使用 schema.sql）
+npx wrangler d1 execute oursql --file=./schema.sql
+
+# 或使用快捷命令
 npm run db:init
-
-# 执行迁移
-npm run db:migrate
-
-# 或一键完成（包含初始化+迁移）
-npm run setup-db
 ```
+
+> **注意**: 本地开发时 Wrangler 会自动在 `.wrangler_local/` 目录下创建 SQLite 数据库文件。
 
 ### 4. 云端部署（Cloudflare Pages）
 
@@ -142,12 +152,15 @@ npm run setup-db
    - 创建 **D1** 数据库并记录 ID
    - 创建 **R2** 存储桶并记录名称
    - 创建 **KV** 命名空间并记录 ID
-3. **更新 `wrangler.toml`** 中的资源绑定配置
+3. **在 Cloudflare Pages 控制台绑定资源**:
+   - D1 数据库绑定名为 `DB`
+   - R2 存储桶绑定名为 `BUCKET`
+   - KV 命名空间绑定名为 `KV`
 4. **配置环境变量** 在 Pages 设置中添加：
-   - `JWT_SECRET`
+   - `ADMIN_TOKEN`
    - `ENVIRONMENT = "production"`
-   - `IMAGE_BASE_URL`
-5. **触发部署** 推送到 `main` 分支即可自动部署
+   - `ALLOWED_ORIGINS`
+5. **触发部署** 推送到 `master` 分支即可自动部署（通过 GitHub Actions）
 
 ---
 
@@ -169,13 +182,22 @@ npm run setup-db
 | GET/PUT/DELETE | `/api/albums/:id` | 单个相册操作 |
 | GET/POST | `/api/albums/:id/photos` | 获取/添加照片 |
 | PUT | `/api/albums/:id/photos/reorder` | 照片排序 |
+| GET/DELETE | `/api/albums/:id/photos/:photoId` | 单张照片操作 |
 | GET/POST | `/api/timeline` | 获取/创建时间轴事件 |
+| GET/PUT/DELETE | `/api/timeline/:id` | 单个时间轴事件操作 |
 | GET/POST | `/api/food` | 获取/创建美食打卡 |
+| GET/PUT/DELETE | `/api/food/:id` | 单个美食打卡操作 |
+| PUT | `/api/food/reorder` | 美食打卡排序 |
 | GET/POST | `/api/todos` | 获取/创建待办事项 |
+| GET/PUT/DELETE | `/api/todos/:id` | 单个待办事项操作 |
 | GET/POST | `/api/notes` | 获取/创建便签 |
+| GET/PUT/DELETE | `/api/notes/:id` | 单个便签操作 |
 | GET/POST | `/api/map` | 获取/创建地图打卡 |
+| GET/PUT/DELETE | `/api/map/:id` | 单个地图打卡操作 |
 | GET/POST | `/api/time-capsules` | 获取/创建时光胶囊 |
+| GET/PUT/DELETE | `/api/time-capsules/:id` | 单个时光胶囊操作 |
 | GET/POST | `/api/config` | 获取/更新系统配置 |
+| GET | `/api/stats` | 获取数据统计总览 |
 
 ### 文件操作
 
@@ -183,6 +205,8 @@ npm run setup-db
 |------|------|------|
 | POST | `/api/upload` | 上传文件到 R2 |
 | DELETE | `/api/upload/delete` | 删除 R2 中的文件 |
+| DELETE | `/api/delete/photo` | 删除照片（含数据库记录） |
+| GET | `/api/images/*` | 访问 R2 中的图片 |
 
 ---
 
@@ -214,14 +238,15 @@ npm run setup-db
 - ⚡ **Vite 构建优化**: 极致缩小产物包体积（约 **61%** 的降幅），提升首屏加载速度
 - 🗺️ **足迹地图**: 全新可视化足迹地图，支持省市级下钻，动态展示旅行轨迹与打卡记录
 - 🖼️ **高性能画廊**: 深度优化的图片加载策略（缩略图/原图渐进式加载），支持全屏沉浸式浏览与手势缩放
+- 📊 **数据统计面板**: 后台新增数据总览、月度活跃度趋势、菜系/省份/分类分布等多维度分析
 - 🛡️ **全面 TypeScript**: 全量迁移至 .tsx，提供更稳健的类型检查和工程可靠性
 - 🌏 **全站中文化**: 管理后台（Admin UI）已完全汉化，提供更亲切的使用体验
 - 📸 **功能增强**: 相册、美食打卡、时间轴及心愿清单全面支持图片上传与管理
-- 🗄️ **数据库同步**: 生产环境数据库结构已自动适配，确保线上线下功能完全一致
+- 🗑️ **完整 CRUD**: 所有核心资源均支持完整的增删改查操作，包含单条记录的 GET/PUT/DELETE
 - 🧼 **代码规范化**: 统一错误处理（ErrorBoundary）与加载动画（LoadingSpinner），修复冗余路由，确保代码整洁
 - 🎨 **智能媒体处理**: 优化前端图片预压缩流程，显著降低存储带宽占用
-- 🔐 **安全加固**: JWT 认证、密码 bcrypt 加密、XSS 防护等安全措施
-- 🚀 **Node 24 就绪**: GitHub Actions 已配置 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` 环境变量，确保在 Node.js 20 停用前完成迁移
+- 🔐 **安全加固**: JWT 认证、密码 bcrypt 加密、CORS 来源控制、XSS 防护等安全措施
+- 🚀 **GitHub Actions 自动部署**: 推送到 `master` 分支自动触发 Cloudflare Pages 部署，Node 24 就绪
 
 ---
 
@@ -240,19 +265,19 @@ npm run setup-db
 
 ### 表结构总览
 
-| 表名 | 说明 | 记录数 |
+| 表名 | 说明 | 索引数 |
 |------|------|--------|
 | `users` | 用户信息与认证 | 1 |
-| `albums` | 相册列表 | 4 |
-| `photos` | 照片记录 | 29 |
-| `timeline_events` | 时间轴事件 | 11 |
+| `albums` | 相册列表 | 2 |
+| `photos` | 照片记录 | 3 |
+| `timeline_events` | 时间轴事件 | 3 |
 | `food_checkins` | 美食打卡 | 4 |
-| `notes` | 便签/碎碎念 | - |
-| `todos` | 待办事项 | - |
-| `map_checkins` | 地图打卡 | - |
-| `time_capsules` | 时光胶囊 | - |
-| `diaries` | 日记 | 1 |
-| `settings` | 系统配置 | - |
+| `notes` | 便签/碎碎念 | 2 |
+| `settings` | 系统配置 | 1 |
+| `todos` | 待办事项 | 5 |
+| `map_checkins` | 地图打卡 | 3 |
+| `time_capsules` | 时光胶囊 | 2 |
+| `diaries` | 日记 | 3 |
 
 ---
 
@@ -289,11 +314,13 @@ npm run setup-db
 ## 🌟 技术亮点
 
 1. **边缘计算架构** - 利用 Cloudflare 全球边缘网络，实现低延迟访问
-2. **懒加载策略** - 页面组件按需加载，首屏加载时间大幅缩短
-3. **代码分割** - Vite 自动分包，主流浏览器仅加载所需代码
+2. **懒加载策略** - 页面组件按需加载，首页渲染后自动预加载常用路由
+3. **代码分割** - Vite 手动分包（vendor/query/animation/utils），主流浏览器仅加载所需代码
 4. **本地缓存** - React Query 多层缓存策略，减少不必要的 API 请求
 5. **渐进式图片** - 支持 srcset/sizes + 懒加载 + 模糊占位，提供流畅体验
-6. **实时统计** - React Query 的后台刷新确保数据新鲜度
+6. **实时统计** - 后台数据面板并行查询，React Query 后台刷新确保数据新鲜度
+7. **路由预加载** - 使用 `requestIdleCallback` 在浏览器空闲时预加载常用页面模块
+8. **构建优化** - Terser 压缩 + 去除 console/debugger + Rollup 包体积可视化分析
 
 ---
 
@@ -310,7 +337,7 @@ npm run setup-db
 ---
 
 <div align="center">
-  <p>🚀 <strong>项目状态: 运行稳定 | 优化完成 ✅</strong></p>
+  <p>🚀 <strong>项目状态: 运行稳定 | 持续迭代中 ✅</strong></p>
   <p>💖 <em>让每一个瞬间都值得被铭记</em> 💖</p>
   <p>
     <a href="https://baoandkai.pages.dev">演示站点</a> ·

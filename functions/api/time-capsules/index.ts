@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response'
+import { parsePagination, buildPaginatedResponse } from '../../utils/pagination'
 
 export interface Env {
     DB: D1Database
@@ -17,18 +18,24 @@ interface TimeCapsule {
 
 /**
  * GET /api/time-capsules
- * 获取所有时间胶囊（认证由中间件处理）
+ * 获取时间胶囊列表（支持分页，认证由中间件处理）
  */
-export async function onRequestGet(context: { env: Env }): Promise<Response> {
-    const { env } = context
+export async function onRequestGet(context: { env: Env; request: Request }): Promise<Response> {
+    const { env, request } = context
 
     try {
-        // 查询所有时间胶囊，按解锁日期升序排列
+        const url = new URL(request.url)
+        const pagination = parsePagination(url)
+
+        const countResult = await env.DB.prepare('SELECT COUNT(*) as total FROM time_capsules').first<{ total: number }>()
+        const total = countResult?.total || 0
+
         const result = await env.DB.prepare(`
             SELECT id, title, message, unlock_date, is_unlocked, created_by, created_at, updated_at
             FROM time_capsules
             ORDER BY unlock_date ASC
-        `).all<TimeCapsule>()
+            LIMIT ? OFFSET ?
+        `).bind(pagination.pageSize, pagination.offset).all<TimeCapsule>()
 
         const capsules = result.results || []
 
@@ -36,7 +43,6 @@ export async function onRequestGet(context: { env: Env }): Promise<Response> {
         const now = new Date().toISOString().split('T')[0] || ''
         const toUnlock = capsules.filter(c => c.unlock_date <= now && c.is_unlocked === 0)
 
-        // 使用批量更新优化，避免逐条执行
         if (toUnlock.length > 0) {
             const statements = toUnlock.map(c =>
                 env.DB.prepare(`
@@ -47,11 +53,10 @@ export async function onRequestGet(context: { env: Env }): Promise<Response> {
             )
             await env.DB.batch(statements)
 
-            // 更新内存中的数据
             toUnlock.forEach(c => { c.is_unlocked = 1 })
         }
 
-        return jsonResponse({ data: capsules })
+        return jsonResponse(buildPaginatedResponse(capsules, total, pagination))
     } catch (error: any) {
         console.error('获取时间胶囊失败:', error)
         return errorResponse('获取时间胶囊失败: ' + error.message, 500)

@@ -11,9 +11,12 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 interface AlbumsResponse {
   data: Album[]
-  totalPages: number
-  totalCount: number
-  currentPage: number
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
 }
 
 type SortOption = 'newest' | 'oldest' | 'name' | 'photos'
@@ -31,7 +34,7 @@ export default function Albums() {
   const { data: albumsData, isLoading: loading } = useQuery({
     queryKey: ['albums', currentPage, itemsPerPage],
     queryFn: async () => {
-      const { data, error } = await apiService.get<AlbumsResponse>(`/albums?page=${currentPage}&limit=${itemsPerPage}`)
+      const { data, error } = await apiService.get<AlbumsResponse>(`/albums?page=${currentPage}&pageSize=${itemsPerPage}`)
       if (error) throw new Error(error)
       return data
     }

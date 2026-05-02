@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
-import { transformImageArray } from '../../utils/url';
+import { transformImageArray, serializeImages } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -40,6 +41,25 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             return errorResponse('记录不存在', 404);
         }
 
+        // 输入验证（仅验证用户实际传入的字段）
+        const rules: (string | null)[] = []
+        if (title !== undefined) {
+            rules.push(validateRequired(title, '标题'))
+            rules.push(validateLength(title, '标题', 1, 100))
+        }
+        if (date !== undefined) {
+            rules.push(validateRequired(date, '日期'))
+            rules.push(validateDate(date, '日期'))
+        }
+        const validationError = validate(rules)
+        if (validationError) return errorResponse(validationError, 400)
+
+        if ((title && hasXSS(title)) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400)
+        }
+
+        const sanitized = sanitizeObject({ title, description, province, city }, ['images'])
+
         await env.DB.prepare(`
       UPDATE map_checkins SET
         title = ?,
@@ -51,12 +71,12 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-            title !== undefined ? title : current.title,
-            description !== undefined ? description : current.description,
-            province !== undefined ? province : current.province,
-            city !== undefined ? city : current.city,
+            title !== undefined ? sanitized.title : current.title,
+            description !== undefined ? sanitized.description : current.description,
+            province !== undefined ? sanitized.province : current.province,
+            city !== undefined ? sanitized.city : current.city,
             date !== undefined ? date : current.date,
-            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : current.images,
+            images !== undefined ? serializeImages(images) : current.images,
             checkinId
         ).run();
 

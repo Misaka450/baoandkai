@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageUrl } from '../../utils/url';
+import { parsePagination, buildPaginatedResponse } from '../../utils/pagination';
 
 export interface Env {
     DB: D1Database;
@@ -19,12 +20,17 @@ interface Photo {
     sort_order: number;
 }
 
-// 使用子查询一次性获取相册列表+封面+照片数，避免N+1查询
-export async function onRequestGet(context: { env: Env }) {
-    const { env } = context;
+// 使用子查询一次性获取相册列表+封面+照片数，避免N+1查询，支持分页
+export async function onRequestGet(context: { env: Env; request: Request }) {
+    const { env, request } = context;
 
     try {
-        // 一次查询获取所有相册及其封面和照片数（使用子查询替代N+1查询）
+        const url = new URL(request.url);
+        const pagination = parsePagination(url);
+
+        const countResult = await env.DB.prepare('SELECT COUNT(*) as total FROM albums').first<{ total: number }>();
+        const total = countResult?.total || 0;
+
         const albums = await env.DB.prepare(`
             SELECT 
                 a.*,
@@ -32,7 +38,8 @@ export async function onRequestGet(context: { env: Env }) {
                 (SELECT COUNT(*) FROM photos WHERE album_id = a.id) AS photo_count
             FROM albums a
             ORDER BY a.id DESC
-        `).all<Album & { cover_url: string | null; photo_count: number }>();
+            LIMIT ? OFFSET ?
+        `).bind(pagination.pageSize, pagination.offset).all<Album & { cover_url: string | null; photo_count: number }>();
 
         const albumsWithPhotos = albums.results.map(album => ({
             ...album,
@@ -45,10 +52,7 @@ export async function onRequestGet(context: { env: Env }) {
             }] : []
         }));
 
-        return jsonResponse({
-            data: albumsWithPhotos,
-            count: albums.results.length
-        });
+        return jsonResponse(buildPaginatedResponse(albumsWithPhotos, total, pagination));
     } catch (error: any) {
         return errorResponse(error.message, 500);
     }

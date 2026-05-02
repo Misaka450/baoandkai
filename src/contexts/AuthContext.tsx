@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { getCookieValue, deleteCookie } from '../utils/cookie'
 
 interface User {
   username?: string
@@ -20,21 +21,6 @@ interface AuthProviderProps {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-/**
- * 从浏览器Cookie中读取指定名称的值
- */
-function getCookieValue(name: string): string | null {
-  const match = document.cookie.split(';').find(c => c.trim().startsWith(`${name}=`))
-  return match ? match.split('=').slice(1).join('=').trim() : null
-}
-
-/**
- * 删除指定Cookie
- */
-function deleteCookie(name: string): void {
-  document.cookie = `${name}=; Max-Age=0; Path=/; Secure; SameSite=Strict`
-}
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)

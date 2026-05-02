@@ -1,4 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { serializeImages } from '../../utils/url';
+import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -73,6 +75,21 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             return errorResponse('任务不存在', 404);
         }
 
+        // 输入验证（仅验证用户实际传入的字段）
+        const rules: (string | null)[] = []
+        if (title !== undefined) {
+            rules.push(validateRequired(title, '待办标题'))
+            rules.push(validateLength(title, '待办标题', 1, 100))
+        }
+        const validationError = validate(rules)
+        if (validationError) return errorResponse(validationError, 400)
+
+        if ((title && hasXSS(title)) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400)
+        }
+
+        const sanitized = sanitizeObject({ title, description, category, completion_notes }, ['images', 'completion_photos'])
+
         const result = await env.DB.prepare(`
       UPDATE todos SET 
         title = ?, 
@@ -87,15 +104,15 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
         updated_at = datetime('now') 
       WHERE id = ?
     `).bind(
-            title !== undefined ? title : currentTodo.title,
-            description !== undefined ? description : currentTodo.description,
+            title !== undefined ? sanitized.title : currentTodo.title,
+            description !== undefined ? sanitized.description : currentTodo.description,
             status !== undefined ? status : currentTodo.status,
             priority !== undefined ? priority : currentTodo.priority,
-            category !== undefined ? category : currentTodo.category,
+            category !== undefined ? sanitized.category : currentTodo.category,
             due_date !== undefined ? due_date : currentTodo.due_date,
-            completion_notes !== undefined ? completion_notes : currentTodo.completion_notes,
-            completion_photos !== undefined ? JSON.stringify(completion_photos) : currentTodo.completion_photos,
-            images !== undefined ? JSON.stringify(images) : currentTodo.images,
+            completion_notes !== undefined ? sanitized.completion_notes : currentTodo.completion_notes,
+            completion_photos !== undefined ? serializeImages(completion_photos) : currentTodo.completion_photos,
+            images !== undefined ? serializeImages(images) : currentTodo.images,
             todoId
         ).run();
 

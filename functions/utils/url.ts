@@ -47,6 +47,23 @@ export function transformImageUrl(url: string | null | undefined): string {
 }
 
 /**
+ * 将图片数据序列化为 JSON 字符串（统一入库格式）
+ * 支持数组、逗号分隔字符串、空值等输入格式
+ * @param images 图片数据
+ * @returns JSON 字符串格式的图片数组
+ */
+export function serializeImages(images: unknown): string {
+    if (!images) return '[]'
+    if (Array.isArray(images)) return JSON.stringify(images)
+    if (typeof images === 'string') {
+        const trimmed = images.trim()
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) return trimmed
+        return JSON.stringify(trimmed.split(',').filter(Boolean))
+    }
+    return '[]'
+}
+
+/**
  * 转换图片数组或可能是 JSON 字符串的数据
  * @param images 图片数据
  * @returns 转换后的图片数组

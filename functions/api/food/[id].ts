@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
-import { transformImageArray } from '../../utils/url';
+import { transformImageArray, serializeImages } from '../../utils/url';
+import { validate, validateRequired, validateLength, validateDate, validateRating, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -89,6 +90,31 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             return errorResponse('记录不存在', 404);
         }
 
+        // 输入验证（仅验证用户实际传入的字段）
+        const rules: (string | null)[] = []
+        if (restaurant_name !== undefined) {
+            rules.push(validateRequired(restaurant_name, '餐厅名称'))
+            rules.push(validateLength(restaurant_name, '餐厅名称', 1, 100))
+        }
+        if (date !== undefined) {
+            rules.push(validateRequired(date, '日期'))
+            rules.push(validateDate(date, '日期'))
+        }
+        if (overall_rating !== undefined) {
+            rules.push(validateRating(Number(overall_rating), '综合评分'))
+        }
+        const validationError = validate(rules)
+        if (validationError) return errorResponse(validationError, 400)
+
+        if ((restaurant_name && hasXSS(restaurant_name)) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400)
+        }
+
+        const sanitized = sanitizeObject(
+            { restaurant_name, description, address, cuisine, price_range, recommended_dishes },
+            ['images']
+        )
+
         await env.DB.prepare(`
             UPDATE food_checkins SET 
                 restaurant_name = ?, 
@@ -106,18 +132,18 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
                 updated_at = datetime('now') 
             WHERE id = ?
         `).bind(
-            restaurant_name !== undefined ? restaurant_name : currentFood.restaurant_name,
-            description !== undefined ? description : currentFood.description,
+            restaurant_name !== undefined ? sanitized.restaurant_name : currentFood.restaurant_name,
+            description !== undefined ? sanitized.description : currentFood.description,
             date !== undefined ? date : currentFood.date,
-            address !== undefined ? address : currentFood.address,
-            cuisine !== undefined ? cuisine : currentFood.cuisine,
-            price_range !== undefined ? price_range : currentFood.price_range,
+            address !== undefined ? sanitized.address : currentFood.address,
+            cuisine !== undefined ? sanitized.cuisine : currentFood.cuisine,
+            price_range !== undefined ? sanitized.price_range : currentFood.price_range,
             overall_rating !== undefined ? overall_rating : currentFood.overall_rating,
             taste_rating !== undefined ? taste_rating : currentFood.taste_rating,
             environment_rating !== undefined ? environment_rating : currentFood.environment_rating,
             service_rating !== undefined ? service_rating : currentFood.service_rating,
-            recommended_dishes !== undefined ? (Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes) : currentFood.recommended_dishes,
-            images !== undefined ? JSON.stringify(Array.isArray(images) ? images : (typeof images === 'string' && images ? images.split(',').filter(Boolean) : [])) : currentFood.images,
+            recommended_dishes !== undefined ? (Array.isArray(sanitized.recommended_dishes) ? sanitized.recommended_dishes.join(',') : sanitized.recommended_dishes) : currentFood.recommended_dishes,
+            images !== undefined ? serializeImages(images) : currentFood.images,
             foodId
         ).run();
 

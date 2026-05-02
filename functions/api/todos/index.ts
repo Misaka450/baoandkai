@@ -1,5 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
-import { transformImageArray } from '../../utils/url';
+import { transformImageArray, serializeImages } from '../../utils/url';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
@@ -101,8 +101,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       sanitized.category || 'general',
       due_date || null,
       sanitized.completion_notes || null,
-      completion_photos ? JSON.stringify(completion_photos) : null,
-      images ? JSON.stringify(images) : null
+      completion_photos ? serializeImages(completion_photos) : null,
+      images ? serializeImages(images) : null
     ).run();
 
     const todoId = result.meta.last_row_id;

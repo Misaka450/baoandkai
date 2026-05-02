@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react"
 import { API_BASE } from '../config/api'
+import { getCookieValue } from '../utils/cookie'
 
 import { ApiResponse, Note, Todo, Album, TimelineEvent, MapCheckin } from '../types'
 
@@ -10,14 +11,6 @@ interface RequestConfig extends Omit<RequestInit, 'signal'> {
     headers?: Record<string, string>
     signal?: AbortSignal
     timeout?: number // 超时时间（毫秒）
-}
-
-/**
- * 从浏览器Cookie中读取指定名称的值
- */
-function getCookieValue(name: string): string | null {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith(`${name}=`))
-    return match ? match.split('=').slice(1).join('=').trim() : null
 }
 
 /**
@@ -345,7 +338,7 @@ export const todosService = {
 
 export const albumsService = {
     async getAll() {
-        return apiService.get<{ data: Album[] }>('/albums')
+        return apiService.get<{ data: Album[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/albums')
     },
 
     async getById(id: string) {
@@ -394,7 +387,7 @@ export function createAbortController(): AbortController {
 export const mapService = {
     async getAll(province?: string) {
         const query = province ? `?province=${encodeURIComponent(province)}` : ''
-        return apiService.get<{ data: MapCheckin[] }>(`/map${query}`)
+        return apiService.get<{ data: MapCheckin[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/map${query}`)
     },
 
     async create(checkin: Omit<MapCheckin, 'id'>) {
@@ -423,7 +416,7 @@ export interface TimeCapsuleData {
 
 export const timeCapsuleService = {
     async getAll() {
-        return apiService.get<{ data: TimeCapsuleData[] }>('/time-capsules')
+        return apiService.get<{ data: TimeCapsuleData[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/time-capsules')
     },
 
     async create(capsule: Omit<TimeCapsuleData, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'is_unlocked'>) {

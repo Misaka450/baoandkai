@@ -210,7 +210,7 @@ CREATE INDEX IF NOT EXISTS idx_capsule_unlock_date ON time_capsules(unlock_date)
 CREATE INDEX IF NOT EXISTS idx_capsule_is_unlocked ON time_capsules(is_unlocked);
 
 -- -------------------------------------------------------
--- 11. 日记表
+-- 11. 日记表 [已弃用] - 该功能已移除，表保留用于数据兼容
 -- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS diaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS diaries (
   updated_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
--- 日记查询优化索引
+-- 日记查询优化索引 [已弃用]
 CREATE INDEX IF NOT EXISTS idx_diary_date ON diaries(date);
 CREATE INDEX IF NOT EXISTS idx_diary_mood ON diaries(mood);
 CREATE INDEX IF NOT EXISTS idx_diary_created_at ON diaries(created_at);
@@ -280,6 +280,7 @@ CREATE TRIGGER IF NOT EXISTS tr_capsule_updated
     UPDATE time_capsules SET updated_at = datetime('now', 'localtime') WHERE id = NEW.id;
   END;
 
+-- 日记更新触发器 [已弃用]
 CREATE TRIGGER IF NOT EXISTS tr_diary_updated
   AFTER UPDATE ON diaries
   BEGIN
