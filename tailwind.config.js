@@ -41,6 +41,10 @@ export default {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'fade-in-up': 'fadeInUp 0.5s ease-out',
+        'elastic': 'elasticPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        'shimmer': 'shimmer 2s infinite linear',
+        'shake': 'shake 0.5s ease-in-out',
+        'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         float: {
@@ -64,6 +68,24 @@ export default {
           from: { opacity: '0', transform: 'translateY(15px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        elasticPop: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-5px)' },
+          '75%': { transform: 'translateX(5px)' },
+        },
+        scaleIn: {
+          from: { opacity: '0', transform: 'scale(0.9)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
       },
     },
   },
@@ -72,6 +94,7 @@ export default {
     'bg-morandi-pink', 'bg-morandi-yellow', 'bg-morandi-blue', 'bg-morandi-purple', 'bg-morandi-green', 'bg-morandi-rose',
     'animate-float', 'animate-heart-pop',
     'animate-fade-in', 'animate-slide-up', 'animate-fade-in-up',
+    'animate-elastic', 'animate-shimmer', 'animate-shake', 'animate-scale-in',
     'rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]'
   ],
   plugins: [],

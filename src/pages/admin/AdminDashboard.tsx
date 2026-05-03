@@ -12,7 +12,7 @@ export default function AdminDashboard() {
     const stats = statsResponse?.data
 
     if (isLoading) return <DashboardSkeleton />
-    if (error) return <div className="text-center py-20 text-[#C9ADA7]">数据加载失败，请刷新重试</div>
+    if (error) return <div className="text-center py-20 text-primary">数据加载失败，请刷新重试</div>
     if (!stats) return null
 
     const completionRate = stats.overview.todos > 0
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
             {/* 活跃度趋势 + 分布 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 月度活跃度趋势图 */}
-                <section className="lg:col-span-2 [background:F7F3F0] rounded-2xl p-6 border border-[#E8E0DB]">
+                <section className="lg:col-span-2 bg-[#F7F3F0] rounded-2xl p-6 border border-stone-200">
                     <SectionTitle icon="show_chart" text="月度活跃度趋势" />
                     <ActivityChart data={stats.activityTrend} />
                 </section>
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                 {/* 右侧分布信息 */}
                 <div className="space-y-6">
                     {stats.cuisineDistribution.length > 0 && (
-                        <section className="[background:F7F3F0] rounded-2xl p-6 border border-[#E8E0DB]">
+                        <section className="bg-[#F7F3F0] rounded-2xl p-6 border border-stone-200">
                             <SectionTitle icon="restaurant" text="菜系分布" color="#FFB344" />
                             <DistributionList
                                 items={stats.cuisineDistribution}
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
                     )}
 
                     {stats.provinceDistribution.length > 0 && (
-                        <section className="[background:F7F3F0] rounded-2xl p-6 border border-[#E8E0DB]">
+                        <section className="bg-[#F7F3F0] rounded-2xl p-6 border border-stone-200">
                             <SectionTitle icon="map" text="足迹分布" color="#6BCB77" />
                             <DistributionList
                                 items={stats.provinceDistribution}
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
 // 区块标题
 function SectionTitle({ icon, text, color = '#C9ADA7' }: { icon: IconName; text: string; color?: string }) {
     return (
-        <h3 className="text-base font-bold text-[#4A4E69] mb-4 flex items-center gap-2">
+        <h3 className="text-base font-bold text-background-dark mb-4 flex items-center gap-2">
             <Icon name={icon} size={18} style={{ color }} />
             {text}
         </h3>
@@ -115,7 +115,7 @@ function DataCard({ value, label, icon, color, delay }: {
 }) {
     return (
         <div
-            className="[background:F7F3F0] rounded-2xl p-5 border border-[#E8E0DB] flex items-center gap-4 opacity-0"
+            className="bg-[#F7F3F0] rounded-2xl p-5 border border-stone-200 flex items-center gap-4 opacity-0"
             style={{
                 animation: `fadeInUp 0.4s ease-out ${delay}s forwards`,
                 background: '#F7F3F0',
@@ -128,8 +128,8 @@ function DataCard({ value, label, icon, color, delay }: {
                 <Icon name={icon as IconName} size={22} style={{ color }} />
             </div>
             <div className="min-w-0">
-                <div className="text-2xl font-black text-[#4A4E69] leading-tight">{value}</div>
-                <div className="text-xs text-[#9A9EAB] font-medium mt-0.5">{label}</div>
+                <div className="text-2xl font-black text-background-dark leading-tight">{value}</div>
+                <div className="text-xs text-secondary font-medium mt-0.5">{label}</div>
             </div>
         </div>
     )
@@ -166,7 +166,7 @@ function MetricCard({ icon, label, value, sub, gradient }: {
 function ActivityChart({ data }: { data: Record<string, { timeline: number; food: number; map: number; total: number }> }) {
     const months = Object.keys(data).sort()
     if (months.length === 0) {
-        return <div className="text-center text-[#9A9EAB] py-10 text-sm">暂无活跃度数据</div>
+        return <div className="text-center text-secondary py-10 text-sm">暂无活跃度数据</div>
     }
 
     const maxTotal = Math.max(...months.map(m => data[m]?.total || 0), 1)
@@ -179,7 +179,7 @@ function ActivityChart({ data }: { data: Record<string, { timeline: number; food
     return (
         <div className="space-y-3">
             {/* 图例 - 莫兰迪色 */}
-            <div className="flex items-center gap-4 text-xs text-[#9A9EAB]">
+            <div className="flex items-center gap-4 text-xs text-secondary">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#FFB344] inline-block"></span>时间轴</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#6BCB77] inline-block"></span>美食</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#6BBFFF] inline-block"></span>足迹</span>
@@ -211,7 +211,7 @@ function ActivityChart({ data }: { data: Record<string, { timeline: number; food
                                 {timelineH > 0 && <div className="w-full rounded-b-sm" style={{ height: `${timelineH}%`, backgroundColor: '#FFB344' }}></div>}
                             </div>
 
-                            <span className="text-[10px] text-[#9A9EAB] truncate w-full text-center">{formatMonth(month)}</span>
+                            <span className="text-[10px] text-secondary truncate w-full text-center">{formatMonth(month)}</span>
                         </div>
                     )
                 })}
@@ -238,14 +238,14 @@ function DistributionList({ items, field, colorMap }: {
 
                 return (
                     <div key={idx} className="flex items-center gap-3">
-                        <span className="text-xs text-[#4A4E69] w-14 truncate flex-shrink-0 font-medium">{name}</span>
+                        <span className="text-xs text-background-dark w-14 truncate flex-shrink-0 font-medium">{name}</span>
                         <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDE8E4' }}>
                             <div
                                 className="h-full rounded-full transition-all duration-500"
                                 style={{ width: `${percent}%`, backgroundColor: barColor }}
                             ></div>
                         </div>
-                        <span className="text-xs text-[#9A9EAB] w-8 text-right flex-shrink-0">{item.count}</span>
+                        <span className="text-xs text-secondary w-8 text-right flex-shrink-0">{item.count}</span>
                     </div>
                 )
             })}
