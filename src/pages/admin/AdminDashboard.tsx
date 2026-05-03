@@ -147,8 +147,8 @@ function MetricCard({ icon, label, value, sub, gradient }: {
 
     return (
         <div
-            className="rounded-2xl p-5 flex items-center gap-4 text-white border border-white/10"
-            style={{ background: `linear-gradient(135deg, ${fromColor}CC, ${toColor}CC)` }}
+            className="rounded-2xl p-5 flex items-center gap-4 text-white border border-white/20 shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${fromColor}, ${toColor})` }}
         >
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Icon name={icon as IconName} size={24} />
