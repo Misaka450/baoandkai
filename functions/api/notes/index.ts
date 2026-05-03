@@ -1,5 +1,6 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
+import { parsePagination, buildPaginatedResponse } from '../../utils/pagination';
 
 export interface Env {
   DB: D1Database;
@@ -24,32 +25,23 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
   const { env, request } = context;
 
   try {
-    // 获取分页参数
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const limit = parseInt(url.searchParams.get('limit') || '20', 10);
-    const offset = (page - 1) * limit;
+    const pagination = parsePagination(url);
 
     // 获取总数
     const countResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM notes
     `).first<{ total: number }>();
     const total = countResult?.total || 0;
-    const totalPages = Math.ceil(total / limit);
 
     // 获取分页数据
     const notes = await env.DB.prepare(`
       SELECT * FROM notes 
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all<Note>();
+    `).bind(pagination.pageSize, pagination.offset).all<Note>();
 
-    return jsonResponse({
-      data: notes.results || [],
-      totalCount: total,
-      totalPages,
-      currentPage: page
-    });
+    return jsonResponse(buildPaginatedResponse(notes.results || [], total, pagination));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';
     return errorResponse(message, 500);

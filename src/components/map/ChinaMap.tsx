@@ -66,6 +66,9 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     const tooltipRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const svgRef = useRef<SVGSVGElement>(null)
+    // 用 ref 存储拖拽状态和 tooltip 数据，避免 handleMouseMove 闭包过期
+    const isDraggingRef = useRef(false)
+    const tooltipDataRef = useRef<{ name: string; count: number } | null>(null)
 
     // 统计每个省份的打卡数量
     const provinceCheckinCounts = useMemo(() => {
@@ -91,26 +94,28 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         setIsDragging(true)
+        isDraggingRef.current = true
         dragStart.current = { x: e.clientX - translate.x, y: e.clientY - translate.y }
     }, [translate])
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        // 拖拽逻辑
-        if (isDragging) {
+        // 拖拽逻辑（使用 ref 避免闭包过期）
+        if (isDraggingRef.current) {
             e.preventDefault()
             setTranslate({
                 x: e.clientX - dragStart.current.x,
                 y: e.clientY - dragStart.current.y
             })
         }
-        // tooltip 位置更新
-        if (tooltipRef.current && tooltipData) {
+        // tooltip 位置更新（使用 ref 避免闭包过期）
+        if (tooltipRef.current && tooltipDataRef.current) {
             updateTooltipPosition(e)
         }
-    }, [isDragging])
+    }, [])
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false)
+        isDraggingRef.current = false
     }, [])
 
     const handleReset = useCallback(() => {
@@ -141,10 +146,12 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     // 使用 useCallback 保持引用稳定
     const handleProvinceMouseEnter = useCallback((province: ProvinceData, e: React.MouseEvent) => {
         setHoveredProvince(province.id)
-        setTooltipData({
+        const data = {
             name: province.name,
             count: provinceCheckinCounts[province.name] || 0
-        })
+        }
+        setTooltipData(data)
+        tooltipDataRef.current = data
 
         // 初始位置设置，避免闪烁
         updateTooltipPosition(e)
@@ -153,6 +160,7 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     const handleMouseLeave = useCallback(() => {
         setHoveredProvince(null)
         setTooltipData(null)
+        tooltipDataRef.current = null
     }, [])
 
     // 直接操作 DOM 更新位置，避免触发 React 重渲染

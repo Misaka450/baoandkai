@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
@@ -15,14 +15,14 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
     const [isPlaying, setIsPlaying] = useState(true)
     const [isFullscreen, setIsFullscreen] = useState(false)
 
-    // 提取所有照片
-    const allPhotos = checkins.flatMap(checkin => 
+    // 提取所有照片（用 useMemo 避免每次渲染重建数组）
+    const allPhotos = useMemo(() => checkins.flatMap(checkin => 
         checkin.images.map((img, idx) => ({
             checkin,
             image: img,
             index: idx
         }))
-    )
+    ), [checkins])
 
     const totalPhotos = allPhotos.length
 

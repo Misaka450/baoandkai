@@ -1,6 +1,7 @@
 import { jsonResponse } from '../../utils/response';
 import { transformImageArray, serializeImages } from '../../utils/url';
 import { extractIdFromUrl, findOrThrow, validateAndSanitize, handleCrudError } from '../../utils/crud';
+import { validateDate } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -41,6 +42,14 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             fieldsToValidate,
             ['images']
         );
+
+        // 日期格式校验（validateAndSanitize 不处理日期格式）
+        if (date !== undefined) {
+            const dateError = validateDate(date as string, '日期');
+            if (dateError) {
+                return jsonResponse({ success: false, message: dateError }, 400);
+            }
+        }
 
         await env.DB.prepare(`
             UPDATE map_checkins SET

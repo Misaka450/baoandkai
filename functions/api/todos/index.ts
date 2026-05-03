@@ -120,8 +120,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
 
     return jsonResponse({
       ...newTodo,
-      images: newTodo.images ? JSON.parse(newTodo.images) : [],
-      completion_photos: newTodo.completion_photos ? JSON.parse(newTodo.completion_photos) : []
+      images: transformImageArray(newTodo.images),
+      completion_photos: transformImageArray(newTodo.completion_photos)
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';

@@ -23,14 +23,14 @@ export default function Home() {
     delay: string
   }
 
-  const timeStats: TimeStatItem[] = [
+  const timeStats: TimeStatItem[] = useMemo(() => [
     { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
     { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
     { value: timeTogether.days, label: '天', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]', icon: 'auto_awesome', delay: '0.4s' },
     { value: timeTogether.hours, label: '时', color: 'bg-[#F5F0FF]', text: 'text-[#A688FA]', icon: 'celebration', delay: '0.1s' },
     { value: timeTogether.minutes, label: '分', color: 'bg-[#FFF9EB]', text: 'text-[#FFB344]', icon: 'wb_cloudy', delay: '0.3s' },
     { value: timeTogether.seconds, label: '秒', color: 'bg-[#FFF0F0]', text: 'text-[#FF7D7D]', icon: 'star', delay: '0.5s' },
-  ]
+  ], [timeTogether.years, timeTogether.months, timeTogether.days, timeTogether.hours, timeTogether.minutes, timeTogether.seconds])
 
   return (
     <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative overflow-hidden">

@@ -1,6 +1,7 @@
-import { jsonResponse, errorResponse } from '../../utils/response';
+import { jsonResponse } from '../../utils/response';
 import { transformImageArray, serializeImages } from '../../utils/url';
-import { validate, validateRequired, validateLength, validateDate, validateRating, hasXSS, sanitizeObject } from '../../utils/validation';
+import { extractIdFromUrl, findOrThrow, validateAndSanitize, handleCrudError } from '../../utils/crud';
+import { validateDate, validateRating } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -23,53 +24,37 @@ interface FoodCheckin {
     created_at: string;
 }
 
-/**
- * 获取单个美食记录
- */
+// GET /api/food/:id — 获取单个美食记录
 export async function onRequestGet(context: { env: Env; request: Request }) {
     const { env, request } = context;
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').filter(Boolean).pop();
-        const foodId = parseInt(id || '');
+        const foodId = extractIdFromUrl(url);
 
-        if (isNaN(foodId)) {
-            return errorResponse('无效的ID', 400);
-        }
-
-        const food = await env.DB.prepare(`SELECT * FROM food_checkins WHERE id = ?`).bind(foodId).first<FoodCheckin>();
-
-        if (!food) {
-            return errorResponse('记录不存在', 404);
-        }
+        const food = await findOrThrow<FoodCheckin>(env.DB, 'food_checkins', foodId);
 
         return jsonResponse({
             ...food,
             images: transformImageArray(food.images),
             recommended_dishes: food.recommended_dishes ? food.recommended_dishes.split(',') : []
         });
-    } catch (error: any) {
-        return errorResponse(error.message, 500);
+    } catch (error: unknown) {
+        return handleCrudError(error);
     }
 }
 
-/**
- * 更新美食记录
- */
+// PUT /api/food/:id — 更新美食记录
 export async function onRequestPut(context: { request: Request; env: Env }) {
     const { request, env } = context;
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').filter(Boolean).pop();
-        const foodId = parseInt(id || '');
+        const foodId = extractIdFromUrl(url);
 
-        if (isNaN(foodId)) {
-            return errorResponse('无效的ID', 400);
-        }
+        const currentFood = await findOrThrow<FoodCheckin>(env.DB, 'food_checkins', foodId);
 
-        const body: any = await request.json();
+        const body = await request.json() as Record<string, unknown>;
         const {
             restaurant_name,
             description,
@@ -85,35 +70,32 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             images
         } = body;
 
-        const currentFood = await env.DB.prepare(`SELECT * FROM food_checkins WHERE id = ?`).bind(foodId).first<FoodCheckin>();
-        if (!currentFood) {
-            return errorResponse('记录不存在', 404);
-        }
+        // 仅验证用户实际传入的字段
+        const fieldsToValidate: Array<{ name: string; label: string; maxLength?: number }> = [];
+        if (restaurant_name !== undefined) fieldsToValidate.push({ name: 'restaurant_name', label: '餐厅名称', maxLength: 100 });
+        if (date !== undefined) fieldsToValidate.push({ name: 'date', label: '日期' });
 
-        // 输入验证（仅验证用户实际传入的字段）
-        const rules: (string | null)[] = []
-        if (restaurant_name !== undefined) {
-            rules.push(validateRequired(restaurant_name, '餐厅名称'))
-            rules.push(validateLength(restaurant_name, '餐厅名称', 1, 100))
-        }
-        if (date !== undefined) {
-            rules.push(validateRequired(date, '日期'))
-            rules.push(validateDate(date, '日期'))
-        }
-        if (overall_rating !== undefined) {
-            rules.push(validateRating(Number(overall_rating), '综合评分'))
-        }
-        const validationError = validate(rules)
-        if (validationError) return errorResponse(validationError, 400)
-
-        if ((restaurant_name && hasXSS(restaurant_name)) || (description && hasXSS(description))) {
-            return errorResponse('输入内容包含不安全字符', 400)
-        }
-
-        const sanitized = sanitizeObject(
+        const sanitized = validateAndSanitize(
             { restaurant_name, description, address, cuisine, price_range, recommended_dishes },
+            fieldsToValidate,
             ['images']
-        )
+        );
+
+        // 日期格式校验
+        if (date !== undefined) {
+            const dateError = validateDate(date as string, '日期');
+            if (dateError) {
+                return jsonResponse({ success: false, message: dateError }, 400);
+            }
+        }
+
+        // 评分校验
+        if (overall_rating !== undefined) {
+            const ratingError = validateRating(Number(overall_rating), '综合评分');
+            if (ratingError) {
+                return jsonResponse({ success: false, message: ratingError }, 400);
+            }
+        }
 
         await env.DB.prepare(`
             UPDATE food_checkins SET 
@@ -147,41 +129,36 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             foodId
         ).run();
 
-        const updatedFood = await env.DB.prepare(`SELECT * FROM food_checkins WHERE id = ?`).bind(foodId).first<FoodCheckin>();
+        const updatedFood = await env.DB.prepare('SELECT * FROM food_checkins WHERE id = ?')
+            .bind(foodId).first<FoodCheckin>();
 
         return jsonResponse({
             ...updatedFood,
             images: transformImageArray(updatedFood?.images),
             recommended_dishes: updatedFood?.recommended_dishes ? updatedFood.recommended_dishes.split(',') : []
         });
-    } catch (error: any) {
-        return errorResponse(error.message, 500);
+    } catch (error: unknown) {
+        return handleCrudError(error);
     }
 }
 
-/**
- * 删除美食记录
- */
+// DELETE /api/food/:id — 删除美食记录
 export async function onRequestDelete(context: { env: Env; request: Request }) {
     const { env, request } = context;
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').filter(Boolean).pop();
-        const foodId = parseInt(id || '');
+        const foodId = extractIdFromUrl(url);
 
-        if (isNaN(foodId)) {
-            return errorResponse('无效的ID', 400);
-        }
-
-        const result = await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?').bind(foodId).run();
+        const result = await env.DB.prepare('DELETE FROM food_checkins WHERE id = ?')
+            .bind(foodId).run();
 
         if (result.meta.changes === 0) {
-            return errorResponse('记录不存在', 404);
+            return jsonResponse({ success: false, message: '记录不存在' }, 404);
         }
 
         return jsonResponse({ success: true, message: '记录已删除' });
-    } catch (error: any) {
-        return errorResponse(error.message, 500);
+    } catch (error: unknown) {
+        return handleCrudError(error);
     }
 }

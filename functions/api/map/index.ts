@@ -108,7 +108,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
 
         return jsonResponse({
             ...newCheckin,
-            images: newCheckin.images ? newCheckin.images.split(',').filter(Boolean) : []
+            images: transformImageArray(newCheckin?.images)
         });
     } catch (error: any) {
         return errorResponse(error.message, 500);

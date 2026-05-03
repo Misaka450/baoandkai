@@ -1,6 +1,7 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageUrl } from '../../utils/url';
 import { parsePagination, buildPaginatedResponse } from '../../utils/pagination';
+import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
     DB: D1Database;
@@ -66,14 +67,25 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
         const body: any = await request.json();
         const { name, description } = body;
 
-        if (!name) {
-            return errorResponse('相册名称不能为空', 400);
+        // 输入验证
+        const validationError = validate([
+            validateRequired(name, '相册名称'),
+            validateLength(name, '相册名称', 1, 100),
+        ]);
+        if (validationError) return errorResponse(validationError, 400);
+
+        // XSS检测
+        if (hasXSS(name) || (description && hasXSS(description))) {
+            return errorResponse('输入内容包含不安全字符', 400);
         }
+
+        // 消毒输入数据
+        const sanitized = sanitizeObject({ name, description }, []);
 
         const result = await env.DB.prepare(`
             INSERT INTO albums (name, description) 
             VALUES (?, ?)
-        `).bind(name, description || '').run();
+        `).bind(sanitized.name, sanitized.description || '').run();
 
         const newAlbum = await env.DB.prepare(`
             SELECT * FROM albums WHERE id = ?

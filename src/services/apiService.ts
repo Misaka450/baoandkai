@@ -302,7 +302,7 @@ export const apiService = new ApiService()
 // 专用API服务
 export const notesService = {
     async getAll() {
-        return apiService.get<{ data: Note[] }>('/notes')
+        return apiService.get<{ data: Note[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/notes')
     },
 
     async create(note: Omit<Note, 'id'>) {
@@ -385,8 +385,12 @@ export function createAbortController(): AbortController {
 }
 
 export const mapService = {
-    async getAll(province?: string) {
-        const query = province ? `?province=${encodeURIComponent(province)}` : ''
+    async getAll(province?: string, page: number = 1, limit: number = 20) {
+        const params = new URLSearchParams()
+        if (province) params.set('province', province)
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        const query = params.toString() ? `?${params.toString()}` : ''
         return apiService.get<{ data: MapCheckin[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/map${query}`)
     },
 
