@@ -210,7 +210,24 @@ CREATE INDEX IF NOT EXISTS idx_capsule_unlock_date ON time_capsules(unlock_date)
 CREATE INDEX IF NOT EXISTS idx_capsule_is_unlocked ON time_capsules(is_unlocked);
 
 -- -------------------------------------------------------
--- 11. 日记表 [已弃用] - 该功能已移除，表保留用于数据兼容
+-- 11. 图片关联表（多态关联）
+-- 统一管理各模块的图片，替代旧的 images TEXT 字段
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type TEXT NOT NULL,
+    entity_id INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    caption TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_images_entity ON images(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_images_entity_sort ON images(entity_type, entity_id, sort_order);
+
+-- -------------------------------------------------------
+-- 12. 日记表 [已弃用] - 该功能已移除，表保留用于数据兼容
 -- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS diaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

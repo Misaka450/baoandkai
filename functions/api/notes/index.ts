@@ -1,4 +1,5 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
+import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
 
 export interface Env {
   DB: D1Database;
@@ -11,6 +12,11 @@ interface Note {
   user_id: number;
   created_at: string;
   updated_at: string;
+}
+
+interface CreateNoteBody {
+  content: string;
+  color?: string;
 }
 
 // Cloudflare Pages Functions - 碎碎念API
@@ -44,36 +50,42 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
       totalPages,
       currentPage: page
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return errorResponse(message, 500);
   }
 }
 
-export async function onRequestPost(context: { request: Request; env: Env; data: any }) {
+export async function onRequestPost(context: { request: Request; env: Env; data: Record<string, unknown> }) {
   const { request, env, data } = context;
-  const user = data?.user; // Injected by middleware
+  const user = data?.user as { id: number } | undefined;
 
   try {
-    let body: any;
-    try {
-      body = await request.json();
-    } catch (e) {
-      return errorResponse('请求格式错误: 无效的JSON格式', 400);
-    }
-
+    const body = await request.json() as CreateNoteBody;
     const { content, color } = body || {};
 
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return errorResponse('内容不能为空', 400);
+    // 输入验证
+    const validationError = validate([
+      validateRequired(content, '内容'),
+      validateLength(content, '内容', 1, 500),
+    ]);
+    if (validationError) return errorResponse(validationError, 400);
+
+    // XSS检测
+    if (hasXSS(content)) {
+      return errorResponse('输入内容包含不安全字符', 400);
     }
+
+    // 消毒输入数据
+    const sanitized = sanitizeObject({ content, color }, []);
 
     const result = await env.DB.prepare(`
       INSERT INTO notes (content, color, user_id, created_at, updated_at) 
       VALUES (?, ?, ?, datetime('now'), datetime('now'))
     `).bind(
-      content.trim(),
-      color || 'bg-yellow-100 border-yellow-200',
-      user ? user.id : 1 // Fallback to 1 if user is missing
+      sanitized.content,
+      sanitized.color || 'bg-yellow-100 border-yellow-200',
+      user ? user.id : 1
     ).run();
 
     const newNote = await env.DB.prepare(`
@@ -81,8 +93,9 @@ export async function onRequestPost(context: { request: Request; env: Env; data:
     `).bind(result.meta.last_row_id).first<Note>();
 
     return jsonResponse(newNote, 201);
-  } catch (error: any) {
-    console.error('添加碎碎念API错误:', error);
-    return errorResponse('服务器内部错误: ' + error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    console.error('添加碎碎念API错误:', message);
+    return errorResponse('服务器内部错误', 500);
   }
 }

@@ -37,6 +37,8 @@ export function cleanString(input: string): string {
  */
 export function hasXSS(input: string): boolean {
     if (typeof input !== 'string') return false
+    // 重置lastIndex避免g标志的状态残留问题
+    XSS_PATTERN.lastIndex = 0
     return XSS_PATTERN.test(input)
 }
 
@@ -45,6 +47,8 @@ export function hasXSS(input: string): boolean {
  */
 export function hasSQLInjection(input: string): boolean {
     if (typeof input !== 'string') return false
+    // 重置lastIndex避免g标志的状态残留问题
+    SQL_INJECTION_PATTERN.lastIndex = 0
     return SQL_INJECTION_PATTERN.test(input)
 }
 

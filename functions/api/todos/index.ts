@@ -1,6 +1,7 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray, serializeImages } from '../../utils/url';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../../utils/validation';
+import { buildPaginatedResponse, parsePagination } from '../../utils/pagination';
 
 export interface Env {
   DB: D1Database;
@@ -20,6 +21,18 @@ interface Todo {
   created_at: string;
 }
 
+interface CreateTodoBody {
+  title: string;
+  description?: string;
+  status?: string;
+  priority?: number;
+  category?: string;
+  due_date?: string;
+  completion_notes?: string;
+  completion_photos?: string[];
+  images?: string[];
+}
+
 // Cloudflare Pages Functions - 待办事项API
 // GET /api/todos - 获取待办事项（支持分页）
 export async function onRequestGet(context: { request: Request; env: Env }) {
@@ -27,16 +40,13 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
 
   try {
     const url = new URL(request.url);
-    const params = url.searchParams;
-    const page = Math.max(1, parseInt(params.get('page') || '1') || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(params.get('limit') || '10') || 10));
-    const offset = (page - 1) * limit;
+    const pagination = parsePagination(url, 10);
 
-    // 获取总数
     const countResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM todos
     `).first<{ total: number }>();
     const total = countResult?.total || 0;
+
     const completedResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM todos WHERE status = 'completed'
     `).first<{ total: number }>();
@@ -46,7 +56,7 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
       SELECT * FROM todos 
       ORDER BY created_at DESC 
       LIMIT ? OFFSET ?
-    `).bind(limit, offset).all<Todo>();
+    `).bind(pagination.pageSize, pagination.offset).all<Todo>();
 
     const formattedTodos = todos.results ? todos.results.map(todo => ({
       ...todo,
@@ -55,15 +65,12 @@ export async function onRequestGet(context: { request: Request; env: Env }) {
     })) : [];
 
     return jsonResponse({
-      data: formattedTodos,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalCount: total,
-      completedCount,
-      limit: limit
+      ...buildPaginatedResponse(formattedTodos, total, pagination),
+      completedCount
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return errorResponse(message, 500);
   }
 }
 
@@ -72,22 +79,19 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
-    const body: any = await request.json();
+    const body = await request.json() as CreateTodoBody;
     const { title, description, status, priority, category, due_date, completion_notes, completion_photos, images } = body;
 
-    // 输入验证
     const validationError = validate([
       validateRequired(title, '待办标题'),
       validateLength(title, '待办标题', 1, 100),
     ])
     if (validationError) return errorResponse(validationError, 400)
 
-    // XSS检测
     if (hasXSS(title) || (description && hasXSS(description))) {
       return errorResponse('输入内容包含不安全字符', 400)
     }
 
-    // 消毒输入数据
     const sanitized = sanitizeObject({ title, description, category, completion_notes }, ['images', 'completion_photos'])
 
     const result = await env.DB.prepare(`
@@ -119,7 +123,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       images: newTodo.images ? JSON.parse(newTodo.images) : [],
       completion_photos: newTodo.completion_photos ? JSON.parse(newTodo.completion_photos) : []
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return errorResponse(message, 500);
   }
 }

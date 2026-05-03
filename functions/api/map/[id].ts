@@ -1,6 +1,6 @@
-import { jsonResponse, errorResponse } from '../../utils/response';
+import { jsonResponse } from '../../utils/response';
 import { transformImageArray, serializeImages } from '../../utils/url';
-import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../../utils/validation';
+import { extractIdFromUrl, findOrThrow, validateAndSanitize, handleCrudError } from '../../utils/crud';
 
 export interface Env {
     DB: D1Database;
@@ -24,53 +24,35 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').filter(Boolean).pop();
-        const checkinId = parseInt(id || '');
+        const checkinId = extractIdFromUrl(url);
 
-        if (isNaN(checkinId)) {
-            return errorResponse('无效的ID', 400);
-        }
+        const current = await findOrThrow<MapCheckin>(env.DB, 'map_checkins', checkinId);
 
-        const body: any = await request.json();
+        const body = await request.json() as Record<string, unknown>;
         const { title, description, province, city, date, images } = body;
 
-        const current = await env.DB.prepare('SELECT * FROM map_checkins WHERE id = ?')
-            .bind(checkinId).first<MapCheckin>();
+        // 仅验证用户实际传入的字段
+        const fieldsToValidate: Array<{ name: string; label: string; maxLength?: number }> = [];
+        if (title !== undefined) fieldsToValidate.push({ name: 'title', label: '标题', maxLength: 100 });
+        if (date !== undefined) fieldsToValidate.push({ name: 'date', label: '日期' });
 
-        if (!current) {
-            return errorResponse('记录不存在', 404);
-        }
-
-        // 输入验证（仅验证用户实际传入的字段）
-        const rules: (string | null)[] = []
-        if (title !== undefined) {
-            rules.push(validateRequired(title, '标题'))
-            rules.push(validateLength(title, '标题', 1, 100))
-        }
-        if (date !== undefined) {
-            rules.push(validateRequired(date, '日期'))
-            rules.push(validateDate(date, '日期'))
-        }
-        const validationError = validate(rules)
-        if (validationError) return errorResponse(validationError, 400)
-
-        if ((title && hasXSS(title)) || (description && hasXSS(description))) {
-            return errorResponse('输入内容包含不安全字符', 400)
-        }
-
-        const sanitized = sanitizeObject({ title, description, province, city }, ['images'])
+        const sanitized = validateAndSanitize(
+            { title, description, province, city },
+            fieldsToValidate,
+            ['images']
+        );
 
         await env.DB.prepare(`
-      UPDATE map_checkins SET
-        title = ?,
-        description = ?,
-        province = ?,
-        city = ?,
-        date = ?,
-        images = ?,
-        updated_at = datetime('now')
-      WHERE id = ?
-    `).bind(
+            UPDATE map_checkins SET
+                title = ?,
+                description = ?,
+                province = ?,
+                city = ?,
+                date = ?,
+                images = ?,
+                updated_at = datetime('now')
+            WHERE id = ?
+        `).bind(
             title !== undefined ? sanitized.title : current.title,
             description !== undefined ? sanitized.description : current.description,
             province !== undefined ? sanitized.province : current.province,
@@ -87,8 +69,8 @@ export async function onRequestPut(context: { request: Request; env: Env }) {
             ...updated,
             images: transformImageArray(updated?.images)
         });
-    } catch (error: any) {
-        return errorResponse(error.message, 500);
+    } catch (error: unknown) {
+        return handleCrudError(error);
     }
 }
 
@@ -98,22 +80,17 @@ export async function onRequestDelete(context: { env: Env; request: Request }) {
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').filter(Boolean).pop();
-        const checkinId = parseInt(id || '');
-
-        if (isNaN(checkinId)) {
-            return errorResponse('无效的ID', 400);
-        }
+        const checkinId = extractIdFromUrl(url);
 
         const result = await env.DB.prepare('DELETE FROM map_checkins WHERE id = ?')
             .bind(checkinId).run();
 
         if (result.meta.changes === 0) {
-            return errorResponse('记录不存在', 404);
+            return jsonResponse({ success: false, message: '记录不存在' }, 404);
         }
 
         return jsonResponse({ success: true, message: '记录已删除' });
-    } catch (error: any) {
-        return errorResponse(error.message, 500);
+    } catch (error: unknown) {
+        return handleCrudError(error);
     }
 }

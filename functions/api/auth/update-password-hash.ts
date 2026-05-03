@@ -8,6 +8,12 @@ export interface Env {
   ADMIN_TOKEN: string;
 }
 
+interface UpdatePasswordBody {
+  username: string;
+  newPassword: string;
+  adminToken: string;
+}
+
 /**
  * 生成bcrypt密码哈希
  */
@@ -24,7 +30,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
-    const body: any = await request.json();
+    const body = await request.json() as UpdatePasswordBody;
     const { username, newPassword, adminToken } = body;
 
     // 验证管理员token
@@ -52,22 +58,12 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
 
     return jsonResponse({
       success: true,
-      message: `用户 ${username} 的密码已更新`,
-      passwordHash: newPasswordHash
+      message: `用户 ${username} 的密码已更新`
     });
 
-  } catch (error: any) {
-    console.error('更新密码错误:', error);
-    return errorResponse('更新失败', 500, error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    console.error('更新密码错误:', message);
+    return errorResponse('更新失败', 500);
   }
-}
-
-export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
-  });
 }

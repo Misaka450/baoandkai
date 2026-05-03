@@ -1,6 +1,7 @@
 import { jsonResponse, errorResponse } from '../../utils/response';
 import { transformImageArray, serializeImages } from '../../utils/url';
 import { validate, validateRequired, validateLength, validateDate, validateRating, hasXSS, sanitizeObject } from '../../utils/validation';
+import { buildPaginatedResponse, parsePagination } from '../../utils/pagination';
 
 export interface Env {
   DB: D1Database;
@@ -21,6 +22,21 @@ interface FoodCheckin {
   recommended_dishes: string;
   images: string;
   created_at: string;
+}
+
+interface CreateFoodBody {
+  restaurant_name: string;
+  description?: string;
+  date: string;
+  address?: string;
+  cuisine?: string;
+  price_range?: string;
+  overall_rating?: number;
+  taste_rating?: number;
+  environment_rating?: number;
+  service_rating?: number;
+  recommended_dishes?: string | string[];
+  images?: string[];
 }
 
 // Cloudflare Pages Functions - 美食API
@@ -56,9 +72,7 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
     }
 
     // 获取分页参数
-    const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const limit = parseInt(url.searchParams.get('limit') || '12', 10);
-    const offset = (page - 1) * limit;
+    const pagination = parsePagination(url, 12);
     const cuisine = url.searchParams.get('cuisine') || '';
 
     // 构建查询条件
@@ -73,9 +87,8 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
     // 获取总数
     const countResult = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM food_checkins${whereClause}
-    `).first<{ total: number }>();
+    `).bind(...queryParams).first<{ total: number }>();
     const total = countResult?.total || 0;
-    const totalPages = Math.ceil(total / limit);
 
     // 获取分页数据
     const foodsQuery = `
@@ -83,23 +96,19 @@ export async function onRequestGet(context: { env: Env; request: Request }) {
       ORDER BY sort_order DESC, date DESC, created_at DESC
       LIMIT ? OFFSET ?
     `;
-    const foods = whereClause
-      ? await env.DB.prepare(foodsQuery).bind(...queryParams, limit, offset).all<FoodCheckin>()
-      : await env.DB.prepare(foodsQuery).bind(limit, offset).all<FoodCheckin>();
+    const foods = await env.DB.prepare(foodsQuery)
+      .bind(...queryParams, pagination.pageSize, pagination.offset)
+      .all<FoodCheckin>();
 
     const foodsWithImages = foods.results.map(food => ({
       ...food,
       images: transformImageArray(food.images)
     }));
 
-    return jsonResponse({
-      data: foodsWithImages,
-      totalPages,
-      totalCount: total,
-      currentPage: page
-    });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+    return jsonResponse(buildPaginatedResponse(foodsWithImages, total, pagination));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return errorResponse(message, 500);
   }
 }
 
@@ -107,7 +116,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
   const { request, env } = context;
 
   try {
-    const body: any = await request.json();
+    const body = await request.json() as CreateFoodBody;
     const {
       restaurant_name,
       description,
@@ -165,7 +174,6 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       sanitized.restaurant_name, sanitized.description || '', date, sanitized.address || '', sanitized.cuisine || '', sanitized.price_range || '',
       overall_rating || 5, taste_rating || 5, environment_rating || 5, service_rating || 5,
       Array.isArray(recommended_dishes) ? recommended_dishes.join(',') : recommended_dishes || '',
-      // 统一使用 JSON 数组格式存储图片，保持数据一致性
       serializeImages(images),
       nextSortOrder
     ).run();
@@ -183,7 +191,8 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       ...newFood,
       images: newFood.images ? newFood.images.split(',') : []
     });
-  } catch (error: any) {
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return errorResponse(message, 500);
   }
 }

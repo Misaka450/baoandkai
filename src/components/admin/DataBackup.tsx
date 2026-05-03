@@ -79,19 +79,22 @@ const DataBackup = () => {
                 apiService.get<{ data: unknown[] }>('/time-capsules')
             ])
 
-            // 逐个获取相册的照片数据
+            // 并行获取所有相册的照片数据
             const photosMap: Record<string, unknown[]> = {}
             const albumList = (albums?.data || []) as { id: string; name: string }[]
-            for (const album of albumList) {
-                try {
-                    const { data: albumDetail } = await apiService.get<{ photos: unknown[] }>(`/albums/${album.id}`)
-                    if (albumDetail?.photos) {
-                        photosMap[album.id] = albumDetail.photos
+            const albumPhotoResults = await Promise.allSettled(
+                albumList.map(album =>
+                    apiService.get<{ photos: unknown[] }>(`/albums/${album.id}`)
+                )
+            )
+            albumPhotoResults.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value?.data?.photos) {
+                    const album = albumList[index];
+                    if (album) {
+                        photosMap[album.id] = result.value.data.photos;
                     }
-                } catch {
-                    // 单个相册获取失败不影响整体导出
                 }
-            }
+            })
 
             const exportData: ExportData = {
                 version: BACKUP_VERSION,
