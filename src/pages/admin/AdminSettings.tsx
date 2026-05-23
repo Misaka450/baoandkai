@@ -69,15 +69,14 @@ const AdminSettings = () => {
 
     const handleAvatarDelete = async (field: 'avatar1' | 'avatar2') => {
         const url = config[field]
-        if (!url || !url.includes('/api/images/')) return
+        if (!url || (!url.includes('/uploads/') && !url.includes('/api/images/'))) return
 
         try {
-            const filename = url.split('/api/images/')[1]
+            const filename = url.includes('/uploads/')
+                ? url.split('/uploads/')[1]
+                : url.split('/api/images/')[1]
             if (filename) {
-                await apiService.request('/delete', {
-                    method: 'DELETE',
-                    body: JSON.stringify({ filename })
-                })
+                await apiService.post('/upload/delete', { key: filename })
             }
             const customField = field === 'avatar1' ? 'customAvatar1' : 'customAvatar2'
             setConfig(prev => ({

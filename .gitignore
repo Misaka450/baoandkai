@@ -26,6 +26,10 @@ pids
 *.pid
 *.seed
 *.pid.lock
+uploads/
+R2/
+d1_dump.sql
+converted_dump.sql
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -74,6 +78,7 @@ jspm_packages/
 # Nuxt.js build / generate output
 .nuxt
 dist
+release/
 
 # Gatsby files
 .cache/

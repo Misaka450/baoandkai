@@ -28,8 +28,7 @@
     }
   },
   "include": [
-    "src/**/*",
-    "functions/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

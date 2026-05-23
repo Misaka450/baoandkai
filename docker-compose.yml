@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: bbkk-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bbkk}
+      POSTGRES_USER: ${POSTGRES_USER:-bbkk}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./server/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bbkk} -d ${POSTGRES_DB:-bbkk}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      target: app
+    container_name: bbkk-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bbkk}:${DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-bbkk}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN is required}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://bbkk.980823.xyz}
+      UPLOAD_DIR: /app/uploads
+      IMAGE_BASE_URL: ${IMAGE_BASE_URL:-/uploads}
+    volumes:
+      - ./uploads:/app/uploads
+    expose:
+      - "3001"
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    container_name: bbkk-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./uploads:/app/uploads:ro
+
+volumes:
+  pg_data:
