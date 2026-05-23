@@ -218,8 +218,19 @@ auth.post('/login', async (c) => {
       console.error('更新token或写入缓存失败:', error);
     }
 
-    // 构建响应
-    const response = jsonResponse({
+    // 构建响应（用 c.json 确保 setCookie 生效）
+    const isSecure = c.req.header('X-Forwarded-Proto') === 'https';
+    const cookieOpts = {
+      maxAge,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Strict' as const,
+      secure: isSecure,
+    };
+    setCookie(c, 'auth_token', token, cookieOpts);
+    setCookie(c, 'csrf_token', csrfToken, cookieOpts);
+
+    return c.json({
       success: true,
       csrfToken,
       user: {
@@ -229,23 +240,6 @@ auth.post('/login', async (c) => {
         role: 'admin',
       },
     });
-
-    // 设置Cookie
-    setCookie(c, 'auth_token', token, {
-      maxAge,
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Strict',
-      secure: true,
-    });
-    setCookie(c, 'csrf_token', csrfToken, {
-      maxAge,
-      path: '/',
-      sameSite: 'Strict',
-      secure: true,
-    });
-
-    return response;
   } catch (error: any) {
     console.error('登录API错误:', error);
     return errorResponse('登录失败', 500, error.message);
