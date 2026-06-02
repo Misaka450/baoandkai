@@ -5,6 +5,7 @@ import StickyNotes from '../components/StickyNotes'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
 import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
+import { generateLocalAvatar } from '../utils/localAvatar'
 import FloatingParticles from '../components/FloatingParticles'
 
 export default function Home() {
@@ -12,7 +13,7 @@ export default function Home() {
   const timeTogether = useLoveTimer(config.anniversaryDate)
 
   const getDefaultAvatar = (seed: string, bg: string) =>
-    `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
+    generateLocalAvatar(seed, bg)
 
   interface TimeStatItem {
     value: number

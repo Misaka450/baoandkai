@@ -209,17 +209,17 @@ export function preloadImage(url: string): Promise<void> {
  * @param size 目标尺寸 (会自动 *2 用于高清屏)
  */
 export function getOptimizedAvatarUrl(url: string, size: number = 160): string {
-    if (!url) return '';
-    // 对于 dicebear 头像保持原样（已是 SVG 矢量图）
-    if (url.includes('dicebear.com')) return url;
+    if (!url) return ''
+    // 对于 SVG data URL 或 dicebear 头像保持原样（已是矢量图）
+    if (url.includes('dicebear.com') || url.startsWith('data:image/svg')) return url
     // 对于自定义上传的头像，使用动态缩放
-    return getThumbnailUrl(url, size * 2);
+    return getThumbnailUrl(url, size * 2)
 }
 
 /**
  * 生成头像 srcset 用于响应式
  */
 export function getAvatarSrcSet(url: string): string {
-    if (!url || url.includes('dicebear.com')) return '';
-    return `${getThumbnailUrl(url, 200)} 1x, ${getThumbnailUrl(url, 400)} 2x`;
+    if (!url || url.includes('dicebear.com') || url.startsWith('data:image/svg')) return ''
+    return `${getThumbnailUrl(url, 200)} 1x, ${getThumbnailUrl(url, 400)} 2x`
 }
