@@ -1,3 +1,4 @@
+import { useRef, useEffect, useCallback } from 'react'
 import * as Sentry from "@sentry/react"
 import { API_BASE } from '../config/api'
 import { getCookieValue } from '../utils/cookie'
@@ -153,35 +154,37 @@ class ApiService {
     /**
      * GET请求
      */
-    async get<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, { method: 'GET' })
+    async get<T = unknown>(endpoint: string, signal?: AbortSignal): Promise<ApiResponse<T>> {
+        return this.request<T>(endpoint, { method: 'GET', signal })
     }
 
     /**
      * POST请求
      */
-    async post<T = unknown, D = unknown>(endpoint: string, data?: D): Promise<ApiResponse<T>> {
+    async post<T = unknown, D = unknown>(endpoint: string, data?: D, signal?: AbortSignal): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, {
             method: 'POST',
             body: data ? JSON.stringify(data) : undefined,
+            signal,
         })
     }
 
     /**
      * PUT请求
      */
-    async put<T = unknown, D = unknown>(endpoint: string, data?: D): Promise<ApiResponse<T>> {
+    async put<T = unknown, D = unknown>(endpoint: string, data?: D, signal?: AbortSignal): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, {
             method: 'PUT',
             body: data ? JSON.stringify(data) : undefined,
+            signal,
         })
     }
 
     /**
      * DELETE请求
      */
-    async delete<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-        return this.request<T>(endpoint, { method: 'DELETE' })
+    async delete<T = unknown>(endpoint: string, signal?: AbortSignal): Promise<ApiResponse<T>> {
+        return this.request<T>(endpoint, { method: 'DELETE', signal })
     }
 
     /**
@@ -474,4 +477,34 @@ export const statsService = {
     async getDashboard() {
         return apiService.get<StatsData>('/stats')
     }
+}
+
+/**
+ * React Hook：在组件卸载时自动取消正在进行的请求
+ * 避免组件卸载后更新状态导致的内存泄漏
+ *
+ * 用法：
+ * ```tsx
+ * const { getSignal } = useAbortSignal()
+ * useEffect(() => {
+ *   apiService.get('/data', getSignal()).then(...)
+ * }, [])
+ * ```
+ */
+export function useAbortSignal() {
+    const controllerRef = useRef<AbortController | null>(null)
+
+    useEffect(() => {
+        return () => {
+            controllerRef.current?.abort()
+        }
+    }, [])
+
+    const getSignal = useCallback((): AbortSignal => {
+        controllerRef.current?.abort()
+        controllerRef.current = new AbortController()
+        return controllerRef.current.signal
+    }, [])
+
+    return { getSignal }
 }

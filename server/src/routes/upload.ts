@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { storage } from '../lib/storage.js';
+import { validateImageMagic } from '../utils/validation.js';
 
 const upload = new Hono();
 
@@ -25,29 +26,34 @@ upload.post('/', async (c) => {
       return errorResponse('没有上传文件', 400);
     }
 
-    // 验证文件大小及类型
+    // 验证 + 存储合并在一个循环中，避免重复读取文件
     const maxFileSize = 20 * 1024 * 1024; // 20MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const uploadedUrls: string[] = [];
 
     for (const file of files) {
+      // 验证 MIME 类型
       if (!allowedTypes.includes(file.type)) {
         return errorResponse(`不支持的文件类型: ${file.type}`, 400);
       }
 
+      // 验证文件大小
       if (file.size > maxFileSize) {
         return errorResponse(`文件太大: ${file.name} (${file.size} bytes)`, 400);
       }
-    }
 
-    const uploadedUrls: string[] = [];
-
-    for (const file of files) {
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      // 写入到 folder/{timestamp}_{random}.extension
-      const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${extension}`;
-
+      // 读取文件内容
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+
+      // 验证文件魔数（Magic Number），防止将恶意文件伪装成图片上传
+      if (!validateImageMagic(new Uint8Array(buffer), file.type)) {
+        return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
+      }
+
+      // 存储文件
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
+      const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${extension}`;
       await storage.put(filename, buffer);
 
       // 返回以 /uploads/ 为前缀的绝对路径

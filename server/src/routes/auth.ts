@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { cache } from '../lib/cache.js';
 import { pool } from '../lib/db.js';
+import { createSession, getSessionByToken, refreshCsrfToken } from '../lib/session.js';
 
 const auth = new Hono();
 
@@ -14,13 +15,6 @@ const RATE_LIMIT = {
   WINDOW_SECONDS: 300,
   LOCKOUT_SECONDS: 1800,
 };
-
-/**
- * 生成CSRF令牌（16字节随机hex字符串）
- */
-function generateCsrfToken(): string {
-  return crypto.randomBytes(16).toString('hex');
-}
 
 /**
  * 获取客户端标识（优先使用IP，回退到用户名）
@@ -103,23 +97,17 @@ auth.get('/check-token', async (c) => {
       return jsonResponse({ valid: false, error: '未提供token' });
     }
 
-    // 查询数据库验证token
-    const { rows } = await pool.query(
-      `SELECT id, username, email, token_expires
-       FROM users 
-       WHERE token = $1 AND token_expires > NOW()`,
-      [token]
-    );
-    const user = rows[0];
+    // 通过 sessions 表验证 token（使用 SHA-256 哈希查询）
+    const sessionUser = await getSessionByToken(token);
 
-    if (user) {
+    if (sessionUser) {
       return jsonResponse({
         valid: true,
         user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          token_expires: user.token_expires,
+          id: sessionUser.id,
+          username: sessionUser.username,
+          email: sessionUser.email,
+          token_expires: sessionUser.tokenExpires,
         },
       });
     }
@@ -190,33 +178,19 @@ auth.post('/login', async (c) => {
     // 登录成功，清除速率限制
     await clearRateLimit(clientId);
 
-    // 生成安全的随机token
-    const token = crypto.randomUUID();
-    // 生成CSRF令牌
-    const csrfToken = generateCsrfToken();
-    const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    const maxAge = 7 * 24 * 60 * 60; // 7天，单位秒
+    // 创建 Session（token 通过 SHA-256 哈希后存储在 sessions 表）
+    const session = await createSession(user.id);
 
-    try {
-      await pool.query(
-        `UPDATE users 
-         SET token = $1, token_expires = $2 
-         WHERE id = $3`,
-        [token, tokenExpires, user.id]
-      );
-
-      const cacheUser = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        token_expires: tokenExpires,
-      };
-      const ttl = 7 * 24 * 60 * 60;
-      await cache.set(`token:${token}`, cacheUser, ttl);
-      await cache.set(`csrf:${token}`, csrfToken, ttl);
-    } catch (error) {
-      console.error('更新token或写入缓存失败:', error);
-    }
+    const cacheUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      sessionId: user.id, // 缓存中用 userId 标识
+      tokenExpires: session.expiresAt.toISOString(),
+    };
+    const ttl = 7 * 24 * 60 * 60;
+    await cache.set(`token:${session.token}`, cacheUser, ttl);
+    await cache.set(`csrf:${session.token}`, session.csrfToken, ttl);
 
     // 构建响应（用 c.json 确保 setCookie 生效）
     const isSecure = c.req.header('X-Forwarded-Proto') === 'https';
@@ -232,7 +206,7 @@ auth.post('/login', async (c) => {
 
     return c.json({
       success: true,
-      csrfToken,
+      csrfToken: session.csrfToken,
       user: {
         id: user.id,
         username: user.username,
@@ -240,6 +214,24 @@ auth.post('/login', async (c) => {
         role: 'admin',
       },
     });
+
+    // 设置 Cookie
+    const maxAge = 7 * 24 * 60 * 60; // 7天，单位秒
+    setCookie(c, 'auth_token', session.token, {
+      maxAge,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Strict',
+      secure: true,
+    });
+    setCookie(c, 'csrf_token', session.csrfToken, {
+      maxAge,
+      path: '/',
+      sameSite: 'Strict',
+      secure: true,
+    });
+
+    return response;
   } catch (error: any) {
     console.error('登录API错误:', error);
     return errorResponse('登录失败', 500, error.message);

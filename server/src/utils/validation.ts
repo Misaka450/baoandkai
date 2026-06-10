@@ -1,6 +1,10 @@
 /**
- * 服务端输入验证和消毒工具
- * 防止XSS注入、SQL注入和非法数据入库
+ * 服务端输入验证和安全检测工具
+ * 
+ * 设计原则：
+ * - 数据以原始形式存储，不做转义（JSON API + React 自动处理输出转义）
+ * - 检测到 XSS/SQL 注入特征时直接拒绝请求（返回 400）
+ * - 只做 trim 级别的清洗，不做字符级别的转义
  */
 
 // 危险HTML标签和事件属性正则
@@ -9,45 +13,21 @@ const XSS_PATTERN = /<\s*script|<\s*\/script|javascript:|on\w+\s*=|<\s*iframe|<\
 const SQL_INJECTION_PATTERN = /(\b(union\s+select|drop\s+table|insert\s+into|delete\s+from|update\s+\w+\s+set)\b)/gi
 
 /**
- * 消毒字符串：移除/转义潜在的XSS攻击内容
- */
-export function sanitizeString(input: string): string {
-    if (typeof input !== 'string') return ''
-    return input
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-}
-
-/**
- * 清理字符串：移除危险标签但保留基本格式
- * 适用于需要保留换行等基本格式的长文本（如描述、消息）
- */
-export function cleanString(input: string): string {
-    if (typeof input !== 'string') return ''
-    return input
-        .replace(XSS_PATTERN, '')
-        .trim()
-}
-
-/**
  * 验证字符串是否包含XSS攻击特征
+ * 检测到则拒绝请求，而非转义存储
  */
 export function hasXSS(input: string): boolean {
     if (typeof input !== 'string') return false
-    // 重置lastIndex避免g标志的状态残留问题
-    XSS_PATTERN.lastIndex = 0
+    XSS_PATTERN.lastIndex = 0 // 重置 lastIndex 避免 g 标志的状态残留
     return XSS_PATTERN.test(input)
 }
 
 /**
  * 验证字符串是否包含SQL注入特征
+ * 参数化查询是主要防线，此函数仅作辅助检测
  */
 export function hasSQLInjection(input: string): boolean {
     if (typeof input !== 'string') return false
-    // 重置lastIndex避免g标志的状态残留问题
     SQL_INJECTION_PATTERN.lastIndex = 0
     return SQL_INJECTION_PATTERN.test(input)
 }
@@ -111,8 +91,11 @@ export function validate(rules: (string | null)[]): string | null {
 }
 
 /**
- * 消毒对象中的所有字符串字段
- * 递归处理嵌套对象，跳过images等URL数组字段
+ * 清理对象中的字符串字段（仅 trim，不做转义）
+ * 数据以原始形式存储，由前端 React 自动处理输出转义
+ * 
+ * @param obj 输入对象
+ * @param skipFields 需要跳过处理的字段名（如 images 等 URL 数组）
  */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T, skipFields: string[] = []): T {
     const result: Record<string, unknown> = { ...obj }
@@ -120,8 +103,35 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T, skipFi
         if (skipFields.includes(key)) continue
         const value = result[key]
         if (typeof value === 'string') {
-            result[key] = cleanString(value)
+            result[key] = value.trim()
         }
     }
     return result as T
+}
+
+/**
+ * 常见图片格式的魔数（Magic Number / 文件签名），用于验证文件类型真实性
+ * 每个数组元素代表一个有效签名，按字节匹配文件头
+ */
+const IMAGE_MAGIC_BYTES: Record<string, Uint8Array[]> = {
+  'image/jpeg': [new Uint8Array([0xFF, 0xD8, 0xFF])],
+  'image/png':  [new Uint8Array([0x89, 0x50, 0x4E, 0x47])],
+  'image/gif':  [new Uint8Array([0x47, 0x49, 0x46])],
+  'image/webp': [new Uint8Array([0x52, 0x49, 0x46, 0x46])],
+};
+
+/**
+ * 验证文件是否具有与声明 MIME 类型匹配的文件魔数
+ * 防止攻击者将恶意文件伪装成图片上传
+ * 
+ * @param fileBuffer 文件的前 N 个字节（至少 4 字节即可验证常见图片格式）
+ * @param mimeType 文件声明的 MIME 类型
+ * @returns true 表示文件魔数与声明类型匹配
+ */
+export function validateImageMagic(fileBuffer: Uint8Array, mimeType: string): boolean {
+  const signatures = IMAGE_MAGIC_BYTES[mimeType];
+  if (!signatures) return false;
+  return signatures.some(sig =>
+    sig.every((byte, i) => i < fileBuffer.length && fileBuffer[i] === byte)
+  );
 }

@@ -6,7 +6,7 @@ import { pool } from '../lib/db.js';
 const stats = new Hono();
 
 const CACHE_KEY = 'stats:dashboard';
-const CACHE_TTL = 300; // 缓存5分钟
+const CACHE_TTL = 900; // 缓存15分钟（统计页面数据更新不频繁）
 
 /**
  * GET /api/stats

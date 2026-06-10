@@ -22,7 +22,7 @@ export async function corsMiddleware(c: Context, next: Next) {
                 'Access-Control-Allow-Origin': corsOrigin,
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token',
-                'Access-Control-Max-Age': '86400',
+                'Access-Control-Max-Age': '7200', // 预检请求缓存 2 小时（比默认 24 小时更安全）
                 'Access-Control-Allow-Credentials': 'true',
             },
         });

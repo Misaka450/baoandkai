@@ -3,6 +3,7 @@ import { jsonResponse, errorResponse } from '../utils/response.js';
 import { transformImageUrl } from '../utils/url.js';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
+import { validateImageMagic } from '../utils/validation.js';
 
 const photos = new Hono();
 
@@ -69,6 +70,27 @@ photos.post('/', async (c) => {
       return errorResponse('未找到上传文件', 400);
     }
 
+    // 验证文件类型和大小
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const maxFileSize = 20 * 1024 * 1024; // 20MB
+
+    if (!allowedTypes.includes(file.type)) {
+      return errorResponse(`不支持的文件类型: ${file.type}`, 400);
+    }
+
+    if (file.size > maxFileSize) {
+      return errorResponse(`文件太大: ${file.name} (${file.size} bytes)`, 400);
+    }
+
+    // 将上传的文件转换为 Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 验证文件魔数（Magic Number），防止伪装文件类型
+    if (!validateImageMagic(new Uint8Array(buffer), file.type)) {
+      return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
+    }
+
     // 获取相册名称以便按结构存放
     const { rows: albumRows } = await pool.query('SELECT name FROM albums WHERE id = $1', [albumId]);
     const albumName = albumRows[0]?.name || 'default';
@@ -80,9 +102,7 @@ photos.post('/', async (c) => {
     // 本地相对存储路径: albums/AlbumName/timestamp-random.ext
     const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
 
-    // 将上传的文件转换为 Buffer 并存入本地存储
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // 存入本地存储
     await storage.put(key, buffer);
 
     // 拼装保存在数据库里的路径（以前缀 /uploads/ 开头的绝对路径）

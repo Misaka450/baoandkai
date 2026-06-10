@@ -2,7 +2,7 @@ import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { errorResponse } from '../utils/response.js';
 import { cache } from '../lib/cache.js';
-import { pool } from '../lib/db.js';
+import { getSessionByToken, updateSessionActivity } from '../lib/session.js';
 
 const PUBLIC_PATHS = [
   '/api/auth/login',
@@ -15,23 +15,29 @@ export interface CachedUser {
   id: number;
   username: string;
   email: string;
-  token_expires: string;
+  sessionId: number;
+  tokenExpires: string;
+}
+
+/**
+ * 判断路径是否为公开路径（无需登录即可访问）
+ */
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(path =>
+    pathname === path || pathname.startsWith(path + '/') || (path.endsWith('/') && pathname.startsWith(path))
+  );
 }
 
 export async function authMiddleware(c: Context, next: Next) {
   const url = new URL(c.req.url);
   const pathname = url.pathname;
 
-  const isPublic = PUBLIC_PATHS.some(path => 
-    pathname === path || pathname.startsWith(path + '/') || (path.endsWith('/') && pathname.startsWith(path))
-  );
-
-  if (isPublic) {
+  if (isPublicPath(pathname)) {
     return await next();
   }
 
   try {
-    // 1. 获取 Token
+    // 1. 获取 Token（优先 Cookie，其次 Authorization header）
     let token = getCookie(c, 'auth_token');
     if (!token) {
       const authHeader = c.req.header('Authorization');
@@ -53,8 +59,8 @@ export async function authMiddleware(c: Context, next: Next) {
         return errorResponse('CSRF验证失败', 403);
       }
 
-      // 验证与认证 Token 的绑定
-      const storedCsrf = await cache.get(`csrf:${token}`);
+      // 从缓存验证 CSRF 与 Token 的绑定关系
+      const storedCsrf = await cache.get<string>(`csrf:${token}`);
       if (storedCsrf !== csrfFromHeader) {
         return errorResponse('CSRF令牌不匹配', 403);
       }
@@ -63,31 +69,32 @@ export async function authMiddleware(c: Context, next: Next) {
     // 3. 用户信息验证（带缓存）
     let user = await cache.get<CachedUser>(`token:${token}`);
     if (user) {
-      if (new Date(user.token_expires) <= new Date()) {
+      if (new Date(user.tokenExpires) <= new Date()) {
         await cache.delete(`token:${token}`);
-        await cache.delete(`csrf:${token}`);
         user = null;
       }
     }
 
     if (!user) {
-      // 回退数据库查询
-      const { rows } = await pool.query(
-        'SELECT id, username, email, token_expires FROM users WHERE token = $1 AND token_expires > $2',
-        [token, new Date().toISOString()]
-      );
-      const dbUser = rows[0];
-      if (dbUser) {
+      // 回退数据库查询（通过 sessions 表，token_hash 使用 SHA-256）
+      const sessionUser = await getSessionByToken(token);
+      if (sessionUser) {
         user = {
-          id: dbUser.id,
-          username: dbUser.username,
-          email: dbUser.email,
-          token_expires: dbUser.token_expires
+          id: sessionUser.id,
+          username: sessionUser.username,
+          email: sessionUser.email,
+          sessionId: sessionUser.sessionId,
+          tokenExpires: sessionUser.tokenExpires,
         };
-        const ttl = Math.floor((new Date(user.token_expires).getTime() - Date.now()) / 1000);
+
+        // 写入缓存
+        const ttl = Math.floor((new Date(sessionUser.tokenExpires).getTime() - Date.now()) / 1000);
         if (ttl > 0) {
           await cache.set(`token:${token}`, user, ttl);
         }
+
+        // 异步更新 Session 最后活动时间
+        updateSessionActivity(sessionUser.sessionId).catch(() => {});
       }
     }
 
@@ -97,7 +104,7 @@ export async function authMiddleware(c: Context, next: Next) {
 
     // 存储用户信息于 Hono Context 中，以备路由中使用
     c.set('user', user);
-    
+
   } catch (err) {
     console.error('中间件认证错误:', err);
     const isDev = process.env.NODE_ENV !== 'production';
