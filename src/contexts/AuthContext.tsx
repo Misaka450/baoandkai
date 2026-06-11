@@ -94,8 +94,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // 登录成功后，后端已设置HttpOnly Cookie
-      // 从Cookie读取CSRF Token供前端使用
-      const csrf = getCookieValue('csrf_token')
+      // 优先从响应体获取 CSRF Token（比从 Cookie 读取更可靠）
+      const csrf = data.csrfToken || getCookieValue('csrf_token')
       setCsrfToken(csrf)
       setUser({ username: data.user.username, role: data.user.role })
       return data

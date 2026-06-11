@@ -61,7 +61,7 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     const [tooltipData, setTooltipData] = useState<{ name: string; count: number } | null>(null)
     const [scale, setScale] = useState(1)
     const [translate, setTranslate] = useState({ x: 0, y: 0 })
-    const [isDragging, setIsDragging] = useState(false)
+    const [cursorStyle, setCursorStyle] = useState<'grab' | 'grabbing'>('grab')
     const dragStart = useRef({ x: 0, y: 0 })
     const tooltipRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -93,8 +93,8 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     }, [])
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        setIsDragging(true)
         isDraggingRef.current = true
+        setCursorStyle('grabbing')
         dragStart.current = { x: e.clientX - translate.x, y: e.clientY - translate.y }
     }, [translate])
 
@@ -114,8 +114,8 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     }, [])
 
     const handleMouseUp = useCallback(() => {
-        setIsDragging(false)
         isDraggingRef.current = false
+        setCursorStyle('grab')
     }, [])
 
     const handleReset = useCallback(() => {
@@ -198,7 +198,7 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            style={{ cursor: cursorStyle }}
         >
             {/* 缩放控制按钮 */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">

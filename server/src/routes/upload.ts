@@ -2,17 +2,26 @@ import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
+import path from 'path';
 
 const upload = new Hono();
 
+// 允许的上传文件夹白名单，防止路径遍历攻击
+const ALLOWED_FOLDERS = ['images', 'albums', 'avatars', 'food', 'map'];
+
 /**
  * POST /api/upload
- * 上传文件
+ * 上传文件（需要认证，由全局 authMiddleware 保护）
  */
 upload.post('/', async (c) => {
   try {
     const formData = await c.req.parseBody();
     const folder = (formData.folder as string) || 'images';
+
+    // 验证文件夹参数是否在白名单中，防止路径遍历
+    if (!ALLOWED_FOLDERS.includes(folder)) {
+      return errorResponse(`不允许的上传目录: ${folder}`, 400);
+    }
 
     // 适配多文件上传或单文件上传
     let files: File[] = [];
@@ -51,9 +60,10 @@ upload.post('/', async (c) => {
         return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
       }
 
-      // 存储文件
+      // 存储文件 - 使用安全扩展名，防止可执行文件上传
       const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${extension}`;
+      const safeExtension = allowedTypes.some(t => t.endsWith(extension)) ? extension : 'bin';
+      const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${safeExtension}`;
       await storage.put(filename, buffer);
 
       // 返回以 /uploads/ 为前缀的绝对路径
@@ -74,7 +84,7 @@ upload.post('/', async (c) => {
 
 /**
  * POST /api/upload/delete
- * 删除存储的文件
+ * 删除存储的文件（需要认证，由全局 authMiddleware 保护）
  */
 upload.post('/delete', async (c) => {
   try {
@@ -93,7 +103,13 @@ upload.post('/delete', async (c) => {
       targetKey = key.split('/api/images/')[1] || '';
     }
 
-    await storage.delete(decodeURIComponent(targetKey));
+    // 路径安全检查：防止路径遍历攻击（如 ../../etc/passwd）
+    const resolvedPath = path.normalize(decodeURIComponent(targetKey));
+    if (resolvedPath.includes('..')) {
+      return errorResponse('非法的文件路径', 400);
+    }
+
+    await storage.delete(resolvedPath);
 
     return jsonResponse({
       success: true,

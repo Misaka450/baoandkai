@@ -37,6 +37,9 @@ const seasonEmojis = {
     winter: '❄️'
 }
 
+// 预构建省份名到数据的 Map 索引，避免每次 find 线性查找
+const provinceMap = new Map(provinces.map(p => [p.name, p]))
+
 function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
     // 按日期排序并获取有效坐标的点
     const points = useMemo(() => {
@@ -48,7 +51,7 @@ function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
 
         const result: Point[] = []
         for (const checkin of sortedCheckins) {
-            const provinceData = provinces.find(p => p.name === checkin.province)
+            const provinceData = provinceMap.get(checkin.province)
             if (provinceData) {
                 result.push({
                     x: provinceData.center[0],

@@ -192,17 +192,22 @@ auth.post('/login', async (c) => {
     await cache.set(`token:${session.token}`, cacheUser, ttl);
     await cache.set(`csrf:${session.token}`, session.csrfToken, ttl);
 
-    // 构建响应（用 c.json 确保 setCookie 生效）
+    // 设置 Cookie（auth_token 为 HttpOnly，csrf_token 可被前端读取）
+    const maxAge = 7 * 24 * 60 * 60; // 7天，单位秒
     const isSecure = c.req.header('X-Forwarded-Proto') === 'https';
-    const cookieOpts = {
+    setCookie(c, 'auth_token', session.token, {
       maxAge,
       path: '/',
       httpOnly: true,
-      sameSite: 'Strict' as const,
+      sameSite: 'Strict',
       secure: isSecure,
-    };
-    setCookie(c, 'auth_token', token, cookieOpts);
-    setCookie(c, 'csrf_token', csrfToken, cookieOpts);
+    });
+    setCookie(c, 'csrf_token', session.csrfToken, {
+      maxAge,
+      path: '/',
+      sameSite: 'Strict',
+      secure: isSecure,
+    });
 
     return c.json({
       success: true,
@@ -215,23 +220,6 @@ auth.post('/login', async (c) => {
       },
     });
 
-    // 设置 Cookie
-    const maxAge = 7 * 24 * 60 * 60; // 7天，单位秒
-    setCookie(c, 'auth_token', session.token, {
-      maxAge,
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Strict',
-      secure: true,
-    });
-    setCookie(c, 'csrf_token', session.csrfToken, {
-      maxAge,
-      path: '/',
-      sameSite: 'Strict',
-      secure: true,
-    });
-
-    return response;
   } catch (error: any) {
     console.error('登录API错误:', error);
     return errorResponse('登录失败', 500, error.message);

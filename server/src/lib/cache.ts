@@ -1,12 +1,15 @@
 /**
  * 内存缓存模块
  * 
- * 带容量限制和 TTL 的简单内存缓存。
- * 超过最大条目数时自动淘汰最早过期的条目。
+ * 基于 LRU（最近最少使用）策略的内存缓存，带 TTL 支持。
+ * 超过最大条目数时自动淘汰最久未访问的条目。
  * 每 5 分钟自动清理过期条目，避免内存泄漏。
  */
 
-const store = new Map<string, { value: any; expires: number }>();
+interface CacheEntry {
+  value: any;
+  expires: number;
+}
 
 /** 缓存最大条目数，防止无限增长导致 OOM */
 const MAX_SIZE = 5000;
@@ -14,19 +17,23 @@ const MAX_SIZE = 5000;
 /** 自动清理过期条目的间隔（毫秒） */
 const CLEANUP_INTERVAL = 5 * 60 * 1000;
 
+// 使用 Map 的插入顺序特性实现 LRU：每次访问时删除再重新插入，使其移到末尾
+const store = new Map<string, CacheEntry>();
+
 /**
- * 淘汰最早过期的条目，直到低于最大容量
+ * 淘汰最久未访问的条目，直到低于最大容量
+ * Map 的迭代顺序即为插入顺序，最早插入（最久未访问）的条目在前面
  */
 function evictIfNeeded(): void {
   if (store.size < MAX_SIZE) return;
 
-  // 按过期时间排序，删除最早过期的
-  const entries = [...store.entries()].sort((a, b) => a[1].expires - b[1].expires);
-  const deleteCount = Math.ceil(MAX_SIZE * 0.2); // 一次淘汰 20%
-
-  for (let i = 0; i < deleteCount && i < entries.length; i++) {
-    const entry = entries[i]!;
-    store.delete(entry[0]);
+  // LRU 淘汰：删除最前面的 20%（即最久未访问的条目）
+  const deleteCount = Math.ceil(MAX_SIZE * 0.2);
+  let deleted = 0;
+  for (const key of store.keys()) {
+    if (deleted >= deleteCount) break;
+    store.delete(key);
+    deleted++;
   }
 }
 
@@ -64,12 +71,17 @@ export const cache = {
       store.delete(key);
       return null;
     }
+    // LRU：将访问的条目移到 Map 末尾（删除再重新插入）
+    store.delete(key);
+    store.set(key, entry);
     return entry.value as T;
   },
 
   async set(key: string, value: any, ttlSeconds: number): Promise<void> {
     // 写入前检查容量，避免无限增长
     evictIfNeeded();
+    // 如果 key 已存在，先删除以更新位置到末尾
+    store.delete(key);
     store.set(key, { value, expires: Date.now() + ttlSeconds * 1000 });
   },
 

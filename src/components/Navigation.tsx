@@ -9,23 +9,24 @@ interface NavItem {
     icon: IconName
 }
 
+// 导航项提取为模块级常量，避免每次渲染重新创建
+const navigation: NavItem[] = [
+    { name: '首页', href: '/', icon: 'home' },
+    { name: '时间轴', href: '/timeline', icon: 'schedule' },
+    { name: '相册', href: '/albums', icon: 'photo_library' },
+    { name: '情侣', href: '/couple', icon: 'favorite' },
+    { name: '待办', href: '/todos', icon: 'checklist' },
+    { name: '美食', href: '/food', icon: 'restaurant' },
+    { name: '足迹', href: '/map', icon: 'map' },
+    { name: '管理', href: '/admin', icon: 'settings' }
+]
+
 export default function Navigation() {
     const location = useLocation()
     const [isVisible, setIsVisible] = useState(true)
     // 使用 useRef 存储 lastScrollY，避免放入 useEffect 依赖数组导致重复注册事件
     const lastScrollYRef = useRef(0)
     const [isModalOpen, setIsModalOpen] = useState(false)
-
-    const navigation: NavItem[] = [
-        { name: '首页', href: '/', icon: 'home' },
-        { name: '时间轴', href: '/timeline', icon: 'schedule' },
-        { name: '相册', href: '/albums', icon: 'photo_library' },
-        { name: '情侣', href: '/couple', icon: 'favorite' },
-        { name: '待办', href: '/todos', icon: 'checklist' },
-        { name: '美食', href: '/food', icon: 'restaurant' },
-        { name: '足迹', href: '/map', icon: 'map' },
-        { name: '管理', href: '/admin', icon: 'settings' }
-    ]
 
     useEffect(() => {
         const handleScroll = () => {

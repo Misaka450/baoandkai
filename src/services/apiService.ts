@@ -91,7 +91,7 @@ class ApiService {
 
             if (response.status === 401) {
                 if (window.location.pathname !== '/login') {
-                    window.location.href = '/login'
+                    window.location.replace('/login')
                 }
                 return { data: null, error: 'Unauthorized' }
             }
@@ -206,7 +206,7 @@ class ApiService {
 
             if (response.status === 401) {
                 if (window.location.pathname !== '/login') {
-                    window.location.href = '/login'
+                    window.location.replace('/login')
                 }
                 return { data: null, error: 'Unauthorized' }
             }
@@ -260,7 +260,7 @@ class ApiService {
             xhr.addEventListener('load', () => {
                 if (xhr.status === 401) {
                     if (window.location.pathname !== '/login') {
-                        window.location.href = '/login'
+                        window.location.replace('/login')
                     }
                     resolve({ data: null, error: 'Unauthorized' })
                     return
