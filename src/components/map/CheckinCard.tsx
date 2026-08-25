@@ -6,6 +6,7 @@ import ImageModal from '../ImageModal'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import { useToast } from '../common/Toast'
 
 interface CheckinCardProps {
     checkins: MapCheckin[]
@@ -20,6 +21,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [deletingId, setDeletingId] = useState<number | string | null>(null)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | string | null>(null)
+    const toast = useToast()
 
     const handleImageClick = (images: string[], startIndex: number = 0) => {
         if (images && images.length > 0) {
@@ -41,13 +43,14 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
         setDeletingId(id)
         try {
             await mapService.delete(id)
+            toast.success('足迹已成功删除')
             if (onRefresh) {
                 onRefresh()
             }
             setShowDeleteConfirm(null)
         } catch (error) {
             console.error('删除失败:', error)
-            alert('删除失败，请重试')
+            toast.error('删除失败，请稍后重试')
         } finally {
             setDeletingId(null)
         }

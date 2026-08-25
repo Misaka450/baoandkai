@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { notesService } from '../services/apiService'
 import Icon from './icons/Icons'
+import { useToast } from './common/Toast'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../constants/styles'
 
@@ -38,6 +39,7 @@ const getRandomColorName = () => {
 export default function StickyNotes() {
   const { isAdmin } = useAuth()
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [newNote, setNewNote] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
@@ -59,20 +61,33 @@ export default function StickyNotes() {
   const notes = notesData || []
 
   const handleAddNote = async () => {
-    if (!newNote.trim()) return
+    if (!newNote.trim()) {
+      toast.warning('请输入碎碎念内容哦')
+      return
+    }
     const color = getRandomColorName()
-    await notesService.create({ content: newNote, color })
-    setNewNote('')
-    setShowAddModal(false)
-    // 创建后刷新缓存
-    queryClient.invalidateQueries({ queryKey: ['notes'] })
+    try {
+      await notesService.create({ content: newNote, color })
+      setNewNote('')
+      setShowAddModal(false)
+      toast.success('碎碎念已贴上啦')
+      // 创建后刷新缓存
+      queryClient.invalidateQueries({ queryKey: ['notes'] })
+    } catch (err) {
+      toast.error('贴便签失败，请稍后重试')
+    }
   }
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('确定要删除这条碎碎念吗？')) return
-    await notesService.delete(id)
-    // 删除后刷新缓存
-    queryClient.invalidateQueries({ queryKey: ['notes'] })
+    try {
+      await notesService.delete(id)
+      toast.success('碎碎念已删除')
+      // 删除后刷新缓存
+      queryClient.invalidateQueries({ queryKey: ['notes'] })
+    } catch (err) {
+      toast.error('删除失败，请稍后重试')
+    }
   }
 
   if (isLoading) return <div className="text-center py-10 opacity-50">加载中...</div>

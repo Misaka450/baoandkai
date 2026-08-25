@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './components/common/Toast'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import RouteErrorBoundary from './components/common/RouteErrorBoundary'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -70,30 +71,32 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Layout />}>
-              <Route index element={<RouteErrorBoundary><Home /></RouteErrorBoundary>} />
-              <Route path="timeline" element={<RouteErrorBoundary><ProtectedRoute><Timeline /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="albums" element={<RouteErrorBoundary><ProtectedRoute><Albums /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="albums/:id" element={<RouteErrorBoundary><ProtectedRoute><AlbumDetail /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="todos" element={<RouteErrorBoundary><ProtectedRoute><Todos /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="food" element={<RouteErrorBoundary><ProtectedRoute><FoodCheckin /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="map" element={<RouteErrorBoundary><ProtectedRoute><TravelMap /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="couple" element={<RouteErrorBoundary><ProtectedRoute><CoupleFeatures /></ProtectedRoute></RouteErrorBoundary>} />
-              <Route path="admin/*" element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute requireAdmin>
-                    <Admin />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              } />
-            </Route>
-            <Route path="/albums/:albumId/photo" element={<RouteErrorBoundary><ProtectedRoute><PhotoViewer /></ProtectedRoute></RouteErrorBoundary>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <ToastProvider>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Layout />}>
+                <Route index element={<RouteErrorBoundary><Home /></RouteErrorBoundary>} />
+                <Route path="timeline" element={<RouteErrorBoundary><ProtectedRoute><Timeline /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="albums" element={<RouteErrorBoundary><ProtectedRoute><Albums /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="albums/:id" element={<RouteErrorBoundary><ProtectedRoute><AlbumDetail /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="todos" element={<RouteErrorBoundary><ProtectedRoute><Todos /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="food" element={<RouteErrorBoundary><ProtectedRoute><FoodCheckin /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="map" element={<RouteErrorBoundary><ProtectedRoute><TravelMap /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="couple" element={<RouteErrorBoundary><ProtectedRoute><CoupleFeatures /></ProtectedRoute></RouteErrorBoundary>} />
+                <Route path="admin/*" element={
+                  <RouteErrorBoundary>
+                    <ProtectedRoute requireAdmin>
+                      <Admin />
+                    </ProtectedRoute>
+                  </RouteErrorBoundary>
+                } />
+              </Route>
+              <Route path="/albums/:albumId/photo" element={<RouteErrorBoundary><ProtectedRoute><PhotoViewer /></ProtectedRoute></RouteErrorBoundary>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   )

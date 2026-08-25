@@ -13,6 +13,13 @@ async function copyRequired(from, to) {
   await cp(source, path.join(outDir, to ?? from), { recursive: true });
 }
 
+async function copyOptional(from, to) {
+  const source = path.join(root, from);
+  if (existsSync(source)) {
+    await cp(source, path.join(outDir, to ?? from), { recursive: true });
+  }
+}
+
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
 await mkdir(path.join(outDir, 'server'), { recursive: true });
@@ -24,7 +31,7 @@ await copyRequired('server/package-lock.json', 'server/package-lock.json');
 await copyRequired('server/migrations', 'server/migrations');
 await copyRequired('nginx');
 await copyRequired('uploads');
-await copyRequired('converted_dump.sql');
+await copyOptional('converted_dump.sql');
 await copyRequired('.env.docker.example');
 await copyRequired('Dockerfile.runtime');
 await copyRequired('docker-compose.runtime.yml');

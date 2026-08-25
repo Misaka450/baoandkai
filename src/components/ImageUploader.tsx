@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Icon from './icons/Icons';
 import { apiService } from '../services/apiService';
+import { useToast } from './common/Toast';
 
 // 定义图片上传组件的属性接口
 interface ImageUploaderProps {
@@ -9,7 +10,7 @@ interface ImageUploaderProps {
   folder?: string;
   existingImages?: string[];
   onRemoveImage?: (index: number) => void;
-  maxFileSize?: number; // 默认20MB 支持更大的相机照片
+  maxFileSize?: number; // 默认 20MB
 }
 
 // 定义上传文件的状态接口
@@ -28,15 +29,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   folder = 'images',
   existingImages = [],
   onRemoveImage,
-  maxFileSize = 20 * 1024 * 1024 // 20MB 支持更大的相机照片
+  maxFileSize = 20 * 1024 * 1024 // 20MB
 }) => {
   const [uploadingFiles, setUploadingFiles] = useState<UploadFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
-  // 确保existingImages是数组
+  // 确保 existingImages 是数组
   const safeExistingImages = Array.isArray(existingImages) ? existingImages : [];
 
+  // 格式化文件大小为易读文本
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -45,62 +48,69 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // 处理文件选择逻辑
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files) return;
+    if (!files || files.length === 0) return;
     
-    const validFiles = Array.from(files).filter(file => {
+    const validFiles: File[] = [];
+
+    for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) {
-        alert(`${file.name} 不是图片文件`);
-        return false;
+        toast.warning(`${file.name} 不是图片文件，已跳过`);
+        continue;
       }
       if (file.size > maxFileSize) {
-        alert(`${file.name} 超过最大文件大小限制 (${formatFileSize(maxFileSize)})`);
-        return false;
+        toast.warning(`${file.name} 超过最大限制 (${formatFileSize(maxFileSize)})`);
+        continue;
       }
-      return true;
-    });
+      validFiles.push(file);
+    }
 
     if (validFiles.length === 0) return;
 
-    setUploadingFiles(prev => [
-      ...prev,
-      ...validFiles.map(file => ({
-        file,
-        id: Math.random().toString(36).substr(2, 9),
-        progress: 0,
-        status: 'uploading' as const,
-        url: null,
-        error: null
-      }))
-    ]);
+    // 检查是否超过最大上传张数
+    if (safeExistingImages.length + uploadingFiles.length + validFiles.length > maxImages) {
+      toast.warning(`最多只能上传 ${maxImages} 张照片哦`);
+      return;
+    }
 
-    // 开始上传
-    for (const uploadFile of validFiles) {
-      await uploadSingleFile(uploadFile);
+    const newUploadItems: UploadFile[] = validFiles.map((file) => ({
+      file,
+      id: `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      progress: 0,
+      status: 'uploading' as const,
+      url: null,
+      error: null,
+    }));
+
+    setUploadingFiles((prev) => [...prev, ...newUploadItems]);
+
+    // 逐个开始上传
+    for (const item of newUploadItems) {
+      await uploadSingleFile(item.file, item.id);
     }
   };
 
-  const uploadSingleFile = async (file: File): Promise<void> => {
-    const uploadId = Math.random().toString(36).substr(2, 9);
-
+  // 单文件上传执行函数
+  const uploadSingleFile = async (file: File, itemId: string): Promise<void> => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', folder);
 
-      // 更新状态为上传中
-      setUploadingFiles(prev => prev.map(item =>
-        item.file === file ? { ...item, id: uploadId, status: 'uploading' as const, progress: 0 } : item
-      ));
+      // 更新进度为 0%
+      setUploadingFiles((prev) =>
+        prev.map((item) => (item.id === itemId ? { ...item, status: 'uploading', progress: 0 } : item))
+      );
 
-      // 使用统一的 apiService 上传
+      // 调用支持进度的 apiService 上传接口
       const { data, error } = await apiService.uploadWithProgress<{ url: string; urls: string[] }>(
         '/upload',
         formData,
         (p) => {
-          setUploadingFiles(prev => prev.map(item =>
-            item.id === uploadId ? { ...item, progress: p.percent } : item
-          ));
+          setUploadingFiles((prev) =>
+            prev.map((item) => (item.id === itemId ? { ...item, progress: p.percent } : item))
+          );
         }
       );
 
@@ -110,31 +120,39 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       const url = data?.urls?.[0] || data?.url || '';
 
-      // 更新状态为成功
-      setUploadingFiles(prev => prev.map(item =>
-        item.id === uploadId ? { ...item, status: 'success' as const, url, progress: 100 } : item
-      ));
+      // 更新状态为上传成功
+      setUploadingFiles((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, status: 'success' as const, url, progress: 100 } : item
+        )
+      );
+
+      toast.success(`${file.name} 上传成功`);
 
       // 通知父组件
       onImagesUploaded([url]);
-
     } catch (error) {
-      setUploadingFiles(prev => prev.map(item =>
-        item.file === file ?
-          {
-            ...item,
-            status: 'error' as const,
-            error: error instanceof Error ? error.message : '上传失败'
-          } : item
-      ));
+      const errMsg = error instanceof Error ? error.message : '上传失败';
+      setUploadingFiles((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                status: 'error' as const,
+                error: errMsg,
+              }
+            : item
+        )
+      );
+      toast.error(`${file.name} 上传失败: ${errMsg}`);
     }
   };
 
+  // 拖拽相关事件处理
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    const files = e.dataTransfer.files;
-    handleFileSelect(files);
+    handleFileSelect(e.dataTransfer.files);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -146,33 +164,48 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setDragOver(false);
   };
 
+  // 移除正在上传或已上传的记录条目
   const removeUploadingFile = (id: string) => {
-    setUploadingFiles(prev => prev.filter(item => item.id !== id));
+    setUploadingFiles((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const retryUpload = (file: File) => {
-    uploadSingleFile(file);
+  // 单项重试上传
+  const retryUpload = (item: UploadFile) => {
+    uploadSingleFile(item.file, item.id);
   };
 
   return (
     <div className="space-y-4">
       {/* 拖拽上传区域 */}
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        role="button"
+        tabIndex={0}
+        aria-label="点击或拖拽图片到此处上传"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            fileInputRef.current?.click();
+          }
+        }}
+        className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all duration-300 cursor-pointer ${
           dragOver 
-            ? 'border-pink-500 bg-pink-50' 
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-primary bg-primary/10 scale-[1.01]' 
+            : 'border-stone-300 dark:border-stone-700 hover:border-primary/60 hover:bg-stone-50/50'
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        onClick={() => fileInputRef.current?.click()}
       >
-        <Icon name="upload" size={48} className="mx-auto text-gray-400 mb-4" />
-        <p className="text-lg font-medium text-gray-700 mb-2">
-          拖拽图片到这里上传
+        <div className="flex justify-center mb-3">
+          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+            <Icon name="upload" size={26} />
+          </div>
+        </div>
+        <p className="text-base font-semibold text-stone-800 dark:text-stone-100 mb-1">
+          点击选择或拖拽图片到这里
         </p>
-        <p className="text-sm text-gray-500 mb-4">
-          或点击选择文件，支持 JPG、PNG、GIF 格式，最大 {formatFileSize(maxFileSize)}
+        <p className="text-xs text-stone-500 mb-4">
+          支持 JPG、PNG、GIF、WebP 格式，单张最大 {formatFileSize(maxFileSize)}
         </p>
         <input
           ref={fileInputRef}
@@ -184,60 +217,71 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         />
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors"
+          aria-label="选择本地图片"
+          onClick={(e) => {
+            e.stopPropagation();
+            fileInputRef.current?.click();
+          }}
+          className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-full hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95"
         >
-          选择图片
+          浏览本地图片
         </button>
       </div>
 
-      {/* 上传进度显示 */}
+      {/* 上传进度与文件状态列表 */}
       {uploadingFiles.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-700">上传进度</h4>
+        <div className="space-y-2">
+          <h4 className="text-xs font-medium text-stone-500">上传列表</h4>
           {uploadingFiles.map((item) => (
-            <div key={item.id} className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <Icon name="photo" size={16} className="text-gray-400" />
-                  <span className="text-sm text-gray-600 truncate max-w-xs">
+            <div
+              key={item.id}
+              className="bg-stone-50 dark:bg-stone-800/60 rounded-xl p-3 border border-stone-200/60 dark:border-stone-700/60"
+            >
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Icon name="photo" size={16} className="text-stone-400 flex-shrink-0" />
+                  <span className="text-xs text-stone-700 dark:text-stone-300 truncate max-w-[180px] sm:max-w-xs">
                     {item.file.name}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-[10px] text-stone-400 flex-shrink-0">
                     {formatFileSize(item.file.size)}
                   </span>
                 </div>
                 
-                {item.status === 'uploading' && (
-                  <button
-                    onClick={() => removeUploadingFile(item.id)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <Icon name="close" size={16} />
-                  </button>
-                )}
-                
-                {item.status === 'success' && (
-                  <Icon name="check_circle" size={20} className="text-green-500" />
-                )}
-                
-                {item.status === 'error' && (
-                  <div className="flex items-center space-x-2">
-                    <Icon name="error" size={20} className="text-red-500" />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {item.status === 'uploading' && (
+                    <span className="text-[10px] font-semibold text-primary">{item.progress}%</span>
+                  )}
+                  {item.status === 'success' && (
+                    <span className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
+                      <Icon name="check_circle" size={16} /> 成功
+                    </span>
+                  )}
+                  {item.status === 'error' && (
                     <button
-                      onClick={() => retryUpload(item.file)}
-                      className="text-sm text-red-600 hover:text-red-800"
+                      type="button"
+                      aria-label="重试上传"
+                      onClick={() => retryUpload(item)}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-semibold underline"
                     >
                       重试
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    type="button"
+                    aria-label="移除条目"
+                    onClick={() => removeUploadingFile(item.id)}
+                    className="text-stone-400 hover:text-stone-600 p-0.5 rounded"
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
               </div>
               
               {item.status === 'uploading' && (
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-primary h-full rounded-full transition-all duration-300"
                     style={{ width: `${item.progress}%` }}
                   />
                 </div>

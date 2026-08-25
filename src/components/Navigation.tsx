@@ -57,6 +57,7 @@ export default function Navigation() {
 
   return (
     <nav
+      aria-label="全局主导航"
       className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
         }`}
     >
@@ -67,9 +68,11 @@ export default function Navigation() {
             <Link
               key={item.name}
               to={item.href}
-              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-full transition-all duration-300 ${isActive
+              aria-label={`前往${item.name}`}
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
                 ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
-                : 'text-gray-500 hover:text-primary hover:bg-primary/5'
+                : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
                 }`}
             >
               <Icon name={item.icon} size={20} />

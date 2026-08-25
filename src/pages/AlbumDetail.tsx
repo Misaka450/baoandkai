@@ -86,7 +86,8 @@ export default function AlbumDetail() {
                     {/* 返回按钮 */}
                     <button
                         onClick={handleBack}
-                        className="absolute left-6 top-32 w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-lg"
+                        aria-label="返回相册列表"
+                        className="absolute left-6 top-32 w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-lg focus-visible:outline-2 focus-visible:outline-primary"
                     >
                         <Icon name="west" size={24} />
                     </button>
@@ -130,8 +131,8 @@ export default function AlbumDetail() {
                         {albumPhotos.map((photo, idx) => (
                             <div
                                 key={photo.id || idx}
-                                className="aspect-square premium-card !p-0 overflow-hidden cursor-pointer group relative animate-slide-up"
-                                style={{ animationDelay: `${idx * 0.05}s` }}
+                                className="aspect-square premium-card !p-0 overflow-hidden cursor-pointer group relative content-auto animate-slide-up"
+                                style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
                                 onClick={() => handlePhotoClick(idx)}
                             >
                                 <LazyImage

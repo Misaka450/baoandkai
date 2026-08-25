@@ -5,10 +5,12 @@ import { timeCapsuleService } from '../../services/apiService'
 import Icon from '../../components/icons/Icons'
 import Modal from '../../components/Modal'
 import TimeCapsule from '../../components/TimeCapsule'
+import { useToast } from '../../components/common/Toast'
 import type { TimeCapsuleItem } from '../../types'
 
 export default function AdminTimeCapsules() {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [showAddModal, setShowAddModal] = useState(false)
 
   // 获取时间胶囊数据
@@ -42,6 +44,10 @@ export default function AdminTimeCapsules() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
       setShowAddModal(false)
+      toast.success('时间胶囊封存成功！')
+    },
+    onError: (err) => {
+      toast.error(`创建胶囊失败: ${err instanceof Error ? err.message : '未知错误'}`)
     }
   })
 
@@ -53,6 +59,10 @@ export default function AdminTimeCapsules() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
+      toast.success('时间胶囊已删除')
+    },
+    onError: (err) => {
+      toast.error(`删除失败: ${err instanceof Error ? err.message : '未知错误'}`)
     }
   })
 

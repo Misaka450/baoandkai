@@ -243,7 +243,7 @@ export default function Timeline() {
                 const isOldest = idx === filteredEvents.length - 1
 
                 return (
-                  <div key={event.id} className={`relative flex flex-col md:flex-row items-center animate-slide-up ${isEven ? 'md:flex-row-reverse' : ''}`} style={{ animationDelay: `${idx * 0.1}s` }}>
+                  <div key={event.id} className={`relative flex flex-col md:flex-row items-center content-auto animate-slide-up ${isEven ? 'md:flex-row-reverse' : ''}`} style={{ animationDelay: `${Math.min(idx * 0.05, 0.5)}s` }}>
                     {/* 内容卡片 */}
                     <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
                       <div className={`premium-card p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isOldest ? 'ring-4 ring-primary shadow-2xl shadow-primary/10' : ''}`}>

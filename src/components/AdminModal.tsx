@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Icon, { IconName } from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
@@ -26,6 +26,20 @@ const AdminModal: React.FC<AdminModalProps> = ({
   confirmText = '确定'
 }) => {
   useBodyScrollLock(isOpen)
+
+  // 监听键盘 ESC 键关闭
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
