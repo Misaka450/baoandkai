@@ -10,33 +10,26 @@ interface LazyImageProps {
     aspectRatio?: string
     /** 是否为首屏关键图片 (LCP)，设为 true 会提高加载优先级 */
     priority?: boolean
-    /** 图片宽度，用于 Cloudflare Image Resizing 优化 */
+    /** 图片宽度，用于后端 Sharp 缩略图优化 */
     width?: number
     /** 是否跳过优化（用于下载等场景） */
     noOptimize?: boolean
-    /** 图片尺寸提示，用于srcset响应式加载，如 "(max-width: 768px) 100vw, 50vw" */
+    /** 图片尺寸提示，用于srcset响应式加载 */
     sizes?: string
 }
 
 /**
- * 生成响应式图片srcset
- * 根据不同屏幕宽度提供不同尺寸的图片
+ * 生成响应式图片 srcset (利用服务端 Sharp 动态裁剪接口)
  */
 function generateSrcSet(src: string): string | undefined {
-    if (!src) return undefined
-    // 仅对R2图片生成srcset
-    if (!src.includes('img.980823.xyz') && !src.includes('.r2.dev')) return undefined
-    // 已有cdn-cgi/image的不再嵌套
-    if (src.includes('/cdn-cgi/image/')) return undefined
+    if (!src || !src.includes('/api/images/')) return undefined
 
     try {
-        const urlObj = new URL(src)
-        const basePath = urlObj.pathname
-        const base = `https://${urlObj.host}/cdn-cgi/image`
+        const [base] = src.split('?')
         return [
-            `${base}/width=400,quality=75,format=auto,fit=cover${basePath} 400w`,
-            `${base}/width=800,quality=80,format=auto,fit=cover${basePath} 800w`,
-            `${base}/width=1200,quality=85,format=auto,fit=cover${basePath} 1200w`,
+            `${base}?w=400&q=75&f=webp 400w`,
+            `${base}?w=800&q=80&f=webp 800w`,
+            `${base}?w=1200&q=85&f=webp 1200w`,
         ].join(', ')
     } catch {
         return undefined
@@ -49,7 +42,7 @@ function generateSrcSet(src: string): string | undefined {
  * - aspectRatio 预留空间避免 CLS
  * - priority 标记 LCP 图片提高加载优先级
  * - decoding="async" 异步解码不阻塞渲染
- * - Cloudflare Image Resizing 自动转 WebP/AVIF
+ * - 服务端 Sharp 自动生成 WebP 缩略图
  * - srcset 响应式图片，按设备宽度加载合适尺寸
  */
 export default function LazyImage({
@@ -63,23 +56,20 @@ export default function LazyImage({
     noOptimize = false,
     sizes
 }: LazyImageProps) {
-    // 对 R2 图片使用 Cloudflare 转换
     const optimizedSrc = useMemo(() => {
         if (noOptimize || !src) return src;
-        return getOptimizedImageUrl(src, { width, quality: 80, format: 'auto' });
+        return getOptimizedImageUrl(src, { width, quality: 80, format: 'webp' });
     }, [src, width, noOptimize]);
 
-    // 生成响应式srcset（仅对R2图片）
     const srcSet = useMemo(() => {
-        if (noOptimize || !src) return undefined
-        return generateSrcSet(src)
-    }, [src, noOptimize])
+        if (noOptimize || !optimizedSrc) return undefined
+        return generateSrcSet(optimizedSrc)
+    }, [optimizedSrc, noOptimize])
 
     const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(optimizedSrc))
     const [error, setError] = useState(false)
     const lastSrc = useRef(optimizedSrc)
 
-    // 如果 src 改变，且不在缓存中，才重置状态
     useEffect(() => {
         if (lastSrc.current !== optimizedSrc) {
             lastSrc.current = optimizedSrc
