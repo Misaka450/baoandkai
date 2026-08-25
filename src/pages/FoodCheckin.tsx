@@ -9,6 +9,7 @@ import { Skeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
 import FoodStats from '../components/map/FoodStats'
 import { getThumbnailUrl } from '../utils/imageUtils'
+import { formatDate } from '../utils/common'
 
 type ViewMode = 'grid' | 'stats'
 
@@ -116,15 +117,6 @@ export default function FoodCheckin() {
         </div>
       </div>
     )
-  }
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-    } catch {
-      return dateStr
-    }
   }
 
   const handleImageClick = (images: string[], startIndex: number = 0) => {
@@ -303,7 +295,7 @@ export default function FoodCheckin() {
                     </div>
                   )}
 
-                  <p className="text-[10px] text-end text-slate-300 font-black uppercase tracking-[0.2em]">{formatDate(checkin.date)}</p>
+                  <p className="text-[10px] text-end text-slate-300 font-black uppercase tracking-[0.2em]">{formatDate(checkin.date, 'en')}</p>
                 </div>
               </div>
             )

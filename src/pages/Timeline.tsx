@@ -8,6 +8,7 @@ import ImageModal from '../components/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton, TimelineSkeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
+import { formatDate } from '../utils/common'
 
 interface TimelineResponse {
   data: TimelineEvent[]
@@ -254,7 +255,7 @@ export default function Timeline() {
                         )}
                         <div className="flex items-center gap-3 mb-6">
                           <span className="premium-badge">
-                            {event.date ? new Date(event.date).toLocaleDateString() : 'SOMEDAY'}
+                            {event.date ? formatDate(event.date, 'short') : 'SOMEDAY'}
                           </span>
                           <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-900 text-white`}>
                             {event.category}

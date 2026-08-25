@@ -4,6 +4,7 @@ import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import { formatDate } from '../../utils/common'
 
 interface SlideshowProps {
     checkins: MapCheckin[]
@@ -131,11 +132,7 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
                         </span>
                     </div>
                     <p className="text-white/60 text-xs font-bold uppercase tracking-widest">
-                        {new Date(currentPhoto.checkin.date).toLocaleDateString('zh-CN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        })}
+                        {formatDate(currentPhoto.checkin.date, 'full')}
                     </p>
                     {currentPhoto.checkin.description && (
                         <p className="text-white/80 text-sm mt-3 max-w-2xl mx-auto">

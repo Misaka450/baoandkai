@@ -7,6 +7,7 @@ import Modal from '../../components/Modal'
 import TimeCapsule from '../../components/TimeCapsule'
 import { useToast } from '../../components/common/Toast'
 import type { TimeCapsuleItem } from '../../types'
+import { formatDate } from '../../utils/common'
 
 export default function AdminTimeCapsules() {
   const queryClient = useQueryClient()
@@ -127,14 +128,14 @@ export default function AdminTimeCapsules() {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800">{capsule.isUnlocked ? '已解锁' : '未解锁'}</h3>
-                      <p className="text-xs text-slate-400">创建于 {new Date(capsule.createdAt).toLocaleDateString('zh-CN')}</p>
+                      <p className="text-xs text-slate-400">创建于 {formatDate(capsule.createdAt, 'short')}</p>
                     </div>
                   </div>
                   <p className="text-slate-600 mb-4 leading-relaxed">{capsule.message}</p>
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-2 text-slate-500">
                       <Icon name="event" size={16} />
-                      <span>解锁日期：{new Date(capsule.unlockDate).toLocaleDateString('zh-CN')}</span>
+                      <span>解锁日期：{formatDate(capsule.unlockDate, 'short')}</span>
                     </div>
                     {!capsule.isUnlocked && (
                       <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-bold">

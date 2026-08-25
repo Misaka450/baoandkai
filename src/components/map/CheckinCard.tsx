@@ -7,6 +7,7 @@ import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import { useToast } from '../common/Toast'
+import { formatDate } from '../../utils/common'
 
 interface CheckinCardProps {
     checkins: MapCheckin[]
@@ -27,15 +28,6 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
         if (images && images.length > 0) {
             setSelectedImages(images)
             setCurrentImageIndex(startIndex)
-        }
-    }
-
-    const formatDate = (dateStr: string) => {
-        try {
-            const date = new Date(dateStr)
-            return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
-        } catch {
-            return dateStr
         }
     }
 

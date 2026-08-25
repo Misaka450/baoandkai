@@ -4,6 +4,7 @@ import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import { formatDate } from '../../utils/common'
 
 interface PhotoWallProps {
     checkins: MapCheckin[]
@@ -87,7 +88,7 @@ export default function PhotoWall({ checkins, onPhotoClick }: PhotoWallProps) {
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
                                     <p className="text-white text-xs font-bold truncate">{photo.checkin.title}</p>
                                     <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">
-                                        {new Date(photo.checkin.date).toLocaleDateString('zh-CN')}
+                                        {formatDate(photo.checkin.date, 'short')}
                                     </p>
                                 </div>
                             </div>
@@ -121,7 +122,7 @@ export default function PhotoWall({ checkins, onPhotoClick }: PhotoWallProps) {
                                     <span>{photo.checkin.province}{photo.checkin.city ? ` · ${photo.checkin.city}` : ''}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-300 font-bold">
-                                    {new Date(photo.checkin.date).toLocaleDateString('zh-CN')}
+                                    {formatDate(photo.checkin.date, 'short')}
                                 </p>
                             </div>
                         </motion.div>

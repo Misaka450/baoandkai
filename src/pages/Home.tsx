@@ -7,6 +7,7 @@ import StatCard from '../components/common/StatCard'
 import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
 import { generateLocalAvatar } from '../utils/localAvatar'
 import FloatingParticles from '../components/FloatingParticles'
+import { formatDate } from '../utils/common'
 
 export default function Home() {
   const { config } = useConfig()
@@ -97,7 +98,7 @@ export default function Home() {
         <div className="text-center mb-16">
           <span className="premium-badge !bg-[#FFEDF3] !text-[#FF8BB1] mb-6">LOVE TIMER</span>
           <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">
-            Memory since {new Date(config.anniversaryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            Memory since {formatDate(config.anniversaryDate, 'en')}
           </p>
         </div>
 
@@ -124,7 +125,7 @@ export default function Home() {
           <div className="bg-white/60 border border-white px-10 py-4 rounded-[2rem] flex items-center shadow-sm">
             <Icon name="calendar_month" className="text-[#FF8BB1] mr-3" size={20} />
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-              STARTING LINE: {new Date(config.anniversaryDate).toLocaleDateString('en-CA').replace(/\//g, '.')}
+              STARTING LINE: {formatDate(config.anniversaryDate, 'dot')}
             </span>
           </div>
           <p className="text-slate-400 font-bold text-sm tracking-[0.05em]">

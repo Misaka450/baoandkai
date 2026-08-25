@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Icon from './icons/Icons'
 import type { TimeCapsuleItem } from '../types'
+import { formatDate } from '../utils/common'
 
 interface TimeCapsuleListProps {
   capsules: TimeCapsuleItem[]
@@ -80,7 +81,7 @@ export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, on
                         {capsule.isUnlocked ? '已解锁的胶囊' : '时间胶囊'}
                       </h4>
                       <p className="text-sm text-slate-400">
-                        创建于 {new Date(capsule.createdAt).toLocaleDateString()}
+                        创建于 {formatDate(capsule.createdAt, 'short')}
                       </p>
                     </div>
                   </div>
@@ -89,7 +90,7 @@ export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, on
                       {capsule.isUnlocked ? '已解锁' : getTimeRemaining(capsule.unlockDate)}
                     </p>
                     <p className="text-xs text-slate-400">
-                      解锁日期: {new Date(capsule.unlockDate).toLocaleDateString()}
+                      解锁日期: {formatDate(capsule.unlockDate, 'short')}
                     </p>
                   </div>
                 </div>

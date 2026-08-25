@@ -4,6 +4,7 @@ import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import { formatDate } from '../../utils/common'
 
 interface TimelineProps {
     checkins: MapCheckin[]
@@ -14,12 +15,12 @@ interface TimelineProps {
 export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: TimelineProps) {
     const [expandedId, setExpandedId] = useState<number | string | null>(null)
 
-    const formatDate = (dateStr: string) => {
+    const parseDateInfo = (dateStr: string) => {
         try {
             const date = new Date(dateStr)
             return {
-                full: date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
-                short: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+                full: formatDate(date, 'full'),
+                short: formatDate(date, 'monthDay'),
                 year: date.getFullYear(),
                 month: date.getMonth() + 1,
                 day: date.getDate()
@@ -31,7 +32,7 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
 
     // 按年份分组
     const groupedByYear = checkins.reduce((acc, checkin) => {
-        const { year } = formatDate(checkin.date)
+        const { year } = parseDateInfo(checkin.date)
         if (!acc[year]) {
             acc[year] = []
         }
@@ -69,7 +70,7 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
 
                         <div className="space-y-6">
                             {yearCheckins.map((checkin, idx) => {
-                                const dateInfo = formatDate(checkin.date)
+                                const dateInfo = parseDateInfo(checkin.date)
                                 const isExpanded = expandedId === checkin.id
                                 const weekday = ['日', '一', '二', '三', '四', '五', '六'][new Date(checkin.date).getDay()] || ''
                                 const coverImage = checkin.images[0]

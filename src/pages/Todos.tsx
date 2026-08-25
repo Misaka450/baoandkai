@@ -6,6 +6,7 @@ import ImageModal from '../components/ImageModal'
 import Icon from '../components/icons/Icons'
 import { Skeleton } from '../components/Skeleton'
 import { getThumbnailUrl } from '../utils/imageUtils'
+import { formatDate } from '../utils/common'
 
 interface TodosResponse {
   data: Todo[]
@@ -80,7 +81,7 @@ export default function Todos() {
                 <div className="flex-grow">
                   <div className="flex items-center gap-3 mb-6">
                     <span className={`premium-badge !text-[9px] !bg-white/60 !text-slate-500 border-none`}>
-                      {todo.due_date ? new Date(todo.due_date).toLocaleDateString() : 'SOMEDAY'}
+                      {todo.due_date ? formatDate(todo.due_date, 'short') : 'SOMEDAY'}
                     </span>
                   </div>
                   <h3 className={`text-2xl font-black mb-4 tracking-tight ${theme.text}`}>{todo.title}</h3>

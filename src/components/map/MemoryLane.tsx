@@ -4,6 +4,7 @@ import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import LazyImage from '../LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
+import { formatDate } from '../../utils/common'
 
 interface MemoryLaneProps {
     checkins: MapCheckin[]
@@ -36,14 +37,6 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
     const handleShowMemory = (memory: MapCheckin) => {
         setCurrentMemory(memory)
         setShowMemory(true)
-    }
-
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        })
     }
 
     return (

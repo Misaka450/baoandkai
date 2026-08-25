@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
+import { formatDate } from '../../utils/common'
 
 interface AnnualReportProps {
     checkins: MapCheckin[]
@@ -183,7 +184,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                                 <h4 className="font-bold text-slate-600 text-sm">第一次旅行</h4>
                             </div>
                             <p className="text-sm font-bold text-slate-800 mb-1">{stats.firstTrip?.title || '暂无记录'}</p>
-                            <p className="text-xs text-slate-400">{stats.firstTrip ? new Date(stats.firstTrip.date).toLocaleDateString('zh-CN') : '-'}</p>
+                            <p className="text-xs text-slate-400">{stats.firstTrip ? formatDate(stats.firstTrip.date, 'short') : '-'}</p>
                         </motion.div>
 
                         <motion.div
@@ -199,7 +200,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                                 <h4 className="font-bold text-slate-600 text-sm">最后一次旅行</h4>
                             </div>
                             <p className="text-sm font-bold text-slate-800 mb-1">{stats.lastTrip?.title || '暂无记录'}</p>
-                            <p className="text-xs text-slate-400">{stats.lastTrip ? new Date(stats.lastTrip.date).toLocaleDateString('zh-CN') : '-'}</p>
+                            <p className="text-xs text-slate-400">{stats.lastTrip ? formatDate(stats.lastTrip.date, 'short') : '-'}</p>
                         </motion.div>
                     </div>
                 </div>

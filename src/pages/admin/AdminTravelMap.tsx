@@ -10,6 +10,7 @@ import Icon, { type IconName } from '../../components/icons/Icons'
 import StatCard from '../../components/common/StatCard'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
+import { formatDate } from '../../utils/common'
 
 const provinceNames = getAllProvinceNames()
 
@@ -141,14 +142,6 @@ export default function AdminTravelMap() {
         }))
     }
 
-    const formatDate = (dateStr: string) => {
-        try {
-            return new Date(dateStr).toLocaleDateString('zh-CN')
-        } catch {
-            return dateStr
-        }
-    }
-
     return (
         <div className="space-y-8">
             {/* 顶部操作栏 */}
@@ -229,7 +222,7 @@ export default function AdminTravelMap() {
                                                 <Icon name="location_on" size={12} className="text-primary/50" />
                                                 <span className="text-xs font-medium">{checkin.province}{checkin.city ? ` · ${checkin.city}` : ''}</span>
                                                 <span className="text-slate-200">•</span>
-                                                <span className="text-xs">{formatDate(checkin.date)}</span>
+                                                <span className="text-xs">{formatDate(checkin.date, 'short')}</span>
                                             </div>
                                             {checkin.description && (
                                                 <p className="text-xs text-slate-400 truncate mt-1">{checkin.description}</p>

@@ -6,6 +6,7 @@ import TimeCapsuleList from '../components/TimeCapsuleList'
 import Modal from '../components/Modal'
 import { timeCapsuleService } from '../services/apiService'
 import type { TimeCapsule, TimeCapsuleItem } from '../types'
+import { formatDate } from '../utils/common'
 
 export default function CoupleFeatures() {
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)
@@ -115,8 +116,8 @@ export default function CoupleFeatures() {
               </p>
             </div>
             <div className="flex items-center justify-between text-sm text-slate-400">
-              <span>创建于：{new Date(selectedCapsule.createdAt).toLocaleDateString()}</span>
-              <span>解锁于：{new Date(selectedCapsule.unlockDate).toLocaleDateString()}</span>
+              <span>创建于：{formatDate(selectedCapsule.createdAt, 'short')}</span>
+              <span>解锁于：{formatDate(selectedCapsule.unlockDate, 'short')}</span>
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t">
               <button

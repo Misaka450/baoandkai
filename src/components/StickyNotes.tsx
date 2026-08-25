@@ -6,6 +6,7 @@ import Icon from './icons/Icons'
 import { useToast } from './common/Toast'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../constants/styles'
+import { formatDate } from '../utils/common'
 
 interface Note {
   id: number
@@ -119,7 +120,7 @@ export default function StickyNotes() {
               </div>
               <div className="flex items-center space-x-3">
                 <span className={`text-[11px] ${style.text} opacity-40 font-bold uppercase tracking-widest`}>
-                  {note.created_at ? new Date(note.created_at).toLocaleDateString() : 'JUST NOW'}
+                  {note.created_at ? formatDate(note.created_at, 'short') : 'JUST NOW'}
                 </span>
                 {isAdmin && (
                   <button onClick={() => handleDelete(note.id)} className={`${style.text} opacity-20 hover:opacity-100 hover:text-red-500 transition-all flex items-center justify-center p-1`}>

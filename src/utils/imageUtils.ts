@@ -2,8 +2,89 @@
  * 图片优化工具函数
  */
 
-// 全局已加载图片缓存记录 (内存中)
-export const loadedImagesCache = new Set<string>();
+/**
+ * LRU (Least Recently Used) 内存图片缓存池
+ * 
+ * 💡 原理解释：
+ * 就像一个小抽屉，最多只能放 300 张照片的记忆。
+ * 1. 每次存入新照片时，如果抽屉满了，自动把最久没看过的第 1 张照片忘掉（淘汰）；
+ * 2. 每次再次查看已有的照片时，把它拿到抽屉最上面（刷新活跃度）；
+ * 这样无论刷多久小窝，手机浏览器都不会越用越占内存。
+ */
+export class BoundedImageCache {
+    // 使用 Map 记录缓存，Map 默认按插入顺序保存键值
+    private cache = new Map<string, number>();
+    private maxCapacity: number;
+
+    constructor(maxCapacity = 300) {
+        this.maxCapacity = maxCapacity;
+    }
+
+    /**
+     * 写入图片 URL 到缓存池中
+     * 如果已存在，先删除再添加，提到最新位置；
+     * 如果超出容量，移除最久未访问的图片。
+     */
+    add(url: string): this {
+        if (!url) return this;
+        // 如果已存在先删除再添加，刷新访问新鲜度
+        if (this.cache.has(url)) {
+            this.cache.delete(url);
+        } else if (this.cache.size >= this.maxCapacity) {
+            // 超出容量上限时，移除最久未被访问的一条（Map 的第一个 entry）
+            const oldestKey = this.cache.keys().next().value;
+            if (oldestKey !== undefined) {
+                this.cache.delete(oldestKey);
+            }
+        }
+        this.cache.set(url, Date.now());
+        return this;
+    }
+
+    /**
+     * 检查图片是否在缓存池中
+     * 命中时自动刷新该条目的活跃度（LRU 机制）
+     */
+    has(url: string): boolean {
+        if (!url || !this.cache.has(url)) return false;
+        // 命中时将其移到队列末尾，刷新为最近访问
+        this.cache.delete(url);
+        this.cache.set(url, Date.now());
+        return true;
+    }
+
+    /**
+     * 删除指定图片的缓存
+     */
+    delete(url: string): boolean {
+        if (!url) return false;
+        return this.cache.delete(url);
+    }
+
+    /**
+     * 清空缓存池
+     */
+    clear(): void {
+        this.cache.clear();
+    }
+
+    /**
+     * 获取当前缓存图片数量
+     */
+    get size(): number {
+        return this.cache.size;
+    }
+
+    /**
+     * 获取最大容量限制
+     */
+    get capacity(): number {
+        return this.maxCapacity;
+    }
+}
+
+// 全局已加载图片缓存记录 (内存中，容量保护 300 条)
+export const loadedImagesCache = new BoundedImageCache(300);
 
 // Cloudflare Image Resizing 配置
 const CF_IMAGE_CONFIG = {
