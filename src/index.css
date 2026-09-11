@@ -237,7 +237,7 @@
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-[#B89B95] to-[#6D6875];
 }
 
 .animate-shimmer {

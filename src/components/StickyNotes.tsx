@@ -42,6 +42,7 @@ export default function StickyNotes() {
   const queryClient = useQueryClient()
   const toast = useToast()
   const [newNote, setNewNote] = useState('')
+  const [selectedColor, setSelectedColor] = useState('pink')
   const [showAddModal, setShowAddModal] = useState(false)
 
   useBodyScrollLock(showAddModal)
@@ -66,7 +67,7 @@ export default function StickyNotes() {
       toast.warning('请输入碎碎念内容哦')
       return
     }
-    const color = getRandomColorName()
+    const color = selectedColor || getRandomColorName()
     try {
       await notesService.create({ content: newNote, color })
       setNewNote('')
@@ -113,10 +114,6 @@ export default function StickyNotes() {
                   <Icon name="favorite" size={20} />
                   <span className="text-sm font-bold">{note.likes || 0}</span>
                 </span>
-                <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">
-                  <Icon name="chat_bubble" size={20} />
-                  <span className="text-sm font-bold">0</span>
-                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <span className={`text-[11px] ${style.text} opacity-40 font-bold uppercase tracking-widest`}>
@@ -146,7 +143,24 @@ export default function StickyNotes() {
       {showAddModal && (
         <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="glass-card p-8 rounded-3xl w-full max-w-lg animate-slide-up">
-            <h3 className="text-2xl font-display mb-6">记录新碎碎念</h3>
+            <h3 className="text-2xl font-display mb-4">记录新碎碎念</h3>
+
+            {/* 莫兰迪便签颜色自选 */}
+            <div className="mb-4">
+              <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">选择贴纸颜色</span>
+              <div className="flex items-center space-x-3">
+                {Object.entries(colorMap).map(([cKey, cVal]) => (
+                  <button
+                    key={cKey}
+                    type="button"
+                    onClick={() => setSelectedColor(cKey)}
+                    className={`w-8 h-8 rounded-full ${cVal.bg} transition-all duration-200 ${selectedColor === cKey ? 'scale-110 ring-2 ring-offset-2 ring-primary shadow-md' : 'opacity-80 hover:opacity-100 hover:scale-105'}`}
+                    aria-label={`选择${cKey}颜色`}
+                  />
+                ))}
+              </div>
+            </div>
+
             <textarea
               className="w-full bg-slate-50 rounded-2xl p-4 min-h-[120px] mb-6 focus:ring-2 focus:ring-primary outline-none"
               placeholder="在这里写下你的心情..."

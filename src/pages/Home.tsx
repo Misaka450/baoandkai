@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
@@ -8,10 +8,27 @@ import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
 import { generateLocalAvatar } from '../utils/localAvatar'
 import FloatingParticles from '../components/FloatingParticles'
 import { formatDate } from '../utils/common'
+import { useToast } from '../components/common/Toast'
 
 export default function Home() {
   const { config } = useConfig()
   const timeTogether = useLoveTimer(config.anniversaryDate)
+  const toast = useToast()
+  const [isHeartPopping, setIsHeartPopping] = useState(false)
+
+  const handleHeartClick = () => {
+    setIsHeartPopping(true)
+    setTimeout(() => setIsHeartPopping(false), 500)
+    const sweetMessages = [
+      '包包和恺恺要一直在一起哦 ❤️',
+      '今天也是超级喜欢包包的一天 ✨',
+      '心跳怦怦，想你啦 💕',
+      '宇宙第一可爱包包已收到想念 🌸',
+      '执子之手，与子偕老 💫'
+    ]
+    const msg = sweetMessages[Math.floor(Math.random() * sweetMessages.length)] || sweetMessages[0]
+    toast.success(msg)
+  }
 
   const getDefaultAvatar = (seed: string, bg: string) =>
     generateLocalAvatar(seed, bg)
@@ -61,7 +78,11 @@ export default function Home() {
 
           <div className="relative flex items-center justify-center">
             <div className="w-20 md:w-40 h-[2px] bg-gradient-to-r from-transparent via-[#FF8BB1]/40 to-transparent"></div>
-            <button className="absolute w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center group animate-elastic border-2 border-[#FFEDF3]">
+            <button
+              onClick={handleHeartClick}
+              aria-label="传递心意"
+              className={`absolute w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center group border-2 border-[#FFEDF3] transition-all duration-300 active:scale-90 ${isHeartPopping ? 'animate-heart-pop scale-125' : 'animate-elastic'}`}
+            >
               <Icon name="favorite" size={28} className="text-[#FF8BB1] group-hover:scale-125 transition-transform" />
             </button>
           </div>
@@ -138,7 +159,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 px-2">
           <div className="mb-6 md:mb-0">
             <div className="flex items-center space-x-4 mb-3">
-              <span className="bg-slate-900 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
+              <span className="bg-[#FFEDF3] text-[#FF8BB1] w-10 h-10 rounded-2xl flex items-center justify-center shadow-md shadow-[#FFEDF3]/50 border border-[#FF8BB1]/20">
                 <Icon name="auto_fix_high" size={20} />
               </span>
               <h2 className="text-4xl font-black text-slate-800 tracking-tight">碎碎念</h2>

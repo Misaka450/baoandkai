@@ -58,10 +58,10 @@ export default function Navigation() {
   return (
     <nav
       aria-label="全局主导航"
-      className={`fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
+      className={`fixed top-4 md:top-6 left-0 right-0 z-50 flex justify-center px-2 md:px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
         }`}
     >
-      <div className="glass-card soft-shadow px-4 md:px-6 py-2 md:py-3 rounded-full flex items-center space-x-2 md:space-x-4 border border-white/50">
+      <div className="glass-card soft-shadow max-w-[calc(100vw-1rem)] md:max-w-none overflow-x-auto no-scrollbar px-2.5 md:px-6 py-1.5 md:py-3 rounded-full flex items-center space-x-1 md:space-x-4 border border-white/50">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
           return (
@@ -70,12 +70,12 @@ export default function Navigation() {
               to={item.href}
               aria-label={`前往${item.name}`}
               aria-current={isActive ? 'page' : undefined}
-              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
+              className={`flex-shrink-0 flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
                 ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
                 : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
                 }`}
             >
-              <Icon name={item.icon} size={20} />
+              <Icon name={item.icon} size={18} className="md:w-5 md:h-5" />
               <span className={`font-medium text-xs md:text-sm tracking-wide ${isActive ? 'block' : 'hidden md:block'}`}>
                 {item.name}
               </span>
