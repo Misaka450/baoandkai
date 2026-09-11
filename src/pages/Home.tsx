@@ -9,6 +9,7 @@ import { generateLocalAvatar } from '../utils/localAvatar'
 import FloatingParticles from '../components/FloatingParticles'
 import { formatDate } from '../utils/common'
 import { useToast } from '../components/common/Toast'
+import OnThisDayCard from '../components/home/OnThisDayCard'
 
 export default function Home() {
   const { config } = useConfig()
@@ -154,6 +155,9 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* 那年今日 · 时光机 */}
+      <OnThisDayCard />
 
       <section className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 px-2">

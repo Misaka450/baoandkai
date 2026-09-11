@@ -361,9 +361,43 @@ export const albumsService = {
     }
 }
 
+export interface OnThisDayItem {
+    id: number
+    title: string
+    description?: string
+    date: string
+    location?: string
+    category?: string
+    images?: string[]
+    yearsAgo: number
+}
+
+export interface OnThisDayPhoto {
+    id: number
+    url: string
+    caption?: string
+    date: string
+    location?: string
+    album_name?: string
+    yearsAgo: number
+}
+
+export interface OnThisDayResponse {
+    hasMemories: boolean
+    targetDate: string
+    targetMonthDay: string
+    events: OnThisDayItem[]
+    photos: OnThisDayPhoto[]
+}
+
 export const timelineService = {
     async getAll(page: number = 1, limit: number = 10) {
         return apiService.get<{ data: TimelineEvent[]; pagination: { totalPages: number } }>(`/timeline?page=${page}&limit=${limit}`)
+    },
+
+    async getOnThisDay(date?: string) {
+        const query = date ? `?date=${encodeURIComponent(date)}` : ''
+        return apiService.get<OnThisDayResponse>(`/timeline/on-this-day${query}`)
     },
 
     async create(event: Omit<TimelineEvent, 'id'>) {

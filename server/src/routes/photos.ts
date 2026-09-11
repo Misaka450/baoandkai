@@ -4,6 +4,9 @@ import { transformImageUrl } from '../utils/url.js';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
+import { parsePhotoExif } from '../utils/exif.js';
+import path from 'path';
+import fs from 'fs/promises';
 
 const photos = new Hono();
 
@@ -99,6 +102,9 @@ photos.post('/', async (c) => {
     const randomStr = crypto.randomUUID().substring(0, 8);
     const extension = file.name.split('.').pop() || 'jpg';
 
+    // 智能解析 EXIF（拍摄时间与经纬度城市）
+    const exifMeta = await parsePhotoExif(buffer);
+
     // 本地相对存储路径: albums/AlbumName/timestamp-random.ext
     const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
 
@@ -108,12 +114,12 @@ photos.post('/', async (c) => {
     // 拼装保存在数据库里的路径（以前缀 /uploads/ 开头的绝对路径）
     const proxiedUrl = `/uploads/${key}`;
 
-    // 写入数据库
+    // 写入数据库（包含 EXIF 提取出的拍摄日期与地点）
     const { rows: newPhotoRows } = await pool.query(
-      `INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
-       VALUES ($1, $2, $3, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM photos WHERE album_id = $4), NOW()) 
+      `INSERT INTO photos (album_id, url, caption, date, location, sort_order, created_at) 
+       VALUES ($1, $2, $3, $4, $5, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM photos WHERE album_id = $6), NOW()) 
        RETURNING *`,
-      [albumId, proxiedUrl, file.name, albumId]
+      [albumId, proxiedUrl, file.name, exifMeta.date || null, exifMeta.location || null, albumId]
     );
 
     const newPhoto = newPhotoRows[0] as Photo;
@@ -121,9 +127,70 @@ photos.post('/', async (c) => {
     return jsonResponse({
       ...newPhoto,
       url: transformImageUrl(newPhoto.url),
+      detectedExif: exifMeta
     }, 201);
   } catch (error: any) {
     console.error('上传照片失败:', error);
+    return errorResponse(error.message, 500);
+  }
+});
+
+/**
+ * POST /api/albums/:id/photos/sync-exif
+ * 自动扫描相册中的存量历史照片并补齐 EXIF 拍摄时间与地点
+ */
+photos.post('/sync-exif', async (c) => {
+  try {
+    const albumId = parseInt(c.req.param('id') || '');
+    if (isNaN(albumId)) {
+      return errorResponse('无效的相册ID', 400);
+    }
+
+    const { rows: photosList } = await pool.query(
+      'SELECT id, url, date, location FROM photos WHERE album_id = $1',
+      [albumId]
+    );
+
+    let updatedCount = 0;
+    const uploadBase = storage.getUploadDir();
+
+    for (const p of photosList) {
+      // 如果日期或地点已存在，则跳过
+      if (p.date && p.location) continue;
+
+      let relPath = p.url;
+      if (relPath.startsWith('/uploads/')) {
+        relPath = relPath.replace('/uploads/', '');
+      }
+      const fullPath = path.join(uploadBase, relPath);
+
+      try {
+        const fileBuf = await fs.readFile(fullPath);
+        const meta = await parsePhotoExif(fileBuf);
+
+        const newDate = p.date || meta.date;
+        const newLoc = p.location || meta.location;
+
+        if (newDate !== p.date || newLoc !== p.location) {
+          await pool.query(
+            'UPDATE photos SET date = $1, location = $2 WHERE id = $3',
+            [newDate, newLoc, p.id]
+          );
+          updatedCount++;
+        }
+      } catch (err) {
+        // 单个文件读取失败忽略
+      }
+    }
+
+    return jsonResponse({
+      success: true,
+      scanned: photosList.length,
+      updated: updatedCount,
+      message: `已扫描 ${photosList.length} 张照片，成功补全 ${updatedCount} 张的拍摄信息`
+    });
+  } catch (error: any) {
+    console.error('批量同步 EXIF 失败:', error);
     return errorResponse(error.message, 500);
   }
 });

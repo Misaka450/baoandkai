@@ -87,6 +87,86 @@ timeline.get('/', async (c) => {
 });
 
 /**
+ * GET /api/timeline/on-this-day
+ * 获取那年今日的历史事件与照片回忆
+ */
+timeline.get('/on-this-day', async (c) => {
+  try {
+    const queryDate = (c.req.query('date') || '').trim();
+    let targetYear: number;
+    let targetMonthDay: string;
+
+    if (queryDate && /^\d{4}-\d{2}-\d{2}$/.test(queryDate)) {
+      targetYear = parseInt(queryDate.substring(0, 4), 10);
+      targetMonthDay = queryDate.substring(5, 10);
+    } else {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const cstDate = new Date(utc + (3600000 * 8));
+      targetYear = cstDate.getFullYear();
+      const m = String(cstDate.getMonth() + 1).padStart(2, '0');
+      const d = String(cstDate.getDate()).padStart(2, '0');
+      targetMonthDay = `${m}-${d}`;
+    }
+
+    // 1. 查询 timeline_events 中往年同月同日的事件
+    const { rows: eventRows } = await pool.query(
+      `SELECT id, title, description, date, location, category, images, created_at
+       FROM timeline_events
+       WHERE date LIKE '%' || $1
+         AND LENGTH(date) >= 10
+         AND CAST(SUBSTRING(date FROM 1 FOR 4) AS INTEGER) < $2
+       ORDER BY date DESC`,
+      [targetMonthDay, targetYear]
+    );
+
+    // 2. 查询 photos 中往年同月同日的照片
+    const { rows: photoRows } = await pool.query(
+      `SELECT p.id, p.url, p.caption, p.date, p.location, a.name as album_name
+       FROM photos p
+       LEFT JOIN albums a ON p.album_id = a.id
+       WHERE p.date LIKE '%' || $1
+         AND LENGTH(p.date) >= 10
+         AND CAST(SUBSTRING(p.date FROM 1 FOR 4) AS INTEGER) < $2
+       ORDER BY p.date DESC
+       LIMIT 10`,
+      [targetMonthDay, targetYear]
+    );
+
+    const events = (eventRows || []).map((ev: any) => {
+      const year = parseInt(ev.date.substring(0, 4), 10);
+      return {
+        ...ev,
+        images: transformImageArray(ev.images),
+        yearsAgo: targetYear - year
+      };
+    });
+
+    const photos = (photoRows || []).map((p: any) => {
+      const year = parseInt(p.date.substring(0, 4), 10);
+      return {
+        ...p,
+        url: transformImageArray(p.url)[0] || p.url,
+        yearsAgo: targetYear - year
+      };
+    });
+
+    const hasMemories = events.length > 0 || photos.length > 0;
+
+    return jsonResponse({
+      hasMemories,
+      targetDate: `${targetYear}-${targetMonthDay}`,
+      targetMonthDay,
+      events,
+      photos
+    });
+  } catch (error: any) {
+    console.error('获取时光机数据失败:', error);
+    return errorResponse(error.message || '获取时光机数据失败', 500);
+  }
+});
+
+/**
  * POST /api/timeline
  * 新增时间轴事件
  */
