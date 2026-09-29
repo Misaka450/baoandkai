@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Icon from '../components/icons/Icons'
 import TimeCapsuleList from '../components/TimeCapsuleList'
 import Modal from '../components/Modal'
+import AnniversaryCountdown from '../components/couple/AnniversaryCountdown'
 import { timeCapsuleService } from '../services/apiService'
 import type { TimeCapsule, TimeCapsuleItem } from '../types'
 import { formatDate } from '../utils/common'
@@ -73,8 +74,11 @@ export default function CoupleFeatures() {
           </p>
         </header>
 
+        {/* 纪念日与倒数日看板 */}
+        <AnniversaryCountdown />
+
         {/* 功能卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mb-16 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mb-16 max-w-4xl mx-auto">
           {/* 时间胶囊 */}
           <motion.div 
             className="premium-card p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
