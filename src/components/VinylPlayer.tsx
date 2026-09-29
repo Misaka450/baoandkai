@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export type AmbientTrackId = 'rain' | 'fireplace' | 'cafe' | 'ocean' | 'chords'
@@ -63,6 +64,7 @@ const TIMER_OPTIONS = [
 ]
 
 export default function VinylPlayer() {
+  const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeTrack, setActiveTrack] = useState<AmbientTrackId>('rain')
@@ -77,6 +79,11 @@ export default function VinylPlayer() {
   const trackNodesRef = useRef<{
     stop: () => void
   } | null>(null)
+
+  // Track client-side mount state for document.body portal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Keep volume & muted updated in audio node
   useEffect(() => {
@@ -483,8 +490,12 @@ export default function VinylPlayer() {
 
   const activeTrackObj = TRACKS.find((t) => t.id === activeTrack) || TRACKS[0]
 
-  return (
-    <div className="fixed right-4 bottom-24 md:bottom-8 z-40 select-none font-sans">
+  if (!mounted || typeof document === 'undefined') {
+    return null
+  }
+
+  return createPortal(
+    <div className="fixed right-4 md:right-8 bottom-6 md:bottom-8 z-50 select-none font-sans pointer-events-auto">
       <AnimatePresence>
         {/* Expanded Ambient Glass Player Panel */}
         {isOpen && (
@@ -742,6 +753,7 @@ export default function VinylPlayer() {
           </div>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
