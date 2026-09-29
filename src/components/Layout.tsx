@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Navigation from './Navigation'
 import PageTransition from './PageTransition'
+import VinylPlayer from './VinylPlayer'
 
 export default function Layout() {
   const location = useLocation()
@@ -29,6 +30,7 @@ export default function Layout() {
       </div>
 
       {!isAdminPage && <Navigation />}
+      {!isAdminPage && <VinylPlayer />}
 
       <main className="relative z-10 pb-28 md:pb-12">
         <AnimatePresence mode="wait">
