@@ -1,3 +1,5 @@
+name: baoandkai
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -22,11 +24,20 @@ services:
       target: app
     container_name: bbkk-app
     restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/auth/status').then(r=>process.exit([200,401].includes(r.status)?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
     environment:
+      TZ: Asia/Shanghai
       NODE_ENV: production
+      NODE_OPTIONS: "--max-old-space-size=384"
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-bbkk}:${DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-bbkk}
       ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN is required}
@@ -34,6 +45,7 @@ services:
       UPLOAD_DIR: /app/uploads
       IMAGE_BASE_URL: ${IMAGE_BASE_URL:-/uploads}
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /opt/bbkk/bbkk-runtime/uploads:/app/uploads
     ports:
       - "127.0.0.1:3001:3001"
@@ -53,3 +65,5 @@ services:
 
 volumes:
   pg_data:
+    name: baoandkai_pg_data
+    external: true
