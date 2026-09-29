@@ -30,7 +30,7 @@ export default function Layout() {
 
       {!isAdminPage && <Navigation />}
 
-      <main className="relative z-10">
+      <main className="relative z-10 pb-28 md:pb-12">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>
             <Outlet />

@@ -56,33 +56,70 @@ export default function Navigation() {
     }, [])
 
   return (
-    <nav
-      aria-label="全局主导航"
-      className={`fixed top-4 md:top-6 left-0 right-0 z-50 flex justify-center px-2 md:px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
-        }`}
-    >
-      <div className="glass-card soft-shadow max-w-[calc(100vw-1rem)] md:max-w-none overflow-x-auto no-scrollbar px-2.5 md:px-6 py-1.5 md:py-3 rounded-full flex items-center space-x-1 md:space-x-4 border border-white/50">
-        {navigation.map((item) => {
-          const isActive = location.pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              aria-label={`前往${item.name}`}
-              aria-current={isActive ? 'page' : undefined}
-              className={`flex-shrink-0 flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
-                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
-                : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
-                }`}
-            >
-              <Icon name={item.icon} size={18} className="md:w-5 md:h-5" />
-              <span className={`font-medium text-xs md:text-sm tracking-wide ${isActive ? 'block' : 'hidden md:block'}`}>
-                {item.name}
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-    </nav>
+    <>
+      {/* 桌面端 (md及以上): 保持顶部浮动胶囊导航 */}
+      <nav
+        aria-label="全局主导航（桌面端）"
+        className={`hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center px-4 transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
+          }`}
+      >
+        <div className="glass-card soft-shadow px-6 py-3 rounded-full flex items-center space-x-4 border border-white/50 backdrop-blur-xl">
+          {navigation.map((item) => {
+            const isActive = location.pathname === item.href
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                aria-label={`前往${item.name}`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
+                  : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
+                  }`}
+              >
+                <Icon name={item.icon} size={20} className="w-5 h-5" />
+                <span className="font-medium text-sm tracking-wide">
+                  {item.name}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* 移动端 (< 768px): 专享底部浮动 Dock */}
+      <nav
+        aria-label="全局主导航（移动端）"
+        className={`md:hidden fixed bottom-3 inset-x-3 z-50 pb-[env(safe-area-inset-bottom)] transition-all duration-500 ${isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : 'translate-y-32 opacity-0 pointer-events-none'
+          }`}
+      >
+        <div className="glass-card bg-cream-50/85 backdrop-blur-xl border border-white/60 shadow-xl rounded-2xl p-1.5 flex items-center justify-between overflow-x-auto no-scrollbar gap-1">
+          {navigation.map((item) => {
+            const isActive = location.pathname === item.href
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                aria-label={`前往${item.name}`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex-1 min-w-[3rem] py-1.5 px-1 rounded-xl flex flex-col items-center justify-center transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${isActive
+                  ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02] font-semibold pointer-events-none'
+                  : 'text-stone-500 hover:text-primary active:scale-95'
+                  }`}
+              >
+                <Icon
+                  name={item.icon}
+                  size={19}
+                  className={`transition-transform duration-200 ${isActive ? 'scale-110 mb-0.5' : 'mb-0.5'}`}
+                />
+                <span className={`text-[11px] leading-tight tracking-tight whitespace-nowrap ${isActive ? 'text-white' : 'text-stone-500'}`}>
+                  {item.name}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }
