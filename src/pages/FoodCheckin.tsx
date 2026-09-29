@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
@@ -42,6 +43,7 @@ const cuisineLabelMap: Record<string, { label: string; icon: IconName }> = {
 }
 
 export default function FoodCheckin() {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [filter, setFilter] = useState('all')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -249,10 +251,23 @@ export default function FoodCheckin() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-slate-400 mb-6">
-                    <Icon name="location_on" size={14} className="text-primary/40" />
-                    <span className="text-[10px] font-black uppercase tracking-widest truncate">{checkin.address || 'Somewhere delicious'}</span>
-                  </div>
+                  {checkin.address ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/map')}
+                      className="group/loc inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary transition-all text-left mb-6 max-w-full cursor-pointer"
+                      title="在足迹地图中查看"
+                    >
+                      <Icon name="location_on" size={13} className="text-primary group-hover/loc:scale-110 transition-transform shrink-0" />
+                      <span className="text-[11px] font-bold truncate">{checkin.address}</span>
+                      <Icon name="east" size={11} className="opacity-0 group-hover/loc:opacity-100 transition-opacity shrink-0 ml-0.5" />
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-slate-400 mb-6">
+                      <Icon name="location_on" size={14} className="text-primary/40" />
+                      <span className="text-[10px] font-black uppercase tracking-widest truncate">Somewhere delicious</span>
+                    </div>
+                  )}
 
                   {checkin.recommended_dishes && (
                     <div className="mb-6 flex flex-wrap gap-2">

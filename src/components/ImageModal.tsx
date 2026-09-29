@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, downloadOriginalImage } from '../utils/imageUtils'
 import Icon from './icons/Icons'
+import PolaroidModal from './PolaroidModal'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { openModal, closeModal } from '../utils/modalState'
 
@@ -40,6 +41,7 @@ export default function ImageModal({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [isFullLoaded, setIsFullLoaded] = useState(false)
   const [hasDragged, setHasDragged] = useState(false)
+  const [isPolaroidOpen, setIsPolaroidOpen] = useState(false)
 
   const touchStart = useRef({ x: 0, y: 0 })
   const initialPinchDistance = useRef(0)
@@ -118,6 +120,7 @@ export default function ImageModal({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (isPolaroidOpen) return
       if (event.key === 'Escape') onClose()
       else if (event.key === 'ArrowLeft' && images.length > 1 && onPrevious) onPrevious()
       else if (event.key === 'ArrowRight' && images.length > 1 && onNext) onNext()
@@ -130,7 +133,7 @@ export default function ImageModal({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose, images.length, onPrevious, onNext])
+  }, [isOpen, onClose, images.length, onPrevious, onNext, isPolaroidOpen])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -245,6 +248,17 @@ export default function ImageModal({
           >
             <Icon name="download" size={18} />
             <span className="text-[10px] font-bold hidden md:inline">下载</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPolaroidOpen(true);
+            }}
+            className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 text-white rounded-xl md:rounded-2xl transition-all border border-rose-400/50 active:scale-95 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 gap-1.5 md:gap-2"
+            title="拍立得相片"
+          >
+            <Icon name="photo_camera" size={18} />
+            <span className="text-[10px] font-bold hidden md:inline">拍立得</span>
           </button>
           {!isFullLoaded && (
             <div className="hidden md:flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary/20">
@@ -399,6 +413,14 @@ export default function ImageModal({
             ))}
           </div>
         </div>
+      )}
+
+      {currentImage && (
+        <PolaroidModal
+          isOpen={isPolaroidOpen}
+          onClose={() => setIsPolaroidOpen(false)}
+          imageUrl={currentImage}
+        />
       )}
     </div>,
     document.body

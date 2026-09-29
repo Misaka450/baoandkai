@@ -5,6 +5,7 @@ import { preloadImage, getThumbnailUrl, getFullImageUrl, loadedImagesCache } fro
 import { apiService } from '../services/apiService'
 import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
+import PolaroidModal from '../components/PolaroidModal'
 
 interface AlbumDetailResponse {
     id: number
@@ -28,6 +29,7 @@ export default function PhotoViewer() {
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
     const [isFullLoaded, setIsFullLoaded] = useState(false)
     const [hasDragged, setHasDragged] = useState(false)
+    const [isPolaroidOpen, setIsPolaroidOpen] = useState(false)
 
     const touchStart = useRef({ x: 0, y: 0 })
     const initialPinchDistance = useRef(0)
@@ -108,13 +110,14 @@ export default function PhotoViewer() {
     // 键盘导航
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
+            if (isPolaroidOpen) return
             if (event.key === 'Escape') handleBack()
             else if (event.key === 'ArrowLeft') handlePrevious()
             else if (event.key === 'ArrowRight') handleNext()
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [handleBack, handlePrevious, handleNext])
+    }, [handleBack, handlePrevious, handleNext, isPolaroidOpen])
 
     // 触摸手势 - 只用于图片区域
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -216,6 +219,14 @@ export default function PhotoViewer() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setIsPolaroidOpen(true)}
+                        className="w-10 h-10 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 rounded-xl text-white active:scale-95 transition-all shadow-md"
+                        title="生成拍立得"
+                    >
+                        <Icon name="photo_camera" size={20} />
+                    </button>
                     <button
                         type="button"
                         onClick={() => setScale(prev => Math.min(5, prev * 1.5))}
@@ -339,6 +350,15 @@ export default function PhotoViewer() {
                         ))}
                     </div>
                 </div>
+            )}
+
+            {currentImage && (
+                <PolaroidModal
+                    isOpen={isPolaroidOpen}
+                    onClose={() => setIsPolaroidOpen(false)}
+                    imageUrl={currentImage}
+                    defaultCaption={albumDetail?.photos?.[currentIndex]?.caption || albumDetail?.name}
+                />
             )}
         </div>
     )

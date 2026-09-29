@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
 import type { Todo } from '../types'
@@ -25,6 +26,7 @@ const stickyColors = [
 ]
 
 export default function Todos() {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -67,6 +69,15 @@ export default function Todos() {
           {todos.map((todo, idx) => {
             const isCompleted = todo.status === 'completed'
             const theme = stickyColors[idx % stickyColors.length]!
+            const isTravelTodo =
+              todo.category === '旅行' ||
+              todo.category?.includes('旅行') ||
+              todo.category?.includes('travel') ||
+              todo.category?.includes('足迹') ||
+              todo.title?.includes('旅行') ||
+              todo.title?.includes('去') ||
+              todo.title?.includes('游') ||
+              todo.description?.includes('旅行')
             return (
               <div
                 key={todo.id}
@@ -79,10 +90,29 @@ export default function Todos() {
                 </div>
 
                 <div className="flex-grow">
-                  <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center gap-2 mb-6 flex-wrap">
                     <span className={`premium-badge !text-[9px] !bg-white/60 !text-slate-500 border-none`}>
                       {todo.due_date ? formatDate(todo.due_date, 'short') : 'SOMEDAY'}
                     </span>
+                    {todo.category && (
+                      <span className={`premium-badge !text-[9px] !bg-white/40 !text-slate-500 border-none`}>
+                        {todo.category}
+                      </span>
+                    )}
+                    {isTravelTodo && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate('/map')
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 text-[10px] font-bold transition-all border border-blue-200/60 active:scale-95 shadow-sm"
+                        title="查看足迹地图"
+                      >
+                        <Icon name="map" size={11} />
+                        <span>足迹地图</span>
+                      </button>
+                    )}
                   </div>
                   <h3 className={`text-2xl font-black mb-4 tracking-tight ${theme.text}`}>{todo.title}</h3>
                   <p className="text-slate-600 font-medium text-sm leading-relaxed opacity-80">{todo.description}</p>
