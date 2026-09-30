@@ -18,6 +18,7 @@ const PhotoWall = lazy(() => import('../components/map/PhotoWall'))
 const Slideshow = lazy(() => import('../components/map/Slideshow'))
 const MemoryLane = lazy(() => import('../components/map/MemoryLane'))
 const AnnualReport = lazy(() => import('../components/map/AnnualReport'))
+const TravelPlayback = lazy(() => import('../components/map/TravelPlayback'))
 
 type ViewMode = 'country' | 'province' | 'timeline' | 'stats' | 'photos' | 'memories'
 
@@ -48,6 +49,7 @@ export default function TravelMap() {
     const [showRoute, setShowRoute] = useState(true)
     const [showSlideshow, setShowSlideshow] = useState(false)
     const [showAnnualReport, setShowAnnualReport] = useState(false)
+    const [showTravelPlayback, setShowTravelPlayback] = useState(false)
 
     const { data: mapData, isLoading, refetch } = useQuery({
         queryKey: ['mapCheckins'],
@@ -220,6 +222,13 @@ export default function TravelMap() {
                     {/* 功能按钮 - 移动端优化 */}
                     {checkins.length > 0 && (
                         <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8">
+                            <button
+                                onClick={() => setShowTravelPlayback(true)}
+                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-primary/20 hover:from-amber-500/25 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-amber-700 transition-all shadow-sm border border-amber-500/20"
+                            >
+                                <Icon name="flight" size={16} className="text-amber-600" />
+                                <span>时光漫游</span>
+                            </button>
                             <button
                                 onClick={() => setShowAnnualReport(true)}
                                 className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-primary transition-all shadow-sm"
@@ -434,6 +443,18 @@ export default function TravelMap() {
                                 checkins={allCheckins}
                                 year={new Date().getFullYear()}
                                 onClose={() => setShowAnnualReport(false)}
+                            />
+                        </Suspense>
+                    )}
+                </AnimatePresence>
+
+                {/* 时光航线漫游回放 */}
+                <AnimatePresence>
+                    {showTravelPlayback && (
+                        <Suspense fallback={null}>
+                            <TravelPlayback
+                                checkins={checkins}
+                                onClose={() => setShowTravelPlayback(false)}
                             />
                         </Suspense>
                     )}
