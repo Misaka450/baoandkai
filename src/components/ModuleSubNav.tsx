@@ -11,8 +11,7 @@ interface SubTab {
 
 const memoryTabs: SubTab[] = [
   { key: 'albums', label: '📷 相册', path: '/albums' },
-  { key: 'map', label: '🗺️ 足迹', path: '/map' },
-  { key: 'timeline', label: '⏳ 时间轴', path: '/timeline' }
+  { key: 'map', label: '🗺️ 足迹', path: '/map' }
 ]
 
 const coupleTabs: SubTab[] = [

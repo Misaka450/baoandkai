@@ -22,11 +22,18 @@ const mainNavItems: MainNavItem[] = [
         subRoutes: ['/']
     },
     {
+        name: '时光',
+        href: '/timeline',
+        icon: 'schedule',
+        badgeDesc: '恋爱编年史',
+        subRoutes: ['/timeline']
+    },
+    {
         name: '回忆',
         href: '/albums',
         icon: 'photo_library',
-        badgeDesc: '相册 · 足迹 · 时间轴',
-        subRoutes: ['/albums', '/map', '/timeline']
+        badgeDesc: '相册与足迹地图',
+        subRoutes: ['/albums', '/map']
     },
     {
         name: '我们',
@@ -96,7 +103,7 @@ export default function Navigation() {
 
     return (
         <>
-            {/* 桌面端 (md及以上): 保持顶部浮动胶囊导航 (3个主入口 + 1个低调设置) */}
+            {/* 桌面端 (md及以上): 保持顶部浮动胶囊导航 (4个主入口 + 1个低调设置) */}
             <nav
                 aria-label="全局主导航（桌面端）"
                 className={`hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center px-4 transition-all duration-500 ${
@@ -104,7 +111,7 @@ export default function Navigation() {
                 }`}
             >
                 <div className="glass-card soft-shadow px-4 py-2.5 rounded-full flex items-center space-x-2 border border-white/60 backdrop-blur-xl shadow-lg shadow-pink-900/5">
-                    {/* 3 个核心心智导航 */}
+                    {/* 4 个核心心智导航 */}
                     {mainNavItems.map((item) => {
                         const active = isItemActive(item)
                         return (
@@ -203,7 +210,7 @@ export default function Navigation() {
                             </button>
                         </div>
 
-                        {/* Nav Items List: 3个精致大卡片项 */}
+                        {/* Nav Items List: 4个精致大卡片项 */}
                         <nav className="flex-1 py-6 space-y-3.5 overflow-y-auto no-scrollbar" aria-label="移动端侧边导航项">
                             {mainNavItems.map((item) => {
                                 const active = isItemActive(item)
