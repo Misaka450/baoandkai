@@ -62,8 +62,17 @@ export default function Navigation() {
         setIsOpen(false)
     }, [location.pathname])
 
-    // 打开抽屉时锁定底层滚动并广播模态状态
-    useBodyScrollLock(isOpen)
+    // 打开抽屉时仅锁定底层滚动，避免触发全局模态状态自死锁与重绘
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => {
+            document.body.style.overflow = ''
+        }
+    }, [isOpen])
 
     useEffect(() => {
         const handleScroll = () => {
@@ -170,22 +179,24 @@ export default function Navigation() {
                         <Icon name={isOpen ? 'close' : 'menu'} size={22} />
                     </button>
 
-                    {/* 移动端 (< 768px): 莫兰迪滑动抽屉遮罩背景 */}
+                    {/* 移动端 (< 768px): 莫兰迪滑动抽屉遮罩背景 (纯净GPU淡入淡出，彻底移除backdrop-blur-sm开销) */}
                     <div
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
-                        className={`fixed inset-0 bg-stone-900/25 backdrop-blur-sm z-50 md:hidden transition-opacity duration-300 ease-in-out ${
+                        className={`fixed inset-0 bg-stone-900/35 z-50 md:hidden transition-opacity duration-250 ease-out will-change-opacity ${
                             isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                         }`}
                     />
 
-                    {/* 移动端 (< 768px): 莫兰迪精简抽屉面板 */}
+                    {/* 移动端 (< 768px): 莫兰迪精简抽屉面板 (纯色莫兰迪温润背景 + 独立GPU合成层 will-change-transform，0模糊开销，120fps丝滑) */}
                     <aside
                         aria-label="移动端侧边导航"
                         aria-hidden={!isOpen}
-                        className={`fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-cream-50/90 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/70 md:hidden transition-transform duration-300 ease-in-out transform ${
-                            isOpen ? 'translate-x-0' : '-translate-x-full'
-                        }`}
+                        style={{
+                            transform: isOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
+                            willChange: 'transform',
+                        }}
+                        className="fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-[#FAF7F2] p-6 shadow-2xl z-50 flex flex-col border-r border-stone-200/80 md:hidden transition-transform duration-250 ease-out"
                     >
                         {/* Drawer Header: 头部品牌区与关闭按钮 */}
                         <div className="flex items-center justify-between pb-5 border-b border-stone-200/60">
