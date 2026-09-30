@@ -61,6 +61,12 @@ export default function LazyImage({
         return getOptimizedImageUrl(src, { width, quality: 80, format: 'webp' });
     }, [src, width, noOptimize]);
 
+    // 超轻量极小占位图 url (width=50, quality=30, format='webp')
+    const lqipSrc = useMemo(() => {
+        if (noOptimize || !src) return '';
+        return getOptimizedImageUrl(src, { width: 50, quality: 30, format: 'webp' });
+    }, [src, noOptimize]);
+
     const srcSet = useMemo(() => {
         if (noOptimize || !optimizedSrc) return undefined
         return generateSrcSet(optimizedSrc)
@@ -89,19 +95,24 @@ export default function LazyImage({
 
     return (
         <div
-            className={`relative overflow-hidden ${className}`}
+            className={`relative overflow-hidden bg-slate-100 ${className}`}
             style={aspectRatio ? { aspectRatio } : undefined}
         >
-            {/* 加载占位符：磨砂玻璃效果 */}
-            {!isLoaded && !error && (
-                <div className="absolute inset-0 bg-slate-100 flex items-center justify-center animate-pulse">
-                    <div className="w-10 h-10 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin"></div>
-                </div>
+            {/* 渐进式毛玻璃底层：放大的超微缩略图 LQIP */}
+            {!error && lqipSrc && (
+                <img
+                    src={lqipSrc}
+                    alt=""
+                    aria-hidden="true"
+                    className={`absolute inset-0 w-full h-full object-cover filter blur-[16px] scale-[1.08] transition-opacity duration-500 pointer-events-none ${
+                        isLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                />
             )}
 
             {/* 错误占位符 */}
             {error && (
-                <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center text-slate-300">
+                <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center text-slate-300 z-10">
                     <svg className="w-8 h-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -109,6 +120,7 @@ export default function LazyImage({
                 </div>
             )}
 
+            {/* 高清原图层：加载就绪后 400ms 平滑淡入 */}
             <img
                 src={optimizedSrc}
                 alt={alt}
@@ -120,7 +132,9 @@ export default function LazyImage({
                 onLoad={handleLoad}
                 onError={() => setError(true)}
                 onClick={onClick}
-                className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`relative z-[1] w-full h-full object-cover transition-opacity duration-400 ease-out ${
+                    isLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
             />
         </div>
     )

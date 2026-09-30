@@ -31,9 +31,28 @@ export default function PhotoViewer() {
     const [hasDragged, setHasDragged] = useState(false)
     const [isPolaroidOpen, setIsPolaroidOpen] = useState(false)
 
-    const touchStart = useRef({ x: 0, y: 0 })
+    // 下拉拖拽关闭状态
+    const [dismissOffsetY, setDismissOffsetY] = useState(0)
+    const [isDismissing, setIsDismissing] = useState(false)
+
+    // 手势与双击追踪 refs
+    const touchStart = useRef({ x: 0, y: 0, time: 0 })
+    const lastTapRef = useRef({ time: 0, x: 0, y: 0 })
     const initialPinchDistance = useRef(0)
     const initialScale = useRef(1)
+    const isPullingDown = useRef(false)
+    const isHorizontalSwipe = useRef(false)
+
+    // 触觉反馈安全调用
+    const triggerHaptic = useCallback(() => {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            try {
+                navigator.vibrate(10)
+            } catch {
+                // 忽略非用户交互触发的异常
+            }
+        }
+    }, [])
 
     // 加载相册数据
     const { data: albumDetail } = useQuery({
@@ -57,28 +76,32 @@ export default function PhotoViewer() {
     const resetTransform = useCallback(() => {
         setScale(1)
         setPosition({ x: 0, y: 0 })
+        setDismissOffsetY(0)
     }, [])
 
     // 返回相册详情
     const handleBack = useCallback(() => {
+        triggerHaptic()
         navigate(`/albums/${albumId}`)
-    }, [navigate, albumId])
+    }, [navigate, albumId, triggerHaptic])
 
     // 上一张
     const handlePrevious = useCallback(() => {
         if (images.length > 1) {
+            triggerHaptic()
             setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
             resetTransform()
         }
-    }, [images.length, resetTransform])
+    }, [images.length, resetTransform, triggerHaptic])
 
     // 下一张
     const handleNext = useCallback(() => {
         if (images.length > 1) {
+            triggerHaptic()
             setCurrentIndex(prev => (prev + 1) % images.length)
             resetTransform()
         }
-    }, [images.length, resetTransform])
+    }, [images.length, resetTransform, triggerHaptic])
 
     // 图片加载逻辑 - 使用优化后的大图 URL 进行预加载和缓存
     useEffect(() => {
@@ -128,10 +151,15 @@ export default function PhotoViewer() {
             const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY)
             initialPinchDistance.current = distance
             initialScale.current = scale
+            isPullingDown.current = false
+            isHorizontalSwipe.current = false
         } else if (e.touches.length === 1) {
             const touch = e.touches[0]
             if (touch) {
-                touchStart.current = { x: touch.clientX, y: touch.clientY }
+                touchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() }
+                isPullingDown.current = false
+                isHorizontalSwipe.current = false
+
                 if (scale > 1) {
                     setIsDragging(true)
                     setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
@@ -152,13 +180,34 @@ export default function PhotoViewer() {
                 setScale(newScale)
                 setHasDragged(true)
             }
-        } else if (e.touches.length === 1 && scale > 1 && isDragging) {
+        } else if (e.touches.length === 1) {
             const touch = e.touches[0]
-            if (touch) {
+            if (!touch) return
+
+            if (scale > 1 && isDragging) {
                 const newX = touch.clientX - dragStart.x
                 const newY = touch.clientY - dragStart.y
                 setPosition({ x: newX, y: newY })
                 setHasDragged(true)
+            } else if (scale === 1) {
+                const deltaX = touch.clientX - touchStart.current.x
+                const deltaY = touch.clientY - touchStart.current.y
+
+                // 意图判断
+                if (!isPullingDown.current && !isHorizontalSwipe.current) {
+                    if (deltaY > 10 && deltaY > Math.abs(deltaX) * 1.2) {
+                        isPullingDown.current = true
+                    } else if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+                        isHorizontalSwipe.current = true
+                    }
+                }
+
+                // 下拉拖拽处理
+                if (isPullingDown.current && deltaY > 0) {
+                    setDismissOffsetY(deltaY)
+                    setHasDragged(true)
+                    e.preventDefault()
+                }
             }
         }
     }
@@ -171,19 +220,70 @@ export default function PhotoViewer() {
             resetTransform()
         }
 
-        if (scale <= 1 && !hasDragged) {
+        if (scale === 1 && isPullingDown.current) {
             const touch = e.changedTouches[0]
-            if (!touch) return
-            const deltaX = touch.clientX - touchStart.current.x
-            const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+            const currentOffsetY = touch ? Math.max(0, touch.clientY - touchStart.current.y) : dismissOffsetY
+            const elapsedTime = Date.now() - touchStart.current.time
+            const velocityY = currentOffsetY / (elapsedTime || 1)
 
-            if (Math.abs(deltaX) > 50 && deltaY < 100) {
-                if (deltaX > 0) handlePrevious()
-                else handleNext()
+            // 下拉超过 90px 或明显初速度
+            if (currentOffsetY > 90 || (velocityY > 0.5 && currentOffsetY > 30)) {
+                triggerHaptic()
+                setIsDismissing(true)
+                setTimeout(() => {
+                    handleBack()
+                }, 200)
+            } else {
+                setDismissOffsetY(0)
+            }
+            isPullingDown.current = false
+            setTimeout(() => setHasDragged(false), 100)
+            return
+        }
+
+        // 丝滑左右滑动手势切图
+        if (scale <= 1 && !isPullingDown.current) {
+            const touch = e.changedTouches[0]
+            if (touch) {
+                const deltaX = touch.clientX - touchStart.current.x
+                const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+
+                if (Math.abs(deltaX) > 50 && deltaY < 80) {
+                    if (deltaX > 0) handlePrevious()
+                    else handleNext()
+                }
             }
         }
 
+        isPullingDown.current = false
+        isHorizontalSwipe.current = false
         setTimeout(() => setHasDragged(false), 100)
+    }
+
+    // 双击快速缩放
+    const handleImageClick = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        const now = Date.now()
+        const timeDiff = now - lastTapRef.current.time
+        const currentX = e.clientX
+        const currentY = e.clientY
+        const distDiff = Math.hypot(currentX - lastTapRef.current.x, currentY - lastTapRef.current.y)
+
+        if (timeDiff < 300 && distDiff < 40) {
+            lastTapRef.current = { time: 0, x: 0, y: 0 }
+            triggerHaptic()
+            if (scale === 1) {
+                const rect = e.currentTarget.getBoundingClientRect()
+                const clickX = e.clientX - rect.left - rect.width / 2
+                const clickY = e.clientY - rect.top - rect.height / 2
+                setScale(2.5)
+                setPosition({ x: -clickX * 1.2, y: -clickY * 1.2 })
+            } else {
+                resetTransform()
+            }
+        } else {
+            lastTapRef.current = { time: now, x: currentX, y: currentY }
+        }
     }
 
     if (!albumDetail || images.length === 0) {
@@ -197,11 +297,24 @@ export default function PhotoViewer() {
         )
     }
 
+    // 计算下拉拖拽动态缩放与背景透明度
+    const currentDragScale = scale === 1 ? Math.max(0.85, 1 - Math.min(0.15, dismissOffsetY / 800)) : 1
+    const bgOpacity = Math.max(0.35, 0.95 - (dismissOffsetY / 400) * 0.6)
+
     return (
-        <div className="fixed inset-0 bg-slate-900 flex flex-col">
+        <div
+            className={`fixed inset-0 flex flex-col touch-none overflow-hidden ${
+                isDismissing ? 'opacity-0 scale-95 transition-all duration-200' : 'transition-colors duration-150'
+            }`}
+            style={{
+                backgroundColor: `rgba(15, 23, 42, ${bgOpacity})`,
+            }}
+        >
             {/* 顶部工具栏 - 使用 pointer-events 确保可点击 */}
             <header
-                className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/60 to-transparent"
+                className={`absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/60 to-transparent transition-opacity duration-200 ${
+                    dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                }`}
                 style={{ zIndex: 100 }}
             >
                 <button
@@ -283,29 +396,29 @@ export default function PhotoViewer() {
                 )}
 
                 {/* 图片 */}
-                <div className="relative">
-                    {/* 缩略图占位 */}
+                <div
+                    className="relative flex items-center justify-center"
+                    style={{
+                        transform: `translate(${position.x}px, ${position.y + dismissOffsetY}px) scale(${scale * currentDragScale})`,
+                        transition: (isDragging || dismissOffsetY > 0) ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform',
+                    }}
+                >
+                    {/* 缩略图占位 (柔和微模糊占位 filter blur-md) */}
                     <img
                         src={thumbnailUrl}
                         alt="Thumbnail"
-                        className={`max-w-[95vw] max-h-[80vh] object-contain absolute inset-0 blur-lg scale-105 transition-opacity duration-300 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
-                        style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
+                        className={`max-w-[95vw] max-h-[80vh] object-contain absolute inset-0 filter blur-md scale-105 pointer-events-none transition-opacity duration-500 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
                     />
                     {/* 优化后的大图（WebP/AVIF） */}
                     <img
                         src={optimizedFullImageUrl}
                         alt="Photo"
-                        className={`max-w-[95vw] max-h-[80vh] object-contain transition-opacity duration-300 ${isFullLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`max-w-[95vw] max-h-[80vh] object-contain transition-opacity duration-500 ease-out ${isFullLoaded ? 'opacity-100' : 'opacity-0'}`}
                         style={{
-                            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                             cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
                         }}
-                        onClick={() => {
-                            if (!hasDragged) {
-                                if (scale === 1) setScale(2.5)
-                                else resetTransform()
-                            }
-                        }}
+                        onClick={handleImageClick}
                         onMouseDown={(e) => {
                             if (scale > 1) {
                                 setIsDragging(true)
@@ -328,7 +441,9 @@ export default function PhotoViewer() {
             {/* 底部缩略图 */}
             {images.length > 1 && (
                 <div
-                    className="absolute bottom-0 left-0 right-0 py-4 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/60 to-transparent"
+                    className={`absolute bottom-0 left-0 right-0 py-4 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-200 ${
+                        dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                    }`}
                     style={{ zIndex: 100 }}
                 >
                     <div className="flex gap-3 justify-center">

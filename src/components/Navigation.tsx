@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import Icon, { IconName } from './icons/Icons'
 import { subscribeModalState } from '../utils/modalState'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 interface NavItem {
     name: string
@@ -41,17 +42,8 @@ export default function Navigation() {
         setIsOpen(false)
     }, [location.pathname])
 
-    // 打开抽屉时禁止底层滚动
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden'
-        } else {
-            document.body.style.overflow = ''
-        }
-        return () => {
-            document.body.style.overflow = ''
-        }
-    }, [isOpen])
+    // 打开抽屉时锁定底层滚动并广播模态状态
+    useBodyScrollLock(isOpen)
 
     useEffect(() => {
         const handleScroll = () => {
@@ -99,7 +91,7 @@ export default function Navigation() {
                                 aria-current={isActive ? 'page' : undefined}
                                 className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${
                                     isActive
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
+                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                                         : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
                                 }`}
                             >

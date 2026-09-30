@@ -16,7 +16,7 @@ const MIME_MAP: Record<string, string> = {
 };
 
 // 预定义允许的缩略图尺寸白名单，防止恶意参数滥用计算资源
-const ALLOWED_WIDTHS = [100, 200, 300, 400, 600, 800, 1200, 1600, 2000];
+const ALLOWED_WIDTHS = [50, 100, 200, 300, 400, 600, 800, 1200, 1600, 2000];
 
 function getClosestAllowedWidth(requestedWidth: number): number {
   if (requestedWidth <= 0) return 600;

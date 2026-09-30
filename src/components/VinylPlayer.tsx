@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { subscribeModalState } from '../utils/modalState'
 
 export type AmbientTrackId = 'rain' | 'fireplace' | 'cafe' | 'ocean' | 'chords'
 
@@ -72,6 +73,7 @@ export default function VinylPlayer() {
   const [isMuted, setIsMuted] = useState(false)
   const [timerMinutes, setTimerMinutes] = useState(0)
   const [timerRemainingSec, setTimerRemainingSec] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Web Audio Context & Node Refs
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -80,9 +82,13 @@ export default function VinylPlayer() {
     stop: () => void
   } | null>(null)
 
-  // Track client-side mount state for document.body portal
+  // Track client-side mount state for document.body portal and subscribe to modal state
   useEffect(() => {
     setMounted(true)
+    const unsubscribe = subscribeModalState(setIsModalOpen)
+    return () => {
+      unsubscribe()
+    }
   }, [])
 
   // Keep volume & muted updated in audio node
@@ -399,6 +405,7 @@ export default function VinylPlayer() {
       const playCurrentChord = () => {
         if (ctx.state !== 'running') return
         const freqs = chordsProgression[currentChordIdx]
+        if (!freqs) return
         currentChordIdx = (currentChordIdx + 1) % chordsProgression.length
 
         // Stop past chord gently
@@ -488,14 +495,18 @@ export default function VinylPlayer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const activeTrackObj = TRACKS.find((t) => t.id === activeTrack) || TRACKS[0]
+  const activeTrackObj = TRACKS.find((t) => t.id === activeTrack) ?? TRACKS[0]!
 
   if (!mounted || typeof document === 'undefined') {
     return null
   }
 
   return createPortal(
-    <div className="fixed right-4 md:right-8 bottom-6 md:bottom-8 z-50 select-none font-sans pointer-events-auto">
+    <div
+      className={`fixed right-4 md:right-8 bottom-6 md:bottom-8 z-50 select-none font-sans transition-all duration-300 ${
+        isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+      }`}
+    >
       <AnimatePresence>
         {/* Expanded Ambient Glass Player Panel */}
         {isOpen && (

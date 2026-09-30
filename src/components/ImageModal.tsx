@@ -4,7 +4,6 @@ import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, 
 import Icon from './icons/Icons'
 import PolaroidModal from './PolaroidModal'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { openModal, closeModal } from '../utils/modalState'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -43,22 +42,32 @@ export default function ImageModal({
   const [hasDragged, setHasDragged] = useState(false)
   const [isPolaroidOpen, setIsPolaroidOpen] = useState(false)
 
-  const touchStart = useRef({ x: 0, y: 0 })
+  // 下拉拖拽关闭状态
+  const [dismissOffsetY, setDismissOffsetY] = useState(0)
+  const [isDismissing, setIsDismissing] = useState(false)
+
+  // 手势与双击追踪 refs
+  const touchStart = useRef({ x: 0, y: 0, time: 0 })
+  const lastTapRef = useRef({ time: 0, x: 0, y: 0 })
   const initialPinchDistance = useRef(0)
   const initialScale = useRef(1)
+  const isPullingDown = useRef(false)
+  const isHorizontalSwipe = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const thumbListRef = useRef<HTMLDivElement>(null)
 
   useBodyScrollLock(isOpen)
 
-  // 模态框打开/关闭时通知 Navigation
-  useEffect(() => {
-    if (isOpen) {
-      openModal()
-      return () => closeModal()
+  // 触觉反馈安全调用
+  const triggerHaptic = useCallback(() => {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(10)
+      } catch {
+        // 忽略非用户交互触发的异常
+      }
     }
-    return undefined
-  }, [isOpen])
+  }, [])
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
   const thumbnailUrl = currentImage ? getThumbnailUrl(currentImage, 400) : ''
@@ -66,7 +75,30 @@ export default function ImageModal({
   const resetTransform = useCallback(() => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
+    setDismissOffsetY(0)
   }, [])
+
+  // 切换上一张
+  const handlePrevImage = useCallback(() => {
+    if (onPrevious) {
+      triggerHaptic()
+      onPrevious()
+    }
+  }, [onPrevious, triggerHaptic])
+
+  // 切换下一张
+  const handleNextImage = useCallback(() => {
+    if (onNext) {
+      triggerHaptic()
+      onNext()
+    }
+  }, [onNext, triggerHaptic])
+
+  // 重置状态
+  useEffect(() => {
+    setDismissOffsetY(0)
+    setIsDismissing(false)
+  }, [isOpen])
 
   useEffect(() => {
     if (currentImage) {
@@ -143,11 +175,16 @@ export default function ImageModal({
       const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY)
       initialPinchDistance.current = distance
       initialScale.current = scale
+      isPullingDown.current = false
+      isHorizontalSwipe.current = false
       e.preventDefault()
     } else if (e.touches.length === 1) {
       const touch = e.touches[0]
       if (touch) {
-        touchStart.current = { x: touch.clientX, y: touch.clientY }
+        touchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() }
+        isPullingDown.current = false
+        isHorizontalSwipe.current = false
+
         if (scale > 1) {
           setIsDragging(true)
           setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
@@ -170,13 +207,34 @@ export default function ImageModal({
         setHasDragged(true)
       }
       e.preventDefault()
-    } else if (e.touches.length === 1 && scale > 1 && isDragging) {
+    } else if (e.touches.length === 1) {
       const touch = e.touches[0]
-      if (touch) {
+      if (!touch) return
+
+      if (scale > 1 && isDragging) {
         const newX = touch.clientX - dragStart.x
         const newY = touch.clientY - dragStart.y
         setPosition({ x: newX, y: newY })
         setHasDragged(true)
+      } else if (scale === 1) {
+        const deltaX = touch.clientX - touchStart.current.x
+        const deltaY = touch.clientY - touchStart.current.y
+
+        // 判断手势意图
+        if (!isPullingDown.current && !isHorizontalSwipe.current) {
+          if (deltaY > 10 && deltaY > Math.abs(deltaX) * 1.2) {
+            isPullingDown.current = true
+          } else if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+            isHorizontalSwipe.current = true
+          }
+        }
+
+        // 下拉拖拽手势
+        if (isPullingDown.current && deltaY > 0) {
+          setDismissOffsetY(deltaY)
+          setHasDragged(true)
+          e.preventDefault()
+        }
       }
     }
   }
@@ -189,29 +247,93 @@ export default function ImageModal({
       resetTransform()
     }
 
-    if (scale <= 1 && !hasDragged) {
+    if (scale === 1 && isPullingDown.current) {
       const touch = e.changedTouches[0]
-      if (!touch) return
-      const deltaX = touch.clientX - touchStart.current.x
-      const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+      const currentOffsetY = touch ? Math.max(0, touch.clientY - touchStart.current.y) : dismissOffsetY
+      const elapsedTime = Date.now() - touchStart.current.time
+      const velocityY = currentOffsetY / (elapsedTime || 1)
 
-      if (Math.abs(deltaX) > 50 && deltaY < 100) {
-        if (deltaX > 0 && onPrevious) onPrevious()
-        else if (deltaX < 0 && onNext) onNext()
+      // 超过 90px 或有明显下拉速度 (> 0.5px/ms 且 > 30px)
+      if (currentOffsetY > 90 || (velocityY > 0.5 && currentOffsetY > 30)) {
+        triggerHaptic()
+        setIsDismissing(true)
+        setTimeout(() => {
+          onClose()
+        }, 200)
+      } else {
+        // 平滑弹簧回弹复位
+        setDismissOffsetY(0)
+      }
+      isPullingDown.current = false
+      setTimeout(() => setHasDragged(false), 100)
+      return
+    }
+
+    // 左右滑动手势切图 (在 scale === 1 且未发生下拉拖拽时)
+    if (scale <= 1 && !isPullingDown.current) {
+      const touch = e.changedTouches[0]
+      if (touch) {
+        const deltaX = touch.clientX - touchStart.current.x
+        const deltaY = Math.abs(touch.clientY - touchStart.current.y)
+
+        if (Math.abs(deltaX) > 50 && deltaY < 80) {
+          if (deltaX > 0) handlePrevImage()
+          else handleNextImage()
+        }
       }
     }
 
+    isPullingDown.current = false
+    isHorizontalSwipe.current = false
     setTimeout(() => setHasDragged(false), 100)
   }
 
+  // 双击缩放处理 (Double-tap to zoom)
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const now = Date.now()
+    const timeDiff = now - lastTapRef.current.time
+    const currentX = e.clientX
+    const currentY = e.clientY
+    const distDiff = Math.hypot(currentX - lastTapRef.current.x, currentY - lastTapRef.current.y)
+
+    if (timeDiff < 300 && distDiff < 40) {
+      // 触发双击
+      lastTapRef.current = { time: 0, x: 0, y: 0 }
+      triggerHaptic()
+      if (scale === 1) {
+        // 以点击触点为参考进行缩放和偏移
+        const rect = e.currentTarget.getBoundingClientRect()
+        const clickX = e.clientX - rect.left - rect.width / 2
+        const clickY = e.clientY - rect.top - rect.height / 2
+        setScale(2.5)
+        setPosition({ x: -clickX * 1.2, y: -clickY * 1.2 })
+      } else {
+        resetTransform()
+      }
+    } else {
+      // 记录第一次点击
+      lastTapRef.current = { time: now, x: currentX, y: currentY }
+    }
+  }
+
   if (!isOpen) return null
+
+  // 计算下拉拖拽动态缩放与背景透明度
+  // scale 随下拉在 1 到 0.85 之间: 1 - Math.min(0.15, dismissOffsetY / 800)
+  const currentDragScale = scale === 1 ? Math.max(0.85, 1 - Math.min(0.15, dismissOffsetY / 800)) : 1
+  // 背景透明度从 0.95 降至 0.35 左右
+  const bgOpacity = Math.max(0.35, 0.95 - (dismissOffsetY / 400) * 0.6)
 
   return createPortal(
     <div
       id="premium-image-modal"
       ref={containerRef}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/95 touch-none overflow-hidden"
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center touch-none overflow-hidden ${
+        isDismissing ? 'opacity-0 scale-95 transition-all duration-200' : 'transition-colors duration-150'
+      }`}
       style={{
+        backgroundColor: `rgba(15, 23, 42, ${bgOpacity})`,
         top: 0,
         left: 0,
         right: 0,
@@ -220,7 +342,7 @@ export default function ImageModal({
         padding: 0,
       }}
       onClick={() => {
-        if (!hasDragged) onClose()
+        if (!hasDragged && dismissOffsetY === 0) onClose()
         setHasDragged(false)
       }}
       onTouchStart={handleTouchStart}
@@ -229,7 +351,11 @@ export default function ImageModal({
     >
 
       {/* 顶部工具栏 */}
-      <div className="absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-[100] bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm pointer-events-auto">
+      <div
+        className={`absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-[100] bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${
+          dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
           <div className="bg-black/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-white/10">
             <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
@@ -304,7 +430,7 @@ export default function ImageModal({
       <div
         className="relative w-full flex-1 flex items-center justify-center overflow-visible"
         onClick={(e) => {
-          if (e.target === e.currentTarget && !hasDragged) onClose()
+          if (e.target === e.currentTarget && !hasDragged && dismissOffsetY === 0) onClose()
         }}
         onMouseMove={(e) => {
           if (isDragging) {
@@ -324,13 +450,13 @@ export default function ImageModal({
         {images.length > 1 && (
           <>
             <button
-              onClick={(e) => { e.stopPropagation(); onPrevious?.(); }}
+              onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
               className="absolute left-8 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/15 text-white rounded-[1.5rem] border border-white/10 transition-all z-20 hidden md:flex"
             >
               <Icon name="chevron_left" size={32} />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onNext?.(); }}
+              onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
               className="absolute right-8 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/15 text-white rounded-[1.5rem] border border-white/10 transition-all z-20 hidden md:flex"
             >
               <Icon name="chevron_right" size={32} />
@@ -342,40 +468,38 @@ export default function ImageModal({
         <div
           className="relative flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
-          style={{ transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          style={{
+            transform: `translate(${position.x}px, ${position.y + dismissOffsetY}px) scale(${scale * currentDragScale})`,
+            transition: (isDragging || dismissOffsetY > 0) ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            willChange: 'transform',
+          }}
         >
           {/* 渐进式加载支持 */}
           <div className="relative overflow-hidden group">
-            {/* 缩略图占位层 (模糊) */}
+            {/* 缩略图占位层 (柔和微模糊占位 filter blur-md，大图就绪时淡出) */}
             <img
               src={thumbnailUrl}
               alt="Thumbnail"
-              className={`max-w-[100vw] max-h-[100vh] object-contain transition-opacity duration-500 absolute inset-0 blur-lg scale-105 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
-              style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              }}
+              className={`max-w-[100vw] max-h-[100vh] object-contain transition-opacity duration-500 absolute inset-0 filter blur-md scale-105 pointer-events-none ${
+                isFullLoaded ? 'opacity-0' : 'opacity-100'
+              }`}
             />
 
-            {/* 原图层 */}
+            {/* 原图层 (加载完成后通过 opacity 400ms 平滑淡入 Cross-fade) */}
             <img
               src={currentImage}
               alt="Viewer"
-              className={`max-w-[100vw] max-h-[100vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-all duration-700 ${isFullLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`max-w-[100vw] max-h-[100vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-opacity duration-500 ease-out ${
+                isFullLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
               style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                 cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
               }}
               onLoad={() => {
                 setIsFullLoaded(true)
                 if (currentImage) loadedImagesCache.add(currentImage)
               }}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (!hasDragged) {
-                  if (scale === 1) setScale(2.5)
-                  else resetTransform()
-                }
-              }}
+              onClick={handleImageClick}
               onMouseDown={(e) => {
                 if (scale > 1) {
                   setIsDragging(true)
@@ -390,7 +514,11 @@ export default function ImageModal({
 
       {/* 底部缩略图 */}
       {images.length > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar">
+        <div
+          className={`absolute bottom-0 left-0 right-0 pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
+            dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
           <div
             ref={thumbListRef}
             className="flex gap-4 min-w-max justify-center items-center"

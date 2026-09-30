@@ -147,7 +147,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               onClick={() => window.innerWidth < 1024 && onClose()}
               className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 ${
                 isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105 pointer-events-none'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                   : 'text-slate-500 hover:bg-slate-50'
               }`}
             >
