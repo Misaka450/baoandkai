@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
+import { parsePhotoExif, ExifResult } from '../utils/exif.js';
 import path from 'path';
 
 const upload = new Hono();
@@ -39,6 +40,7 @@ upload.post('/', async (c) => {
     const maxFileSize = 20 * 1024 * 1024; // 20MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     const uploadedUrls: string[] = [];
+    let lastExifMeta: ExifResult | null = null;
 
     for (const file of files) {
       // 验证 MIME 类型
@@ -60,6 +62,14 @@ upload.post('/', async (c) => {
         return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
       }
 
+      // 智能解析 EXIF（拍摄时间与经纬度城市）
+      const exif = await parsePhotoExif(buffer);
+      if (exif && (exif.date || exif.location)) {
+        lastExifMeta = exif;
+      } else if (!lastExifMeta && exif) {
+        lastExifMeta = exif;
+      }
+
       // 存储文件 - 使用安全扩展名，防止可执行文件上传
       const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
       const safeExtension = allowedTypes.some(t => t.endsWith(extension)) ? extension : 'bin';
@@ -75,6 +85,7 @@ upload.post('/', async (c) => {
       url: uploadedUrls[0], // 单个上传时的 URL（前端期望这个字段）
       urls: uploadedUrls, // 批量上传时的 URL 数组
       count: uploadedUrls.length,
+      exif: lastExifMeta || null, // 包含 date, dateTime, latitude, longitude, province, city, location
     });
   } catch (error: any) {
     console.error('上传文件失败:', error);

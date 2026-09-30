@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/AdminModal'
 import Modal from '../../components/Modal'
@@ -46,12 +47,21 @@ const AdminTimeline = () => {
         category: '日常',
         images: []
     })
+    const [exifNotice, setExifNotice] = useState<string | null>(null)
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
 
     useEffect(() => {
         loadEvents()
     }, [])
+
+    useEffect(() => {
+        if (!exifNotice) return
+        const timer = setTimeout(() => {
+            setExifNotice(null)
+        }, 3000)
+        return () => clearTimeout(timer)
+    }, [exifNotice])
 
     const loadEvents = async () => {
         try {
@@ -71,6 +81,8 @@ const AdminTimeline = () => {
 
         setUploading(true)
         const newImages: string[] = []
+        let currentDate = formData.date
+        let currentLocation = formData.location
 
         for (const file of Array.from(files)) {
             try {
@@ -78,7 +90,20 @@ const AdminTimeline = () => {
                 formDataUpload.append('file', file)
                 formDataUpload.append('folder', 'timeline')
 
-                const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
+                const { data, error } = await apiService.uploadWithProgress<{
+                    url: string
+                    urls?: string[]
+                    count?: number
+                    exif?: {
+                        date: string | null
+                        dateTime: string | null
+                        latitude: number | null
+                        longitude: number | null
+                        province: string | null
+                        city: string | null
+                        location: string | null
+                    } | null
+                }>(
                     '/upload',
                     formDataUpload,
                     (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
@@ -86,6 +111,26 @@ const AdminTimeline = () => {
                 if (error) throw new Error(error)
                 if (data?.url) {
                     newImages.push(data.url)
+                }
+                if (data?.exif) {
+                    const exif = data.exif
+                    let autoFilled = false
+                    if (!currentDate && exif.date) {
+                        currentDate = exif.date
+                        autoFilled = true
+                    }
+                    if (!currentLocation && exif.location) {
+                        currentLocation = exif.location
+                        autoFilled = true
+                    }
+                    if (autoFilled) {
+                        setFormData(prev => ({
+                            ...prev,
+                            date: prev.date || (exif.date || ''),
+                            location: prev.location || (exif.location || '')
+                        }))
+                        setExifNotice('✨ 已从照片自动读取拍摄日期与地点，你可以随时修改')
+                    }
                 }
             } catch (error) {
                 console.error('上传图片失败:', error)
@@ -157,6 +202,7 @@ const AdminTimeline = () => {
     const resetForm = () => {
         setShowForm(false)
         setEditingId(null)
+        setExifNotice(null)
         setFormData({ title: '', description: '', date: '', location: '', category: '日常', images: [] })
     }
 
@@ -190,6 +236,20 @@ const AdminTimeline = () => {
                 title={editingId ? '编辑美好回忆' : '记录新时刻'}
             >
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <AnimatePresence>
+                        {exifNotice && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                onClick={() => setExifNotice(null)}
+                                className="p-3 bg-amber-50 text-amber-800 text-xs font-medium rounded-xl flex items-center justify-between cursor-pointer border border-amber-200/60 shadow-sm transition-all"
+                            >
+                                <span>{exifNotice}</span>
+                                <span className="text-amber-500 hover:text-amber-700 ml-2">✕</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">事件标题</label>

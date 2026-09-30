@@ -51,11 +51,19 @@ const AdminFoodCheckin = () => {
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
 
-    // 拖拽排序状态
     const [draggedItem, setDraggedItem] = useState<FoodCheckin | null>(null)
     const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null)
+    const [exifNotice, setExifNotice] = useState<string | null>(null)
 
     useEffect(() => { loadCheckins() }, [])
+
+    useEffect(() => {
+        if (!exifNotice) return
+        const timer = setTimeout(() => {
+            setExifNotice(null)
+        }, 3000)
+        return () => clearTimeout(timer)
+    }, [exifNotice])
 
     const loadCheckins = async () => {
         try {
@@ -69,18 +77,54 @@ const AdminFoodCheckin = () => {
         if (!e.target.files?.length) return
         setUploading(true)
         const newImages: string[] = []
+        let currentDate = formData.date
+        let currentAddress = formData.address
+
         for (const file of Array.from(e.target.files)) {
             try {
                 const fd = new FormData()
                 fd.append('file', file)
                 fd.append('folder', 'food')
-                const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
+                const { data, error } = await apiService.uploadWithProgress<{
+                    url: string
+                    urls?: string[]
+                    count?: number
+                    exif?: {
+                        date: string | null
+                        dateTime: string | null
+                        latitude: number | null
+                        longitude: number | null
+                        province: string | null
+                        city: string | null
+                        location: string | null
+                    } | null
+                }>(
                     '/upload',
                     fd,
                     (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
                 )
                 if (error) throw new Error(error)
                 if (data?.url) newImages.push(data.url)
+                if (data?.exif) {
+                    const exif = data.exif
+                    let autoFilled = false
+                    if (!currentDate && exif.date) {
+                        currentDate = exif.date
+                        autoFilled = true
+                    }
+                    if (!currentAddress && exif.location) {
+                        currentAddress = exif.location
+                        autoFilled = true
+                    }
+                    if (autoFilled) {
+                        setFormData(prev => ({
+                            ...prev,
+                            date: prev.date || (exif.date || ''),
+                            address: prev.address || (exif.location || '')
+                        }))
+                        setExifNotice('✨ 已从照片自动读取拍摄日期与地点，你可以随时修改')
+                    }
+                }
             } catch (err) {
                 console.error(err)
             } finally {
@@ -140,7 +184,7 @@ const AdminFoodCheckin = () => {
         } catch { await showAlert('错误', '删除失败', 'error') }
     }
 
-    const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ restaurant_name: '', description: '', date: '', address: '', cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: [] }) }
+    const resetForm = () => { setShowForm(false); setEditingId(null); setExifNotice(null); setFormData({ restaurant_name: '', description: '', date: '', address: '', cuisine: '中餐', price_range: '¥¥', overall_rating: 5, recommended_dishes: '', images: [] }) }
 
     // 拖拽处理函数
     const handleDragStart = (e: React.DragEvent, item: FoodCheckin) => {
@@ -232,6 +276,20 @@ const AdminFoodCheckin = () => {
                 title={editingId ? '编辑美食打卡' : '新增美食打卡'}
             >
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <AnimatePresence>
+                        {exifNotice && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                onClick={() => setExifNotice(null)}
+                                className="p-3 bg-amber-50 text-amber-800 text-xs font-medium rounded-xl flex items-center justify-between cursor-pointer border border-amber-200/60 shadow-sm transition-all"
+                            >
+                                <span>{exifNotice}</span>
+                                <span className="text-amber-500 hover:text-amber-700 ml-2">✕</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">餐厅名称</label>

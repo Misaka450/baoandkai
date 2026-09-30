@@ -8,7 +8,8 @@ const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/check-token',
   '/api/config',
-  '/api/images/'
+  '/api/images/',
+  '/api/vault/export'
 ];
 
 export interface CachedUser {

@@ -22,6 +22,7 @@ import config from './routes/config.js';
 import stats from './routes/stats.js';
 import upload from './routes/upload.js';
 import images from './routes/images.js';
+import vault from './routes/vault.js';
 
 import { storage } from './lib/storage.js';
 
@@ -48,6 +49,7 @@ app.route('/api/config', config);
 app.route('/api/stats', stats);
 app.route('/api/upload', upload);
 app.route('/api/images', images);
+app.route('/api/vault', vault);
 
 // 3. 兼容旧版特定 POST 端点
 app.post('/api/delete/photo', handleLegacyDeletePhoto);
