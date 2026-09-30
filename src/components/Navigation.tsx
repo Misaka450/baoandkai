@@ -5,22 +5,36 @@ import Icon, { IconName } from './icons/Icons'
 import { subscribeModalState } from '../utils/modalState'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
-interface NavItem {
+interface MainNavItem {
     name: string
     href: string
     icon: IconName
+    badgeDesc: string
+    subRoutes: string[]
 }
 
-// 导航项提取为模块级常量，避免每次渲染重新创建
-const navigation: NavItem[] = [
-    { name: '首页', href: '/', icon: 'home' },
-    { name: '时间轴', href: '/timeline', icon: 'schedule' },
-    { name: '相册', href: '/albums', icon: 'photo_library' },
-    { name: '情侣', href: '/couple', icon: 'favorite' },
-    { name: '待办', href: '/todos', icon: 'checklist' },
-    { name: '美食', href: '/food', icon: 'restaurant' },
-    { name: '足迹', href: '/map', icon: 'map' },
-    { name: '管理', href: '/admin', icon: 'settings' }
+const mainNavItems: MainNavItem[] = [
+    {
+        name: '小窝',
+        href: '/',
+        icon: 'home',
+        badgeDesc: '甜蜜主页',
+        subRoutes: ['/']
+    },
+    {
+        name: '回忆',
+        href: '/albums',
+        icon: 'photo_library',
+        badgeDesc: '相册 · 足迹 · 时间轴',
+        subRoutes: ['/albums', '/map', '/timeline']
+    },
+    {
+        name: '我们',
+        href: '/couple',
+        icon: 'favorite',
+        badgeDesc: '纪念日 · 心愿 · 美食',
+        subRoutes: ['/couple', '/todos', '/food']
+    }
 ]
 
 export default function Navigation() {
@@ -28,7 +42,6 @@ export default function Navigation() {
     const [mounted, setMounted] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
     const [isOpen, setIsOpen] = useState(false)
-    // 使用 useRef 存储 lastScrollY，避免放入 useEffect 依赖数组导致重复注册事件
     const lastScrollYRef = useRef(0)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -71,37 +84,66 @@ export default function Navigation() {
         }
     }, [])
 
+    // 智能匹配高亮规则
+    const isItemActive = (item: MainNavItem) => {
+        if (item.href === '/') {
+            return location.pathname === '/'
+        }
+        return item.subRoutes.some(route => location.pathname === route || location.pathname.startsWith(`${route}/`))
+    }
+
+    const isAdminActive = location.pathname.startsWith('/admin')
+
     return (
         <>
-            {/* 桌面端 (md及以上): 保持顶部浮动胶囊导航 */}
+            {/* 桌面端 (md及以上): 保持顶部浮动胶囊导航 (3个主入口 + 1个低调设置) */}
             <nav
                 aria-label="全局主导航（桌面端）"
                 className={`hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center px-4 transition-all duration-500 ${
                     isVisible && !isModalOpen ? 'translate-y-0 opacity-100' : '-translate-y-32 opacity-0'
                 }`}
             >
-                <div className="glass-card soft-shadow px-6 py-3 rounded-full flex items-center space-x-4 border border-white/50 backdrop-blur-xl">
-                    {navigation.map((item) => {
-                        const isActive = location.pathname === item.href
+                <div className="glass-card soft-shadow px-4 py-2.5 rounded-full flex items-center space-x-2 border border-white/60 backdrop-blur-xl shadow-lg shadow-pink-900/5">
+                    {/* 3 个核心心智导航 */}
+                    {mainNavItems.map((item) => {
+                        const active = isItemActive(item)
                         return (
                             <Link
                                 key={item.name}
                                 to={item.href}
                                 aria-label={`前往${item.name}`}
-                                aria-current={isActive ? 'page' : undefined}
-                                className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${
-                                    isActive
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
-                                        : 'text-gray-500 hover:text-primary hover:bg-primary/5 active:scale-95'
+                                aria-current={active ? 'page' : undefined}
+                                className={`flex-shrink-0 flex items-center space-x-2 px-5 py-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${
+                                    active
+                                        ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-105 font-medium'
+                                        : 'text-stone-600 hover:text-primary hover:bg-primary/5 active:scale-95'
                                 }`}
                             >
-                                <Icon name={item.icon} size={20} className="w-5 h-5" />
-                                <span className="font-medium text-sm tracking-wide">
+                                <Icon name={item.icon} size={18} className="w-4 h-4" />
+                                <span className="text-sm tracking-wider">
                                     {item.name}
                                 </span>
                             </Link>
                         )
                     })}
+
+                    {/* 分隔微细线 */}
+                    <div className="w-[1px] h-4 bg-stone-300/50 mx-1" />
+
+                    {/* 1 个低调设置（桌面端小巧图标按钮） */}
+                    <Link
+                        to="/admin"
+                        aria-label="管理后台与小窝设置"
+                        title="小窝设置"
+                        aria-current={isAdminActive ? 'page' : undefined}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary ${
+                            isAdminActive
+                                ? 'bg-stone-800 text-white shadow-md shadow-stone-800/20 scale-105'
+                                : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100/80 active:scale-95'
+                        }`}
+                    >
+                        <Icon name="settings" size={17} />
+                    </Link>
                 </div>
             </nav>
 
@@ -130,11 +172,11 @@ export default function Navigation() {
                         }`}
                     />
 
-                    {/* 移动端 (< 768px): 莫兰迪滑动抽屉面板 (GPU硬件加速 translate-x) */}
+                    {/* 移动端 (< 768px): 莫兰迪精简抽屉面板 */}
                     <aside
                         aria-label="移动端侧边导航"
                         aria-hidden={!isOpen}
-                        className={`fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-cream-50/80 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/70 md:hidden transition-transform duration-300 ease-in-out transform ${
+                        className={`fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-cream-50/90 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/70 md:hidden transition-transform duration-300 ease-in-out transform ${
                             isOpen ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     >
@@ -161,38 +203,65 @@ export default function Navigation() {
                             </button>
                         </div>
 
-                        {/* Nav Items List: 8个项目垂直列表 */}
-                        <nav className="flex-1 py-4 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="移动端侧边导航项">
-                            {navigation.map((item) => {
-                                const isActive = location.pathname === item.href
+                        {/* Nav Items List: 3个精致大卡片项 */}
+                        <nav className="flex-1 py-6 space-y-3.5 overflow-y-auto no-scrollbar" aria-label="移动端侧边导航项">
+                            {mainNavItems.map((item) => {
+                                const active = isItemActive(item)
                                 return (
                                     <Link
                                         key={item.name}
                                         to={item.href}
                                         onClick={() => setIsOpen(false)}
                                         aria-label={`前往${item.name}`}
-                                        aria-current={isActive ? 'page' : undefined}
-                                        className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm transition-all duration-200 ${
-                                            isActive
-                                                ? 'bg-primary text-white shadow-md shadow-primary/20 font-semibold'
-                                                : 'text-stone-600 hover:text-primary hover:bg-white/60 active:scale-95'
+                                        aria-current={active ? 'page' : undefined}
+                                        className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-200 border ${
+                                            active
+                                                ? 'bg-primary text-white border-primary/20 shadow-md shadow-primary/25 font-semibold'
+                                                : 'bg-white/70 text-stone-700 border-white/80 hover:bg-white hover:text-primary active:scale-[0.98] shadow-sm'
                                         }`}
                                     >
-                                        <Icon
-                                            name={item.icon}
-                                            size={20}
-                                            className={isActive ? 'text-white' : 'text-stone-500'}
-                                        />
-                                        <span className="tracking-wide">{item.name}</span>
+                                        <div className="flex items-center space-x-3.5">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                                                active ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-600 group-hover:text-primary group-hover:bg-primary/10'
+                                            }`}>
+                                                <Icon name={item.icon} size={22} />
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="text-base tracking-wide leading-tight">{item.name}</div>
+                                                <div className={`text-xs mt-1 transition-colors ${
+                                                    active ? 'text-white/80' : 'text-stone-400'
+                                                }`}>
+                                                    {item.badgeDesc}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={`text-xs opacity-60 ${active ? 'text-white' : 'text-stone-400'}`}>
+                                            ➔
+                                        </div>
                                     </Link>
                                 )
                             })}
                         </nav>
 
-                        {/* 抽屉底部装饰信息 */}
-                        <div className="pt-4 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-400">
-                            <span>遇见你，是银河赠予我的糖</span>
-                            <span>💕</span>
+                        {/* 抽屉底部区域：低调设置入口 + 浪漫寄语 */}
+                        <div className="pt-4 border-t border-stone-200/60 space-y-3">
+                            <Link
+                                to="/admin"
+                                onClick={() => setIsOpen(false)}
+                                className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs transition-colors ${
+                                    isAdminActive
+                                        ? 'bg-stone-200/80 text-stone-800 font-semibold'
+                                        : 'text-stone-400 hover:text-stone-700 hover:bg-white/50 active:scale-95'
+                                }`}
+                            >
+                                <Icon name="settings" size={16} />
+                                <span>小窝设置与管理</span>
+                            </Link>
+
+                            <div className="flex items-center justify-between text-[11px] text-stone-400 px-1 pt-1">
+                                <span>遇见你，是银河赠予我的糖</span>
+                                <span>💕</span>
+                            </div>
                         </div>
                     </aside>
                 </>,

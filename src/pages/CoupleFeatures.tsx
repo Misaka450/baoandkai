@@ -8,6 +8,7 @@ import AnniversaryCountdown from '../components/couple/AnniversaryCountdown'
 import { timeCapsuleService } from '../services/apiService'
 import type { TimeCapsule, TimeCapsuleItem } from '../types'
 import { formatDate } from '../utils/common'
+import ModuleSubNav from '../components/ModuleSubNav'
 
 export default function CoupleFeatures() {
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)
@@ -67,11 +68,12 @@ export default function CoupleFeatures() {
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-20 animate-fade-in">
+        <header className="text-center mb-12 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">情侣专属功能</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed">
+          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
             Special features for our love journey
           </p>
+          <ModuleSubNav section="couple" className="mb-0" />
         </header>
 
         {/* 纪念日与倒数日看板 */}

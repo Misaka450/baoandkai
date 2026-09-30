@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useLoveTimer } from '../hooks/useLoveTimer'
 import { useConfig } from '../hooks/useConfig'
 import StickyNotes from '../components/StickyNotes'
-import Icon, { type IconName } from '../components/icons/Icons'
-import StatCard from '../components/common/StatCard'
+import Icon from '../components/icons/Icons'
 import { getOptimizedAvatarUrl, getAvatarSrcSet } from '../utils/imageUtils'
 import { generateLocalAvatar } from '../utils/localAvatar'
 import FloatingParticles from '../components/FloatingParticles'
@@ -16,6 +16,7 @@ export default function Home() {
   const timeTogether = useLoveTimer(config.anniversaryDate)
   const toast = useToast()
   const [isHeartPopping, setIsHeartPopping] = useState(false)
+  const [isPrecisionOpen, setIsPrecisionOpen] = useState(false)
 
   const handleHeartClick = () => {
     setIsHeartPopping(true)
@@ -34,23 +35,8 @@ export default function Home() {
   const getDefaultAvatar = (seed: string, bg: string) =>
     generateLocalAvatar(seed, bg)
 
-  interface TimeStatItem {
-    value: number
-    label: string
-    color: string
-    text: string
-    icon: IconName
-    delay: string
-  }
-
-  const timeStats: TimeStatItem[] = useMemo(() => [
-    { value: timeTogether.years, label: '年', color: 'bg-[#FFEDF3]', text: 'text-[#FF8BB1]', icon: 'favorite', delay: '0s' },
-    { value: timeTogether.months, label: '月', color: 'bg-[#EBF7FF]', text: 'text-[#6BBFFF]', icon: 'cloud', delay: '0.2s' },
-    { value: timeTogether.days, label: '天', color: 'bg-[#F0FFF4]', text: 'text-[#6BCB77]', icon: 'auto_awesome', delay: '0.4s' },
-    { value: timeTogether.hours, label: '时', color: 'bg-[#F5F0FF]', text: 'text-[#A688FA]', icon: 'celebration', delay: '0.1s' },
-    { value: timeTogether.minutes, label: '分', color: 'bg-[#FFF9EB]', text: 'text-[#FFB344]', icon: 'wb_cloudy', delay: '0.3s' },
-    { value: timeTogether.seconds, label: '秒', color: 'bg-[#FFF0F0]', text: 'text-[#FF7D7D]', icon: 'star', delay: '0.5s' },
-  ], [timeTogether.years, timeTogether.months, timeTogether.days, timeTogether.hours, timeTogether.minutes, timeTogether.seconds])
+  const formattedDays = timeTogether.totalDays.toLocaleString('en-US')
+  const startDateStr = formatDate(config.anniversaryDate, 'dot')
 
   return (
     <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative overflow-hidden">
@@ -60,11 +46,12 @@ export default function Home() {
       <div className="absolute top-20 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute bottom-40 left-1/3 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-purple-200/15 blur-[60px] md:blur-[100px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
 
-      <header className="text-center mb-24 relative animate-fade-in">
-        <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-12 relative">
+      <header className="text-center mb-16 relative animate-fade-in">
+        {/* 头像区域 */}
+        <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-10 relative">
           <div className="relative group">
             <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">
+            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">
               <img
                 alt="Bao Avatar"
                 className="w-full h-full object-cover rounded-full"
@@ -90,7 +77,7 @@ export default function Home() {
 
           <div className="relative group">
             <div className="absolute inset-0 bg-[#6BBFFF]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-4 border-[#EBF7FF]">
+            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-4 border-[#EBF7FF]">
               <img
                 alt="Kai Avatar"
                 className="w-full h-full object-cover rounded-full"
@@ -104,62 +91,118 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 tracking-tight text-gradient antialiased py-2">
+        {/* 标题与副标题 */}
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 tracking-tight text-gradient antialiased py-1">
           {config.homeTitle}
         </h1>
-        <p className="text-slate-400 text-base md:text-xl max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80 px-4">
+        <p className="text-slate-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80 px-4 mb-8">
           "{config.homeSubtitle}"
         </p>
-      </header>
 
-      <section className="premium-card p-10 md:p-16 mb-24 animate-slide-up group overflow-hidden !border-none !bg-white/40 backdrop-blur-sm">
-        <div className="absolute top-0 right-0 p-10 opacity-[0.05] pointer-events-none group-hover:scale-150 transition-transform duration-1000 rotate-12 text-[#FF8BB1]">
-          <Icon name="favorite" size={240} />
-        </div>
+        {/* 核心主视觉：纯粹大字天数与可折叠精密时间 */}
+        <section aria-label="相恋天数计时" className="max-w-2xl mx-auto px-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsPrecisionOpen(prev => !prev)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setIsPrecisionOpen(prev => !prev)
+              }
+            }}
+            className="group relative cursor-pointer select-none rounded-[2.5rem] bg-white/45 hover:bg-white/65 border border-white/80 p-8 md:p-10 shadow-lg shadow-pink-100/30 backdrop-blur-md transition-all duration-300 hover:shadow-xl hover:shadow-pink-200/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            {/* 悬停光晕 */}
+            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-[#FFEDF3]/30 via-transparent to-[#EBF7FF]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-        <div className="text-center mb-16">
-          <span className="premium-badge !bg-[#FFEDF3] !text-[#FF8BB1] mb-6">LOVE TIMER</span>
-          <p className="text-slate-400 font-black tracking-[0.4em] text-[12px] uppercase opacity-60">
-            Memory since {formatDate(config.anniversaryDate, 'en')}
-          </p>
-        </div>
+            <div className="relative z-10 flex flex-col items-center">
+              {/* 上行文案：字间距舒展、温和 */}
+              <span className="text-xs md:text-sm tracking-[0.3em] font-medium text-slate-400 uppercase mb-3">
+                我们相恋的第
+              </span>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-6 mb-16 relative z-10">
-          {timeStats.map((item, idx) => (
-            <StatCard
-              key={idx}
-              value={String(item.value).padStart(2, '0')}
-              label={item.label}
-              icon={item.icon}
-              color={item.color}
-              text={item.text}
-              delay={parseFloat(item.delay)}
-              className="!rounded-[2.5rem] !border-4 md:!border-8 !shadow-lg !shadow-black/[0.03] hover:!scale-105 active:!scale-95 !transition-all !duration-500 !py-3 md:!py-8 !px-3 md:!p-10 group/item"
-              hoverScale={1.05}
-              showDecoration={true}
-              decorationSize={idx % 2 === 0 ? 48 : 36}
-              size="large"
-            />
-          ))}
-        </div>
+              {/* 大号数字天数：纯净、干净，绝对不要❤️ */}
+              <div className="flex items-baseline justify-center gap-2 mb-3">
+                <span className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight text-slate-800 drop-shadow-sm font-sans tabular-nums bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+                  {formattedDays}
+                </span>
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-500 tracking-wide">
+                  天
+                </span>
+              </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-          <div className="bg-white/60 border border-white px-10 py-4 rounded-[2rem] flex items-center shadow-sm">
-            <Icon name="calendar_month" className="text-[#FF8BB1] mr-3" size={20} />
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-              STARTING LINE: {formatDate(config.anniversaryDate, 'dot')}
-            </span>
+              {/* 下方低调小字与展开指示 */}
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                <span>从 {startDateStr} 至今</span>
+                <span className="opacity-40">·</span>
+                <span className="flex items-center gap-1 font-medium">
+                  点击{isPrecisionOpen ? '收起' : '查看'}精确时间
+                  <motion.span
+                    animate={{ rotate: isPrecisionOpen ? 180 : 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="inline-block text-[10px]"
+                  >
+                    ▾
+                  </motion.span>
+                </span>
+              </div>
+            </div>
+
+            {/* 渐进披露精密时间彩蛋 (Expandable Precision Panel) */}
+            <AnimatePresence>
+              {isPrecisionOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden relative z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="pt-4 border-t border-stone-200/50 flex flex-col items-center gap-3">
+                    {/* 温柔相伴年月天 */}
+                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FFEDF3]/70 border border-[#FF8BB1]/20 text-xs md:text-sm font-medium text-stone-700 shadow-sm">
+                      <span className="text-[#FF8BB1] text-xs">🌱</span>
+                      <span>已温柔相伴</span>
+                      <span className="font-semibold text-stone-900">{timeTogether.years}</span>
+                      <span>年</span>
+                      <span className="font-semibold text-stone-900">{timeTogether.months}</span>
+                      <span>个月</span>
+                      <span className="font-semibold text-stone-900">{timeTogether.days}</span>
+                      <span>天</span>
+                    </div>
+
+                    {/* 精密计时时分秒 */}
+                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/70 border border-white shadow-sm text-xs md:text-sm text-stone-600 backdrop-blur-md">
+                      <span className="text-[#6BBFFF] text-xs">⏱️</span>
+                      <span className="text-slate-400">精密计时</span>
+                      <div className="flex items-center gap-1.5 font-mono font-bold text-slate-800 tabular-nums text-sm md:text-base">
+                        <span className="px-2 py-0.5 rounded-md bg-[#EBF7FF] text-[#3b82f6]">
+                          {String(timeTogether.hours).padStart(2, '0')}
+                        </span>
+                        <span className="text-slate-400">:</span>
+                        <span className="px-2 py-0.5 rounded-md bg-[#FFF9EB] text-[#d97706]">
+                          {String(timeTogether.minutes).padStart(2, '0')}
+                        </span>
+                        <span className="text-slate-400">:</span>
+                        <span className="px-2 py-0.5 rounded-md bg-[#FFF0F0] text-[#e11d48]">
+                          {String(timeTogether.seconds).padStart(2, '0')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <p className="text-slate-400 font-bold text-sm tracking-[0.05em]">
-            已经一起度过了 <span className="text-3xl font-black text-[#FF8BB1] mx-2 drop-shadow-sm font-mono">{timeTogether.totalDays}</span> 个温柔的日子
-          </p>
-        </div>
-      </section>
+        </section>
+      </header>
 
       {/* 那年今日 · 时光机 */}
       <OnThisDayCard />
 
-      <section className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+      <section className="animate-slide-up mt-16" style={{ animationDelay: '0.2s' }}>
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 px-2">
           <div className="mb-6 md:mb-0">
             <div className="flex items-center space-x-4 mb-3">

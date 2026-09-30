@@ -9,6 +9,7 @@ import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton, TimelineSkeleton } from '../components/Skeleton'
 import LazyImage from '../components/LazyImage'
 import { formatDate } from '../utils/common'
+import ModuleSubNav from '../components/ModuleSubNav'
 
 interface TimelineResponse {
   data: TimelineEvent[]
@@ -115,11 +116,14 @@ export default function Timeline() {
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-24 animate-fade-in">
+        <header className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">时光长廊</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed">
+          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
             Beautiful moments frozen in time
           </p>
+
+          {/* 二级副标签导航 */}
+          <ModuleSubNav section="memory" className="mb-6" />
 
           {/* 年份快捷跳转 */}
           {availableYears.length > 0 && (

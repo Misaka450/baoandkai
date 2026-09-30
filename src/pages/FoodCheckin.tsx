@@ -11,6 +11,7 @@ import LazyImage from '../components/LazyImage'
 import FoodStats from '../components/map/FoodStats'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { formatDate } from '../utils/common'
+import ModuleSubNav from '../components/ModuleSubNav'
 
 type ViewMode = 'grid' | 'stats'
 
@@ -152,13 +153,15 @@ export default function FoodCheckin() {
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-20 animate-fade-in">
+        <header className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">美食足迹</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed">
+          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
             Discovering the world, one bite at a time
           </p>
 
-          <div className="flex flex-wrap justify-center gap-3 mt-12 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
+          <ModuleSubNav section="couple" className="mb-4" />
+
+          <div className="flex flex-wrap justify-center gap-3 mt-6 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
             {cuisines.map(c => (
               <button
                 key={c.name}

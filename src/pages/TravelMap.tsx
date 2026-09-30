@@ -8,6 +8,7 @@ import TimeFilter from '../components/map/TimeFilter'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
 import { Skeleton } from '../components/Skeleton'
+import ModuleSubNav from '../components/ModuleSubNav'
 
 const ChinaMap = lazy(() => import('../components/map/ChinaMap'))
 const ProvinceDetailLoader = lazy(() => import('../components/map/ProvinceDetailLoader'))
@@ -178,14 +179,17 @@ export default function TravelMap() {
         <div className="min-h-screen text-slate-700 transition-colors duration-300">
             <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
                 {/* 标题 */}
-                <header className="text-center mb-16 animate-fade-in">
+                <header className="text-center mb-12 animate-fade-in">
                     <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">足迹地图</h1>
-                    <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed">
+                    <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
                         Every place we've been, every memory we've made
                     </p>
 
+                    {/* 二级副标签导航 */}
+                    <ModuleSubNav section="memory" className="mb-8" />
+
                     {/* 视图切换导航 - 移动端优化 */}
-                    <nav className="flex flex-wrap justify-center gap-2 md:gap-3 mt-10">
+                    <nav className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4">
                         {viewModeItems.map(item => (
                             <button
                                 key={item.id}
