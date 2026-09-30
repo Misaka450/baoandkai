@@ -133,86 +133,83 @@ export default function Navigation() {
                     {/* 移动端 (< 768px): 莫兰迪滑动抽屉导航 */}
                     <AnimatePresence>
                         {isOpen && (
-                            <>
-                                {/* 遮罩背景 */}
-                                <motion.div
-                                    key="drawer-backdrop"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.25 }}
-                                    onClick={() => setIsOpen(false)}
-                                    className="fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-50 md:hidden"
-                                    aria-hidden="true"
-                                />
-
-                                {/* 抽屉面板 */}
-                                <motion.div
-                                    key="drawer-panel"
-                                    initial={{ x: '-100%' }}
-                                    animate={{ x: 0 }}
-                                    exit={{ x: '-100%' }}
-                                    transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                                    className="fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-cream-50/95 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/60 md:hidden"
-                                >
-                                    {/* Drawer Header: 头部品牌区与关闭按钮 */}
-                                    <div className="flex items-center justify-between pb-5 border-b border-stone-200/60">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-300 to-amber-200 flex items-center justify-center shadow-inner border border-white/80">
-                                                <span className="text-lg">💖</span>
-                                            </div>
-                                            <div>
-                                                <h2 className="font-semibold text-stone-800 text-sm tracking-wide">
-                                                    包包和恺恺的小窝
-                                                </h2>
-                                                <p className="text-[11px] text-stone-400">Sweet Memory Space</p>
-                                            </div>
+                            <motion.div
+                                key="drawer-backdrop"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.25 }}
+                                onClick={() => setIsOpen(false)}
+                                className="fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-50 md:hidden"
+                                aria-hidden="true"
+                            />
+                        )}
+                        {isOpen && (
+                            <motion.div
+                                key="drawer-panel"
+                                initial={{ x: '-100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '-100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+                                className="fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-cream-50/95 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/60 md:hidden"
+                            >
+                                {/* Drawer Header: 头部品牌区与关闭按钮 */}
+                                <div className="flex items-center justify-between pb-5 border-b border-stone-200/60">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-300 to-amber-200 flex items-center justify-center shadow-inner border border-white/80">
+                                            <span className="text-lg">💖</span>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsOpen(false)}
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
-                                            aria-label="关闭导航栏"
-                                        >
-                                            <Icon name="close" size={20} />
-                                        </button>
+                                        <div>
+                                            <h2 className="font-semibold text-stone-800 text-sm tracking-wide">
+                                                包包和恺恺的小窝
+                                            </h2>
+                                            <p className="text-[11px] text-stone-400">Sweet Memory Space</p>
+                                        </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsOpen(false)}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
+                                        aria-label="关闭导航栏"
+                                    >
+                                        <Icon name="close" size={20} />
+                                    </button>
+                                </div>
 
-                                    {/* Nav Items List: 8个项目垂直列表 */}
-                                    <nav className="flex-1 py-4 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="移动端侧边导航">
-                                        {navigation.map((item) => {
-                                            const isActive = location.pathname === item.href
-                                            return (
-                                                <Link
-                                                    key={item.name}
-                                                    to={item.href}
-                                                    onClick={() => setIsOpen(false)}
-                                                    aria-label={`前往${item.name}`}
-                                                    aria-current={isActive ? 'page' : undefined}
-                                                    className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 ${
-                                                        isActive
-                                                            ? 'bg-primary text-white shadow-md shadow-primary/25 font-semibold pointer-events-none'
-                                                            : 'text-stone-600 hover:text-primary hover:bg-primary/5 active:scale-95'
-                                                    }`}
-                                                >
-                                                    <Icon
-                                                        name={item.icon}
-                                                        size={20}
-                                                        className={isActive ? 'text-white' : 'text-stone-500'}
-                                                    />
-                                                    <span className="tracking-wide">{item.name}</span>
-                                                </Link>
-                                            )
-                                        })}
-                                    </nav>
+                                {/* Nav Items List: 8个项目垂直列表 */}
+                                <nav className="flex-1 py-4 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="移动端侧边导航">
+                                    {navigation.map((item) => {
+                                        const isActive = location.pathname === item.href
+                                        return (
+                                            <Link
+                                                key={item.name}
+                                                to={item.href}
+                                                onClick={() => setIsOpen(false)}
+                                                aria-label={`前往${item.name}`}
+                                                aria-current={isActive ? 'page' : undefined}
+                                                className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 ${
+                                                    isActive
+                                                        ? 'bg-primary text-white shadow-md shadow-primary/25 font-semibold'
+                                                        : 'text-stone-600 hover:text-primary hover:bg-primary/5 active:scale-95'
+                                                }`}
+                                            >
+                                                <Icon
+                                                    name={item.icon}
+                                                    size={20}
+                                                    className={isActive ? 'text-white' : 'text-stone-500'}
+                                                />
+                                                <span className="tracking-wide">{item.name}</span>
+                                            </Link>
+                                        )
+                                    })}
+                                </nav>
 
-                                    {/* 抽屉底部装饰信息 */}
-                                    <div className="pt-4 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-400">
-                                        <span>遇见你，是银河赠予我的糖</span>
-                                        <span>💕</span>
-                                    </div>
-                                </motion.div>
-                            </>
+                                {/* 抽屉底部装饰信息 */}
+                                <div className="pt-4 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-400">
+                                    <span>遇见你，是银河赠予我的糖</span>
+                                    <span>💕</span>
+                                </div>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </>,
