@@ -18,6 +18,9 @@ export default {
         "morandi-purple": "#AAA1C8",
         "morandi-rose": "#DEB3AD",
         "sage": "#B7B7A4", // 豆沙绿
+        cream: {
+          50: "#FAF7F2",
+        },
         // 强调色 - 用于计时器卡片等高亮场景
         "accent-pink": "#FF8BB1",
         "accent-blue": "#6BBFFF",

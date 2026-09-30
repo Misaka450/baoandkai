@@ -140,7 +140,7 @@ export default function Navigation() {
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.25 }}
                                 onClick={() => setIsOpen(false)}
-                                className="fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-50 md:hidden"
+                                className="fixed inset-0 bg-stone-900/25 backdrop-blur-sm z-50 md:hidden"
                                 aria-hidden="true"
                             />
                         )}
@@ -151,7 +151,7 @@ export default function Navigation() {
                                 animate={{ x: 0 }}
                                 exit={{ x: '-100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                                className="fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-cream-50/95 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/60 md:hidden"
+                                className="fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-cream-50/80 backdrop-blur-2xl p-6 shadow-2xl z-50 flex flex-col border-r border-white/70 md:hidden"
                             >
                                 {/* Drawer Header: 头部品牌区与关闭按钮 */}
                                 <div className="flex items-center justify-between pb-5 border-b border-stone-200/60">
@@ -187,10 +187,10 @@ export default function Navigation() {
                                                 onClick={() => setIsOpen(false)}
                                                 aria-label={`前往${item.name}`}
                                                 aria-current={isActive ? 'page' : undefined}
-                                                className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 ${
+                                                className={`flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm transition-all duration-200 ${
                                                     isActive
-                                                        ? 'bg-primary text-white shadow-md shadow-primary/25 font-semibold'
-                                                        : 'text-stone-600 hover:text-primary hover:bg-primary/5 active:scale-95'
+                                                        ? 'bg-primary text-white shadow-md shadow-primary/20 font-semibold'
+                                                        : 'text-stone-600 hover:text-primary hover:bg-white/60 active:scale-95'
                                                 }`}
                                             >
                                                 <Icon
