@@ -143,31 +143,30 @@ export default function TimeCapsuleList({ capsules, isLoading, onOpenCapsule, on
         </div>
       )}
 
-      {/* 内置删除确认弹窗 */}
+      {/* 内置莫兰迪删除确认弹窗 */}
       {!showDeleteConfirm && deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirmId(null)}>
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-white/80 animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
-                <Icon name="warning" size={24} className="text-red-500" />
+              <div className="w-14 h-14 rounded-full bg-[#FFEDF3] text-rose-500 flex items-center justify-center mx-auto mb-3 shadow-inner border border-rose-100">
+                <Icon name="warning" size={26} />
               </div>
               <h3 className="text-lg font-bold text-slate-800">确认删除</h3>
-              <p className="text-slate-400 text-sm mt-2">确定要删除这个时间胶囊吗？此操作不可恢复。</p>
+              <p className="text-slate-500 text-sm mt-2 leading-relaxed">确定要删除这个时间胶囊吗？此操作不可恢复。</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-600 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={() => {
-                  // 使用可选链调用，避免"表达式语句"式的 && 短路写法
-                  onDeleteCapsule?.(deleteConfirmId)
-                  setDeleteConfirmId(null)
+                  onDeleteCapsule?.(deleteConfirmId);
+                  setDeleteConfirmId(null);
                 }}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-morandi-rose to-rose-400 text-white rounded-full font-bold text-sm shadow-md hover:scale-105 transition-transform"
               >
                 删除
               </button>

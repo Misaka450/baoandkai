@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { notesService } from '../../services/apiService'
 import Icon from '../icons/Icons'
 import { useToast } from '../common/Toast'
+import Modal from '../modals/Modal'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../../constants/styles'
 import { formatDate } from '../../utils/common'
@@ -44,6 +45,7 @@ export default function StickyNotes() {
   const [newNote, setNewNote] = useState('')
   const [selectedColor, setSelectedColor] = useState('pink')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
   useBodyScrollLock(showAddModal)
 
@@ -80,15 +82,18 @@ export default function StickyNotes() {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('确定要删除这条碎碎念吗？')) return
+  const handleDelete = (id: number) => {
+    setDeleteConfirmId(id)
+  }
+
+  const confirmDelete = async (id: number) => {
     try {
       await notesService.delete(id)
-      toast.success('碎碎念已删除')
-      // 删除后刷新缓存
-      queryClient.invalidateQueries({ queryKey: ['notes'] })
-    } catch (err) {
-      toast.error('删除失败，请稍后重试')
+      toast.success("碎碎念已删除")
+      setDeleteConfirmId(null)
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    } catch {
+      toast.error("删除失败，请稍后重试")
     }
   }
 
@@ -140,50 +145,86 @@ export default function StickyNotes() {
         </div>
       )}
 
-      {showAddModal && (
-        <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="glass-card p-8 rounded-3xl w-full max-w-lg animate-slide-up">
-            <h3 className="text-2xl font-display mb-4">记录新碎碎念</h3>
-
-            {/* 莫兰迪便签颜色自选 */}
-            <div className="mb-4">
-              <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">选择贴纸颜色</span>
-              <div className="flex items-center space-x-3">
-                {Object.entries(colorMap).map(([cKey, cVal]) => (
-                  <button
-                    key={cKey}
-                    type="button"
-                    onClick={() => setSelectedColor(cKey)}
-                    className={`w-8 h-8 rounded-full ${cVal.bg} transition-all duration-200 ${selectedColor === cKey ? 'scale-110 ring-2 ring-offset-2 ring-primary shadow-md' : 'opacity-80 hover:opacity-100 hover:scale-105'}`}
-                    aria-label={`选择${cKey}颜色`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <textarea
-              className="w-full bg-slate-50 rounded-2xl p-4 min-h-[120px] mb-6 focus:ring-2 focus:ring-primary outline-none"
-              placeholder="在这里写下你的心情..."
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className={SECONDARY_BUTTON}
-              >
-                取消
-              </button>
-              <button
-                onClick={handleAddNote}
-                className={PRIMARY_BUTTON}
-              >
-                发布
-              </button>
+      {/* 发布碎碎念弹窗 */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="记录新碎碎念"
+      >
+        <div className="space-y-4">
+          {/* 莫兰迪便签颜色自选 */}
+          <div>
+            <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">选择贴纸颜色</span>
+            <div className="flex items-center space-x-3">
+              {Object.entries(colorMap).map(([cKey, cVal]) => (
+                <button
+                  key={cKey}
+                  type="button"
+                  onClick={() => setSelectedColor(cKey)}
+                  className={`w-8 h-8 rounded-full ${cVal.bg} transition-all duration-200 ${selectedColor === cKey ? "scale-110 ring-2 ring-offset-2 ring-primary shadow-md" : "opacity-80 hover:opacity-100 hover:scale-105"}`}
+                  aria-label={`选择${cKey}颜色`}
+                />
+              ))}
             </div>
           </div>
+
+          <textarea
+            className="w-full bg-slate-50 rounded-2xl p-4 min-h-[120px] focus:ring-2 focus:ring-primary outline-none text-slate-700"
+            placeholder="在这里写下你的心情..."
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+          />
+
+          <div className="flex justify-end space-x-3 pt-2">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className={SECONDARY_BUTTON}
+            >
+              取消
+            </button>
+            <button
+              onClick={handleAddNote}
+              className={PRIMARY_BUTTON}
+            >
+              发布
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
+
+      {/* 莫兰迪删除确认弹窗 */}
+      <Modal
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        title="确认删除"
+      >
+        <div className="text-center py-2 space-y-4">
+          <div className="w-14 h-14 rounded-full bg-[#FFEDF3] text-rose-500 flex items-center justify-center mx-auto shadow-inner border border-rose-100">
+            <Icon name="delete" size={26} />
+          </div>
+          <p className="text-slate-600 text-sm leading-relaxed">
+            确定要撕下并删除这条碎碎念便签吗？此操作不可恢复。
+          </p>
+          <div className="flex justify-center gap-3 pt-3">
+            <button
+              onClick={() => setDeleteConfirmId(null)}
+              className={SECONDARY_BUTTON}
+            >
+              取消
+            </button>
+            <button
+              onClick={() => {
+                if (deleteConfirmId !== null) {
+                  confirmDelete(deleteConfirmId)
+                }
+              }}
+              className="px-8 py-2.5 bg-gradient-to-r from-morandi-rose to-rose-400 text-white rounded-full font-bold shadow-md hover:scale-105 transition-transform"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

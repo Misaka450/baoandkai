@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
@@ -59,21 +60,23 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
 
     const monthNames = ['1 月', '2 月', '3 月', '4 月', '5 月', '6 月', '7 月', '8 月', '9 月', '10 月', '11 月', '12 月']
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    if (typeof document === 'undefined') return null
+
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             {/* 背景遮罩 */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
             {/* 报告卡片 */}
             <motion.div
-                className="relative z-10 bg-white rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
                 initial={{ scale: 0.9, y: 50 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 50 }}
                 transition={{ type: 'spring', duration: 0.5 }}
             >
                 {/* 头部 */}
-                <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 via-primary/5 to-white px-8 py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-[2.5rem]">
+                <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 via-primary/5 to-white px-5 py-4 md:px-8 md:py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-2xl md:rounded-t-[2.5rem]">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
                             <Icon name="auto_awesome" size={28} className="text-primary" />
@@ -92,7 +95,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                 </div>
 
                 {/* 内容 */}
-                <div className="p-8 space-y-8">
+                <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
                     {/* 核心数据 */}
                     <div className="grid grid-cols-3 gap-4">
                         <motion.div
@@ -205,6 +208,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                     </div>
                 </div>
             </motion.div>
-        </div>
+        </div>,
+        document.body
     )
 }

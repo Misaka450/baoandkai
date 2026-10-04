@@ -146,48 +146,39 @@ export default function CoupleFeatures() {
         )}
       </Modal>
 
-      {/* 删除确认弹窗 */}
-      <AnimatePresence>
-        {showDeleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowDeleteConfirm(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-              onClick={e => e.stopPropagation()}
+      {/* 莫兰迪删除确认弹窗 */}
+      <Modal
+        isOpen={showDeleteConfirm !== null}
+        onClose={() => setShowDeleteConfirm(null)}
+        title="确认删除"
+      >
+        <div className="text-center py-2 space-y-4">
+          <div className="w-14 h-14 rounded-full bg-[#FFEDF3] text-rose-500 flex items-center justify-center mx-auto shadow-inner border border-rose-100">
+            <Icon name="warning" size={26} />
+          </div>
+          <p className="text-slate-600 text-sm leading-relaxed">
+            确定要删除这个时间胶囊吗？此操作不可恢复。
+          </p>
+          <div className="flex justify-center gap-3 pt-3">
+            <button
+              onClick={() => setShowDeleteConfirm(null)}
+              className="px-6 py-2.5 rounded-full bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors"
             >
-              <div className="text-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
-                  <Icon name="warning" size={24} className="text-red-500" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-800">确认删除</h3>
-                <p className="text-slate-400 text-sm mt-2">确定要删除这个时间胶囊吗？此操作不可恢复。</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => handleDeleteTimeCapsule(showDeleteConfirm)}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  删除
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              取消
+            </button>
+            <button
+              onClick={() => {
+                if (showDeleteConfirm) {
+                  handleDeleteTimeCapsule(showDeleteConfirm);
+                }
+              }}
+              className="px-8 py-2.5 bg-gradient-to-r from-morandi-rose to-rose-400 text-white rounded-full font-bold shadow-md hover:scale-105 transition-transform"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* 未解锁提示弹窗 - 使用统一的 Modal 组件 */}
       <Modal

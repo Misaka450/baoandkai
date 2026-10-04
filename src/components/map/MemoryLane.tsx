@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
@@ -161,7 +162,7 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
 
             {/* 回忆详情弹窗 */}
             <AnimatePresence>
-                {showMemory && currentMemory && (
+                {showMemory && currentMemory && typeof document !== 'undefined' && createPortal(
                     <motion.div
                         className="fixed inset-0 z-50 flex items-center justify-center p-4"
                         initial={{ opacity: 0 }}
@@ -170,14 +171,14 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                     >
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMemory(false)} />
                         <motion.div
-                            className="relative z-10 bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                            className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                             initial={{ scale: 0.9, y: 50 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 50 }}
                             transition={{ type: 'spring', duration: 0.5 }}
                         >
                             {/* 头部 */}
-                            <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl px-8 py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-[2.5rem]">
+                            <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl px-5 py-4 md:px-8 md:py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-2xl md:rounded-t-[2.5rem]">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
                                         <Icon name="favorite" size={24} className="text-primary" />
@@ -196,7 +197,7 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                             </div>
 
                             {/* 内容 */}
-                            <div className="p-8">
+                            <div className="p-4 sm:p-6 md:p-8">
                                 {/* 照片 */}
                                 {currentMemory.images && currentMemory.images.length > 0 && (
                                     <div className="mb-6 rounded-2xl overflow-hidden shadow-lg">
@@ -253,7 +254,8 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
                                 )}
                             </div>
                         </motion.div>
-                    </motion.div>
+                    </motion.div>,
+                    document.body
                 )}
             </AnimatePresence>
         </>

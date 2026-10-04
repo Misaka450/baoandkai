@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { timeCapsuleService } from '../../services/apiService'
 import Icon from '../../components/icons/Icons'
 import Modal from '../../components/modals/Modal'
+import AdminModal from '../../components/modals/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
 import TimeCapsule from '../../components/features/TimeCapsule'
 import { useToast } from '../../components/common/Toast'
 import type { TimeCapsuleItem } from '../../types'
@@ -12,6 +14,7 @@ import { formatDate } from '../../utils/common'
 export default function AdminTimeCapsules() {
   const queryClient = useQueryClient()
   const toast = useToast()
+  const { modalState, showConfirm, showAlert, closeModal } = useAdminModal()
   const [showAddModal, setShowAddModal] = useState(false)
 
   // 获取时间胶囊数据
@@ -60,10 +63,10 @@ export default function AdminTimeCapsules() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
-      toast.success('时间胶囊已删除')
+      showAlert('成功', '时间胶囊已删除', 'success')
     },
     onError: (err) => {
-      toast.error(`删除失败: ${err instanceof Error ? err.message : '未知错误'}`)
+      showAlert('错误', `删除失败: ${err instanceof Error ? err.message : '未知错误'}`, 'error')
     }
   })
 
@@ -71,8 +74,9 @@ export default function AdminTimeCapsules() {
     createCapsuleMutation.mutate({ message, unlockDate })
   }
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('确定要删除这个时间胶囊吗？')) {
+  const handleDelete = async (id: string) => {
+    const confirmed = await showConfirm('删除时间胶囊', '确定要删除这个时间胶囊吗？此操作不可撤销。')
+    if (confirmed) {
       deleteCapsuleMutation.mutate(id)
     }
   }
@@ -168,6 +172,7 @@ export default function AdminTimeCapsules() {
           onClose={() => setShowAddModal(false)}
         />
       </Modal>
+      <AdminModal isOpen={modalState.isOpen} onClose={closeModal} title={modalState.title} message={modalState.message} type={modalState.type} onConfirm={modalState.onConfirm || undefined} showCancel={modalState.showCancel} confirmText={modalState.confirmText} />
     </div>
   )
 }

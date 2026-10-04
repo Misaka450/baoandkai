@@ -11,6 +11,9 @@ import StatCard from '../../components/common/StatCard'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 import { formatDate } from '../../utils/common'
+import Modal from '../../components/modals/Modal'
+import AdminModal from '../../components/modals/AdminModal'
+import { useAdminModal } from '../../hooks/useAdminModal'
 
 const provinceNames = getAllProvinceNames()
 
@@ -46,7 +49,7 @@ export default function AdminTravelMap() {
     const [editingId, setEditingId] = useState<number | string | null>(null)
     const [formData, setFormData] = useState<CheckinFormData>(emptyForm)
     const [saving, setSaving] = useState(false)
-    const [deleteConfirm, setDeleteConfirm] = useState<number | string | null>(null)
+    const { modalState, showConfirm, showAlert, closeModal } = useAdminModal()
 
     const { data: mapData, isLoading } = useQuery({
         queryKey: ['mapCheckins'],
@@ -103,16 +106,18 @@ export default function AdminTravelMap() {
     }
 
     const handleDelete = async (id: number | string) => {
+        const confirmed = await showConfirm("删除足迹", "删除后将无法恢复，确定要删除这条打卡记录吗？")
+        if (!confirmed) return
         try {
             await mapService.delete(id)
-            queryClient.invalidateQueries({ queryKey: ['mapCheckins'] })
-            setDeleteConfirm(null)
+            queryClient.invalidateQueries({ queryKey: ["mapCheckins"] })
+            showAlert("成功", "足迹打卡记录已删除", "success")
         } catch (error) {
-            console.error('删除失败:', error)
+            console.error("删除失败:", error)
+            showAlert("错误", "删除失败，请稍后重试", "error")
         }
     }
 
-    // 统计数据（用 useMemo 避免每次渲染重建 Set）
     const statItems: StatItem[] = useMemo(() => [
         { label: '总打卡', value: checkins.length, icon: 'auto_awesome', color: 'text-[#6BCB77]', bg: 'bg-[#F0FFF4]' },
         { label: '省份', value: new Set(checkins.map(c => c.province)).size, icon: 'map', color: 'text-[#FF8BB1]', bg: 'bg-[#FFEDF3]' },
@@ -241,7 +246,7 @@ export default function AdminTravelMap() {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setDeleteConfirm(checkin.id)}
+                                                onClick={() => handleDelete(checkin.id)}
                                                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center active:scale-90"
                                                 title="删除足迹"
                                             >
@@ -257,18 +262,12 @@ export default function AdminTravelMap() {
             )}
 
             {/* 添加/编辑弹窗 */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-                    <div className="relative bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto border border-white/80">
-                        {/* 头部 */}
-                        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl px-6 py-4 border-b border-slate-100/50 flex items-center justify-between rounded-t-[2rem]">
-                            <h3 className="font-black text-lg text-slate-800">{editingId ? '编辑足迹' : '添加足迹'}</h3>
-                            <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all">
-                                <Icon name="close" size={16} />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-5">
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingId ? "编辑足迹" : "添加足迹"}
+            >
+                <div className="space-y-5">
                             {/* 标题 */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">标题 *</label>
@@ -367,57 +366,40 @@ export default function AdminTravelMap() {
                                     </div>
                                 </label>
                             </div>
-                        </div>
 
-                        {/* 底部按钮 */}
-                        <div className="sticky bottom-0 bg-white/90 backdrop-blur-xl px-6 py-4 border-t border-slate-100/50 flex gap-3 rounded-b-[2rem]">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowModal(false)}
-                                className="flex-1"
-                            >
-                                取消
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={handleSave}
-                                disabled={saving || !formData.title || !formData.province || !formData.date}
-                                loading={saving}
-                                className="flex-1"
-                            >
-                                {saving ? '保存中...' : '保存'}
-                            </Button>
-                        </div>
+                        
+                    {/* 底部按钮 */}
+                    <div className="pt-4 flex gap-3 border-t border-slate-100">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowModal(false)}
+                            className="flex-1"
+                        >
+                            取消
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleSave}
+                            disabled={saving || !formData.title || !formData.province || !formData.date}
+                            loading={saving}
+                            className="flex-1"
+                        >
+                            {saving ? "保存中..." : "保存"}
+                        </Button>
                     </div>
                 </div>
-            )}
+            </Modal>
 
-            {/* 删除确认弹窗 */}
-            {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
-                    <div className="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                        <h3 className="font-bold text-lg text-slate-800 mb-2">确认删除</h3>
-                        <p className="text-slate-500 text-sm mb-6">删除后将无法恢复，确定要删除这条打卡记录吗？</p>
-                        <div className="flex gap-3">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setDeleteConfirm(null)}
-                                className="flex-1"
-                            >
-                                取消
-                            </Button>
-                            <Button
-                                variant="danger"
-                                onClick={() => handleDelete(deleteConfirm)}
-                                className="flex-1"
-                            >
-                                确认删除
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AdminModal
+                isOpen={modalState.isOpen}
+                onClose={closeModal}
+                title={modalState.title}
+                message={modalState.message}
+                type={modalState.type}
+                onConfirm={modalState.onConfirm || undefined}
+                showCancel={modalState.showCancel}
+                confirmText={modalState.confirmText}
+            />
         </div>
     )
 }

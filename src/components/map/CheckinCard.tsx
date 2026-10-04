@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -106,7 +107,9 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
     // 通过Cookie判断是否为管理员
     const isAdmin = document.cookie.split(';').some(c => c.trim().startsWith('csrf_token='))
 
-    return (
+    if (typeof document === 'undefined') return null
+
+    return createPortal(
         <>
             <AnimatePresence>
                 <motion.div
@@ -557,8 +560,8 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
                             transition={{ type: 'spring', duration: 0.3 }}
                         >
                             <div className="text-center">
-                                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-                                    <Icon name="delete" size={32} className="text-red-500" />
+                                <div className="w-16 h-16 rounded-full bg-[#FFEDF3] text-morandi-rose border border-rose-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                    <Icon name="delete" size={30} />
                                 </div>
                                 <h3 className="text-xl font-black text-slate-800 mb-2">确认删除</h3>
                                 <p className="text-slate-400 text-sm mb-6">确定要删除这条足迹记录吗？此操作不可恢复。</p>
@@ -574,7 +577,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
                                     <button
                                         onClick={() => handleDelete(showDeleteConfirm)}
                                         disabled={deletingId !== null}
-                                        className="flex-1 px-6 py-3 rounded-2xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-morandi-rose to-rose-400 text-white font-bold text-sm hover:shadow-lg shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         {deletingId === showDeleteConfirm ? (
                                             <>
@@ -591,6 +594,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
                     </motion.div>
                 )}
             </AnimatePresence>
-        </>
+        </>,
+        document.body
     )
 }

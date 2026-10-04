@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
@@ -66,7 +67,9 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
     const currentPhoto = allPhotos[currentIndex]
     if (!currentPhoto) return null
 
-    return (
+    if (typeof document === 'undefined') return null
+
+    return createPortal(
         <div className={`fixed inset-0 z-50 flex items-center justify-center ${
             isFullscreen ? 'bg-black' : 'bg-black/95 backdrop-blur-xl'
         }`}>
@@ -183,6 +186,7 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
