@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiService } from '../services/apiService'
 import { SiteConfig } from '../types'
+import { safeStorage } from '../utils/storage'
 
 const CACHE_KEY = 'home_config_cache'
 
@@ -16,7 +17,7 @@ const DEFAULT_CONFIG: SiteConfig = {
 
 export function useConfig() {
     const [config, setConfig] = useState<SiteConfig>(() => {
-        const cached = localStorage.getItem(CACHE_KEY)
+        const cached = safeStorage.getItem(CACHE_KEY)
         if (cached) {
             try {
                 const parsed = JSON.parse(cached)
@@ -40,7 +41,7 @@ export function useConfig() {
                     ...data
                 }
                 setConfig(newConfig)
-                localStorage.setItem(CACHE_KEY, JSON.stringify(newConfig))
+                safeStorage.setJSON(CACHE_KEY, newConfig)
             }
         } catch (error) {
             console.error('Failed to fetch config:', error)
@@ -55,7 +56,7 @@ export function useConfig() {
             if (error) throw new Error(error)
 
             setConfig(newConfig)
-            localStorage.setItem(CACHE_KEY, JSON.stringify(newConfig))
+            safeStorage.setJSON(CACHE_KEY, newConfig)
             return { success: true }
         } catch (error) {
             console.error('Failed to update config:', error)

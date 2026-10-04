@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { mapService } from '../../services/apiService'
 import { apiService } from '../../services/apiService'
 import type { MapCheckin } from '../../types'
-import { getAllProvinceNames } from '../../data/chinaMapData'
-import { getCitiesForProvince } from '../../data/provinceCities'
+import { getCitiesForProvince, getAllProvinces } from '../../data/provinceCities'
 import Icon, { type IconName } from '../../components/icons/Icons'
 import StatCard from '../../components/common/StatCard'
 import Button from '../../components/admin/ui/Button'
@@ -15,7 +14,7 @@ import Modal from '../../components/modals/Modal'
 import AdminModal from '../../components/modals/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 
-const provinceNames = getAllProvinceNames()
+const provinceNames = getAllProvinces()
 
 interface CheckinFormData {
     title: string

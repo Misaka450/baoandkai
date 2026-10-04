@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { getCookieValue, deleteCookie } from '../utils/cookie'
+import { safeStorage } from '../utils/storage'
 
 interface User {
   username?: string
@@ -115,8 +116,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 2. 清理前端残留状态（auth_token 是 HttpOnly，由服务端响应负责删除）
     deleteCookie('csrf_token')
     // 清除localStorage中可能残留的旧Token
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    safeStorage.removeItem('token')
+    safeStorage.removeItem('user')
     setCsrfToken(null)
     setUser(null)
   }

@@ -4,6 +4,7 @@ import { useConfig } from '../../hooks/useConfig'
 import Icon, { IconName } from '../icons/Icons'
 import Modal from '../modals/Modal'
 import { formatDate } from '../../utils/common'
+import { safeStorage } from '../../utils/storage'
 
 export type CountdownCategory = 'anniversary' | 'birthday' | 'trip' | 'wish'
 
@@ -151,13 +152,9 @@ export default function AnniversaryCountdown() {
   const coupleName2 = config.coupleName2 || '恺恺'
 
   const [customList, setCustomList] = useState<CustomCountdown[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        return JSON.parse(saved)
-      }
-    } catch (e) {
-      console.error('Failed to load custom countdowns from localStorage', e)
+    const saved = safeStorage.getJSON<CustomCountdown[] | null>(STORAGE_KEY, null)
+    if (saved && Array.isArray(saved)) {
+      return saved
     }
     return [
       {
@@ -179,13 +176,9 @@ export default function AnniversaryCountdown() {
   const [formIsYearly, setFormIsYearly] = useState(false)
   const [formError, setFormError] = useState('')
 
-  // Persist custom countdowns
+  // Persist custom countdowns with safeStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customList))
-    } catch (e) {
-      console.error('Failed to save countdowns to localStorage', e)
-    }
+    safeStorage.setJSON(STORAGE_KEY, customList)
   }, [customList])
 
   // Calculation of milestones & countdowns
