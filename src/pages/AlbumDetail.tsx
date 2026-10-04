@@ -6,6 +6,7 @@ import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
 import LazyImage from '../components/common/LazyImage'
 import { Skeleton } from '../components/common/Skeleton'
+import { hapticFeedback } from '../utils/haptics'
 
 interface AlbumDetailResponse {
     id: number
@@ -37,11 +38,13 @@ export default function AlbumDetail() {
 
     // 点击单张照片 - 导航到独立的图片查看页面
     const handlePhotoClick = (index: number) => {
+        hapticFeedback('light')
         navigate(`/albums/${id}/photo?index=${index}`)
     }
 
     // 返回相册列表
     const handleBack = () => {
+        hapticFeedback('light')
         navigate('/albums')
     }
 
@@ -131,7 +134,7 @@ export default function AlbumDetail() {
                         {albumPhotos.map((photo, idx) => (
                             <div
                                 key={photo.id || idx}
-                                className="aspect-square premium-card !p-0 overflow-hidden cursor-pointer group relative content-auto animate-slide-up rounded-xl md:rounded-2xl"
+                                className="aspect-square premium-card !p-0 overflow-hidden cursor-pointer group relative content-auto animate-slide-up rounded-xl md:rounded-2xl active:scale-[0.96] transition-transform duration-150"
                                 style={{ animationDelay: `${Math.min(idx * 0.03, 0.3)}s` }}
                                 onClick={() => handlePhotoClick(idx)}
                             >

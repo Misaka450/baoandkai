@@ -6,6 +6,7 @@ import { apiService } from '../services/apiService'
 import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
 import PolaroidModal from '../components/PolaroidModal'
+import { hapticFeedback } from '../utils/haptics'
 
 interface AlbumDetailResponse {
     id: number
@@ -45,13 +46,7 @@ export default function PhotoViewer() {
 
     // 触觉反馈安全调用
     const triggerHaptic = useCallback(() => {
-        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-            try {
-                navigator.vibrate(10)
-            } catch {
-                // 忽略非用户交互触发的异常
-            }
-        }
+        hapticFeedback('light')
     }, [])
 
     // 加载相册数据
@@ -228,7 +223,7 @@ export default function PhotoViewer() {
 
             // 下拉超过 90px 或明显初速度
             if (currentOffsetY > 90 || (velocityY > 0.5 && currentOffsetY > 30)) {
-                triggerHaptic()
+                hapticFeedback('medium')
                 setIsDismissing(true)
                 setTimeout(() => {
                     handleBack()
@@ -312,45 +307,58 @@ export default function PhotoViewer() {
         >
             {/* 顶部工具栏 - 使用 pointer-events 确保可点击 */}
             <header
-                className={`absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/60 to-transparent transition-opacity duration-200 ${
+                className={`absolute top-0 left-0 right-0 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-4 bg-gradient-to-b from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
                     dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
                 }`}
                 style={{ zIndex: 100 }}
             >
                 <button
                     type="button"
-                    onClick={handleBack}
-                    className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-2xl text-white hover:bg-white/30 transition-all active:scale-95"
+                    onClick={() => {
+                        hapticFeedback('light')
+                        handleBack()
+                    }}
+                    className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg md:rounded-2xl text-white transition-all active:scale-90 shadow-sm"
+                    aria-label="返回"
                 >
-                    <Icon name="west" size={24} />
+                    <Icon name="west" size={18} className="md:w-6 md:h-6" />
                 </button>
 
-                <div className="bg-white/20 px-4 py-2 rounded-2xl">
-                    <span className="text-xs font-black text-white uppercase tracking-widest">
+                <div className="bg-black/40 backdrop-blur-md px-2.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl border border-white/10">
+                    <span className="text-[9px] md:text-xs font-black text-white uppercase tracking-wider md:tracking-widest">
                         {currentIndex + 1} / {images.length}
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 md:gap-2">
                     <button
                         type="button"
-                        onClick={() => setIsPolaroidOpen(true)}
-                        className="w-10 h-10 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 rounded-xl text-white active:scale-95 transition-all shadow-md"
+                        onClick={() => {
+                            hapticFeedback('light')
+                            setIsPolaroidOpen(true)
+                        }}
+                        className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 rounded-lg md:rounded-xl text-white active:scale-95 transition-all shadow-md gap-1"
                         title="生成拍立得"
                     >
-                        <Icon name="photo_camera" size={20} />
+                        <Icon name="photo_camera" size={16} className="md:w-5 md:h-5" />
                     </button>
                     <button
                         type="button"
-                        onClick={() => setScale(prev => Math.min(5, prev * 1.5))}
-                        className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
+                        onClick={() => {
+                            hapticFeedback('light')
+                            setScale(prev => Math.min(5, prev * 1.5))
+                        }}
+                        className="hidden md:flex w-10 h-10 items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
                     >
                         <Icon name="zoom_in" size={20} />
                     </button>
                     <button
                         type="button"
-                        onClick={resetTransform}
-                        className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
+                        onClick={() => {
+                            hapticFeedback('light')
+                            resetTransform()
+                        }}
+                        className="hidden md:flex w-10 h-10 items-center justify-center bg-white/20 rounded-xl text-white hover:bg-white/30 active:scale-95"
                     >
                         <Icon name="restart_alt" size={20} />
                     </button>
@@ -441,18 +449,22 @@ export default function PhotoViewer() {
             {/* 底部缩略图 */}
             {images.length > 1 && (
                 <div
-                    className={`absolute bottom-0 left-0 right-0 py-4 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-200 ${
+                    className={`absolute bottom-0 left-0 right-0 py-3 md:py-4 px-3 md:px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
                         dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                     style={{ zIndex: 100 }}
                 >
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-2 md:gap-3 justify-center">
                         {images.map((img, idx) => (
                             <div
                                 key={idx}
-                                onClick={() => { setCurrentIndex(idx); resetTransform(); }}
-                                className={`w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all border-2 flex-shrink-0 active:scale-95 ${idx === currentIndex
-                                    ? 'border-white scale-110'
+                                onClick={() => {
+                                    hapticFeedback('light')
+                                    setCurrentIndex(idx)
+                                    resetTransform()
+                                }}
+                                className={`w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden cursor-pointer transition-all border-2 flex-shrink-0 active:scale-95 ${idx === currentIndex
+                                    ? 'border-white scale-105 md:scale-110 shadow-lg'
                                     : 'border-transparent opacity-40 grayscale hover:opacity-70'
                                     }`}
                             >

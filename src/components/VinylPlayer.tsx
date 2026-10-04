@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { subscribeModalState } from '../utils/modalState'
+import { hapticFeedback } from '../utils/haptics'
 
 export type AmbientTrackId = 'rain' | 'fireplace' | 'cafe' | 'ocean' | 'chords'
 
@@ -473,6 +474,7 @@ export default function VinylPlayer() {
   }
 
   const handleTogglePlay = () => {
+    hapticFeedback('light')
     if (isPlaying) {
       stopAudio()
       setIsPlaying(false)
@@ -483,6 +485,7 @@ export default function VinylPlayer() {
   }
 
   const handleSelectTrack = (trackId: AmbientTrackId) => {
+    hapticFeedback('light')
     setActiveTrack(trackId)
     if (isPlaying) {
       startTrackSound(trackId)
@@ -502,43 +505,68 @@ export default function VinylPlayer() {
   }
 
   return createPortal(
-    <div
-      className={`fixed right-4 md:right-8 bottom-6 md:bottom-8 z-50 select-none font-sans transition-all duration-300 ${
-        isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
-      }`}
-    >
+    <>
+      {/* 移动端展开时的半透明遮罩背景 */}
       <AnimatePresence>
-        {/* Expanded Ambient Glass Player Panel */}
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 30 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-[340px] max-w-[calc(100vw-2rem)] glass-card bg-white/85 dark:bg-stone-900/85 backdrop-blur-2xl border border-white/60 shadow-2xl rounded-3xl p-5 mb-3 overflow-hidden text-slate-700"
-          >
-            {/* Header: Title & Close Button */}
-            <div className="flex items-center justify-between pb-3 border-b border-stone-200/60">
-              <div className="flex items-center space-x-2">
-                <span className="text-xl">📻</span>
-                <div>
-                  <h3 className="text-sm font-semibold text-stone-800 tracking-wide">
-                    微型黑胶白噪音
-                  </h3>
-                  <p className="text-[11px] text-stone-400 font-mono">Lo-Fi Ambient Space</p>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => {
+              hapticFeedback('light')
+              setIsOpen(false)
+            }}
+            aria-hidden="true"
+            className="fixed inset-0 bg-stone-900/40 backdrop-blur-[2px] z-50 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <div
+        className={`fixed right-3 md:right-8 bottom-5 md:bottom-8 z-50 select-none font-sans transition-all duration-300 ${
+          isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+        }`}
+      >
+        <AnimatePresence>
+          {/* Expanded Ambient Glass Player Panel: 移动端为底部抽屉 Bottom Sheet，桌面端为右下角精致悬浮卡片 */}
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed md:static inset-x-0 bottom-0 md:inset-auto z-50 w-full md:w-[340px] md:max-w-[calc(100vw-2rem)] glass-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border-t md:border border-stone-200/80 md:border-white/60 shadow-2xl rounded-t-[2.5rem] md:rounded-3xl p-5 pb-8 md:pb-5 mb-0 md:mb-3 overflow-hidden text-slate-700"
+            >
+              {/* 移动端抽屉顶部的下拉手柄条 */}
+              <div className="w-10 h-1 bg-stone-300 dark:bg-stone-600 rounded-full mx-auto mb-3 md:hidden" />
+
+              {/* Header: Title & Close Button */}
+              <div className="flex items-center justify-between pb-3 border-b border-stone-200/60">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">📻</span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-stone-800 tracking-wide">
+                      微型黑胶白噪音
+                    </h3>
+                    <p className="text-[11px] text-stone-400 font-mono">Lo-Fi Ambient Space</p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticFeedback('light')
+                    setIsOpen(false)
+                  }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-200/60 transition-colors text-stone-500 hover:text-stone-800 active:scale-90"
+                  aria-label="收起播放器"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-stone-200/60 transition-colors text-stone-500 hover:text-stone-800 active:scale-90"
-                aria-label="收起播放器"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
 
             {/* Currently Active Track Spotlight */}
             <div className="my-3.5 p-3 rounded-2xl bg-gradient-to-r from-stone-100 to-white/90 border border-stone-200/50 shadow-sm flex items-center space-x-3">
@@ -724,9 +752,14 @@ export default function VinylPlayer() {
         {/* Collapsed Vinyl Disc */}
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            hapticFeedback('light')
+            setIsOpen(!isOpen)
+          }}
           aria-label={isPlaying ? '正在播放白噪音，点击展开或收起播放器' : '点击打开黑胶白噪音播放器'}
-          className="relative w-14 h-14 rounded-full p-0.5 bg-stone-800 shadow-xl border-2 border-white/80 hover:scale-105 active:scale-95 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group"
+          className={`relative w-13 h-13 md:w-14 md:h-14 rounded-full p-0.5 bg-stone-800 shadow-xl border-2 border-white/80 hover:scale-105 active:scale-90 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group ${
+            !isPlaying && !isOpen ? 'translate-x-1.5 md:translate-x-0 hover:translate-x-0' : 'translate-x-0'
+          }`}
         >
           {/* Vinyl Grooves Body */}
           <div
@@ -764,7 +797,8 @@ export default function VinylPlayer() {
           </div>
         </button>
       </div>
-    </div>,
+    </div>
+    </>,
     document.body
   )
 }

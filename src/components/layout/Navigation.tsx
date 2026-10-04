@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import Icon, { IconName } from '../icons/Icons'
 import { subscribeModalState } from '../../utils/modalState'
+import { hapticFeedback } from '../../utils/haptics'
 
 interface MainNavItem {
     name: string
@@ -168,7 +169,10 @@ export default function Navigation() {
                     {/* 移动端 (< 768px): 左上角汉堡按钮 */}
                     <button
                         type="button"
-                        onClick={() => setIsOpen(!isOpen)}
+                        onClick={() => {
+                            hapticFeedback('light')
+                            setIsOpen(!isOpen)
+                        }}
                         aria-label={isOpen ? '关闭导航菜单' : '打开导航菜单'}
                         aria-expanded={isOpen}
                         className={`fixed top-4 left-4 z-50 md:hidden w-11 h-11 rounded-full glass-card border border-white/70 shadow-md flex items-center justify-center text-slate-700 active:scale-90 transition-all ${
@@ -212,7 +216,10 @@ export default function Navigation() {
                             </div>
                             <button
                                 type="button"
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    hapticFeedback('light')
+                                    setIsOpen(false)
+                                }}
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
                                 aria-label="关闭导航栏"
                             >
@@ -228,7 +235,10 @@ export default function Navigation() {
                                     <Link
                                         key={item.name}
                                         to={item.href}
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={() => {
+                                            hapticFeedback('light')
+                                            setIsOpen(false)
+                                        }}
                                         aria-label={`前往${item.name}`}
                                         aria-current={active ? 'page' : undefined}
                                         className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-200 border ${

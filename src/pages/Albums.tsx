@@ -9,6 +9,7 @@ import { Skeleton, ImageGridSkeleton } from '../components/common/Skeleton'
 import LazyImage from '../components/common/LazyImage'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import ModuleSubNav from '../components/ModuleSubNav'
+import { hapticFeedback } from '../utils/haptics'
 
 interface AlbumsResponse {
   data: Album[]
@@ -76,6 +77,7 @@ export default function Albums() {
   }, [albums, debouncedSearchQuery, sortBy])
 
   const handleAlbumClick = (album: Album) => {
+    hapticFeedback('light')
     navigate(`/albums/${album.id}`)
   }
 
@@ -134,7 +136,10 @@ export default function Albums() {
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => setSortBy(option.value as SortOption)}
+                onClick={() => {
+                  hapticFeedback('light')
+                  setSortBy(option.value as SortOption)
+                }}
                 className={`flex-shrink-0 px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
                   sortBy === option.value
                     ? 'bg-primary text-white shadow-md shadow-primary/20'
@@ -174,7 +179,7 @@ export default function Albums() {
             {filteredAndSortedAlbums.map((album, index) => (
               <div
                 key={album.id}
-                className="group animate-slide-up hover-card"
+                className="group animate-slide-up hover-card active:scale-[0.97] transition-transform duration-200"
                 style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => handleAlbumClick(album)}
               >

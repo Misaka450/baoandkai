@@ -4,6 +4,7 @@ import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, 
 import Icon from '../icons/Icons'
 import PolaroidModal from '../PolaroidModal'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
+import { hapticFeedback } from '../../utils/haptics'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {
@@ -60,13 +61,7 @@ export default function ImageModal({
 
   // 触觉反馈安全调用
   const triggerHaptic = useCallback(() => {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(10)
-      } catch {
-        // 忽略非用户交互触发的异常
-      }
-    }
+    hapticFeedback('light')
   }, [])
 
   const currentImage = (images && images.length > 0) ? images[currentIndex] : imageUrl
@@ -255,7 +250,7 @@ export default function ImageModal({
 
       // 超过 90px 或有明显下拉速度 (> 0.5px/ms 且 > 30px)
       if (currentOffsetY > 90 || (velocityY > 0.5 && currentOffsetY > 30)) {
-        triggerHaptic()
+        hapticFeedback('medium')
         setIsDismissing(true)
         setTimeout(() => {
           onClose()
@@ -352,38 +347,40 @@ export default function ImageModal({
 
       {/* 顶部工具栏 */}
       <div
-        className={`absolute top-0 left-0 right-0 h-24 flex items-center justify-between px-4 md:px-8 z-[100] bg-gradient-to-b from-black/60 to-transparent backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${
+        className={`absolute top-0 left-0 right-0 h-16 md:h-24 flex items-center justify-between px-3 md:px-8 z-[100] bg-gradient-to-b from-black/70 via-black/40 to-transparent backdrop-blur-[2px] md:backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${
           dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
-          <div className="bg-black/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-white/10">
-            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-1.5 md:gap-3 pointer-events-auto">
+          <div className="bg-black/40 backdrop-blur-md px-2.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl border border-white/10">
+            <span className="text-[9px] md:text-[10px] font-black text-white uppercase tracking-wider md:tracking-[0.2em]">
               {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
             </span>
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
+              hapticFeedback('light');
               if (currentImage) {
                 downloadOriginalImage(currentImage);
               }
             }}
-            className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center bg-blue-500/80 hover:bg-blue-500 text-white rounded-xl md:rounded-2xl transition-all border border-blue-400/50 active:scale-95 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 gap-1.5 md:gap-2"
+            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-blue-500/80 hover:bg-blue-500 text-white rounded-lg md:rounded-2xl transition-all border border-blue-400/50 active:scale-95 shadow-md shadow-blue-500/30 gap-1.5 md:gap-2"
             title="下载原图"
           >
-            <Icon name="download" size={18} />
+            <Icon name="download" size={16} className="md:w-[18px] md:h-[18px]" />
             <span className="text-[10px] font-bold hidden md:inline">下载</span>
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
+              hapticFeedback('light');
               setIsPolaroidOpen(true);
             }}
-            className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 text-white rounded-xl md:rounded-2xl transition-all border border-rose-400/50 active:scale-95 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 gap-1.5 md:gap-2"
+            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 text-white rounded-lg md:rounded-2xl transition-all border border-rose-400/50 active:scale-95 shadow-md shadow-rose-500/30 gap-1.5 md:gap-2"
             title="拍立得相片"
           >
-            <Icon name="photo_camera" size={18} />
+            <Icon name="photo_camera" size={16} className="md:w-[18px] md:h-[18px]" />
             <span className="text-[10px] font-bold hidden md:inline">拍立得</span>
           </button>
           {!isFullLoaded && (
@@ -395,33 +392,34 @@ export default function ImageModal({
         </div>
 
         <div className="flex items-center gap-1 md:gap-2 pointer-events-auto">
+          {/* 桌面端特有的缩放控制按钮，移动端依赖原生触屏双击与捏合手势 */}
           <button
-            onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(5, prev * 1.5)); }}
-            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
+            onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); setScale(prev => Math.min(5, prev * 1.5)); }}
+            className="hidden md:flex w-12 h-12 items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-2xl transition-all border border-white/10"
             title="放大"
           >
             <Icon name="zoom_in" size={20} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setScale(prev => Math.max(0.5, prev / 1.5)); }}
-            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
+            onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); setScale(prev => Math.max(0.5, prev / 1.5)); }}
+            className="hidden md:flex w-12 h-12 items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-2xl transition-all border border-white/10"
             title="缩小"
           >
             <Icon name="zoom_out" size={20} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); resetTransform(); }}
-            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-lg md:rounded-2xl transition-all border border-white/10"
+            onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); resetTransform(); }}
+            className="hidden md:flex w-12 h-12 items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-2xl transition-all border border-white/10"
             title="还原"
           >
             <Icon name="restart_alt" size={20} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white text-slate-900 rounded-lg md:rounded-2xl transition-all shadow-lg md:shadow-2xl ml-1 md:ml-2 hover:scale-105 active:scale-95"
+            onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); onClose(); }}
+            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-md text-white md:bg-white md:text-slate-900 rounded-full md:rounded-2xl transition-all shadow-md active:scale-90"
             title="退出"
           >
-            <Icon name="close" size={20} />
+            <Icon name="close" size={18} className="md:w-5 md:h-5" />
           </button>
         </div>
       </div>
@@ -515,21 +513,21 @@ export default function ImageModal({
       {/* 底部缩略图 */}
       {images.length > 1 && (
         <div
-          className={`absolute bottom-0 left-0 right-0 pb-12 pt-4 px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
+          className={`absolute bottom-0 left-0 right-0 pb-4 md:pb-12 pt-2 md:pt-4 px-3 md:px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
             dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
           <div
             ref={thumbListRef}
-            className="flex gap-4 min-w-max justify-center items-center"
+            className="flex gap-2 md:gap-4 min-w-max justify-center items-center"
           >
             {images.map((img, idx) => (
               <div
                 key={idx}
-                onClick={(e) => { e.stopPropagation(); onJumpTo?.(idx); }}
-                className={`relative h-20 w-20 rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 border-4 ${idx === currentIndex
-                  ? 'border-white scale-110 shadow-2xl z-10'
-                  : 'border-transparent opacity-30 hover:opacity-60 grayscale hover:grayscale-0'
+                onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); onJumpTo?.(idx); }}
+                className={`relative h-12 w-12 md:h-20 md:w-20 rounded-xl md:rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border-2 md:border-4 active:scale-95 ${idx === currentIndex
+                  ? 'border-white scale-105 md:scale-110 shadow-lg md:shadow-2xl z-10'
+                  : 'border-transparent opacity-40 hover:opacity-75 grayscale hover:grayscale-0'
                   }`}
               >
                 <img
