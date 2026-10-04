@@ -20,6 +20,8 @@ export interface SessionUser {
   email: string;
   sessionId: number;
   tokenExpires: string;
+  /** 该 Session 绑定的 CSRF 令牌（用于缓存未命中时回退校验） */
+  csrfToken?: string;
 }
 
 /**
@@ -89,6 +91,8 @@ export async function getSessionByToken(token: string): Promise<SessionUser | nu
     email: row.email,
     sessionId: row.session_id,
     tokenExpires: row.expires_at,
+    // 带出 CSRF 令牌，供认证中间件在缓存未命中时回退校验
+    csrfToken: row.csrf_token,
   };
 }
 
@@ -123,13 +127,4 @@ export async function updateSessionActivity(sessionId: number): Promise<void> {
 export async function cleanupExpiredSessions(): Promise<number> {
   const { rowCount } = await pool.query('DELETE FROM sessions WHERE expires_at <= NOW()');
   return rowCount || 0;
-}
-
-/**
- * 更新 Session 的 CSRF Token（每次登录后刷新）
- */
-export async function refreshCsrfToken(sessionId: number): Promise<string> {
-  const csrfToken = generateCsrfToken();
-  await pool.query('UPDATE sessions SET csrf_token = $1 WHERE id = $2', [csrfToken, sessionId]);
-  return csrfToken;
 }

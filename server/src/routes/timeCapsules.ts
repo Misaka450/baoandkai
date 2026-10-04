@@ -30,8 +30,15 @@ timeCapsules.get('/', async (c) => {
     const total = parseInt(countRows[0]?.total || '0', 10);
 
     // 获取分页数据
+    // 关键：未到解锁日期的胶囊，message 在 SQL 层直接返回 NULL（服务端密封），
+    // 而不是依赖前端"不显示"，从根源上杜绝未到期内容通过接口泄露
     const { rows: capsuleRows } = await pool.query(
-      `SELECT id, title, message, unlock_date, is_unlocked, created_by, created_at, updated_at
+      `SELECT id, title,
+              CASE WHEN unlock_date <= TO_CHAR(NOW(), 'YYYY-MM-DD')
+                   THEN message
+                   ELSE NULL
+              END AS message,
+              unlock_date, is_unlocked, created_by, created_at, updated_at
        FROM time_capsules
        ORDER BY unlock_date ASC
        LIMIT $1 OFFSET $2`,

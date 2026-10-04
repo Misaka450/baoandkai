@@ -60,9 +60,25 @@ export async function authMiddleware(c: Context, next: Next) {
         return errorResponse('CSRF验证失败', 403);
       }
 
-      // 从缓存验证 CSRF 与 Token 的绑定关系
-      const storedCsrf = await cache.get<string>(`csrf:${token}`);
-      if (storedCsrf !== csrfFromHeader) {
+      // 从缓存验证 CSRF 与 Token 的绑定关系；
+      // 缓存未命中（如服务重启、LRU 淘汰）时回退查询 sessions 表并回填缓存，
+      // 避免用户因缓存丢失而被误报 403 强制重新登录
+      let storedCsrf = await cache.get<string>(`csrf:${token}`);
+      if (!storedCsrf) {
+        const sessionForCsrf = await getSessionByToken(token);
+        if (sessionForCsrf?.csrfToken) {
+          storedCsrf = sessionForCsrf.csrfToken;
+          // 回填缓存，TTL 与 Session 剩余有效期对齐（7 天上限）
+          const csrfTtl = Math.min(
+            7 * 24 * 60 * 60,
+            Math.floor((new Date(sessionForCsrf.tokenExpires).getTime() - Date.now()) / 1000)
+          );
+          if (csrfTtl > 0) {
+            await cache.set(`csrf:${token}`, storedCsrf, csrfTtl);
+          }
+        }
+      }
+      if (!storedCsrf || storedCsrf !== csrfFromHeader) {
         return errorResponse('CSRF令牌不匹配', 403);
       }
     }

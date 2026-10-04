@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
-import { setCookie } from 'hono/cookie';
+import { setCookie, getCookie } from 'hono/cookie';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { cache } from '../lib/cache.js';
 import { pool } from '../lib/db.js';
-import { createSession, getSessionByToken, refreshCsrfToken } from '../lib/session.js';
+import { createSession, getSessionByToken, deleteSession, deleteUserSessions } from '../lib/session.js';
 
 const auth = new Hono();
 
@@ -18,9 +18,14 @@ const RATE_LIMIT = {
 
 /**
  * 获取客户端标识（优先使用IP，回退到用户名）
+ *
+ * 安全说明：只信任 Nginx 反向代理注入的 X-Real-IP（客户端无法伪造，
+ * 因为 Nginx 会用真实客户端地址覆盖它）。
+ * 不能信任 CF-Connecting-IP 等客户端可自行携带的请求头，
+ * 否则攻击者每次换一个伪造 IP 即可绕过登录失败锁定。
  */
 function getClientId(c: any, username: string): string {
-  const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Real-IP') || '';
+  const ip = c.req.header('X-Real-IP') || '';
   return ip ? `login_rate:${ip}` : `login_rate:user:${username}`;
 }
 
@@ -86,12 +91,15 @@ async function verifyPassword(plainPassword: string, hashedPassword: string): Pr
  */
 auth.get('/check-token', async (c) => {
   try {
-    const authHeader = c.req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return jsonResponse({ valid: false, error: '未提供token' });
+    // 优先从 HttpOnly Cookie 中取 token（浏览器请求会自动携带，前端 JS 无需读取），
+    // 回退兼容旧的 Authorization: Bearer 方式
+    let token = getCookie(c, 'auth_token');
+    if (!token) {
+      const authHeader = c.req.header('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
     }
-
-    const token = authHeader.split(' ')[1];
 
     if (!token) {
       return jsonResponse({ valid: false, error: '未提供token' });
@@ -227,17 +235,90 @@ auth.post('/login', async (c) => {
 });
 
 /**
+ * 常量时间字符串比较（防时序攻击）
+ *
+ * 原理：普通的 === / !== 比较在第一个不匹配的字符处就返回，
+ * 攻击者可通过测量响应耗时差异逐字节猜出密钥。
+ * 先把两侧都哈希成固定长度（隐藏真实长度差异），
+ * 再用 crypto.timingSafeEqual 保证比较耗时恒定。
+ */
+function safeTokenCompare(a: string, b: string): boolean {
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+/** 密码重置端点的限流配置：每 IP 10 分钟内最多 5 次尝试 */
+const RESET_RATE_LIMIT = {
+  MAX_ATTEMPTS: 5,
+  WINDOW_SECONDS: 600,
+};
+
+async function checkResetRateLimit(clientId: string): Promise<boolean> {
+  const record = await cache.get<{ attempts: number }>(`pwd_reset:${clientId}`);
+  return (record?.attempts || 0) < RESET_RATE_LIMIT.MAX_ATTEMPTS;
+}
+
+async function recordResetAttempt(clientId: string): Promise<void> {
+  const record = (await cache.get<{ attempts: number }>(`pwd_reset:${clientId}`)) || { attempts: 0 };
+  await cache.set(`pwd_reset:${clientId}`, { attempts: record.attempts + 1 }, RESET_RATE_LIMIT.WINDOW_SECONDS);
+}
+
+/**
+ * POST /api/auth/logout
+ * 登出接口
+ *
+ * 安全意义：此前前端登出只删除浏览器 Cookie，服务端 Session 在数据库中
+ * 仍然有效（最长 7 天），被盗取的 Cookie 依旧可以调用接口。
+ * 现在登出时同步删除数据库中的 Session 记录与缓存，做到真正失效。
+ * （本端点受全局 authMiddleware 保护：需有效登录态 + CSRF 校验）
+ */
+auth.post('/logout', async (c) => {
+  try {
+    // 从 Cookie 中取当前会话 Token（与登录时写入的键一致）
+    const token = getCookie(c, 'auth_token');
+
+    if (token) {
+      // 1. 删除数据库中的 Session 记录（该 Token 立即失效）
+      await deleteSession(token);
+      // 2. 同步清理内存缓存中的会话与 CSRF 绑定关系
+      await cache.delete(`token:${token}`);
+      await cache.delete(`csrf:${token}`);
+    }
+
+    // 3. 让浏览器删除两个 Cookie（maxAge 设为 0 即立即过期）
+    const isSecure = c.req.header('X-Forwarded-Proto') === 'https';
+    setCookie(c, 'auth_token', '', { maxAge: 0, path: '/', httpOnly: true, sameSite: 'Strict', secure: isSecure });
+    setCookie(c, 'csrf_token', '', { maxAge: 0, path: '/', sameSite: 'Strict', secure: isSecure });
+
+    return jsonResponse({ success: true, message: '已安全登出' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    console.error('登出接口错误:', message);
+    return errorResponse('登出失败', 500);
+  }
+});
+
+/**
  * POST /api/auth/update-password-hash
  * 更新密码哈希
  */
 auth.post('/update-password-hash', async (c) => {
   try {
+    // 限流：防止暴力枚举 ADMIN_TOKEN（按 IP 限流，未登录场景拿不到其他可靠标识）
+    const resetClientId = c.req.header('X-Real-IP') || 'unknown';
+    if (!(await checkResetRateLimit(resetClientId))) {
+      return errorResponse('尝试次数过多，请稍后再试', 429);
+    }
+
     const body = await c.req.json();
     const { username, newPassword, adminToken } = body;
 
-    // 验证管理员token
+    // 验证管理员token（常量时间比较，防时序攻击泄露）
     const serverAdminToken = process.env.ADMIN_TOKEN;
-    if (!serverAdminToken || adminToken !== serverAdminToken) {
+    if (!serverAdminToken || typeof adminToken !== 'string' || !safeTokenCompare(adminToken, serverAdminToken)) {
+      // 记录一次失败尝试（无论令牌对错都计数，错误信息保持模糊）
+      await recordResetAttempt(resetClientId);
       return errorResponse('无权限执行此操作', 403);
     }
 
@@ -249,21 +330,26 @@ auth.post('/update-password-hash', async (c) => {
     const saltRounds = 10;
     const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
-    // 更新数据库
-    const { rowCount } = await pool.query(
+    // 更新数据库（RETURNING id 顺带拿到用户 ID，用于下一步踢会话）
+    const { rows } = await pool.query(
       `UPDATE users 
        SET password_hash = $1 
-       WHERE username = $2`,
+       WHERE username = $2
+       RETURNING id`,
       [newPasswordHash, username]
     );
 
-    if (rowCount === 0) {
+    if (rows.length === 0) {
       return errorResponse('用户不存在', 404);
     }
 
+    // 安全措施：密码已变更，删除该用户的所有 Session，
+    // 强制所有已登录设备重新用新密码登录（防止旧凭据继续有效）
+    await deleteUserSessions(rows[0].id);
+
     return jsonResponse({
       success: true,
-      message: `用户 ${username} 的密码已更新`,
+      message: `用户 ${username} 的密码已更新，所有登录会话已失效`,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';

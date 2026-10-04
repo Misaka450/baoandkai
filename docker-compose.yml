@@ -45,7 +45,10 @@ services:
       UPLOAD_DIR: /app/uploads
       IMAGE_BASE_URL: ${IMAGE_BASE_URL:-/uploads}
     volumes:
+      # 时区同步：容器内日志时间与宿主机保持一致
       - /etc/localtime:/etc/localtime:ro
+      # 上传目录：必须与下方 nginx 容器挂载的宿主机路径完全一致，
+      # 否则 app 写入的图片 nginx 直出时看不到
       - /opt/bbkk/bbkk-runtime/uploads:/app/uploads
     ports:
       - "127.0.0.1:3001:3001"
@@ -60,8 +63,13 @@ services:
       - app
     ports:
       - "${HTTP_PORT:-80}:80"
+      # HTTPS 端口：nginx 配置监听 443，必须映射出来，否则无法 HTTPS 访问
+      - "443:443"
     volumes:
-      - ./uploads:/app/uploads:ro
+      # 与 app 容器使用同一个上传目录（只读直出）
+      - /opt/bbkk/bbkk-runtime/uploads:/app/uploads:ro
+      # SSL 证书目录（certbot 申请的证书存放位置，按实际路径调整）
+      - /opt/bbkk/certs:/etc/letsencrypt:ro
 
 volumes:
   pg_data:

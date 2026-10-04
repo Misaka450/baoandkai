@@ -18,14 +18,12 @@ CREATE TABLE IF NOT EXISTS users (
   home_subtitle VARCHAR(255) DEFAULT '遇见你，是银河赠予我的糖。',
   avatar1 TEXT,
   avatar2 TEXT,
-  background_image TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  token VARCHAR(255),
-  token_expires TIMESTAMP WITH TIME ZONE
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
-CREATE INDEX IF NOT EXISTS idx_users_token ON users(token);
+-- 说明：旧版的 token / token_expires 字段与 idx_users_token 索引已废弃，
+-- 会话认证统一由 sessions 表管理（见 002_sessions.sql），
+-- 历史库请执行 003_cleanup.sql 完成清理。
 
 -- -------------------------------------------------------
 -- 2. 相册表
@@ -197,21 +195,11 @@ CREATE INDEX IF NOT EXISTS idx_capsule_unlock_date ON time_capsules(unlock_date)
 CREATE INDEX IF NOT EXISTS idx_capsule_is_unlocked ON time_capsules(is_unlocked);
 
 -- -------------------------------------------------------
--- 11. 图片关联表（多态关联）
--- 统一管理各模块的图片，替代旧的 images TEXT 字段
+-- 11. 图片关联表（已废弃）
+-- 说明：原设计为多态图片关联表，但实际各模块均使用自身 TEXT 字段
+-- 存储 JSON 图片数组，该表从未被业务代码使用。
+-- 历史库中如已创建，请执行 003_cleanup.sql 清理。
 -- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS images (
-  id SERIAL PRIMARY KEY,
-  entity_type VARCHAR(100) NOT NULL,
-  entity_id INTEGER NOT NULL,
-  url TEXT NOT NULL,
-  caption TEXT,
-  sort_order INTEGER DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_images_entity ON images(entity_type, entity_id);
-CREATE INDEX IF NOT EXISTS idx_images_entity_sort ON images(entity_type, entity_id, sort_order);
 
 -- -------------------------------------------------------
 -- 12. 创建触发器函数：更新 updated_at

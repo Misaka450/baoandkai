@@ -72,6 +72,13 @@ images.get('/*', async (c) => {
     const reqHeight = heightParam ? parseInt(heightParam, 10) : undefined;
     const quality = qualityParam ? Math.min(Math.max(parseInt(qualityParam, 10), 10), 100) : 80;
 
+    // 无效参数（如传入非数字导致 NaN）时按未传处理，避免 sharp 报错返回 500
+    const validWidth = reqWidth !== undefined && Number.isFinite(reqWidth) ? reqWidth : undefined;
+    const validHeight = reqHeight !== undefined && Number.isFinite(reqHeight) ? reqHeight : undefined;
+
+    // 高度限制在合理区间 [10, 4000]，防止极端值被用于消耗服务器计算资源
+    const safeHeight = validHeight !== undefined ? Math.min(Math.max(validHeight, 10), 4000) : undefined;
+
     // 默认转换为 webp 格式以获得最大压缩率与加载速度
     const targetFormat = (formatParam === 'jpeg' || formatParam === 'jpg')
       ? 'jpeg'
@@ -80,7 +87,7 @@ images.get('/*', async (c) => {
     // 检查是否有本地缩略图磁盘缓存 (.cache/xxx_w600_q80.webp)
     const uploadDir = storage.getUploadDir();
     const cacheKey = `${decodedKey}_w${reqWidth || 'auto'}_h${reqHeight || 'auto'}_q${quality}.${targetFormat}`
-      .replace(/[\/\\]/g, '_');
+      .replace(/[/\\]/g, '_');
     const cacheDir = path.join(uploadDir, '.cache');
     const cacheFilePath = path.join(cacheDir, cacheKey);
 
@@ -99,11 +106,11 @@ images.get('/*', async (c) => {
 
     let pipeline = sharp(rawData).rotate(); // 自动按照 EXIF 旋转方向纠正
 
-    if (reqWidth || reqHeight) {
-      const targetWidth = reqWidth ? getClosestAllowedWidth(reqWidth) : undefined;
+    if (validWidth || safeHeight) {
+      const targetWidth = validWidth ? getClosestAllowedWidth(validWidth) : undefined;
       pipeline = pipeline.resize({
         width: targetWidth,
-        height: reqHeight,
+        height: safeHeight,
         fit: 'cover',
         withoutEnlargement: true,
       });
@@ -114,7 +121,8 @@ images.get('/*', async (c) => {
     } else if (targetFormat === 'jpeg') {
       pipeline = pipeline.jpeg({ quality, mozjpeg: true });
     } else if (targetFormat === 'png') {
-      pipeline = pipeline.png({ quality });
+      // 注意：PNG 是无损格式，sharp 的 png() 不支持 quality 参数，不要传入
+      pipeline = pipeline.png();
     }
 
     const processedBuffer = await pipeline.toBuffer();

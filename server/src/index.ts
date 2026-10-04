@@ -25,6 +25,7 @@ import images from './routes/images.js';
 import vault from './routes/vault.js';
 
 import { storage } from './lib/storage.js';
+import { cleanupExpiredSessions } from './lib/session.js';
 
 dotenv.config();
 
@@ -86,6 +87,24 @@ app.get('/uploads/*', async (c) => {
 // 5. 启动 Node 服务
 const port = parseInt(process.env.PORT || '3001', 10);
 console.log(`BBKK Hono server is running on port ${port}...`);
+
+// 6. 过期 Session 定时清理
+// 此前过期会话会一直堆积在数据库中无人清理；
+// 现在启动时清一次，之后每 24 小时自动清理一次
+async function cleanExpiredSessions(): Promise<void> {
+  try {
+    const count = await cleanupExpiredSessions();
+    if (count > 0) {
+      console.log(`已清理 ${count} 条过期 Session`);
+    }
+  } catch (err) {
+    // 清理失败不影响主服务，仅记录日志
+    console.error('清理过期 Session 失败:', err);
+  }
+}
+
+cleanExpiredSessions();
+setInterval(cleanExpiredSessions, 24 * 60 * 60 * 1000).unref(); // unref：不阻止进程正常退出
 
 serve({
   fetch: app.fetch,
