@@ -76,6 +76,15 @@ const MORANDI_THEMES = [
   }
 ]
 
+/**
+ * 按下标安全获取主题
+ * 严格索引检查下数组下标访问可能为 undefined，
+ * 统一走此函数取值，越界时回退到第一个主题兜底
+ */
+function getTheme(index: number) {
+  return MORANDI_THEMES[index] ?? MORANDI_THEMES[0]!
+}
+
 const CATEGORY_MAP: Record<CountdownCategory, { label: string; icon: IconName }> = {
   anniversary: { label: '纪念日', icon: 'favorite' },
   birthday: { label: '生日', icon: 'cake' },
@@ -101,9 +110,10 @@ function getStartOfDay(d: Date = new Date()): Date {
 }
 
 function parseYMD(dateStr: string): Date {
-  const parts = dateStr.split('-').map(Number)
-  if (parts.length >= 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
-    return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0)
+  // 解构 + 默认值兜底：格式不符时各项为 NaN，自动走下方 fallback 逻辑
+  const [y = NaN, m = NaN, d = NaN] = dateStr.split('-').map(Number)
+  if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+    return new Date(y, m - 1, d, 0, 0, 0, 0)
   }
   const fallback = new Date(dateStr)
   return getStartOfDay(isNaN(fallback.getTime()) ? new Date() : fallback)
@@ -216,10 +226,10 @@ export default function AnniversaryCountdown() {
         isToday: hundredDaysRemaining === 0,
         category: 'system',
         icon: 'auto_awesome',
-        bgClass: MORANDI_THEMES[0].bg,
-        borderClass: MORANDI_THEMES[0].border,
-        textClass: MORANDI_THEMES[0].text,
-        tagBgClass: MORANDI_THEMES[0].tagBg,
+        bgClass: getTheme(0).bg,
+        borderClass: getTheme(0).border,
+        textClass: getTheme(0).text,
+        tagBgClass: getTheme(0).tagBg,
         badgeText: '百天里程碑',
         subtitle: `距离相伴 ${nextHundreds} 天的大日子`,
         totalTargetDays: nextHundreds
@@ -232,10 +242,10 @@ export default function AnniversaryCountdown() {
         isToday: nextAnniv.daysRemaining === 0,
         category: 'system',
         icon: 'favorite',
-        bgClass: MORANDI_THEMES[4].bg,
-        borderClass: MORANDI_THEMES[4].border,
-        textClass: MORANDI_THEMES[4].text,
-        tagBgClass: MORANDI_THEMES[4].tagBg,
+        bgClass: getTheme(4).bg,
+        borderClass: getTheme(4).border,
+        textClass: getTheme(4).text,
+        tagBgClass: getTheme(4).tagBg,
         badgeText: '相恋纪念日',
         subtitle: `${annivMonth}月${annivDay}日 我们在一起的日子`
       },
@@ -247,10 +257,10 @@ export default function AnniversaryCountdown() {
         isToday: may520.daysRemaining === 0,
         category: 'system',
         icon: 'favorite',
-        bgClass: MORANDI_THEMES[0].bg,
-        borderClass: MORANDI_THEMES[0].border,
-        textClass: MORANDI_THEMES[0].text,
-        tagBgClass: MORANDI_THEMES[0].tagBg,
+        bgClass: getTheme(0).bg,
+        borderClass: getTheme(0).border,
+        textClass: getTheme(0).text,
+        tagBgClass: getTheme(0).tagBg,
         badgeText: '情侣节日',
         subtitle: '勇敢表达爱意的浪漫时刻'
       },
@@ -262,10 +272,10 @@ export default function AnniversaryCountdown() {
         isToday: valentines.daysRemaining === 0,
         category: 'system',
         icon: 'celebration',
-        bgClass: MORANDI_THEMES[1].bg,
-        borderClass: MORANDI_THEMES[1].border,
-        textClass: MORANDI_THEMES[1].text,
-        tagBgClass: MORANDI_THEMES[1].tagBg,
+        bgClass: getTheme(1).bg,
+        borderClass: getTheme(1).border,
+        textClass: getTheme(1).text,
+        tagBgClass: getTheme(1).tagBg,
         badgeText: '浪漫情人节',
         subtitle: '2月14日 鲜花与巧克力的约定'
       },
@@ -277,10 +287,10 @@ export default function AnniversaryCountdown() {
         isToday: newYear.daysRemaining === 0,
         category: 'system',
         icon: 'star',
-        bgClass: MORANDI_THEMES[3].bg,
-        borderClass: MORANDI_THEMES[3].border,
-        textClass: MORANDI_THEMES[3].text,
-        tagBgClass: MORANDI_THEMES[3].tagBg,
+        bgClass: getTheme(3).bg,
+        borderClass: getTheme(3).border,
+        textClass: getTheme(3).text,
+        tagBgClass: getTheme(3).tagBg,
         badgeText: '新年跨年',
         subtitle: '与最爱的人迎接新的一年'
       }
@@ -296,7 +306,7 @@ export default function AnniversaryCountdown() {
         tDate = next.date
       }
       const rem = getDaysDiff(tDate, today)
-      const theme = MORANDI_THEMES[(idx + 2) % MORANDI_THEMES.length]
+      const theme = getTheme((idx + 2) % MORANDI_THEMES.length)
       return {
         id: item.id,
         title: item.title,
