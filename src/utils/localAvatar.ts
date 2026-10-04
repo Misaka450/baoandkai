@@ -42,8 +42,8 @@ export function generateLocalAvatar(seed: string, bg: string = 'C9ADA7'): string
   const hairColor = hslFromHash(hash, 120)
   const eyeColor = hslFromHash(hash, 240)
 
-  // 眼睛
-  let eyes = ''
+  // 眼睛（if/else-if/else 全覆盖赋值，无需初始值）
+  let eyes: string
   if (eyeStyle === 0) {
     eyes = `<circle cx="35" cy="42" r="4" fill="${eyeColor}"/>
       <circle cx="65" cy="42" r="4" fill="${eyeColor}"/>
@@ -61,8 +61,8 @@ export function generateLocalAvatar(seed: string, bg: string = 'C9ADA7'): string
       <circle cx="66" cy="40" r="1.2" fill="white"/>`
   }
 
-  // 嘴巴
-  let mouth = ''
+  // 嘴巴（if/else-if/else 全覆盖赋值，无需初始值）
+  let mouth: string
   if (mouthStyle === 0) {
     mouth = `<path d="M42 58 Q50 64 58 58" stroke="#E57373" stroke-width="2" fill="none" stroke-linecap="round"/>`
   } else if (mouthStyle === 1) {
@@ -77,8 +77,8 @@ export function generateLocalAvatar(seed: string, bg: string = 'C9ADA7'): string
       <circle cx="72" cy="52" r="6" fill="#FFCDD2" opacity="0.5"/>`
     : ''
 
-  // 头发
-  let hair = ''
+  // 头发（if/else-if 全覆盖赋值，无需初始值）
+  let hair: string
   if (hairStyle === 0) {
     hair = `<ellipse cx="50" cy="28" rx="32" ry="18" fill="${hairColor}"/>`
   } else if (hairStyle === 1) {

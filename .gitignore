@@ -16,6 +16,8 @@ release/
 
 # 本地运行数据（上传的图片等）
 uploads/
+# 测试临时上传目录
+server/uploads-test/
 
 # 测试覆盖率
 coverage/

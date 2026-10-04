@@ -28,7 +28,8 @@ export default function Home() {
       '宇宙第一可爱包包已收到想念 🌸',
       '执子之手，与子偕老 💫'
     ]
-    const msg = sweetMessages[Math.floor(Math.random() * sweetMessages.length)] || sweetMessages[0]
+    // 随机取一条情话；兜底默认值解决数组下标访问可能为 undefined 的类型问题
+    const msg = sweetMessages[Math.floor(Math.random() * sweetMessages.length)] ?? '今天也想你哦 ❤️'
     toast.success(msg)
   }
 

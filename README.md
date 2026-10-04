@@ -337,8 +337,7 @@ docker compose -f docker-compose.runtime.yml up -d
 | :--- | :--- | :--- | :--- |
 | `VITE_SENTRY_DSN` | 选填 | `https://xxx@sentry.io/123` | 前端 Sentry 错误日志上报地址（留空则不启用） |
 | `ADMIN_TOKEN` | **必填** | `secret_token_string` | 管理员全局令牌，用于密码重置及敏感管理操作 |
-| `ENVIRONMENT` | 选填 | `development` / `production` | 当前运行环境标记 |
-| `ALLOWED_ORIGINS` | 选填 | `*` 或 `https://domain.com` | 后端允许的跨域来源列表，多个以英文逗号分隔 |
+| `ALLOWED_ORIGINS` | 选填 | `https://domain.com` | 后端允许的跨域来源列表，多个以英文逗号分隔（生产环境请勿使用 `*`） |
 
 ### Docker 容器环境变量 (.env.docker)
 
@@ -392,8 +391,9 @@ docker compose -f docker-compose.runtime.yml up -d
 
 #### 🔐 认证与会话相关
 - `POST /api/auth/login` - 密码登录，发放 HttpOnly Cookie 与 CSRF Token
+- `POST /api/auth/logout` - 安全登出，服务端立即销毁 Session 并清除 Cookie 🔒
 - `GET /api/auth/check-token` - 校验当前会话有效性并获取用户信息
-- `POST /api/auth/update-password-hash` - 基于管理员令牌重置指定账号密码
+- `POST /api/auth/update-password-hash` - 基于管理员令牌重置指定账号密码（重置后该账号所有会话强制失效）
 
 #### 📸 相册与照片管理
 - `GET /api/albums` - 获取相册列表（含分页与照片计数）

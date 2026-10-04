@@ -63,7 +63,8 @@ function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
         return result
     }, [checkins, showRoute])
 
-    if (points.length < 2) return null
+    // 注意：React 要求 Hook 调用顺序稳定，
+    // 因此 early return 必须放在所有 useMemo 之后，否则会触发条件调用 Hook 错误
 
     // 生成平滑的曲线路径
     const pathData = useMemo(() => {
@@ -98,6 +99,9 @@ function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
     const pathLength = useMemo(() => {
         return points.length * 100
     }, [points.length])
+
+    // 所有 Hook 调用完毕后再做 early return（点位不足两个时不渲染路线）
+    if (points.length < 2) return null
 
     return (
         <g className="route-lines">

@@ -14,16 +14,15 @@ export default defineConfig({
       brotliSize: true,
     })
   ],
+  // 构建提速：使用 Vite 内置的 esbuild 压缩（比 terser 快 5-10 倍），
+  // 并在生产包中移除 console / debugger
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   build: {
     outDir: 'dist',
     sourcemap: false, // 生产环境关闭sourcemap减小体积
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
