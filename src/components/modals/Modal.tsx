@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import Icon from './icons/Icons'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import Icon from '../icons/Icons'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface ModalProps {
     isOpen: boolean

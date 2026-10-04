@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { loadedImagesCache, getOptimizedImageUrl } from '../utils/imageUtils'
+import { loadedImagesCache, getOptimizedImageUrl } from '../../utils/imageUtils'
 
 interface LazyImageProps {
     src: string

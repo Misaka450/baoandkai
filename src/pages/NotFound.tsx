@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import Icon from '../components/icons/Icons'
-import FloatingParticles from '../components/FloatingParticles'
+import FloatingParticles from '../components/layout/FloatingParticles'
 
 export default function NotFound() {
   return (

@@ -5,8 +5,8 @@ import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Album } from '../types'
 import Icon from '../components/icons/Icons'
-import { Skeleton, ImageGridSkeleton } from '../components/Skeleton'
-import LazyImage from '../components/LazyImage'
+import { Skeleton, ImageGridSkeleton } from '../components/common/Skeleton'
+import LazyImage from '../components/common/LazyImage'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 interface AlbumsResponse {

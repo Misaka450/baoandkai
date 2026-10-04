@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import Icon, { IconName } from './icons/Icons'
-import { subscribeModalState } from '../utils/modalState'
+import Icon, { IconName } from '../icons/Icons'
+import { subscribeModalState } from '../../utils/modalState'
 
 interface NavItem {
     name: string

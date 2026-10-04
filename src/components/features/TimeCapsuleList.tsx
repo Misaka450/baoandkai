@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import Icon from './icons/Icons'
-import type { TimeCapsuleItem } from '../types'
-import { formatDate } from '../utils/common'
+import Icon from '../icons/Icons'
+import type { TimeCapsuleItem } from '../../types'
+import { formatDate } from '../../utils/common'
 
 interface TimeCapsuleListProps {
   capsules: TimeCapsuleItem[]

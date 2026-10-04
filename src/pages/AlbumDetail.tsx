@@ -4,8 +4,8 @@ import { getThumbnailUrl } from '../utils/imageUtils'
 import { apiService } from '../services/apiService'
 import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
-import LazyImage from '../components/LazyImage'
-import { Skeleton } from '../components/Skeleton'
+import LazyImage from '../components/common/LazyImage'
+import { Skeleton } from '../components/common/Skeleton'
 
 interface AlbumDetailResponse {
     id: number

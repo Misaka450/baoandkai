@@ -4,10 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { apiService } from '../services/apiService'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import type { TimelineEvent } from '../types'
-import ImageModal from '../components/ImageModal'
+import ImageModal from '../components/modals/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
-import { Skeleton, TimelineSkeleton } from '../components/Skeleton'
-import LazyImage from '../components/LazyImage'
+import { Skeleton, TimelineSkeleton } from '../components/common/Skeleton'
+import LazyImage from '../components/common/LazyImage'
 import { formatDate } from '../utils/common'
 
 interface TimelineResponse {

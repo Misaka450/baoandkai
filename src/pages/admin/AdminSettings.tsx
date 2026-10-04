@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { apiService } from '../../services/apiService'
-import AdminModal from '../../components/AdminModal'
+import AdminModal from '../../components/modals/AdminModal'
 import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { useConfig } from '../../hooks/useConfig'
