@@ -1,11 +1,11 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
-import Layout from './components/Layout'
+import Layout from './components/layout/Layout'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './components/common/Toast'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import RouteErrorBoundary from './components/common/RouteErrorBoundary'
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute from './components/common/ProtectedRoute'
 
 // 懒加载页面组件 - 优化首屏加载性能
 const Home = lazy(() => import('./pages/Home'))

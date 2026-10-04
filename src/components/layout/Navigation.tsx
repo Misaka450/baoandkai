@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
-import Icon, { IconName } from './icons/Icons'
-import { subscribeModalState } from '../utils/modalState'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import Icon, { IconName } from '../icons/Icons'
+import { subscribeModalState } from '../../utils/modalState'
 
 interface MainNavItem {
     name: string

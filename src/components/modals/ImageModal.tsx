@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, downloadOriginalImage } from '../utils/imageUtils'
-import Icon from './icons/Icons'
-import PolaroidModal from './PolaroidModal'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import { preloadImage, getThumbnailUrl, loadedImagesCache, getOriginalImageUrl, downloadOriginalImage } from '../../utils/imageUtils'
+import Icon from '../icons/Icons'
+import PolaroidModal from '../PolaroidModal'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 // 定义图片模态框组件的属性接口
 interface ImageModalProps {

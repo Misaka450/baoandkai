@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Navigation from './Navigation'
 import PageTransition from './PageTransition'
-import VinylPlayer from './VinylPlayer'
+import VinylPlayer from '../VinylPlayer'
 
 export default function Layout() {
   const location = useLocation()

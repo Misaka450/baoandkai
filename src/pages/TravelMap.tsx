@@ -7,7 +7,7 @@ import type { ProvinceData } from '../data/chinaMapData'
 import TimeFilter from '../components/map/TimeFilter'
 import Icon, { type IconName } from '../components/icons/Icons'
 import StatCard from '../components/common/StatCard'
-import { Skeleton } from '../components/Skeleton'
+import { Skeleton } from '../components/common/Skeleton'
 import ModuleSubNav from '../components/ModuleSubNav'
 
 const ChinaMap = lazy(() => import('../components/map/ChinaMap'))

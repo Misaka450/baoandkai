@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import Icon, { IconName } from './icons/Icons'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
+import Icon, { IconName } from '../icons/Icons'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 // 定义模态框组件的属性接口
 interface AdminModalProps {

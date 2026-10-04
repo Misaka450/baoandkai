@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '../contexts/AuthContext'
-import { notesService } from '../services/apiService'
-import Icon from './icons/Icons'
-import { useToast } from './common/Toast'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
-import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../constants/styles'
-import { formatDate } from '../utils/common'
+import { useAuth } from '../../contexts/AuthContext'
+import { notesService } from '../../services/apiService'
+import Icon from '../icons/Icons'
+import { useToast } from '../common/Toast'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
+import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../../constants/styles'
+import { formatDate } from '../../utils/common'
 
 interface Note {
   id: number

@@ -5,7 +5,7 @@ import type { MapCheckin } from '../../types'
 import { provinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import Icon from '../icons/Icons'
-import LazyImage from '../LazyImage'
+import LazyImage from '../common/LazyImage'
 
 interface TravelPlaybackProps {
     checkins: MapCheckin[]

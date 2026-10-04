@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 站点图标：莫兰迪配色爱心 -->
+  <defs>
+    <!-- 爱心渐变色：上浅下深，柔和的莫兰迪玫瑰色 -->
+    <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E0BFB8" />
+      <stop offset="100%" stop-color="#C9ADA7" />
+    </linearGradient>
+  </defs>
+
+  <!-- 米白圆形底，保证深浅色标签栏里都清晰可见 -->
+  <circle cx="50" cy="50" r="50" fill="#FBF7F4" />
+
+  <!-- 爱心主体 -->
+  <path
+    d="M50 84 C28 66 12 52 12 34 C12 20 23 11 35 11 C42 11 47 15 50 21 C53 15 58 11 65 11 C77 11 88 20 88 34 C88 52 72 66 50 84 Z"
+    fill="url(#heart)" />
+
+  <!-- 左上角高光，让爱心更立体 -->
+  <ellipse cx="32" cy="30" rx="8" ry="5" fill="#FFFFFF" opacity="0.45" transform="rotate(-25 32 30)" />
+</svg>

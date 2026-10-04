@@ -214,26 +214,7 @@ CREATE INDEX IF NOT EXISTS idx_images_entity ON images(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_images_entity_sort ON images(entity_type, entity_id, sort_order);
 
 -- -------------------------------------------------------
--- 12. 日记表 [已弃用] - 保留数据兼容
--- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS diaries (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  date VARCHAR(50) NOT NULL,
-  mood VARCHAR(100),
-  weather VARCHAR(100),
-  images TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_diary_date ON diaries(date);
-CREATE INDEX IF NOT EXISTS idx_diary_mood ON diaries(mood);
-CREATE INDEX IF NOT EXISTS idx_diary_created_at ON diaries(created_at);
-
--- -------------------------------------------------------
--- 13. 创建触发器函数：更新 updated_at
+-- 12. 创建触发器函数：更新 updated_at
 -- -------------------------------------------------------
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
@@ -244,7 +225,7 @@ END;
 $$ language 'plpgsql';
 
 -- -------------------------------------------------------
--- 14. 绑定触发器到各表
+-- 13. 绑定触发器到各表
 -- -------------------------------------------------------
 CREATE OR REPLACE TRIGGER tr_users_updated
   BEFORE UPDATE ON users
@@ -283,10 +264,5 @@ CREATE OR REPLACE TRIGGER tr_map_updated
 
 CREATE OR REPLACE TRIGGER tr_capsule_updated
   BEFORE UPDATE ON time_capsules
-  FOR EACH ROW
-  EXECUTE FUNCTION update_modified_column();
-
-CREATE OR REPLACE TRIGGER tr_diary_updated
-  BEFORE UPDATE ON diaries
   FOR EACH ROW
   EXECUTE FUNCTION update_modified_column();

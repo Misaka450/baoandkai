@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import Icon from './icons/Icons'
+import Icon from '../icons/Icons'
 
 interface TimeCapsuleProps {
   onSave: (message: string, unlockDate: string) => void

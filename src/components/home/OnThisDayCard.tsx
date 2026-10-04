@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { timelineService } from '../../services/apiService';
 import Icon from '../icons/Icons';
 import { getThumbnailUrl } from '../../utils/imageUtils';
-import ImageModal from '../ImageModal';
+import ImageModal from '../modals/ImageModal';
 
 export default function OnThisDayCard() {
   const [modalOpen, setModalOpen] = useState(false);
