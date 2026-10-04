@@ -38,30 +38,30 @@ class RouteErrorBoundary extends React.Component<RouteErrorBoundaryProps, RouteE
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[60vh] flex items-center justify-center p-8">
-          <div className="text-center max-w-md">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-4">
-              <Icon name="warning" size={28} className="text-red-500" />
+        <div className="min-h-[60vh] flex items-center justify-center p-6 text-slate-700">
+          <div className="glass-card rounded-[2rem] p-8 max-w-md w-full border border-white/60 shadow-xl text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-[#FFEDF3] text-morandi-rose border border-rose-100/60 rounded-full mb-4 shadow-inner">
+              <Icon name="warning" size={26} />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">页面出了点问题</h2>
-            <p className="text-gray-500 mb-6">
-              这个页面遇到了错误，但其他页面仍然正常。
+            <h2 className="text-xl font-black text-slate-800 mb-2 tracking-tight">页面出了点小问题</h2>
+            <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+              这个页面暂时遇到了一点波折，但其他美好依然陪伴着你。
             </p>
             {import.meta.env.DEV && this.state.error && (
-              <div className="bg-red-50 rounded-lg p-3 mb-4 text-left">
-                <p className="text-xs text-red-600 font-mono break-all">{this.state.error.message}</p>
+              <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 mb-5 text-left">
+                <p className="text-xs text-rose-600 font-mono break-all">{this.state.error.message}</p>
               </div>
             )}
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.resetError}
-                className="px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
+                className="px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
               >
                 重试
               </button>
               <button
-                onClick={() => window.location.href = '/'}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                onClick={() => window.location.href = "/"}
+                className="px-6 py-2.5 bg-stone-100 text-stone-700 rounded-full font-bold text-sm hover:bg-stone-200 active:scale-95 transition-all"
               >
                 返回首页
               </button>

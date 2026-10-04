@@ -111,33 +111,36 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         return this.props.fallback;
       }
 
-      // 默认错误页面
+      // 默认错误页面 - 适配莫兰迪温暖调性
       return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full mx-4">
+        <div className="min-h-screen bg-background-light flex items-center justify-center p-4 relative overflow-hidden text-slate-700">
+          <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-rose-200/20 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
+
+          <div className="glass-card rounded-[2.5rem] shadow-2xl p-6 sm:p-10 max-w-lg w-full mx-4 border border-white/60 relative z-10 animate-scale-in">
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <Icon name="warning" size={32} className="text-red-600" />
+              <div className="w-16 h-16 rounded-full bg-[#FFEDF3] text-morandi-rose border border-rose-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <Icon name="warning" size={30} />
               </div>
-              
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+
+              <h1 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">
                 哎呀，出错了！
               </h1>
-              
-              <p className="text-gray-600 mb-6">
-                页面加载时遇到了问题。这可能是因为网络连接问题或代码更新导致的。
+
+              <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                页面加载时遇到了一点小麻烦，别担心，回忆一直都在 ❤️
               </p>
 
               {/* 开发环境显示详细错误信息 */}
               {import.meta.env.DEV && this.state.error && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-                  <h3 className="font-semibold text-gray-900 mb-2">错误详情：</h3>
-                  <p className="text-sm text-red-600 mb-2">{this.state.error.toString()}</p>
-                  
+                <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-4 mb-6 text-left">
+                  <h3 className="font-bold text-rose-800 text-xs mb-1">错误详情：</h3>
+                  <p className="text-xs text-rose-600 font-mono break-all leading-relaxed mb-2">{this.state.error.toString()}</p>
+
                   {this.state.errorInfo && this.state.errorInfo.componentStack && (
-                    <details className="text-xs text-gray-500">
-                      <summary>组件堆栈跟踪</summary>
-                      <pre className="mt-2 overflow-auto">
+                    <details className="text-[11px] text-slate-400">
+                      <summary className="cursor-pointer hover:text-slate-600">组件堆栈跟踪</summary>
+                      <pre className="mt-2 overflow-auto max-h-36 text-[10px] font-mono p-2 bg-white/60 rounded-xl">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </details>
@@ -148,31 +151,27 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={this.resetError}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                 >
-                  <Icon name="refresh" size={16} className="mr-2" />
+                  <Icon name="refresh" size={16} className="mr-1.5" />
                   重试
                 </button>
-                
+
                 <button
                   onClick={this.reloadPage}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-2.5 bg-stone-100 text-stone-700 rounded-full font-bold text-sm hover:bg-stone-200 active:scale-95 transition-all"
                 >
-                  重新加载页面
+                  重新加载
                 </button>
-                
+
                 <button
                   onClick={this.goHome}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-morandi-rose to-rose-400 text-white rounded-full font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all"
                 >
-                  <Icon name="home" size={16} className="mr-2" />
+                  <Icon name="home" size={16} className="mr-1.5" />
                   返回首页
                 </button>
               </div>
-
-              <p className="text-sm text-gray-500 mt-6">
-                如果问题持续存在，请联系技术支持。
-              </p>
             </div>
           </div>
         </div>
