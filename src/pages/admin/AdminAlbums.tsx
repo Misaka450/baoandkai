@@ -431,7 +431,7 @@ const AdminAlbums = () => {
                                                 />
 
                                                 {/* 图片说明/标题编辑区 - 始终显示 */}
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10">
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 z-30">
                                                     {editingCaption?.id === photo.id ? (
                                                         <input
                                                             type="text"
@@ -441,21 +441,25 @@ const AdminAlbums = () => {
                                                             onKeyDown={handleCaptionKeyDown}
                                                             autoFocus
                                                             onClick={(e) => e.stopPropagation()}
-                                                            className="w-full bg-white/20 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-white/30 focus:outline-none focus:bg-white/30"
+                                                            placeholder="输入照片名称..."
+                                                            className="w-full bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/50 focus:outline-none focus:ring-2 focus:ring-primary shadow-lg"
                                                         />
                                                     ) : (
-                                                        <p
+                                                        <div
                                                             onClick={(e) => { e.stopPropagation(); startEditingCaption(photo); }}
-                                                            className="text-white text-xs font-medium truncate cursor-text hover:underline text-center"
-                                                            title="点击编辑标题"
+                                                            className="group/caption flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg hover:bg-black/40 active:bg-black/60 cursor-pointer transition-colors"
+                                                            title="点击编辑照片名称"
                                                         >
-                                                            {photo.caption || '描述这一刻...'}
-                                                        </p>
+                                                            <p className="text-white text-xs font-semibold truncate text-center drop-shadow-sm max-w-[80%]">
+                                                                {photo.caption || '点此命名...'}
+                                                            </p>
+                                                            <Icon name="edit" size={12} className="text-white/70 group-hover/caption:text-white flex-shrink-0" />
+                                                        </div>
                                                     )}
                                                 </div>
 
-                                                {/* 操作按钮 - 仅在悬浮显示 */}
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 z-20">
+                                                {/* 操作按钮 - 桌面端悬浮显示，移动端点击或悬停时显示 */}
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 z-20 pb-8 pointer-events-none group-hover:pointer-events-auto">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setAsCover(photo.url); }}
                                                         className="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-white/30"
