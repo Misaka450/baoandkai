@@ -32,7 +32,7 @@ export default function Layout() {
       {!isAdminPage && <Navigation />}
       {!isAdminPage && <VinylPlayer />}
 
-      <main className="relative z-10 pb-16 md:pb-12">
+      <main className={`relative z-10 ${isAdminPage ? '' : 'pb-16 md:pb-12'}`}>
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>
             <Outlet />

@@ -286,16 +286,16 @@ const AdminAlbums = () => {
     return (
         <div className="animate-fade-in text-slate-700">
             {/* 粘性玻璃头部 */}
-            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
+            <header className="premium-glass -mx-2 md:-mx-4 px-3 md:px-4 py-3 md:py-6 mb-4 md:mb-8 flex items-center justify-between backdrop-blur-xl rounded-2xl md:rounded-3xl">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">相册管理<span className="text-primary tracking-tighter ml-1">GALLERY</span></h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organize your precious moments</p>
+                    <h1 className="text-lg md:text-2xl font-black text-slate-800 tracking-tight">相册管理<span className="text-primary tracking-tighter ml-1">GALLERY</span></h1>
+                    <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organize your precious moments</p>
                 </div>
                 <button
                     onClick={() => { setEditingAlbum(null); setAlbumName(''); setAlbumDesc(''); setShowAlbumForm(true); }}
-                    className="px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                    className="px-3.5 py-2 md:px-6 md:py-3.5 bg-slate-900 text-white rounded-xl md:rounded-2xl text-xs md:text-sm font-bold shadow-md md:shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 md:gap-2 group flex-shrink-0"
                 >
-                    <Icon name="add" size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                    <Icon name="add" size={16} className="md:w-5 md:h-5 group-hover:rotate-90 transition-transform duration-500" />
                     新建相册
                 </button>
             </header>
