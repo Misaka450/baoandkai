@@ -36,6 +36,12 @@ const AdminAlbums = () => {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
 
+    // 移动端下钻视图控制：'albums' 为相册列表，'photos' 为具体相册照片
+    const [mobileView, setMobileView] = useState<'albums' | 'photos'>('albums')
+    // 弹窗修改照片名称
+    const [captionModalPhoto, setCaptionModalPhoto] = useState<Photo | null>(null)
+    const [captionModalText, setCaptionModalText] = useState('')
+
     // New Feature State
     const [draggedPhoto, setDraggedPhoto] = useState<Photo | null>(null)
     const [editingCaption, setEditingCaption] = useState<{ id: number, text: string } | null>(null)
@@ -80,6 +86,34 @@ const AdminAlbums = () => {
     const handleAlbumClick = (album: Album) => {
         setSelectedAlbum(album)
         loadPhotos(album.id)
+        setMobileView('photos')
+    }
+
+    const openCaptionModal = (photo: Photo) => {
+        setCaptionModalPhoto(photo)
+        setCaptionModalText(photo.caption || '')
+    }
+
+    const handleSaveCaptionModal = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+        if (!captionModalPhoto || !selectedAlbum) return
+
+        try {
+            const { error } = await apiService.put(`/albums/${selectedAlbum.id}/photos/${captionModalPhoto.id}`, {
+                caption: captionModalText.trim()
+            })
+
+            if (error) throw new Error(error)
+
+            setPhotos(prev => prev.map(p =>
+                p.id === captionModalPhoto.id ? { ...p, caption: captionModalText.trim() } : p
+            ))
+            setCaptionModalPhoto(null)
+            await showAlert('成功', '照片名称已保存', 'success')
+        } catch (error) {
+            console.error('保存照片名称失败:', error)
+            await showAlert('错误', '保存照片名称失败', 'error')
+        }
     }
 
     // --- Drag & Drop Logic ---
@@ -301,19 +335,22 @@ const AdminAlbums = () => {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* 左侧：相册列表 */}
-                <div className="lg:col-span-4 space-y-4">
-                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-1">我们的相册 ({albums.length})</h2>
+                {/* 左侧：相册列表 - 移动端支持下钻切页，桌面端始终展示 */}
+                <div className={`lg:col-span-4 space-y-4 ${mobileView === 'photos' ? 'hidden lg:block' : 'block'}`}>
+                    <div className="flex items-center justify-between mb-4 ml-1">
+                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">我们的相册 ({albums.length})</h2>
+                        <span className="text-[11px] text-primary font-bold lg:hidden">点击相册查看与编辑照片</span>
+                    </div>
                     {albums.map((album) => (
                         <div
                             key={album.id}
                             onClick={() => handleAlbumClick(album)}
-                            className={`premium-card !p-4 group cursor-pointer border-2 transition-all duration-500 ${selectedAlbum?.id === album.id ? 'border-primary ring-4 ring-primary/10 shadow-xl' : 'border-transparent hover:border-slate-100'}`}
+                            className={`premium-card !p-4 group cursor-pointer border-2 transition-all duration-300 active:scale-[0.98] ${selectedAlbum?.id === album.id ? 'border-primary ring-4 ring-primary/10 shadow-xl' : 'border-transparent hover:border-slate-100'}`}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-xs">
                                     {album.cover_url ? (
-                                        <img src={getThumbnailUrl(album.cover_url, 200)} alt="" className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(album.cover_url, 200)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                                             <Icon name="photo_library" size={24} />
@@ -321,19 +358,29 @@ const AdminAlbums = () => {
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-black text-slate-800 truncate tracking-tight">{album.name}</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{album.photo_count || 0} 张照片</p>
+                                    <h3 className="font-black text-slate-800 truncate tracking-tight text-sm md:text-base">{album.name}</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{album.photo_count || 0} 张照片</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleAlbumClick(album); }}
+                                        className="lg:hidden px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-0.5"
+                                        title="管理照片"
+                                    >
+                                        <span>照片</span>
+                                        <Icon name="arrow_forward" size={14} />
+                                    </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setEditingAlbum(album); setAlbumName(album.name); setAlbumDesc(album.description); setShowAlbumForm(true); }}
                                         className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all flex items-center justify-center"
+                                        title="修改相册信息"
                                     >
                                         <Icon name="edit" size={16} />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteAlbum(album); }}
                                         className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                        title="删除相册"
                                     >
                                         <Icon name="delete" size={16} />
                                     </button>
@@ -343,18 +390,34 @@ const AdminAlbums = () => {
                     ))}
                 </div>
 
-                {/* 右侧：照片预览和上传 */}
-                <div className="lg:col-span-8">
+                {/* 右侧：照片预览和上传 - 移动端进入 photos 视图时展示 */}
+                <div className={`lg:col-span-8 ${mobileView === 'albums' ? 'hidden lg:block' : 'block'}`}>
+                    {/* 移动端专属顶部返回胶囊条 */}
+                    <div className="lg:hidden flex items-center justify-between mb-4 pb-3 border-b border-stone-200/60">
+                        <button
+                            onClick={() => setMobileView('albums')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-stone-200/80 text-xs font-bold text-slate-700 shadow-xs active:scale-95 transition-all"
+                        >
+                            <Icon name="arrow_back" size={16} />
+                            <span>返回相册列表</span>
+                        </button>
+                        {selectedAlbum && (
+                            <span className="text-xs font-bold text-primary truncate max-w-[180px]">
+                                正在管理: {selectedAlbum.name}
+                            </span>
+                        )}
+                    </div>
+
                     {selectedAlbum ? (
-                        <div className="space-y-8">
-                            <div className="flex items-center justify-between mb-8">
+                        <div className="space-y-6 md:space-y-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-8">
                                 <div>
-                                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">{selectedAlbum.name}</h2>
-                                    <p className="text-slate-400 font-medium text-sm mt-1">{selectedAlbum.description || '暂无描述'}</p>
+                                    <h2 className="text-xl md:text-3xl font-black text-slate-800 tracking-tight">{selectedAlbum.name}</h2>
+                                    <p className="text-slate-400 font-medium text-xs md:text-sm mt-1">{selectedAlbum.description || '暂无描述'}</p>
                                 </div>
-                                <label className="px-8 py-4 bg-primary text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 cursor-pointer transition-all flex items-center gap-2">
-                                    <Icon name="upload" size={20} />
-                                    批量上传
+                                <label className="px-5 py-2.5 md:px-8 md:py-4 bg-primary text-white rounded-xl md:rounded-2xl font-black shadow-lg md:shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-2 text-xs md:text-base self-start sm:self-auto">
+                                    <Icon name="upload" size={18} className="md:w-5 md:h-5" />
+                                    批量上传照片
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -430,50 +493,41 @@ const AdminAlbums = () => {
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                                 />
 
-                                                {/* 图片说明/标题编辑区 - 始终显示 */}
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 z-30">
-                                                    {editingCaption?.id === photo.id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={editingCaption.text}
-                                                            onChange={(e) => setEditingCaption({ ...editingCaption, text: e.target.value })}
-                                                            onBlur={saveCaption}
-                                                            onKeyDown={handleCaptionKeyDown}
-                                                            autoFocus
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            placeholder="输入照片名称..."
-                                                            className="w-full bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/50 focus:outline-none focus:ring-2 focus:ring-primary shadow-lg"
-                                                        />
-                                                    ) : (
-                                                        <div
-                                                            onClick={(e) => { e.stopPropagation(); startEditingCaption(photo); }}
-                                                            className="group/caption flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg hover:bg-black/40 active:bg-black/60 cursor-pointer transition-colors"
-                                                            title="点击编辑照片名称"
-                                                        >
-                                                            <p className="text-white text-xs font-semibold truncate text-center drop-shadow-sm max-w-[80%]">
-                                                                {photo.caption || '点此命名...'}
-                                                            </p>
-                                                            <Icon name="edit" size={12} className="text-white/70 group-hover/caption:text-white flex-shrink-0" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* 操作按钮 - 桌面端悬浮显示，移动端点击或悬停时显示 */}
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 z-20 pb-8 pointer-events-none group-hover:pointer-events-auto">
+                                                {/* 快捷操作按钮：右上角常驻（设为封面、删除） */}
+                                                <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
                                                     <button
+                                                        type="button"
                                                         onClick={(e) => { e.stopPropagation(); setAsCover(photo.url); }}
-                                                        className="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-white/30"
+                                                        className="w-7 h-7 rounded-full bg-black/40 hover:bg-primary text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-sm"
                                                         title="设为封面"
                                                     >
-                                                        <Icon name="photo_camera" size={20} className="text-white" />
+                                                        <Icon name="photo_camera" size={14} />
                                                     </button>
                                                     <button
+                                                        type="button"
                                                         onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
-                                                        className="w-10 h-10 bg-rose-500/20 hover:bg-rose-500/40 rounded-full flex items-center justify-center backdrop-blur-md transition-all border border-rose-500/30"
-                                                        title="删除"
+                                                        className="w-7 h-7 rounded-full bg-black/40 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-sm"
+                                                        title="删除照片"
                                                     >
-                                                        <Icon name="delete" size={20} className="text-rose-100" />
+                                                        <Icon name="delete" size={14} />
                                                     </button>
+                                                </div>
+
+                                                {/* 图片说明/标题编辑区 - 始终显示 */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 z-30">
+                                                    <div
+                                                        onClick={(e) => { e.stopPropagation(); openCaptionModal(photo); }}
+                                                        className="flex items-center justify-between gap-1 py-1 px-2 rounded-lg bg-black/40 hover:bg-black/60 active:bg-black/80 border border-white/20 cursor-pointer transition-all shadow-sm"
+                                                        title="点击编辑照片名称"
+                                                    >
+                                                        <p className="text-white text-xs font-bold truncate max-w-[70%] drop-shadow-sm">
+                                                            {photo.caption || '点此命名...'}
+                                                        </p>
+                                                        <span className="flex-shrink-0 text-white flex items-center gap-0.5 text-[10px] bg-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded font-medium">
+                                                            <Icon name="edit" size={11} />
+                                                            <span>改名</span>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         ))}
@@ -492,6 +546,61 @@ const AdminAlbums = () => {
                     )}
                 </div>
             </div>
+
+            {/* 修改照片名称弹窗 */}
+            <Modal
+                isOpen={!!captionModalPhoto}
+                onClose={() => setCaptionModalPhoto(null)}
+                title="修改照片名称"
+            >
+                {captionModalPhoto && (
+                    <form onSubmit={handleSaveCaptionModal} className="space-y-4">
+                        <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
+                            <img
+                                src={getThumbnailUrl(captionModalPhoto.url, 200)}
+                                alt=""
+                                className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-xs"
+                            />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-slate-400 font-medium">所属相册: {selectedAlbum?.name}</p>
+                                <p className="text-xs text-slate-700 truncate mt-0.5 font-bold">
+                                    当前名称: {captionModalPhoto.caption || '（未命名）'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                                照片名称 / 备注回忆
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="输入照片名称，如：环球影城大合照..."
+                                value={captionModalText}
+                                onChange={(e) => setCaptionModalText(e.target.value)}
+                                className="premium-input w-full"
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setCaptionModalPhoto(null)}
+                                className="flex-1 py-3 bg-stone-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-stone-200 transition-all active:scale-95"
+                            >
+                                取消
+                            </button>
+                            <button
+                                type="submit"
+                                className="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:scale-102 transition-all active:scale-95"
+                            >
+                                保存名称
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </Modal>
 
             <Modal
                 isOpen={showAlbumForm}
