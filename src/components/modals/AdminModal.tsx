@@ -84,20 +84,20 @@ const AdminModal: React.FC<AdminModalProps> = ({
 
   // 使用 Portal 确保模态框相对于视口定位
   return createPortal(
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[999]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[999] p-3 sm:p-4" onClick={onClose}>
       <div
-        className="bg-white/95 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 overflow-hidden animate-scale-in"
+        className="bg-white/95 backdrop-blur-sm border border-white/50 rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full mx-auto transform transition-all duration-300 overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
-        <div className={`p-6 ${config.headerGradient} border-b border-slate-100/50 flex items-center gap-4`}>
+        <div className={`p-4 sm:p-6 ${config.headerGradient} border-b border-slate-100/50 flex items-center gap-3 sm:gap-4`}>
           <div className={`w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm ${config.iconColor}`}>
             <Icon name={config.icon} size={24} />
           </div>
           <h3 className="text-xl font-bold text-slate-800">{title}</h3>
         </div>
 
-        <div className="p-8">
-          <p className="text-slate-600 leading-relaxed mb-8 text-lg">{message}</p>
+        <div className="p-5 sm:p-8">
+          <p className="text-slate-600 leading-relaxed mb-6 sm:mb-8 text-base sm:text-lg">{message}</p>
 
           <div className="flex justify-end space-x-3">
             {showCancel && (

@@ -321,12 +321,12 @@ const AdminTodos = () => {
                 ) : (
                     todos.map((t, index) => (
                         <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
-                            <Card padding="lg" className={`group transition-all duration-500 mb-4 ${t.status === 'completed' ? 'bg-slate-50/50' : 'hover:shadow-md'}`}>
-                                <div className="flex items-start gap-6">
+                            <Card padding="md" className={`group transition-all duration-500 mb-4 !p-4 sm:!p-6 md:!p-8 ${t.status === 'completed' ? 'bg-slate-50/50' : 'hover:shadow-md'}`}>
+                                <div className="flex items-start gap-3 sm:gap-5">
                                     {/* 弹性交互式复选框 */}
                                     <button
                                         onClick={() => toggleStatus(t)}
-                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 shadow-sm ${t.status === 'completed'
+                                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 shadow-sm mt-0.5 ${t.status === 'completed'
                                             ? 'bg-primary border-primary text-white scale-110 shadow-primary/30'
                                             : 'border-slate-200 bg-white hover:border-primary hover:scale-110 active:scale-90'
                                             }`}
@@ -335,17 +335,37 @@ const AdminTodos = () => {
                                     </button>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-4 mb-2 flex-wrap">
-                                            <h3 className={`text-xl font-black text-slate-800 transition-all duration-500 ${t.status === 'completed' ? 'opacity-40 italic' : ''}`}>
-                                                {t.title}
-                                            </h3>
-                                            <span className={`premium-badge !bg-slate-50 !text-slate-400 border border-slate-100`}>
-                                                {t.category}
-                                            </span>
-                                            <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter ${t.priority === 3 ? 'bg-red-50 text-red-500' : t.priority === 2 ? 'bg-yellow-50 text-yellow-600' : 'bg-green-50 text-green-600'
-                                                }`}>
-                                                {priorities.find(p => p.value === t.priority)?.label}级优先
-                                            </span>
+                                        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                                <h3 className={`text-base sm:text-lg md:text-xl font-black text-slate-800 transition-all duration-500 ${t.status === 'completed' ? 'opacity-40 italic' : ''}`}>
+                                                    {t.title}
+                                                </h3>
+                                                <span className={`premium-badge !bg-slate-50 !text-slate-400 border border-slate-100 !text-[9px] sm:!text-[10px]`}>
+                                                    {t.category}
+                                                </span>
+                                                <span className={`px-2.5 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[10px] font-black rounded-full uppercase tracking-tighter ${t.priority === 3 ? 'bg-red-50 text-red-500' : t.priority === 2 ? 'bg-yellow-50 text-yellow-600' : 'bg-green-50 text-green-600'
+                                                    }`}>
+                                                    {priorities.find(p => p.value === t.priority)?.label}级优先
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEdit(t)}
+                                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-slate-600 hover:bg-primary hover:text-white transition-all flex items-center justify-center active:scale-90"
+                                                    title="编辑待办"
+                                                >
+                                                    <Icon name="edit" size={14} className="sm:w-4 sm:h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(t.id)}
+                                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center active:scale-90"
+                                                    title="删除待办"
+                                                >
+                                                    <Icon name="delete" size={14} className="sm:w-4 sm:h-4" />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {t.description && (
@@ -403,24 +423,7 @@ const AdminTodos = () => {
                                     </div>
 
                                     {/* 悬浮操作按钮 */}
-                                    <div className="flex flex-col gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleEdit(t)}
-                                            className="w-10 h-10 !p-0"
-                                        >
-                                            <Icon name="edit" size={18} />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDelete(t.id)}
-                                            className="w-10 h-10 !p-0 text-red-500 hover:bg-red-500 hover:text-white"
-                                        >
-                                            <Icon name="delete" size={18} />
-                                        </Button>
-                                    </div>
+                                    
                                 </div>
                             </Card>
                         </div>

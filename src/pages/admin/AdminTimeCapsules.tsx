@@ -79,14 +79,14 @@ export default function AdminTimeCapsules() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">时间胶囊管理</h2>
-          <p className="text-slate-500 text-sm">创建和管理时间胶囊，给未来的惊喜</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-1 sm:mb-2">时间胶囊管理</h2>
+          <p className="text-slate-500 text-xs sm:text-sm">创建和管理时间胶囊，给未来的惊喜</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-primary text-white rounded-xl sm:rounded-2xl font-bold text-sm shadow-md shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all self-start sm:self-auto"
         >
           <Icon name="add" size={20} />
           创建胶囊
@@ -112,7 +112,7 @@ export default function AdminTimeCapsules() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all"
+              className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">

@@ -114,7 +114,7 @@ const AdminSettings = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <form onSubmit={handleSubmit}>
-                        <Card padding="lg" className="mb-8">
+                        <Card padding="md" className="mb-6 md:mb-8 !p-4 sm:!p-6 md:!p-8">
                             <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
                                 <Icon name="favorite" size={20} className="text-primary" />
                                 基本信息
@@ -201,7 +201,7 @@ const AdminSettings = () => {
                         </Card>
 
                         {/* 头像设置区域 */}
-                        <Card padding="lg" className="mb-8">
+                        <Card padding="md" className="mb-6 md:mb-8 !p-4 sm:!p-6 md:!p-8">
                             <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
                                 <Icon name="person" size={20} className="text-primary" />
                                 头像设置
@@ -325,7 +325,7 @@ const AdminSettings = () => {
                 <div className="lg:col-span-1 space-y-6">
                     {/* 纪念日统计卡片 */}
                     {config.anniversaryDate && (
-                        <Card padding="lg" className="relative overflow-hidden">
+                        <Card padding="md" className="relative overflow-hidden !p-4 sm:!p-6">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                             <div className="relative">
                                 <div className="flex items-center gap-2 mb-3">

@@ -145,7 +145,7 @@ export default function AdminTravelMap() {
     return (
         <div className="space-y-8">
             {/* 顶部操作栏 */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
                 <div>
                     <h2 className="text-lg font-bold text-slate-600 flex items-center gap-2">
                         <Icon name="map" size={20} className="text-primary" />
@@ -203,7 +203,7 @@ export default function AdminTravelMap() {
                                 transition={{ delay: idx * 0.03 }}
                             >
                                 <Card padding="sm" className="group hover:shadow-md transition-all">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3 sm:gap-4">
                                         {/* 缩略图 */}
                                         {checkin.images && checkin.images.length > 0 ? (
                                             <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
@@ -230,23 +230,23 @@ export default function AdminTravelMap() {
                                         </div>
 
                                         {/* 操作按钮 */}
-                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
+                                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                            <button
+                                                type="button"
                                                 onClick={() => handleEdit(checkin)}
-                                                className="!p-2"
+                                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-slate-600 hover:bg-primary hover:text-white transition-all flex items-center justify-center active:scale-90"
+                                                title="编辑足迹"
                                             >
-                                                <Icon name="edit" size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                <Icon name="edit" size={14} className="sm:w-4 sm:h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
                                                 onClick={() => setDeleteConfirm(checkin.id)}
-                                                className="!p-2 text-red-500 hover:bg-red-50 hover:text-red-600"
+                                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center active:scale-90"
+                                                title="删除足迹"
                                             >
-                                                <Icon name="delete" size={16} />
-                                            </Button>
+                                                <Icon name="delete" size={14} className="sm:w-4 sm:h-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 </Card>

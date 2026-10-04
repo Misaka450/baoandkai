@@ -118,6 +118,30 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
         setCursorStyle('grab')
     }, [])
 
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        if (e.touches.length === 1 && scale > 1) {
+            const touch = e.touches[0]
+            if (!touch) return
+            isDraggingRef.current = true
+            dragStart.current = { x: touch.clientX - translate.x, y: touch.clientY - translate.y }
+        }
+    }, [scale, translate])
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (isDraggingRef.current && e.touches.length === 1) {
+            const touch = e.touches[0]
+            if (!touch) return
+            setTranslate({
+                x: touch.clientX - dragStart.current.x,
+                y: touch.clientY - dragStart.current.y
+            })
+        }
+    }, [])
+
+    const handleTouchEnd = useCallback(() => {
+        isDraggingRef.current = false
+    }, [])
+
     const handleReset = useCallback(() => {
         setScale(1)
         setTranslate({ x: 0, y: 0 })
@@ -198,13 +222,17 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
             style={{ cursor: cursorStyle }}
         >
             {/* 缩放控制按钮 */}
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
+            <div className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 md:gap-2">
                 <button
                     onClick={() => setScale(prev => Math.min(prev + 0.2, 3))}
-                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all active:scale-95"
                     title="放大"
                 >
                     <Icon name="zoom_in" size={20} />

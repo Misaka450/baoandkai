@@ -175,7 +175,7 @@ export default function Navigation() {
                         }}
                         aria-label={isOpen ? '关闭导航菜单' : '打开导航菜单'}
                         aria-expanded={isOpen}
-                        className={`fixed top-4 left-4 z-50 md:hidden w-11 h-11 rounded-full glass-card border border-white/70 shadow-md flex items-center justify-center text-slate-700 active:scale-90 transition-all ${
+                        className={`fixed top-[calc(1rem+env(safe-area-inset-top))] left-4 z-50 md:hidden w-11 h-11 rounded-full glass-card border border-white/70 shadow-md flex items-center justify-center text-slate-700 active:scale-90 transition-all ${
                             isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
                         }`}
                     >
@@ -199,7 +199,7 @@ export default function Navigation() {
                             transform: isOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
                             willChange: 'transform',
                         }}
-                        className="fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-[#FAF7F2] p-6 shadow-2xl z-50 flex flex-col border-r border-stone-200/80 md:hidden transition-transform duration-250 ease-out"
+                        className="fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-[#FAF7F2] p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl z-50 flex flex-col border-r border-stone-200/80 md:hidden transition-transform duration-250 ease-out"
                     >
                         {/* Drawer Header: 头部品牌区与关闭按钮 */}
                         <div className="flex items-center justify-between pb-5 border-b border-stone-200/60">

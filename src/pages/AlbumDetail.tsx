@@ -90,7 +90,7 @@ export default function AlbumDetail() {
                     <button
                         onClick={handleBack}
                         aria-label="返回相册列表"
-                        className="absolute left-1 top-0 md:top-32 w-9 h-9 md:w-12 md:h-12 rounded-xl md:rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-md focus-visible:outline-2 focus-visible:outline-primary z-10"
+                        className="absolute left-0 sm:left-1 top-0 w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-md focus-visible:outline-2 focus-visible:outline-primary z-10"
                     >
                         <Icon name="west" size={18} className="md:w-6 md:h-6" />
                     </button>

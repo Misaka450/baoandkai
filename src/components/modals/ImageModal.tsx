@@ -347,7 +347,7 @@ export default function ImageModal({
 
       {/* 顶部工具栏 */}
       <div
-        className={`absolute top-0 left-0 right-0 h-16 md:h-24 flex items-center justify-between px-3 md:px-8 z-[100] bg-gradient-to-b from-black/70 via-black/40 to-transparent backdrop-blur-[2px] md:backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${
+        className={`absolute top-0 left-0 right-0 h-16 md:h-24 pt-[env(safe-area-inset-top)] flex items-center justify-between px-3 md:px-8 z-[100] bg-gradient-to-b from-black/70 via-black/40 to-transparent backdrop-blur-[2px] md:backdrop-blur-sm pointer-events-auto transition-opacity duration-200 ${
           dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
@@ -513,7 +513,7 @@ export default function ImageModal({
       {/* 底部缩略图 */}
       {images.length > 1 && (
         <div
-          className={`absolute bottom-0 left-0 right-0 pb-4 md:pb-12 pt-2 md:pt-4 px-3 md:px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
+          className={`absolute bottom-0 left-0 right-0 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-12 pt-2 md:pt-4 px-3 md:px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
             dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >

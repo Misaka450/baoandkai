@@ -307,7 +307,7 @@ export default function PhotoViewer() {
         >
             {/* 顶部工具栏 - 使用 pointer-events 确保可点击 */}
             <header
-                className={`absolute top-0 left-0 right-0 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-4 bg-gradient-to-b from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
+                className={`absolute top-0 left-0 right-0 flex items-center justify-between px-3 md:px-6 pt-[calc(0.625rem+env(safe-area-inset-top))] pb-2.5 md:py-4 bg-gradient-to-b from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
                     dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
                 }`}
                 style={{ zIndex: 100 }}
@@ -449,7 +449,7 @@ export default function PhotoViewer() {
             {/* 底部缩略图 */}
             {images.length > 1 && (
                 <div
-                    className={`absolute bottom-0 left-0 right-0 py-3 md:py-4 px-3 md:px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
+                    className={`absolute bottom-0 left-0 right-0 py-3 md:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-4 px-3 md:px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
                         dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                     style={{ zIndex: 100 }}

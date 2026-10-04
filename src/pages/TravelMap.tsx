@@ -189,26 +189,26 @@ export default function TravelMap() {
                     <ModuleSubNav section="memory" className="mb-4 md:mb-8" />
 
                     {/* 视图切换导航 - 移动端优化 */}
-                    <nav className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4">
+                    <nav className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3 mt-4">
                         {viewModeItems.map(item => (
                             <button
                                 key={item.id}
                                 onClick={() => setViewMode(item.id)}
-                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all ${
+                                className={`flex items-center gap-1.5 md:gap-2 px-2.5 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all active:scale-95 ${
                                     viewMode === item.id
                                         ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                                         : 'bg-white/60 text-slate-600 hover:bg-white hover:shadow-md'
                                 }`}
                             >
-                                <Icon name={item.icon} size={16} />
-                                <span className="hidden sm:inline">{item.label}</span>
+                                <Icon name={item.icon} size={15} className="md:w-4 md:h-4" />
+                                <span className="text-[11px] sm:text-xs md:text-sm">{item.label}</span>
                             </button>
                         ))}
                     </nav>
 
                     {/* 统计数据 */}
                     {stats.totalCheckins > 0 && (
-                        <div className="flex justify-center gap-6 mt-10">
+                        <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-6 md:mt-10">
                             {statItems.map((stat, idx) => (
                                 <StatCard
                                     key={stat.label}
@@ -218,6 +218,7 @@ export default function TravelMap() {
                                     color={stat.color}
                                     text={stat.text}
                                     delay={idx * 0.1}
+                                    className="!px-4 sm:!px-6 !py-2.5 sm:!py-3"
                                 />
                             ))}
                         </div>

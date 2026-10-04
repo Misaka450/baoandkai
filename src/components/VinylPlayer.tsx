@@ -525,7 +525,7 @@ export default function VinylPlayer() {
       </AnimatePresence>
 
       <div
-        className={`fixed right-3 md:right-8 bottom-5 md:bottom-8 z-50 select-none font-sans transition-all duration-300 ${
+        className={`fixed right-3 md:right-8 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:bottom-8 z-50 select-none font-sans transition-all duration-300 ${
           isModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
         }`}
       >
@@ -537,7 +537,7 @@ export default function VinylPlayer() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 30 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed md:static inset-x-0 bottom-0 md:inset-auto z-50 w-full md:w-[340px] md:max-w-[calc(100vw-2rem)] glass-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border-t md:border border-stone-200/80 md:border-white/60 shadow-2xl rounded-t-[2.5rem] md:rounded-3xl p-5 pb-8 md:pb-5 mb-0 md:mb-3 overflow-hidden text-slate-700"
+              className="fixed md:static inset-x-0 bottom-0 md:inset-auto z-50 w-full md:w-[340px] md:max-w-[calc(100vw-2rem)] glass-card bg-white/95 dark:bg-stone-900/95 backdrop-blur-2xl border-t md:border border-stone-200/80 md:border-white/60 shadow-2xl rounded-t-[2.5rem] md:rounded-3xl p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] md:pb-5 mb-0 md:mb-3 overflow-hidden text-slate-700"
             >
               {/* 移动端抽屉顶部的下拉手柄条 */}
               <div className="w-10 h-1 bg-stone-300 dark:bg-stone-600 rounded-full mx-auto mb-3 md:hidden" />

@@ -102,12 +102,12 @@ export default function StickyNotes() {
         const rotations = ['rotate-1', 'rotate-2', 'rotate-3', 'rotate-[-1deg]', 'rotate-[-2deg]', 'rotate-[-3deg]']
         const rotation = rotations[idx % rotations.length]
         return (
-          <div key={note.id} className={`${style.bg} p-10 py-12 rounded-2xl border ${style.border} flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] shadow-xl ${style.shadow} cursor-default group relative ${rotation}`}>
+          <div key={note.id} className={`${style.bg} p-6 sm:p-8 md:p-10 py-8 sm:py-10 md:py-12 rounded-2xl border ${style.border} flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] shadow-xl ${style.shadow} cursor-default group relative ${rotation}`}>
             <div className="absolute top-4 left-1/2 -translate-x-1/2 text-stone-400/80 drop-shadow-sm group-hover:scale-110 transition-transform">
               <Icon name="push_pin" size={24} />
             </div>
 
-            <p className={`${style.text} text-xl leading-relaxed mb-10 font-medium font-handwriting tracking-wide`}>"{note.content}"</p>
+            <p className={`${style.text} text-xl leading-relaxed mb-6 md:mb-10 font-medium font-handwriting tracking-wide`}>"{note.content}"</p>
             <div className={`flex items-center justify-between border-t ${style.border} pt-6 mt-auto`}>
               <div className={`flex items-center space-x-5 ${style.icon}`}>
                 <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">

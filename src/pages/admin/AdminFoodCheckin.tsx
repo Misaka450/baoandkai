@@ -257,7 +257,7 @@ const AdminFoodCheckin = () => {
     return (
         <div className="animate-fade-in text-slate-700">
             {/* 粘性玻璃头部 */}
-            <header className="premium-glass -mx-4 px-4 py-6 mb-8 flex items-center justify-between backdrop-blur-xl">
+            <header className="premium-glass -mx-4 px-4 py-4 md:py-6 mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-xl">
                 <div>
                     <h1 className="text-2xl font-black text-slate-800 tracking-tight">美食打卡<span className="text-primary tracking-tighter ml-1">FOODIE</span></h1>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Taste the world, one bite at a time</p>
@@ -392,7 +392,7 @@ const AdminFoodCheckin = () => {
                     </div>
                 </form>
             </Modal>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 pb-20">
                 <AnimatePresence mode="popLayout">
                     {checkins.length === 0 ? (
                         <motion.div
@@ -424,7 +424,7 @@ const AdminFoodCheckin = () => {
                                 onDragEnd={handleDragEnd}
                                 className={`group cursor-move relative ${draggedItem?.id === c.id ? 'opacity-20 z-0 scale-95' : 'z-10'}`}
                             >
-                                <div className="premium-card p-8 group h-full flex flex-col hover:shadow-2xl transition-all duration-500">
+                                <div className="premium-card p-5 sm:p-6 md:p-8 group h-full flex flex-col hover:shadow-2xl transition-all duration-500">
                                     <div className="flex items-start justify-between mb-6">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -437,13 +437,13 @@ const AdminFoodCheckin = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-all duration-500">
-                                            {/* 显式的拖拽手柄 */}
-                                            <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 cursor-move flex items-center justify-center shadow-sm hover:text-primary transition-colors">
-                                                <Icon name="drag_indicator" size={20} />
+                                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                            {/* 显式的拖拽手柄（桌面端支持） */}
+                                            <div className="hidden sm:flex w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-50 text-slate-400 cursor-move items-center justify-center shadow-xs hover:text-primary transition-colors">
+                                                <Icon name="drag_indicator" size={16} />
                                             </div>
-                                            <button onClick={() => handleEdit(c)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="edit" size={18} /></button>
-                                            <button onClick={() => handleDelete(c.id)} className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={18} /></button>
+                                            <button type="button" onClick={() => handleEdit(c)} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-slate-600 hover:bg-primary hover:text-white transition-all flex items-center justify-center active:scale-90" title="编辑"><Icon name="edit" size={14} className="sm:w-4 sm:h-4" /></button>
+                                            <button type="button" onClick={() => handleDelete(c.id)} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stone-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="删除"><Icon name="delete" size={14} className="sm:w-4 sm:h-4" /></button>
                                         </div>
                                     </div>
 

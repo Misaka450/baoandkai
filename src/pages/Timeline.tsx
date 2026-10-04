@@ -138,7 +138,7 @@ export default function Timeline() {
                 <button
                   key={year}
                   onClick={() => setSelectedYear(year)}
-                  className={`px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                  className={`px-3.5 py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                     selectedYear === year
                       ? 'bg-primary text-white shadow-lg shadow-primary/20'
                       : 'bg-white/80 text-slate-500 hover:bg-white hover:text-slate-700 border border-slate-100'
@@ -151,12 +151,12 @@ export default function Timeline() {
           )}
 
           {/* 分类筛选 */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
+          <div className="flex flex-wrap justify-center gap-1.5 md:gap-3 mt-4 md:mt-8 bg-white/40 p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
             {['all', '日常', '旅行', '纪念日', '特别时刻', '其他'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                className={`px-3.5 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-wider md:tracking-widest transition-all active:scale-95 ${
                   filter === cat
                     ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                     : 'text-slate-400 hover:text-slate-600'
@@ -247,7 +247,7 @@ export default function Timeline() {
                   <div key={event.id} className={`relative flex flex-col md:flex-row items-center content-auto animate-slide-up ${isEven ? 'md:flex-row-reverse' : ''}`} style={{ animationDelay: `${Math.min(idx * 0.05, 0.5)}s` }}>
                     {/* 内容卡片 */}
                     <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
-                      <div className={`premium-card p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isOldest ? 'ring-4 ring-primary shadow-2xl shadow-primary/10' : ''}`}>
+                      <div className={`premium-card p-5 sm:p-7 md:p-10 group w-full max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isOldest ? 'ring-4 ring-primary shadow-2xl shadow-primary/10' : ''}`}>
                         {isMilestone && !isOldest && (
                           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shadow-lg">
                             <Icon name="star" size={16} className="text-amber-500" />
@@ -316,21 +316,21 @@ export default function Timeline() {
 
             {/* 分页 */}
             {totalPages > 1 && (
-              <div className="relative flex flex-col items-center justify-center py-24">
+              <div className="relative flex flex-col items-center justify-center py-12 md:py-24">
                 <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] animate-pulse"></div>
-                <div className="mt-12 flex gap-3">
+                <div className="mt-8 md:mt-12 flex gap-2 md:gap-3 flex-wrap justify-center">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                    className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 md:hover:scale-110 active:scale-95"
                   >
-                    <Icon name="chevron_left" size={24} />
+                    <Icon name="chevron_left" size={18} className="md:w-6 md:h-6" />
                   </button>
                   {Array.from({ length: totalPages }).map((_, i) => (
                     <button
                       key={i}
                       onClick={() => handlePageChange(i + 1)}
-                      className={`w-14 h-14 rounded-2xl transition-all text-sm font-black active:scale-95 ${currentPage === i + 1
+                      className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl transition-all text-xs md:text-sm font-black active:scale-95 ${currentPage === i + 1
                         ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                         : 'bg-white text-gray-400 hover:text-primary'
                         }`}
@@ -341,9 +341,9 @@ export default function Timeline() {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                    className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 md:hover:scale-110 active:scale-95"
                   >
-                    <Icon name="chevron_right" size={24} />
+                    <Icon name="chevron_right" size={18} className="md:w-6 md:h-6" />
                   </button>
                 </div>
               </div>

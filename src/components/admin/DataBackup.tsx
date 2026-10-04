@@ -371,7 +371,7 @@ const DataBackup = () => {
     }
 
     return (
-        <Card padding="lg" className="bg-gradient-to-br from-amber-50 to-orange-50/30">
+        <Card padding="md" className="bg-gradient-to-br from-amber-50 to-orange-50/30 !p-4 sm:!p-6">
             <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
                 <Icon name="cloud_download" size={16} className="text-amber-500" />
                 数据备份
