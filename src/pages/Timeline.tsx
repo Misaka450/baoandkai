@@ -103,10 +103,10 @@ export default function Timeline() {
   }
 
   if (loading) return (
-    <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
-      <div className="text-center mb-16">
-        <Skeleton className="h-12 w-64 mx-auto mb-4" />
-        <Skeleton className="h-4 w-48 mx-auto" />
+    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+      <div className="text-center mb-8 md:mb-16">
+        <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
+        <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
       </div>
       <TimelineSkeleton />
     </div>
@@ -114,21 +114,21 @@ export default function Timeline() {
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">时光长廊</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
+        <header className="text-center mb-8 md:mb-16 animate-fade-in">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">时光长廊</h1>
+          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
             Beautiful moments frozen in time
           </p>
 
           {/* 年份快捷跳转 */}
           {availableYears.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-8">
+            <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 mt-4 md:mt-8">
               <button
                 onClick={() => setSelectedYear(null)}
-                className={`px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                className={`px-3.5 py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                   selectedYear === null
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    ? 'bg-primary text-white shadow-md shadow-primary/20'
                     : 'bg-white/80 text-slate-500 hover:bg-white hover:text-slate-700 border border-slate-100'
                 }`}
               >

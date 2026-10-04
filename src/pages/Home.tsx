@@ -40,16 +40,16 @@ export default function Home() {
   const startDateStr = formatDate(config.anniversaryDate, 'dot')
 
   return (
-    <main className="max-w-6xl mx-auto px-6 pb-20 pt-32 md:pt-40 relative overflow-hidden">
+    <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 pt-20 md:pt-40 relative overflow-hidden">
       <FloatingParticles count={20} />
 
       <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
       <div className="absolute top-20 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute bottom-40 left-1/3 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-purple-200/15 blur-[60px] md:blur-[100px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
 
-      <header className="text-center mb-16 relative animate-fade-in">
+      <header className="text-center mb-8 md:mb-16 relative animate-fade-in">
         {/* 头像区域 */}
-        <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-10 relative">
+        <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-6 md:mb-10 relative">
           <div className="relative group">
             <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">

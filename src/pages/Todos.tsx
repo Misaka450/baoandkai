@@ -47,27 +47,29 @@ export default function Todos() {
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   if (loading) return (
-    <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6 text-center">
-      <Skeleton className="h-12 w-64 mx-auto mb-4" />
-      <Skeleton className="h-4 w-48 mx-auto mb-16" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-[2rem]" />)}
+    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6 text-center">
+      <div className="mb-8 md:mb-16">
+        <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
+        <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 md:h-64 rounded-2xl md:rounded-[2rem]" />)}
       </div>
     </div>
   )
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">愿望清单</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
+        <header className="text-center mb-8 md:mb-16 animate-fade-in">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">愿望清单</h1>
+          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
             Dream it. Wish it. Do it together.
           </p>
           <ModuleSubNav section="couple" className="mb-0" />
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10 mb-12 md:mb-24">
           {todos.map((todo, idx) => {
             const isCompleted = todo.status === 'completed'
             const theme = stickyColors[idx % stickyColors.length]!

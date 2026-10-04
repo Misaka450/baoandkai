@@ -157,12 +157,12 @@ export default function TravelMap() {
     ]
 
     if (isLoading) return (
-        <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
-                <Skeleton className="h-12 w-64 mx-auto mb-4" />
-                <Skeleton className="h-4 w-48 mx-auto" />
+        <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+            <div className="text-center mb-8 md:mb-16">
+                <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
+                <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
             </div>
-            <Skeleton className="h-[400px] w-full rounded-[2rem]" />
+            <Skeleton className="h-[280px] md:h-[400px] w-full rounded-2xl md:rounded-[2rem]" />
         </div>
     )
 
@@ -177,16 +177,16 @@ export default function TravelMap() {
 
     return (
         <div className="min-h-screen text-slate-700 transition-colors duration-300">
-            <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
+            <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
                 {/* 标题 */}
-                <header className="text-center mb-12 animate-fade-in">
-                    <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">足迹地图</h1>
-                    <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
+                <header className="text-center mb-6 md:mb-12 animate-fade-in">
+                    <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">足迹地图</h1>
+                    <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
                         Every place we've been, every memory we've made
                     </p>
 
                     {/* 二级副标签导航 */}
-                    <ModuleSubNav section="memory" className="mb-8" />
+                    <ModuleSubNav section="memory" className="mb-4 md:mb-8" />
 
                     {/* 视图切换导航 - 移动端优化 */}
                     <nav className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4">

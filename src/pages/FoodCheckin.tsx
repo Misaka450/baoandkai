@@ -130,19 +130,19 @@ export default function FoodCheckin() {
   }
 
   if (loading) return (
-    <div className="min-h-screen pt-40 max-w-6xl mx-auto px-6">
-      <div className="text-center mb-16">
-        <Skeleton className="h-12 w-64 mx-auto mb-4" />
-        <Skeleton className="h-4 w-48 mx-auto" />
+    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+      <div className="text-center mb-8 md:mb-16">
+        <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
+        <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
         {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="premium-card p-0 overflow-hidden h-96">
-            <Skeleton className="h-52 w-full" />
-            <div className="p-6 space-y-4">
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-1/2" />
+          <div key={i} className="premium-card p-0 overflow-hidden h-80 md:h-96 rounded-2xl md:rounded-[2.5rem]">
+            <Skeleton className="h-44 md:h-52 w-full" />
+            <div className="p-4 md:p-6 space-y-3 md:space-y-4">
+              <Skeleton className="h-5 md:h-6 w-3/4" />
+              <Skeleton className="h-3 md:h-4 w-full" />
+              <Skeleton className="h-3 md:h-4 w-1/2" />
             </div>
           </div>
         ))}
@@ -152,21 +152,21 @@ export default function FoodCheckin() {
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-6 pb-32 pt-40 relative">
-        <header className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-black text-gradient tracking-tight mb-6">美食足迹</h1>
-          <p className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-relaxed mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
+        <header className="text-center mb-8 md:mb-16 animate-fade-in">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">美食足迹</h1>
+          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
             Discovering the world, one bite at a time
           </p>
 
           <ModuleSubNav section="couple" className="mb-4" />
 
-          <div className="flex flex-wrap justify-center gap-3 mt-6 bg-white/40 p-2 rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
+          <div className="flex flex-wrap justify-center gap-1.5 md:gap-3 mt-4 md:mt-6 bg-white/40 p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
             {cuisines.map(c => (
               <button
                 key={c.name}
                 onClick={() => setFilter(c.name)}
-                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${filter === c.name
+                className={`px-3 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 transition-all ${filter === c.name
                   ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                   : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                   }`}
@@ -215,7 +215,7 @@ export default function FoodCheckin() {
             <FoodStats checkins={checkins} />
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
           {checkins.map((checkin, index) => {
             const images = checkin.images || []
             return (
