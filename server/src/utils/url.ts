@@ -6,27 +6,15 @@
 const IMAGE_BASE_URL = process.env.IMAGE_BASE_URL || '/uploads';
 
 /**
- * 将旧的 R2 直链、任何 r2.dev 域名或原始 Key 转换为 CDN 链接或本地代理链接
+ * 将原始 Key 转换为可访问的图片链接（完整链接与绝对路径保持不变）
  * @param url 原始 URL 或 Key
  * @returns 转换后的 URL
  */
 export function transformImageUrl(url: string | null | undefined): string {
     if (!url) return '';
 
-    // 如果已经是 http 开头的其他外部链接，保持原样
-    if (url.startsWith('http')) {
-        // 如果是历史的 R2 域名，我们需要转换为新的基础 URL
-        if (url.includes('r2.dev') || url.includes('img.980823.xyz')) {
-            const match = url.match(/(?:https?:\/\/[^/]+(?:\.r2\.dev|img\.980823\.xyz)\/)(.+)$/);
-            if (match && match[1]) {
-                return `${IMAGE_BASE_URL}/${match[1]}`;
-            }
-        }
-        return url;
-    }
-
-    // 如果已经是绝对路径（例如以 / 开头），保持原样
-    if (url.startsWith('/')) {
+    // 已经是完整链接（http 开头）或绝对路径（/ 开头）时，保持原样
+    if (url.startsWith('http') || url.startsWith('/')) {
         return url;
     }
 

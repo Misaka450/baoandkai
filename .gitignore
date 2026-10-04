@@ -27,9 +27,6 @@ pids
 *.seed
 *.pid.lock
 uploads/
-R2/
-d1_dump.sql
-converted_dump.sql
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -104,15 +101,9 @@ temp/
 *.njsproj
 *.sln
 
-# Cloudflare Wrangler
-wrangler.toml
 *.sw?
 .DS_Store
 Thumbs.db
-
-# Cloudflare
-.wrangler/
-.dev.vars
 
 # Temporary debug files
 tsc_errors.txt
