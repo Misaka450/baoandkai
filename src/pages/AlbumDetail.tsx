@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
@@ -35,6 +36,16 @@ export default function AlbumDetail() {
     })
 
     const albumPhotos = albumDetail?.photos || []
+
+    const [showBackToTop, setShowBackToTop] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowBackToTop(window.scrollY > 400)
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     // 点击单张照片 - 导航到独立的图片查看页面
     const handlePhotoClick = (index: number) => {
@@ -162,6 +173,21 @@ export default function AlbumDetail() {
                     </div>
                 )}
             </main>
+
+            {/* 返回顶部浮动按钮 */}
+            {showBackToTop && (
+                <button
+                    type="button"
+                    onClick={() => {
+                        hapticFeedback('light')
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    aria-label="返回顶部"
+                    className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-4 md:left-8 z-40 w-11 h-11 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 shadow-lg flex items-center justify-center text-stone-600 hover:text-primary hover:scale-110 active:scale-95 transition-all"
+                >
+                    <Icon name="chevron_up" size={20} />
+                </button>
+            )}
         </div>
     )
 }

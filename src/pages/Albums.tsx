@@ -42,7 +42,8 @@ export default function Albums() {
     }
   })
 
-  const albums = albumsData?.data || []
+  const albums = useMemo(() => albumsData?.data || [], [albumsData?.data])
+  const totalPages = albumsData?.pagination?.totalPages || 0
 
   // 搜索和排序（使用防抖后的搜索词）
   const filteredAndSortedAlbums = useMemo(() => {
@@ -223,6 +224,52 @@ export default function Albums() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* 分页控制 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 md:gap-3 py-10 md:py-16">
+            <button
+              type="button"
+              onClick={() => {
+                hapticFeedback("light")
+                setCurrentPage((prev) => Math.max(prev - 1, 1))
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              disabled={currentPage === 1}
+              aria-label="上一页"
+              className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-500 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
+            >
+              <Icon name="chevron_left" size={18} />
+            </button>
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  hapticFeedback("light")
+                  setCurrentPage(i + 1)
+                  window.scrollTo({ top: 0, behavior: "smooth" })
+                }}
+                className={`w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl transition-all text-xs md:text-sm font-bold active:scale-95 ${currentPage === i + 1 ? "bg-primary text-white shadow-md shadow-primary/25" : "bg-white text-slate-500 hover:text-primary border border-slate-100"}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                hapticFeedback("light")
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              disabled={currentPage === totalPages}
+              aria-label="下一页"
+              className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-500 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
+            >
+              <Icon name="chevron_right" size={18} />
+            </button>
           </div>
         )}
       </main>

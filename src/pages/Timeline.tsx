@@ -66,14 +66,14 @@ export default function Timeline() {
     refetchOnWindowFocus: true,
   })
 
-  const events = timelineData?.data || []
+  const events = useMemo(() => timelineData?.data || [], [timelineData?.data])
 
   // 提取所有可用年份
   const availableYears = useMemo(() => {
     const years = new Set<string>()
     events.forEach(event => {
       if (event.date) {
-        years.add(new Date(event.date).getFullYear().toString())
+        years.add(event.date.substring(0, 4))
       }
     })
     return Array.from(years).sort((a, b) => Number(b) - Number(a))
@@ -91,7 +91,7 @@ export default function Timeline() {
     if (!selectedYear) return events
     return events.filter(event => {
       if (!event.date) return false
-      return new Date(event.date).getFullYear().toString() === selectedYear
+      return event.date.substring(0, 4) === selectedYear
     })
   }, [events, selectedYear])
 

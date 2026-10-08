@@ -64,14 +64,14 @@ export default function TravelMap() {
     })
 
     // 按时间筛选
-    const allCheckins = mapData?.data || []
+    const allCheckins = useMemo(() => mapData?.data || [], [mapData?.data])
     const checkins = useMemo(() => {
         if (!selectedYear && !selectedMonth) return allCheckins
         
         return allCheckins.filter(checkin => {
-            const date = new Date(checkin.date)
-            const year = date.getFullYear().toString()
-            const month = (date.getMonth() + 1).toString().padStart(2, '0')
+            const dateStr = checkin.date || ''
+            const year = dateStr.length >= 4 ? dateStr.substring(0, 4) : ''
+            const month = dateStr.length >= 7 ? dateStr.substring(5, 7) : ''
             
             if (selectedYear && year !== selectedYear) return false
             if (selectedMonth && month !== selectedMonth) return false

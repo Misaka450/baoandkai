@@ -6,6 +6,7 @@ import Icon from '../components/icons/Icons'
 const Login: React.FC = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const { login } = useAuth()
@@ -73,13 +74,21 @@ const Login: React.FC = () => {
                                 <Icon name="lock" size={20} />
                             </div>
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700"
+                                className="w-full pl-12 pr-12 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all text-slate-700"
                                 required
                                 placeholder="请输入密码"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                            >
+                                <Icon name={showPassword ? 'visibility_off' : 'visibility'} size={20} />
+                            </button>
                         </div>
                     </div>
 

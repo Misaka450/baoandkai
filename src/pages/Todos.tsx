@@ -9,6 +9,7 @@ import { Skeleton } from '../components/common/Skeleton'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
+import { hapticFeedback } from '../utils/haptics'
 
 interface TodosResponse {
   data: Todo[]
@@ -28,7 +29,7 @@ const stickyColors = [
 
 export default function Todos() {
   const navigate = useNavigate()
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage] = useState(1)
   const itemsPerPage = 12
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
@@ -164,11 +165,18 @@ export default function Todos() {
             )
           })}
 
-          <div className="group premium-card !p-0 !bg-slate-50/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[300px] cursor-pointer hover:bg-white hover:border-primary/40 transition-all animate-slide-up" style={{ animationDelay: '0.4s' }}>
+          <div
+            onClick={() => {
+              hapticFeedback('light')
+              navigate('/admin/todos')
+            }}
+            className="group premium-card !p-0 !bg-slate-50/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[300px] cursor-pointer hover:bg-white hover:border-primary/40 transition-all animate-slide-up"
+            style={{ animationDelay: '0.4s' }}
+          >
             <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:scale-110 group-hover:rotate-12 transition-all mb-4">
               <Icon name="add_circle" size={40} />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">New Secret wish</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">添加甜蜜心愿</p>
           </div>
         </div>
 
