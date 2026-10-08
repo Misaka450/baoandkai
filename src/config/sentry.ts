@@ -1,32 +1,28 @@
-import * as Sentry from '@sentry/react'
-import React from 'react'
-
-// Sentry错误监控配置
-export const initSentry = (): void => {
-  if (import.meta.env.PROD) {
-    // 只在生产环境初始化Sentry
+// Sentry错误监控配置 - 彻底按需动态加载，避免首屏静态打包与带宽占用
+export const initSentry = async (): Promise<void> => {
+  if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+    const Sentry = await import('@sentry/react')
     Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN, // 从环境变量获取DSN
+      dsn: import.meta.env.VITE_SENTRY_DSN,
       environment: import.meta.env.MODE,
-      // 性能监控配置
-      integrations: [],
-      // 性能采样率
       tracesSampleRate: 0.1,
-      // Session Replay采样率
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
     })
   }
 }
 
-// 错误边界组件包装器
-export const withSentryErrorBoundary = (Component: React.ComponentType): React.ComponentType => {
-  return Sentry.withErrorBoundary(Component, {
-    // 错误降级UI
-    fallback: () => React.createElement('div', { className: 'p-4 text-red-600' }, '页面加载失败，请刷新重试'),
-    // 错误发生时触发
-    onError: (error) => {
-      console.error('组件错误:', error)
-    },
-  })
+/**
+ * 捕获并上报异常（生产环境下异步按需唤醒 Sentry，开发环境输出控制台）
+ */
+export const captureError = (error: unknown, extra?: Record<string, unknown>): void => {
+  if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+    import('@sentry/react')
+      .then((Sentry) => {
+        Sentry.captureException(error, { extra })
+      })
+      .catch(() => {})
+  } else if (import.meta.env.DEV) {
+    console.warn('[Error Captured]', error, extra)
+  }
 }

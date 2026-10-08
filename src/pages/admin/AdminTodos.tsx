@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/modals/AdminModal'
 import Modal from '../../components/modals/Modal'
@@ -47,21 +47,21 @@ const AdminTodos = () => {
     const [completionPhotos, setCompletionPhotos] = useState<string[]>([])
     const [completionNotes, setCompletionNotes] = useState('')
     const [uploading, setUploading] = useState(false)
-    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
+    const [, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const completionFileRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
-    useEffect(() => { loadTodos() }, [])
-
-    const loadTodos = async () => {
+    const loadTodos = useCallback(async () => {
         try {
             const { data, error } = await apiService.get<{ data: Todo[] }>('/todos?limit=100')
             if (error) throw new Error(error)
             setTodos(data?.data || [])
         } catch (e) { console.error(e) } finally { setLoading(false) }
-    }
+    }, [])
+
+    useEffect(() => { loadTodos() }, [loadTodos])
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCompletion = false) => {
         if (!e.target.files?.length) return
@@ -174,7 +174,6 @@ const AdminTodos = () => {
 
     const resetForm = () => { setShowForm(false); setEditingId(null); setFormData({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] }) }
 
-    const getPriorityStyle = (p: number) => priorities.find(x => x.value === p)?.color || ''
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
@@ -436,3 +435,4 @@ const AdminTodos = () => {
 }
 
 export default AdminTodos
+

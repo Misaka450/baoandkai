@@ -12,7 +12,7 @@ const CACHE_TTL = 900; // 缓存15分钟（统计页面数据更新不频繁）
  * GET /api/stats
  * 管理后台数据统计API
  */
-stats.get('/', async (c) => {
+stats.get('/', async (_c) => {
   try {
     // 尝试从缓存读取
     const cached = await cache.get<any>(CACHE_KEY);

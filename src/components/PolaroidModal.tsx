@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'

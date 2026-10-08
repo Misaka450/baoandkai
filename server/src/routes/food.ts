@@ -3,7 +3,7 @@ import { jsonResponse, errorResponse } from '../utils/response.js';
 import { transformImageArray, serializeImages } from '../utils/url.js';
 import { validate, validateRequired, validateLength, validateDate, validateRating, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
-import { findOrThrow, handleCrudError, ValidationError } from '../utils/crud.js';
+import { findOrThrow, handleCrudError } from '../utils/crud.js';
 import { pool } from '../lib/db.js';
 
 const food = new Hono();
@@ -46,7 +46,7 @@ interface CreateFoodBody {
  * GET /api/food/cuisines
  * 获取所有不重复的菜系列表
  */
-food.get('/cuisines', async (c) => {
+food.get('/cuisines', async (_c) => {
   try {
     const { rows } = await pool.query(
       `SELECT DISTINCT cuisine FROM food_checkins 
@@ -442,3 +442,4 @@ food.delete('/:id', async (c) => {
 });
 
 export default food;
+

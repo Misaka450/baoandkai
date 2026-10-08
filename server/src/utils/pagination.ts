@@ -27,13 +27,18 @@ export interface PaginatedResponse<T> {
 
 /**
  * 从 URL 查询参数中解析分页参数
+ * 兼容 pageSize 与 limit 两种常见参数命名
  * @param url 请求 URL
  * @param defaultPageSize 默认每页条数
  * @param maxPageSize 最大每页条数
  */
 export function parsePagination(url: URL, defaultPageSize = 20, maxPageSize = 100): PaginationParams {
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1)
-    const pageSize = Math.min(maxPageSize, Math.max(1, parseInt(url.searchParams.get('pageSize') || String(defaultPageSize), 10) || defaultPageSize))
+    const rawPageSize = url.searchParams.get('pageSize') || url.searchParams.get('limit')
+    const pageSize = Math.min(
+        maxPageSize,
+        Math.max(1, parseInt(rawPageSize || String(defaultPageSize), 10) || defaultPageSize)
+    )
     const offset = (page - 1) * pageSize
 
     return { page, pageSize, offset }

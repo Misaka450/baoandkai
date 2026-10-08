@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { subscribeModalState } from '../utils/modalState'
@@ -64,6 +64,27 @@ const TIMER_OPTIONS = [
   { label: '30分', value: 30 },
   { label: '60分', value: 60 }
 ]
+
+// Helper to create Pink Noise Buffer (softer, more natural than white noise)
+  const createPinkNoiseBuffer = (ctx: AudioContext, durationSeconds = 5) => {
+    const bufferSize = ctx.sampleRate * durationSeconds
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const output = buffer.getChannelData(0)
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
+
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1
+      b0 = 0.99886 * b0 + white * 0.0555179
+      b1 = 0.99332 * b1 + white * 0.0750759
+      b2 = 0.96900 * b2 + white * 0.1538520
+      b3 = 0.86650 * b3 + white * 0.3104856
+      b4 = 0.55000 * b4 + white * 0.5329522
+      b5 = -0.7616 * b5 - white * 0.0168980
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11
+      b6 = white * 0.115926
+    }
+    return buffer
+  }
 
 export default function VinylPlayer() {
   const [mounted, setMounted] = useState(false)
@@ -164,27 +185,6 @@ export default function VinylPlayer() {
     return { ctx: audioCtxRef.current, master: masterGainRef.current! }
   }
 
-  // Helper to create Pink Noise Buffer (softer, more natural than white noise)
-  const createPinkNoiseBuffer = (ctx: AudioContext, durationSeconds = 5) => {
-    const bufferSize = ctx.sampleRate * durationSeconds
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
-    const output = buffer.getChannelData(0)
-    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
-
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1
-      b0 = 0.99886 * b0 + white * 0.0555179
-      b1 = 0.99332 * b1 + white * 0.0750759
-      b2 = 0.96900 * b2 + white * 0.1538520
-      b3 = 0.86650 * b3 + white * 0.3104856
-      b4 = 0.55000 * b4 + white * 0.5329522
-      b5 = -0.7616 * b5 - white * 0.0168980
-      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11
-      b6 = white * 0.115926
-    }
-    return buffer
-  }
-
   // Procedural Sound Generator Implementations
   const startTrackSound = (trackId: AmbientTrackId) => {
     const { ctx, master } = getOrCreateAudioContext()
@@ -246,7 +246,7 @@ export default function VinylPlayer() {
         try {
           noiseSource.stop()
           noiseSource.disconnect()
-        } catch (_) {}
+        } catch {}
         clearInterval(intervalId)
       })
     } else if (trackId === 'fireplace') {
@@ -301,7 +301,7 @@ export default function VinylPlayer() {
         try {
           rumbleSource.stop()
           rumbleSource.disconnect()
-        } catch (_) {}
+        } catch {}
         clearInterval(crackleInterval)
       })
     } else if (trackId === 'cafe') {
@@ -350,7 +350,7 @@ export default function VinylPlayer() {
         try {
           murmurSource.stop()
           murmurSource.disconnect()
-        } catch (_) {}
+        } catch {}
         clearInterval(clinkInterval)
       })
     } else if (trackId === 'ocean') {
@@ -389,7 +389,7 @@ export default function VinylPlayer() {
           waveSource.disconnect()
           lfo.stop()
           lfo.disconnect()
-        } catch (_) {}
+        } catch {}
       })
     } else if (trackId === 'chords') {
       // 5. Dreamy Ambient Chords: Warm sine chord pad cycling through Major 7th/9th soothing chords
@@ -419,7 +419,7 @@ export default function VinylPlayer() {
             try {
               o.stop()
               o.disconnect()
-            } catch (_) {}
+            } catch {}
           })
         }, 2500)
 
@@ -454,7 +454,7 @@ export default function VinylPlayer() {
           try {
             o.stop()
             o.disconnect()
-          } catch (_) {}
+          } catch {}
         })
       })
     }

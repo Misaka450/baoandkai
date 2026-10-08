@@ -113,7 +113,7 @@ timeline.get('/on-this-day', async (c) => {
     const { rows: eventRows } = await pool.query(
       `SELECT id, title, description, date, location, category, images, created_at
        FROM timeline_events
-       WHERE date LIKE '%' || $1
+       WHERE (SUBSTRING(date FROM 6 FOR 5) = $1 OR date LIKE '%' || $1)
          AND LENGTH(date) >= 10
          AND CAST(SUBSTRING(date FROM 1 FOR 4) AS INTEGER) < $2
        ORDER BY date DESC`,
@@ -125,7 +125,7 @@ timeline.get('/on-this-day', async (c) => {
       `SELECT p.id, p.url, p.caption, p.date, p.location, a.name as album_name
        FROM photos p
        LEFT JOIN albums a ON p.album_id = a.id
-       WHERE p.date LIKE '%' || $1
+       WHERE (SUBSTRING(p.date FROM 6 FOR 5) = $1 OR p.date LIKE '%' || $1)
          AND LENGTH(p.date) >= 10
          AND CAST(SUBSTRING(p.date FROM 1 FOR 4) AS INTEGER) < $2
        ORDER BY p.date DESC
@@ -348,3 +348,4 @@ timeline.delete('/:id', async (c) => {
 });
 
 export default timeline;
+

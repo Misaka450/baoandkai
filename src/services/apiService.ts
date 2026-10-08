@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
-import * as Sentry from "@sentry/react"
+import { captureError } from '../config/sentry';
 import { API_BASE } from '../config/api'
 import { getCookieValue } from '../utils/cookie'
 
@@ -108,13 +108,7 @@ class ApiService {
                 const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`
 
                 // 上报异常到 Sentry
-                Sentry.captureException(new Error(errorMessage), {
-                    extra: {
-                        url,
-                        status: response.status,
-                        endpoint
-                    }
-                })
+                captureError(new Error(errorMessage), { url, status: response.status, endpoint })
 
                 return { data: null, error: errorMessage }
             }
@@ -143,9 +137,7 @@ class ApiService {
             }
 
             // 捕获网络或其他运行时错误
-            Sentry.captureException(error, {
-                extra: { url, endpoint }
-            })
+            captureError(error, { url, endpoint })
             const errorMessage = error instanceof Error ? error.message : 'Unknown error'
             return { data: null, error: errorMessage }
         }
@@ -542,3 +534,4 @@ export function useAbortSignal() {
 
     return { getSignal }
 }
+

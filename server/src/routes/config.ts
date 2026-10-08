@@ -22,7 +22,7 @@ function isLocalImageUrl(url: string): boolean {
  * GET /api/config
  * 获取系统配置
  */
-config.get('/', async (c) => {
+config.get('/', async (_c) => {
   try {
     // 1. 优先从 settings 表获取完整配置
     const { rows: settingsRows } = await pool.query(

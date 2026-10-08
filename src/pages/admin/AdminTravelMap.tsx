@@ -59,7 +59,7 @@ export default function AdminTravelMap() {
         staleTime: 2 * 60 * 1000,
     })
 
-    const checkins = mapData?.data || []
+    const checkins = useMemo(() => mapData?.data || [], [mapData?.data])
 
     // 使用 useMemo 确保城市列表在省份变化时正确更新
     const cityOptions = useMemo(() => {

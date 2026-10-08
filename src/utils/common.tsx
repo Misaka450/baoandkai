@@ -1,5 +1,4 @@
 // 公共工具函数 - TypeScript版本
-import React from 'react'
 
 /**
  * 防抖函数 - 限制函数在短时间内高频触发

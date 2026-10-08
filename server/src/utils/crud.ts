@@ -1,6 +1,5 @@
 import { Context } from 'hono';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from './validation.js';
-import { pool } from '../lib/db.js';
 import pg from 'pg';
 
 /**
@@ -138,6 +137,7 @@ export function handleCrudError(error: unknown, c: Context) {
   }
 
   const message = error instanceof Error ? error.message : '未知错误';
-  console.error('CRUD操作错误:', error);
+  console.error('CRUD操作错误:', message, error);
   return c.json({ error: '服务器内部错误', success: false }, 500);
 }
+

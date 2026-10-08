@@ -6,24 +6,31 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
+import { cache } from '../lib/cache.js';
 import { errorResponse } from '../utils/response.js';
 
 const vault = new Hono();
 
-// 简单的导出频率限制缓存
-const exportAttempts = new Map<string, { count: number; resetAt: number }>();
+/** 导出请求的速率限制窗口（5 分钟内最多 5 次） */
+const EXPORT_LIMIT = {
+  MAX_ATTEMPTS: 5,
+  WINDOW_SECONDS: 300,
+};
 
-function checkExportRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = exportAttempts.get(ip);
-  if (!record || now > record.resetAt) {
-    exportAttempts.set(ip, { count: 1, resetAt: now + 300000 }); // 5分钟窗口
+async function checkExportRateLimit(ip: string): Promise<boolean> {
+  const cacheKey = `export_rate:${ip}`;
+  const record = await cache.get<{ count: number }>(cacheKey);
+
+  if (!record) {
+    await cache.set(cacheKey, { count: 1 }, EXPORT_LIMIT.WINDOW_SECONDS);
     return true;
   }
-  if (record.count >= 5) {
+
+  if (record.count >= EXPORT_LIMIT.MAX_ATTEMPTS) {
     return false;
   }
-  record.count++;
+
+  await cache.set(cacheKey, { count: record.count + 1 }, EXPORT_LIMIT.WINDOW_SECONDS);
   return true;
 }
 
@@ -50,6 +57,11 @@ async function getAllUploadFiles(dir: string, baseDir: string = dir): Promise<st
   return results;
 }
 
+interface ExportRequestBody {
+  password?: string;
+  mode?: 'full' | 'markdown';
+}
+
 /**
  * POST /api/vault/export
  * 打包导出全部回忆（需要核验密码）
@@ -57,12 +69,13 @@ async function getAllUploadFiles(dir: string, baseDir: string = dir): Promise<st
  */
 vault.post('/export', async (c) => {
   try {
-    const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Real-IP') || 'local';
-    if (!checkExportRateLimit(ip)) {
+    const ip = c.req.header('X-Real-IP') || 'local';
+    const isAllowed = await checkExportRateLimit(ip);
+    if (!isAllowed) {
       return errorResponse('导出请求过于频繁，请 5 分钟后再试', 429);
     }
 
-    let body: any;
+    let body: ExportRequestBody;
     try {
       body = await c.req.json();
     } catch {
@@ -134,50 +147,24 @@ vault.post('/export', async (c) => {
       if (event.location) timelineMd += `* 📍 **地点**：${event.location}\n`;
       if (event.category) timelineMd += `* 🏷️ **标签**：${event.category}\n`;
       if (event.description) timelineMd += `\n${event.description}\n`;
-      if (event.images) {
-        try {
-          const imgs = typeof event.images === 'string' ? JSON.parse(event.images) : event.images;
-          if (Array.isArray(imgs) && imgs.length > 0) {
-            timelineMd += `\n*相片记录：*\n`;
-            imgs.forEach((img: string) => {
-              timelineMd += `- ![](${img})\n`;
-            });
-          }
-        } catch {
-          // ignore
-        }
-      }
       timelineMd += `\n---\n\n`;
     }
 
-    // 3.2 足迹地图 Markdown
-    let mapMd = `# 🗺️ 包包和恺恺的小窝 · 旅途足迹故事\n\n`;
+    // 3.2 旅行地图 Markdown
+    let mapMd = `# 🗺️ 包包和恺恺的小窝 · 旅途足迹漫游\n\n`;
     mapMd += `> 导出日期：${formattedDate} | 打卡足迹：${mapCheckins.length} 处\n\n---\n\n`;
-    for (const item of mapCheckins) {
-      mapMd += `### 📍 ${item.province} · ${item.city || ''}（${item.date}）\n`;
-      mapMd += `**${item.title}**\n\n`;
-      if (item.description) mapMd += `${item.description}\n\n`;
-      if (item.images) {
-        try {
-          const imgs = typeof item.images === 'string' ? JSON.parse(item.images) : item.images;
-          if (Array.isArray(imgs) && imgs.length > 0) {
-            mapMd += `*足迹相片：*\n`;
-            imgs.forEach((img: string) => {
-              mapMd += `- ![](${img})\n`;
-            });
-          }
-        } catch {
-          // ignore
-        }
-      }
+    for (const spot of mapCheckins) {
+      mapMd += `### 📍 ${spot.province} · ${spot.city || ''} · ${spot.title}\n`;
+      mapMd += `* 日期：${spot.date}\n`;
+      if (spot.description) mapMd += `* 回忆记录：${spot.description}\n`;
       mapMd += `\n---\n\n`;
     }
 
-    // 3.3 心愿清单 Markdown
-    let todosMd = `# ✨ 包包和恺恺的小窝 · 甜蜜心愿清单\n\n`;
+    // 3.3 待办事项 Markdown
+    let todosMd = `# 📝 包包和恺恺的小窝 · 甜蜜心愿清单\n\n`;
     todosMd += `> 导出日期：${formattedDate} | 心愿总数：${todos.length} 项\n\n---\n\n`;
-    const doneTodos = todos.filter((t: any) => t.completed);
-    const pendingTodos = todos.filter((t: any) => !t.completed);
+    const pendingTodos = todos.filter((t: any) => t.status !== 'completed' && !t.is_completed);
+    const doneTodos = todos.filter((t: any) => t.status === 'completed' || t.is_completed);
     todosMd += `## 🌟 待完成的心愿 (${pendingTodos.length})\n\n`;
     for (const t of pendingTodos) {
       todosMd += `- [ ] **${t.title}**${t.description ? `：${t.description}` : ''}\n`;
@@ -271,7 +258,7 @@ vault.post('/export', async (c) => {
     }
 
     // 完成打包
-    archive.finalize().catch((err: any) => {
+    archive.finalize().catch((err: unknown) => {
       console.error('归档打包出错:', err);
     });
 
@@ -285,7 +272,7 @@ vault.post('/export', async (c) => {
         'Cache-Control': 'no-cache',
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('导出回忆保险箱失败:', error);
     return errorResponse('导出回忆归档失败，请稍后重试', 500);
   }

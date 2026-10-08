@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { setCookie, getCookie } from 'hono/cookie';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -24,7 +24,7 @@ const RATE_LIMIT = {
  * 不能信任 CF-Connecting-IP 等客户端可自行携带的请求头，
  * 否则攻击者每次换一个伪造 IP 即可绕过登录失败锁定。
  */
-function getClientId(c: any, username: string): string {
+function getClientId(c: Context, username: string): string {
   const ip = c.req.header('X-Real-IP') || '';
   return ip ? `login_rate:${ip}` : `login_rate:user:${username}`;
 }
@@ -134,7 +134,7 @@ auth.get('/check-token', async (c) => {
  */
 auth.post('/login', async (c) => {
   try {
-    let body: any;
+    let body: { username?: string; password?: string };
     try {
       body = await c.req.json();
     } catch {
@@ -228,9 +228,10 @@ auth.post('/login', async (c) => {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
     console.error('登录API错误:', error);
-    return errorResponse('登录失败', 500, error.message);
+    return errorResponse('登录失败', 500, message);
   }
 });
 
@@ -346,6 +347,8 @@ auth.post('/update-password-hash', async (c) => {
     // 安全措施：密码已变更，删除该用户的所有 Session，
     // 强制所有已登录设备重新用新密码登录（防止旧凭据继续有效）
     await deleteUserSessions(rows[0].id);
+    // 同步清空内存缓存中的会话信息，确保被吊销的 Token 无法继续通过缓存调用接口
+    cache.clear();
 
     return jsonResponse({
       success: true,

@@ -161,7 +161,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               to={item.path}
               onClick={() => {
                 hapticFeedback('light')
-                window.innerWidth < 1024 && onClose()
+                if (window.innerWidth < 1024) { onClose() }
               }}
               className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
                 isActive

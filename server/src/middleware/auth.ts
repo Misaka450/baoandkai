@@ -4,14 +4,6 @@ import { errorResponse } from '../utils/response.js';
 import { cache } from '../lib/cache.js';
 import { getSessionByToken, updateSessionActivity } from '../lib/session.js';
 
-const PUBLIC_PATHS = [
-  '/api/auth/login',
-  '/api/auth/check-token',
-  '/api/config',
-  '/api/images/',
-  '/api/vault/export'
-];
-
 export interface CachedUser {
   id: number;
   username: string;
@@ -21,19 +13,39 @@ export interface CachedUser {
 }
 
 /**
- * 判断路径是否为公开路径（无需登录即可访问）
+ * 判断请求是否为公开路径（无需登录即可访问）
+ *
+ * 安全约束：
+ * - /api/config：仅 GET 为公开读取，PUT/POST 等写操作必须经过管理员认证与 CSRF 校验
+ * - /api/vault/export：仅 POST 为导出端点（由接口内部核验管理员安全密码与限流）
+ * - /api/images/*：仅 GET 为公开图片读取
+ * - /api/auth/login & /api/auth/check-token：公开鉴权端点
  */
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some(path =>
-    pathname === path || pathname.startsWith(path + '/') || (path.endsWith('/') && pathname.startsWith(path))
-  );
+export function isPublicPath(pathname: string, method: string): boolean {
+  if (pathname === '/api/config') {
+    return method === 'GET';
+  }
+
+  if (pathname === '/api/vault/export') {
+    return method === 'POST';
+  }
+
+  if (pathname.startsWith('/api/images/')) {
+    return method === 'GET';
+  }
+
+  if (pathname === '/api/auth/login' || pathname === '/api/auth/check-token') {
+    return true;
+  }
+
+  return false;
 }
 
 export async function authMiddleware(c: Context, next: Next) {
   const url = new URL(c.req.url);
   const pathname = url.pathname;
 
-  if (isPublicPath(pathname)) {
+  if (isPublicPath(pathname, c.req.method)) {
     return await next();
   }
 

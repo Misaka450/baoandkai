@@ -44,30 +44,14 @@ images.get('/*', async (c) => {
     }
 
     const decodedKey = decodeURIComponent(key);
-    const rawData = await storage.get(decodedKey);
-
-    if (!rawData) {
-      return errorResponse(`图片不存在: ${decodedKey}`, 404);
-    }
-
     const ext = path.extname(decodedKey).toLowerCase();
 
-    // 如果是 gif 动图或未带缩放参数，直接返回原图
+    // 解析尺寸与压缩参数
     const widthParam = c.req.query('w') || c.req.query('width');
     const heightParam = c.req.query('h') || c.req.query('height');
     const qualityParam = c.req.query('q') || c.req.query('quality');
     const formatParam = c.req.query('format') || c.req.query('f');
 
-    if (ext === '.gif' && !widthParam && !heightParam) {
-      return new Response(rawData, {
-        headers: {
-          'Content-Type': 'image/gif',
-          'Cache-Control': 'public, max-age=31536000, immutable',
-        },
-      });
-    }
-
-    // 解析尺寸与压缩参数
     const reqWidth = widthParam ? parseInt(widthParam, 10) : undefined;
     const reqHeight = heightParam ? parseInt(heightParam, 10) : undefined;
     const quality = qualityParam ? Math.min(Math.max(parseInt(qualityParam, 10), 10), 100) : 80;
@@ -75,8 +59,6 @@ images.get('/*', async (c) => {
     // 无效参数（如传入非数字导致 NaN）时按未传处理，避免 sharp 报错返回 500
     const validWidth = reqWidth !== undefined && Number.isFinite(reqWidth) ? reqWidth : undefined;
     const validHeight = reqHeight !== undefined && Number.isFinite(reqHeight) ? reqHeight : undefined;
-
-    // 高度限制在合理区间 [10, 4000]，防止极端值被用于消耗服务器计算资源
     const safeHeight = validHeight !== undefined ? Math.min(Math.max(validHeight, 10), 4000) : undefined;
 
     // 默认转换为 webp 格式以获得最大压缩率与加载速度
@@ -84,7 +66,8 @@ images.get('/*', async (c) => {
       ? 'jpeg'
       : (formatParam === 'png' ? 'png' : 'webp');
 
-    // 检查是否有本地缩略图磁盘缓存 (.cache/xxx_w600_q80.webp)
+    // 1. 优先检查本地缩略图磁盘缓存 (.cache/xxx_w600_q80.webp)
+    // 关键性能优化：命中缓存时直接从磁盘流式读取缩略图，避免把 10MB~20MB 的高清原图整张读入 V8 内存
     const uploadDir = storage.getUploadDir();
     const cacheKey = `${decodedKey}_w${reqWidth || 'auto'}_h${reqHeight || 'auto'}_q${quality}.${targetFormat}`
       .replace(/[/\\]/g, '_');
@@ -101,7 +84,23 @@ images.get('/*', async (c) => {
         },
       });
     } catch {
-      // 缓存不存在，继续实时生成并写入缓存
+      // 缓存未命中，继续读取原图生成
+    }
+
+    // 2. 缓存未命中，读取原始图片数据
+    const rawData = await storage.get(decodedKey);
+    if (!rawData) {
+      return errorResponse(`图片不存在: ${decodedKey}`, 404);
+    }
+
+    // 如果是 gif 动图且未指定尺寸参数，直接返回原图
+    if (ext === '.gif' && !widthParam && !heightParam) {
+      return new Response(rawData, {
+        headers: {
+          'Content-Type': 'image/gif',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
     }
 
     let pipeline = sharp(rawData).rotate(); // 自动按照 EXIF 旋转方向纠正
@@ -121,7 +120,6 @@ images.get('/*', async (c) => {
     } else if (targetFormat === 'jpeg') {
       pipeline = pipeline.jpeg({ quality, mozjpeg: true });
     } else if (targetFormat === 'png') {
-      // 注意：PNG 是无损格式，sharp 的 png() 不支持 quality 参数，不要传入
       pipeline = pipeline.png();
     }
 
@@ -146,9 +144,10 @@ images.get('/*', async (c) => {
         'X-Cache': 'MISS',
       },
     });
-  } catch (error: any) {
-    console.error('处理图片失败:', error);
-    return errorResponse(error.message, 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    console.error('处理图片失败:', message);
+    return errorResponse(message, 500);
   }
 });
 

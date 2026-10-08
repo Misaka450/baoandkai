@@ -94,19 +94,21 @@ photos.post('/', async (c) => {
       return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
     }
 
-    // 获取相册名称以便按结构存放
+    // 获取相册名称以便按结构存放，并过滤特殊字符防止路径异常
     const { rows: albumRows } = await pool.query('SELECT name FROM albums WHERE id = $1', [albumId]);
     const albumName = albumRows[0]?.name || 'default';
-    
+    const safeAlbumName = albumName.replace(/[^a-zA-Z0-9_\u4e00-\u9fa5-]/g, '_');
+
     const timestamp = Date.now();
     const randomStr = crypto.randomUUID().substring(0, 8);
-    const extension = file.name.split('.').pop() || 'jpg';
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const safeExtension = allowedTypes.some((t) => t.endsWith(extension)) ? extension : 'jpg';
 
     // 智能解析 EXIF（拍摄时间与经纬度城市）
     const exifMeta = await parsePhotoExif(buffer);
 
     // 本地相对存储路径: albums/AlbumName/timestamp-random.ext
-    const key = `albums/${albumName}/${timestamp}-${randomStr}.${extension}`;
+    const key = `albums/${safeAlbumName}/${timestamp}-${randomStr}.${safeExtension}`;
 
     // 存入本地存储
     await storage.put(key, buffer);
@@ -155,17 +157,20 @@ photos.post('/sync-exif', async (c) => {
     const uploadBase = storage.getUploadDir();
 
     for (const p of photosList) {
-      // 如果日期或地点已存在，则跳过
+      // 如果日期或地点已存在，跳过不重复读取
       if (p.date && p.location) continue;
 
-      let relPath = p.url;
-      if (relPath.startsWith('/uploads/')) {
-        relPath = relPath.replace('/uploads/', '');
-      }
-      const fullPath = path.join(uploadBase, relPath);
-
       try {
-        const fileBuf = await fs.readFile(fullPath);
+        let relativeKey = p.url || '';
+        if (relativeKey.startsWith('/uploads/')) {
+          relativeKey = relativeKey.replace('/uploads/', '');
+        } else if (relativeKey.includes('/api/images/')) {
+          relativeKey = relativeKey.split('/api/images/')[1] || '';
+        }
+        if (!relativeKey) continue;
+
+        const filePath = path.resolve(uploadBase, decodeURIComponent(relativeKey));
+        const fileBuf = await fs.readFile(filePath);
         const meta = await parsePhotoExif(fileBuf);
 
         const newDate = p.date || meta.date;
@@ -178,7 +183,7 @@ photos.post('/sync-exif', async (c) => {
           );
           updatedCount++;
         }
-      } catch (err) {
+      } catch {
         // 单个文件读取失败忽略
       }
     }
@@ -196,10 +201,10 @@ photos.post('/sync-exif', async (c) => {
 });
 
 /**
- * POST /api/albums/:id/photos/reorder
- * 批量更新照片顺序
+ * PUT /api/albums/:id/photos/reorder
+ * 批量更新相册照片顺序
  */
-photos.post('/reorder', async (c) => {
+photos.put('/reorder', async (c) => {
   const client = await pool.connect();
   try {
     const albumId = parseInt(c.req.param('id') || '');
