@@ -373,21 +373,21 @@ export default function AnniversaryCountdown() {
   }
 
   return (
-    <section className="w-full mb-16 animate-fade-in">
+    <section className="w-full mb-12 md:mb-16 animate-fade-in">
       {/* Header with Title and Add Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="hidden sm:flex items-center gap-2 mb-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-rose-500/80">
               Our Love Milestones
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+          <h2 className="text-lg sm:text-2xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-2 sm:gap-3">
             <span>纪念日与倒数日</span>
-            <span className="text-rose-400 text-2xl md:text-3xl">ෆ</span>
+            <span className="text-rose-400 text-lg sm:text-2xl md:text-3xl">ෆ</span>
           </h2>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="hidden sm:block text-slate-500 text-xs sm:text-sm mt-1">
             记录 {coupleName1} 和 {coupleName2} 相守的每一天与即将到来的每个惊喜
           </p>
         </div>
@@ -396,54 +396,54 @@ export default function AnniversaryCountdown() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/80 hover:bg-white text-rose-600 font-bold text-sm shadow-md shadow-rose-100/60 border border-rose-200/50 backdrop-blur-md transition-all self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white/80 hover:bg-white text-rose-600 font-bold text-xs sm:text-sm shadow-sm sm:shadow-md shadow-rose-100/60 border border-rose-200/50 backdrop-blur-md transition-all shrink-0 cursor-pointer active:scale-95"
         >
-          <Icon name="add" size={18} className="text-rose-500" />
+          <Icon name="add" size={16} className="text-rose-500 sm:w-[18px] sm:h-[18px]" />
           <span>添加倒数日</span>
         </motion.button>
       </div>
 
       {/* Top Banner: Total Days Together & Hero Nearest Countdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 mb-6 md:mb-8">
         {/* Total Days Together Card */}
         <motion.div
           whileHover={{ y: -4 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="lg:col-span-5 relative overflow-hidden rounded-[2.5rem] p-8 bg-gradient-to-br from-rose-100/70 via-pink-50/60 to-amber-50/50 border border-white/80 shadow-xl shadow-rose-950/5 flex flex-col justify-between"
+          className="lg:col-span-5 relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 md:p-8 bg-gradient-to-br from-rose-100/70 via-pink-50/60 to-amber-50/50 border border-white/80 shadow-md sm:shadow-xl shadow-rose-950/5 flex flex-col justify-between"
         >
           {/* Decorative ambient bubbles */}
           <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-rose-300/20 blur-2xl pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-pink-200/30 blur-2xl pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-white/80 text-rose-600 shadow-sm border border-rose-100">
-                <Icon name="favorite" size={14} className="text-rose-500" />
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-white/80 text-rose-600 shadow-sm border border-rose-100">
+                <Icon name="favorite" size={12} className="text-rose-500 sm:w-3.5 sm:h-3.5" />
                 恋爱相伴日常
               </span>
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-400">
                 始于 {formatDate(anniversaryObj, 'short')}
               </span>
             </div>
 
-            <p className="text-slate-600 text-sm font-medium">
+            <p className="text-slate-600 text-xs sm:text-sm font-medium">
               {coupleName1} & {coupleName2} 已经牵手走过
             </p>
 
-            <div className="my-5 flex items-baseline gap-2">
-              <span className="text-6xl md:text-7xl font-black text-slate-800 tracking-tight font-sans tabular-nums">
+            <div className="my-2 sm:my-3 md:my-5 flex items-baseline gap-1.5 sm:gap-2">
+              <span className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-800 tracking-tight font-sans tabular-nums">
                 {totalDaysTogether}
               </span>
-              <span className="text-xl font-bold text-rose-500">DAYS</span>
+              <span className="text-base sm:text-xl font-bold text-rose-500">DAYS</span>
             </div>
           </div>
 
-          <div className="relative z-10 pt-4 border-t border-rose-200/40 flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span className="flex items-center gap-1 text-rose-500/90 font-semibold">
-              <Icon name="auto_awesome" size={14} />
+          <div className="relative z-10 pt-2.5 sm:pt-4 border-t border-rose-200/40 flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1 text-rose-500/90 font-semibold truncate">
+              <Icon name="auto_awesome" size={12} className="shrink-0" />
               每分每秒，都因为有你而格外闪耀
             </span>
-            <span className="text-slate-400">
+            <span className="text-slate-400 shrink-0">
               Day by day
             </span>
           </div>
@@ -454,7 +454,7 @@ export default function AnniversaryCountdown() {
           <motion.div
             whileHover={{ y: -4 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="lg:col-span-7 relative overflow-hidden rounded-[2.5rem] p-8 bg-white/75 backdrop-blur-md border border-white/80 shadow-xl shadow-slate-900/5 flex flex-col justify-between"
+            className="lg:col-span-7 relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 md:p-8 bg-white/75 backdrop-blur-md border border-white/80 shadow-md sm:shadow-xl shadow-slate-900/5 flex flex-col justify-between"
           >
             {/* Soft background tint */}
             <div 
@@ -463,46 +463,46 @@ export default function AnniversaryCountdown() {
             />
 
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200/60 shadow-sm flex items-center gap-1">
-                    <Icon name={nearestHero.icon} size={14} className="text-rose-500" />
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200/60 shadow-sm flex items-center gap-1">
+                    <Icon name={nearestHero.icon} size={12} className="text-rose-500 sm:w-3.5 sm:h-3.5" />
                     最近期待 · {nearestHero.badgeText}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-slate-400">
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-400">
                   目标：{nearestHero.targetDate}
                 </span>
               </div>
 
-              <h3 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-2">
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-1 sm:mb-2">
                 {nearestHero.title}
               </h3>
-              <p className="text-slate-500 text-sm mb-6">
+              <p className="text-slate-500 text-xs sm:text-sm mb-3 sm:mb-6">
                 {nearestHero.subtitle || '心中最甜的约定，正在悄悄靠近'}
               </p>
 
               {/* Highlight number display */}
-              <div className="bg-slate-50/70 border border-slate-100 rounded-3xl p-5 md:p-6 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-slate-50/70 border border-slate-100 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 md:p-6 mb-2 sm:mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-bold mb-0.5 sm:mb-1">
                     Counting down
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-bold text-slate-500">还有</span>
-                    <span className="text-5xl md:text-6xl font-black text-slate-800 tabular-nums font-sans">
+                  <div className="flex items-baseline gap-1.5 sm:gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-500">还有</span>
+                    <span className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-800 tabular-nums font-sans">
                       {nearestHero.daysRemaining}
                     </span>
-                    <span className="text-lg font-bold text-rose-500">天</span>
+                    <span className="text-base sm:text-lg font-bold text-rose-500">天</span>
                   </div>
                 </div>
 
                 {/* Progress Visualizer Ring/Pill */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200/60">
-                  <div className="text-xs text-slate-400 font-semibold mb-1">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/60">
+                  <div className="text-[10px] sm:text-xs text-slate-400 font-semibold mb-0.5 sm:mb-1">
                     {nearestHero.isToday ? '🎉 就在今天！' : '期盼指数'}
                   </div>
-                  <div className="w-36 h-3 bg-slate-200/80 rounded-full overflow-hidden p-0.5">
+                  <div className="w-28 sm:w-36 h-2 sm:h-3 bg-slate-200/80 rounded-full overflow-hidden p-0.5">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{
@@ -516,40 +516,40 @@ export default function AnniversaryCountdown() {
               </div>
             </div>
 
-            <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 font-medium pt-2">
-              <span className="flex items-center gap-1.5 text-rose-500 font-medium">
-                <Icon name="auto_awesome" size={14} />
+            <div className="relative z-10 flex items-center justify-between text-[10px] sm:text-xs text-slate-400 font-medium pt-1 sm:pt-2">
+              <span className="flex items-center gap-1 text-rose-500 font-medium truncate">
+                <Icon name="auto_awesome" size={12} className="shrink-0" />
                 愿所有的奔赴，都是因为爱与期待
               </span>
-              <span>距离美好更近一步</span>
+              <span className="shrink-0">距离美好更近一步</span>
             </div>
           </motion.div>
         )}
       </div>
 
       {/* Grid of Milestone & Custom Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
         {milestoneCards.map((card, idx) => {
           const isNearest = nearestHero?.id === card.id
           return (
             <motion.div
               key={card.id || idx}
-              whileHover={{ y: -6, scale: 1.01 }}
+              whileHover={{ y: -4, scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 350, damping: 22 }}
               style={{ backgroundColor: card.bgClass }}
-              className={`group relative rounded-[2rem] p-6 border ${card.borderClass} shadow-md shadow-slate-900/5 flex flex-col justify-between overflow-hidden transition-shadow hover:shadow-xl`}
+              className={`group relative rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 border ${card.borderClass} shadow-sm sm:shadow-md shadow-slate-900/5 flex flex-col justify-between overflow-hidden transition-shadow hover:shadow-xl`}
             >
               {/* Subtle top glare */}
               <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
               {/* Card Header */}
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-2xl bg-white/80 shadow-sm flex items-center justify-center">
-                      <Icon name={card.icon} size={18} className={card.textClass} />
+                <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-white/80 shadow-sm flex items-center justify-center">
+                      <Icon name={card.icon} size={15} className={`sm:w-[18px] sm:h-[18px] ${card.textClass}`} />
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${card.tagBgClass} ${card.textClass}`}>
+                    <span className={`px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold ${card.tagBgClass} ${card.textClass}`}>
                       {card.badgeText}
                     </span>
                   </div>
@@ -559,50 +559,50 @@ export default function AnniversaryCountdown() {
                       type="button"
                       title="删除此倒数日"
                       onClick={(e) => handleDeleteCustom(card.id, e)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-xl bg-white/70 hover:bg-rose-50 text-slate-400 hover:text-rose-500 shadow-sm cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-white/70 hover:bg-rose-50 text-slate-400 hover:text-rose-500 shadow-sm cursor-pointer"
                     >
-                      <Icon name="delete" size={16} />
+                      <Icon name="delete" size={14} className="sm:w-4 sm:h-4" />
                     </button>
                   )}
                   {!card.isCustom && isNearest && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white shadow-sm">
+                    <span className="text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-500 text-white shadow-sm">
                       NEXT
                     </span>
                   )}
                 </div>
 
-                <h4 className="text-lg font-black text-slate-800 tracking-tight line-clamp-1 mb-1">
+                <h4 className="text-base sm:text-lg font-black text-slate-800 tracking-tight line-clamp-1 mb-0.5 sm:mb-1">
                   {card.title}
                 </h4>
-                <p className="text-xs text-slate-500 line-clamp-1 mb-5">
+                <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 mb-3 sm:mb-5">
                   {card.subtitle || `约定日期: ${card.targetDate}`}
                 </p>
               </div>
 
               {/* Card Footer: Days Counter */}
-              <div className="relative z-10 pt-4 border-t border-slate-900/5 flex items-baseline justify-between">
-                <span className="text-xs font-semibold text-slate-400">
+              <div className="relative z-10 pt-2.5 sm:pt-4 border-t border-slate-900/5 flex items-baseline justify-between">
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-400">
                   {card.targetDate}
                 </span>
 
-                <div className="flex items-baseline gap-1.5">
+                <div className="flex items-baseline gap-1 sm:gap-1.5">
                   {card.isToday ? (
-                    <span className="text-xl font-black text-rose-500">就是今天！🎉</span>
+                    <span className="text-base sm:text-xl font-black text-rose-500">就是今天！🎉</span>
                   ) : card.isPassed ? (
                     <>
-                      <span className="text-xs font-bold text-slate-400">已过去</span>
-                      <span className="text-2xl font-black text-slate-700 tabular-nums font-sans">
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">已过去</span>
+                      <span className="text-xl sm:text-2xl font-black text-slate-700 tabular-nums font-sans">
                         {Math.abs(card.daysRemaining)}
                       </span>
-                      <span className="text-xs font-bold text-slate-400">天</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">天</span>
                     </>
                   ) : (
                     <>
-                      <span className="text-xs font-bold text-slate-400">还有</span>
-                      <span className="text-3xl font-black text-slate-800 tabular-nums font-sans">
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">还有</span>
+                      <span className="text-2xl sm:text-3xl font-black text-slate-800 tabular-nums font-sans">
                         {card.daysRemaining}
                       </span>
-                      <span className="text-xs font-bold text-rose-500">天</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-rose-500">天</span>
                     </>
                   )}
                 </div>

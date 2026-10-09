@@ -34,14 +34,14 @@ export default function ModuleSubNav({ section, className = '' }: ModuleSubNavPr
       aria-label={`${section === 'memory' ? '回忆' : '我们'}二级导航`}
       className={`flex justify-center mb-10 ${className}`}
     >
-      <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-sm">
+      <div className="inline-flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-sm max-w-full overflow-x-auto">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(`${tab.path}/`))
           return (
             <Link
               key={tab.key}
               to={tab.path}
-              className={`relative px-4 py-2 rounded-full text-xs md:text-sm font-medium tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary select-none ${
+              className={`relative px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs md:text-sm font-medium tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary select-none whitespace-nowrap ${
                 isActive
                   ? 'text-primary font-semibold shadow-sm'
                   : 'text-stone-500 hover:text-stone-800 hover:bg-white/50 active:scale-95'

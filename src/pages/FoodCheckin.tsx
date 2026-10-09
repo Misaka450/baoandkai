@@ -152,10 +152,10 @@ export default function FoodCheckin() {
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
-        <header className="text-center mb-8 md:mb-16 animate-fade-in">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">美食足迹</h1>
-          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+        <header className="text-center mb-6 md:mb-16 animate-fade-in">
+          <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">美食足迹</h1>
+          <p className="text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
             Discovering the world, one bite at a time
           </p>
 
@@ -220,7 +220,7 @@ export default function FoodCheckin() {
             const images = checkin.images || []
             return (
               <div key={checkin.id} className="premium-card !p-0 overflow-hidden group hover:-translate-y-2 transition-all duration-700 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
+                <div className="h-44 sm:h-52 md:h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
                   <LazyImage
                     alt={checkin.restaurant_name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
@@ -228,28 +228,28 @@ export default function FoodCheckin() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
 
-                  <div className="absolute top-4 left-4 premium-glass !bg-white/90 px-3 py-1 rounded-full border-none shadow-sm">
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{checkin.cuisine}</span>
+                  <div className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 premium-glass !bg-white/90 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border-none shadow-sm">
+                    <span className="text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest">{checkin.cuisine}</span>
                   </div>
 
                   {checkin.price_range && (
-                    <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full shadow-sm">
-                      <span className="text-[10px] font-black text-white tracking-widest">¥{checkin.price_range}/Person</span>
+                    <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 bg-slate-900/80 backdrop-blur-md px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm">
+                      <span className="text-[9px] sm:text-[10px] font-black text-white tracking-widest">¥{checkin.price_range}/Person</span>
                     </div>
                   )}
 
                   {images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-1.5 border border-white/20">
+                    <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-white/20 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-1.5 border border-white/20">
                       <Icon name="photo_library" size={12} />
                       {images.length} Photos
                     </div>
                   )}
                 </div>
 
-                <div className="p-8">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-black text-2xl text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{checkin.restaurant_name}</h3>
-                    <div className="bg-slate-50 p-1.5 rounded-xl">
+                <div className="p-4 sm:p-6 md:p-8">
+                  <div className="flex justify-between items-start mb-2 sm:mb-4">
+                    <h3 className="font-black text-lg sm:text-xl md:text-2xl text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{checkin.restaurant_name}</h3>
+                    <div className="bg-slate-50 p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
                       {renderStars(checkin.overall_rating, 14)}
                     </div>
                   </div>
@@ -258,7 +258,7 @@ export default function FoodCheckin() {
                     <button
                       type="button"
                       onClick={() => navigate('/map')}
-                      className="group/loc inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary transition-all text-left mb-6 max-w-full cursor-pointer"
+                      className="group/loc inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary transition-all text-left mb-3 sm:mb-6 max-w-full cursor-pointer"
                       title="在足迹地图中查看"
                     >
                       <Icon name="location_on" size={13} className="text-primary group-hover/loc:scale-110 transition-transform shrink-0" />
@@ -266,16 +266,16 @@ export default function FoodCheckin() {
                       <Icon name="east" size={11} className="opacity-0 group-hover/loc:opacity-100 transition-opacity shrink-0 ml-0.5" />
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2 text-slate-400 mb-6">
+                    <div className="flex items-center gap-2 text-slate-400 mb-3 sm:mb-6">
                       <Icon name="location_on" size={14} className="text-primary/40" />
                       <span className="text-[10px] font-black uppercase tracking-widest truncate">Somewhere delicious</span>
                     </div>
                   )}
 
                   {checkin.recommended_dishes && (
-                    <div className="mb-6 flex flex-wrap gap-2">
+                    <div className="mb-3 sm:mb-6 flex flex-wrap gap-1.5 sm:gap-2">
                       {checkin.recommended_dishes.split(/[,，、]/).filter(Boolean).slice(0, 3).map((dish, i) => (
-                        <span key={i} className="premium-badge !bg-slate-50 !text-slate-500 !shadow-none border border-slate-100">
+                        <span key={i} className="premium-badge !bg-slate-50 !text-slate-500 !shadow-none border border-slate-100 !text-[9px] sm:!text-[10px]">
                           {dish.trim()}
                         </span>
                       ))}
@@ -283,7 +283,7 @@ export default function FoodCheckin() {
                   )}
 
                   {checkin.description && (
-                    <p className="text-slate-500 font-medium text-sm italic mb-6 line-clamp-2 leading-relaxed opacity-80">"{checkin.description}"</p>
+                    <p className="text-slate-500 font-medium text-xs sm:text-sm italic mb-3 sm:mb-6 line-clamp-2 leading-relaxed opacity-80">"{checkin.description}"</p>
                   )}
 
                   {(checkin.taste_rating || checkin.environment_rating || checkin.service_rating) && (
