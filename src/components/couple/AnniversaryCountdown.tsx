@@ -438,7 +438,7 @@ export default function AnniversaryCountdown() {
             </div>
           </div>
 
-          <div className="relative z-10 pt-2 sm:pt-4 border-t border-rose-200/40 flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-medium">
+          <div className="hidden sm:flex relative z-10 pt-2 sm:pt-4 border-t border-rose-200/40 items-center justify-between text-[10px] sm:text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1 text-rose-500/90 font-semibold truncate">
               <Icon name="auto_awesome" size={12} className="shrink-0" />
               每分每秒，都因为有你而格外闪耀
@@ -520,7 +520,7 @@ export default function AnniversaryCountdown() {
               </div>
             </div>
 
-            <div className="relative z-10 flex items-center justify-between text-[10px] sm:text-xs text-slate-400 font-medium pt-1 sm:pt-2">
+            <div className="hidden sm:flex relative z-10 items-center justify-between text-[10px] sm:text-xs text-slate-400 font-medium pt-1 sm:pt-2">
               <span className="flex items-center gap-1 text-rose-500 font-medium truncate">
                 <Icon name="auto_awesome" size={12} className="shrink-0" />
                 愿所有的奔赴，都是因为爱与期待
@@ -533,8 +533,8 @@ export default function AnniversaryCountdown() {
 
       {/* Grid of Milestone & Custom Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-        {milestoneCards.map((card, idx) => {
-          const isNearest = nearestHero?.id === card.id
+        {milestoneCards.filter(c => c.id !== nearestHero?.id).map((card, idx) => {
+          const isNearest = false
           return (
             <motion.div
               key={card.id || idx}
