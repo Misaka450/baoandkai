@@ -40,184 +40,204 @@ export default function Home() {
   const startDateStr = formatDate(config.anniversaryDate, 'dot')
 
   return (
-    <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 pt-20 md:pt-40 relative overflow-hidden">
+    <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 pt-16 md:pt-24 relative overflow-hidden">
       <FloatingParticles count={20} />
 
       <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse"></div>
       <div className="absolute top-20 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-blue-200/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute bottom-40 left-1/3 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-purple-200/15 blur-[60px] md:blur-[100px] rounded-full pointer-events-none -z-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
 
-      <header className="text-center mb-8 md:mb-16 relative animate-fade-in">
-        {/* 头像区域 */}
-        <div className="flex justify-center items-center space-x-12 md:space-x-20 mb-6 md:mb-10 relative">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-4 border-[#FFEDF3]">
-              <img
-                alt="Bao Avatar"
-                className="w-full h-full object-cover rounded-full"
-                src={getOptimizedAvatarUrl(config.avatar1, 160) || getDefaultAvatar('Bao', 'C9ADA7')}
-                srcSet={getAvatarSrcSet(config.avatar1)}
-                sizes="(max-width: 768px) 96px, 160px"
-                loading="eager"
-                fetchPriority="high"
-              />
+      {/* 首屏独立沉浸层：视口内仅展示双方头像与相恋时间，彻底排除碎碎念干扰 */}
+      <div className="min-h-[calc(100dvh-5rem)] flex flex-col justify-center items-center relative py-4 sm:py-8 md:py-12">
+        <header className="text-center w-full max-w-2xl mx-auto relative animate-fade-in">
+          {/* 头像区域 */}
+          <div className="flex justify-center items-center space-x-8 sm:space-x-12 md:space-x-20 mb-4 sm:mb-6 md:mb-10 relative">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-[#FF8BB1]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-36 md:h-36 rounded-full p-1.5 sm:p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-6 transition-all duration-500 border-2 sm:border-4 border-[#FFEDF3]">
+                <img
+                  alt="Bao Avatar"
+                  className="w-full h-full object-cover rounded-full"
+                  src={getOptimizedAvatarUrl(config.avatar1, 160) || getDefaultAvatar('Bao', 'C9ADA7')}
+                  srcSet={getAvatarSrcSet(config.avatar1)}
+                  sizes="(max-width: 768px) 96px, 160px"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </div>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <div className="w-16 sm:w-20 md:w-40 h-[2px] bg-gradient-to-r from-transparent via-[#FF8BB1]/40 to-transparent"></div>
+              <button
+                onClick={handleHeartClick}
+                aria-label="传递心意"
+                className={`absolute w-11 h-11 sm:w-14 sm:h-14 bg-white rounded-full shadow-xl flex items-center justify-center group border-2 border-[#FFEDF3] transition-all duration-300 active:scale-90 ${isHeartPopping ? 'animate-heart-pop scale-125' : 'animate-elastic'}`}
+              >
+                <Icon name="favorite" size={24} className="text-[#FF8BB1] group-hover:scale-125 transition-transform sm:w-7 sm:h-7" />
+              </button>
+            </div>
+
+            <div className="relative group">
+              <div className="absolute inset-0 bg-[#6BBFFF]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-36 md:h-36 rounded-full p-1.5 sm:p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-2 sm:border-4 border-[#EBF7FF]">
+                <img
+                  alt="Kai Avatar"
+                  className="w-full h-full object-cover rounded-full"
+                  src={getOptimizedAvatarUrl(config.avatar2, 160) || getDefaultAvatar('Kai', '9A9EAB')}
+                  srcSet={getAvatarSrcSet(config.avatar2)}
+                  sizes="(max-width: 768px) 96px, 160px"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center">
-            <div className="w-20 md:w-40 h-[2px] bg-gradient-to-r from-transparent via-[#FF8BB1]/40 to-transparent"></div>
-            <button
-              onClick={handleHeartClick}
-              aria-label="传递心意"
-              className={`absolute w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center group border-2 border-[#FFEDF3] transition-all duration-300 active:scale-90 ${isHeartPopping ? 'animate-heart-pop scale-125' : 'animate-elastic'}`}
+          {/* 标题与副标题 */}
+          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-4 tracking-tight text-gradient antialiased py-0.5 sm:py-1">
+            {config.homeTitle}
+          </h1>
+          <p className="text-slate-400 text-xs sm:text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80 px-4 mb-4 sm:mb-8">
+            "{config.homeSubtitle}"
+          </p>
+
+          {/* 核心主视觉：纯粹大字天数与可折叠精密时间 */}
+          <section aria-label="相恋天数计时" className="max-w-2xl mx-auto px-2 sm:px-4">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsPrecisionOpen(prev => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setIsPrecisionOpen(prev => !prev)
+                }
+              }}
+              className="group relative cursor-pointer select-none rounded-2xl sm:rounded-[2.5rem] bg-white/45 hover:bg-white/65 border border-white/80 p-5 sm:p-7 md:p-10 shadow-lg shadow-pink-100/30 backdrop-blur-md transition-all duration-300 hover:shadow-xl hover:shadow-pink-200/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <Icon name="favorite" size={28} className="text-[#FF8BB1] group-hover:scale-125 transition-transform" />
-            </button>
-          </div>
+              {/* 悬停光晕 */}
+              <div className="absolute inset-0 rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-b from-[#FFEDF3]/30 via-transparent to-[#EBF7FF]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-          <div className="relative group">
-            <div className="absolute inset-0 bg-[#6BBFFF]/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-2 bg-white shadow-2xl relative z-10 overflow-hidden transform group-hover:-rotate-6 transition-all duration-500 border-4 border-[#EBF7FF]">
-              <img
-                alt="Kai Avatar"
-                className="w-full h-full object-cover rounded-full"
-                src={getOptimizedAvatarUrl(config.avatar2, 160) || getDefaultAvatar('Kai', '9A9EAB')}
-                srcSet={getAvatarSrcSet(config.avatar2)}
-                sizes="(max-width: 768px) 96px, 160px"
-                loading="eager"
-                fetchPriority="high"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 标题与副标题 */}
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 tracking-tight text-gradient antialiased py-1">
-          {config.homeTitle}
-        </h1>
-        <p className="text-slate-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-medium italic opacity-80 px-4 mb-8">
-          "{config.homeSubtitle}"
-        </p>
-
-        {/* 核心主视觉：纯粹大字天数与可折叠精密时间 */}
-        <section aria-label="相恋天数计时" className="max-w-2xl mx-auto px-4">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsPrecisionOpen(prev => !prev)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                setIsPrecisionOpen(prev => !prev)
-              }
-            }}
-            className="group relative cursor-pointer select-none rounded-[2.5rem] bg-white/45 hover:bg-white/65 border border-white/80 p-8 md:p-10 shadow-lg shadow-pink-100/30 backdrop-blur-md transition-all duration-300 hover:shadow-xl hover:shadow-pink-200/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          >
-            {/* 悬停光晕 */}
-            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-[#FFEDF3]/30 via-transparent to-[#EBF7FF]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col items-center">
-              {/* 上行文案：字间距舒展、温和 */}
-              <span className="text-xs md:text-sm tracking-[0.3em] font-medium text-slate-400 uppercase mb-3">
-                我们相恋的第
-              </span>
-
-              {/* 大号数字天数：纯净、干净，绝对不要❤️ */}
-              <div className="flex items-baseline justify-center gap-2 mb-3">
-                <span className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight text-slate-800 drop-shadow-sm font-sans tabular-nums bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
-                  {formattedDays}
+              <div className="relative z-10 flex flex-col items-center">
+                {/* 上行文案：字间距舒展、温和 */}
+                <span className="text-[11px] sm:text-xs md:text-sm tracking-[0.25em] sm:tracking-[0.3em] font-medium text-slate-400 uppercase mb-2 sm:mb-3">
+                  我们相恋的第
                 </span>
-                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-500 tracking-wide">
-                  天
-                </span>
+
+                {/* 大号数字天数：纯净、干净 */}
+                <div className="flex items-baseline justify-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                  <span className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight text-slate-800 drop-shadow-sm font-sans tabular-nums bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+                    {formattedDays}
+                  </span>
+                  <span className="text-xl sm:text-2xl md:text-4xl font-bold text-slate-500 tracking-wide">
+                    天
+                  </span>
+                </div>
+
+                {/* 下方低调小字与展开指示 */}
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                  <span>从 {startDateStr} 至今</span>
+                  <span className="opacity-40">·</span>
+                  <span className="flex items-center gap-1 font-medium">
+                    点击{isPrecisionOpen ? '收起' : '查看'}精确时间
+                    <motion.span
+                      animate={{ rotate: isPrecisionOpen ? 180 : 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="inline-block text-[10px]"
+                    >
+                      ▾
+                    </motion.span>
+                  </span>
+                </div>
               </div>
 
-              {/* 下方低调小字与展开指示 */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors">
-                <span>从 {startDateStr} 至今</span>
-                <span className="opacity-40">·</span>
-                <span className="flex items-center gap-1 font-medium">
-                  点击{isPrecisionOpen ? '收起' : '查看'}精确时间
-                  <motion.span
-                    animate={{ rotate: isPrecisionOpen ? 180 : 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="inline-block text-[10px]"
+              {/* 渐进披露精密时间彩蛋 (Expandable Precision Panel) */}
+              <AnimatePresence>
+                {isPrecisionOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden relative z-10"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    ▾
-                  </motion.span>
-                </span>
-              </div>
-            </div>
+                    <div className="pt-3 sm:pt-4 border-t border-stone-200/50 flex flex-col items-center gap-2.5 sm:gap-3">
+                      {/* 温柔相伴年月天 */}
+                      <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-1.5 rounded-full bg-[#FFEDF3]/70 border border-[#FF8BB1]/20 text-[11px] sm:text-xs md:text-sm font-medium text-stone-700 shadow-sm flex-wrap justify-center">
+                        <span className="text-[#FF8BB1] text-xs">🌱</span>
+                        <span>已温柔相伴</span>
+                        <span className="font-semibold text-stone-900">{timeTogether.years}</span>
+                        <span>年</span>
+                        <span className="font-semibold text-stone-900">{timeTogether.months}</span>
+                        <span>个月</span>
+                        <span className="font-semibold text-stone-900">{timeTogether.days}</span>
+                        <span>天</span>
+                      </div>
 
-            {/* 渐进披露精密时间彩蛋 (Expandable Precision Panel) */}
-            <AnimatePresence>
-              {isPrecisionOpen && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden relative z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="pt-4 border-t border-stone-200/50 flex flex-col items-center gap-3">
-                    {/* 温柔相伴年月天 */}
-                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FFEDF3]/70 border border-[#FF8BB1]/20 text-xs md:text-sm font-medium text-stone-700 shadow-sm">
-                      <span className="text-[#FF8BB1] text-xs">🌱</span>
-                      <span>已温柔相伴</span>
-                      <span className="font-semibold text-stone-900">{timeTogether.years}</span>
-                      <span>年</span>
-                      <span className="font-semibold text-stone-900">{timeTogether.months}</span>
-                      <span>个月</span>
-                      <span className="font-semibold text-stone-900">{timeTogether.days}</span>
-                      <span>天</span>
-                    </div>
-
-                    {/* 精密计时时分秒 */}
-                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/70 border border-white shadow-sm text-xs md:text-sm text-stone-600 backdrop-blur-md">
-                      <span className="text-[#6BBFFF] text-xs">⏱️</span>
-                      <span className="text-slate-400">精密计时</span>
-                      <div className="flex items-center gap-1.5 font-mono font-bold text-slate-800 tabular-nums text-sm md:text-base">
-                        <span className="px-2 py-0.5 rounded-md bg-[#EBF7FF] text-[#3b82f6]">
-                          {String(timeTogether.hours).padStart(2, '0')}
-                        </span>
-                        <span className="text-slate-400">:</span>
-                        <span className="px-2 py-0.5 rounded-md bg-[#FFF9EB] text-[#d97706]">
-                          {String(timeTogether.minutes).padStart(2, '0')}
-                        </span>
-                        <span className="text-slate-400">:</span>
-                        <span className="px-2 py-0.5 rounded-md bg-[#FFF0F0] text-[#e11d48]">
-                          {String(timeTogether.seconds).padStart(2, '0')}
-                        </span>
+                      {/* 精密计时时分秒 */}
+                      <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full bg-white/70 border border-white shadow-sm text-[11px] sm:text-xs md:text-sm text-stone-600 backdrop-blur-md">
+                        <span className="text-[#6BBFFF] text-xs">⏱️</span>
+                        <span className="text-slate-400">精密计时</span>
+                        <div className="flex items-center gap-1 sm:gap-1.5 font-mono font-bold text-slate-800 tabular-nums text-xs sm:text-sm md:text-base">
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-[#EBF7FF] text-[#3b82f6]">
+                            {String(timeTogether.hours).padStart(2, '0')}
+                          </span>
+                          <span className="text-slate-400">:</span>
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-[#FFF9EB] text-[#d97706]">
+                            {String(timeTogether.minutes).padStart(2, '0')}
+                          </span>
+                          <span className="text-slate-400">:</span>
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-[#FFF0F0] text-[#e11d48]">
+                            {String(timeTogether.seconds).padStart(2, '0')}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </section>
-      </header>
-
-      {/* 那年今日 · 时光机 */}
-      <OnThisDayCard />
-
-      <section className="animate-slide-up mt-16" style={{ animationDelay: '0.2s' }}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 px-2">
-          <div className="mb-6 md:mb-0">
-            <div className="flex items-center space-x-4 mb-3">
-              <span className="bg-[#FFEDF3] text-[#FF8BB1] w-10 h-10 rounded-2xl flex items-center justify-center shadow-md shadow-[#FFEDF3]/50 border border-[#FF8BB1]/20">
-                <Icon name="auto_fix_high" size={20} />
-              </span>
-              <h2 className="text-4xl font-black text-slate-800 tracking-tight">碎碎念</h2>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Little things that make us smile</p>
-          </div>
-        </div>
+          </section>
+        </header>
 
-        <StickyNotes />
-      </section>
+        {/* 底部微型滑动指示器 */}
+        <div
+          className="mt-6 sm:mt-8 md:mt-12 flex flex-col items-center gap-1 text-slate-300 hover:text-slate-500 cursor-pointer transition-colors animate-pulse select-none"
+          onClick={() => {
+            const nextElem = document.getElementById('home-content-section')
+            if (nextElem) {
+              nextElem.scrollIntoView({ behavior: 'smooth' })
+            }
+          }}
+        >
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase">滑动查看更多美好</span>
+          <Icon name="expand_more" size={18} />
+        </div>
+      </div>
+
+      {/* 第二屏及下方区域：向下滚动才可见 */}
+      <div id="home-content-section" className="pt-6 sm:pt-10 md:pt-16">
+        {/* 那年今日 · 时光机 */}
+        <OnThisDayCard />
+
+        <section className="animate-slide-up mt-10 md:mt-16" style={{ animationDelay: '0.2s' }}>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-12 px-2">
+            <div className="mb-4 md:mb-0">
+              <div className="flex items-center space-x-3 sm:space-x-4 mb-2 sm:mb-3">
+                <span className="bg-[#FFEDF3] text-[#FF8BB1] w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-md shadow-[#FFEDF3]/50 border border-[#FF8BB1]/20">
+                  <Icon name="auto_fix_high" size={18} className="sm:w-5 sm:h-5" />
+                </span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight">碎碎念</h2>
+              </div>
+              <p className="text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-widest">Little things that make us smile</p>
+            </div>
+          </div>
+
+          <StickyNotes />
+        </section>
+      </div>
     </main>
   )
 }

@@ -86,16 +86,16 @@ export default function Todos() {
             return (
               <div
                 key={todo.id}
-                className={`premium-card !p-10 relative overflow-hidden group hover:rotate-1 transition-all duration-500 animate-slide-up ${theme.bg} ${theme.border} min-h-[300px] flex flex-col`}
+                className={`premium-card p-4 sm:p-6 md:!p-10 relative overflow-hidden group hover:rotate-1 transition-all duration-500 animate-slide-up ${theme.bg} ${theme.border} min-h-[160px] sm:min-h-[220px] md:min-h-[300px] flex flex-col`}
                 style={{ animationDelay: `${idx * 0.05}s` }}
               >
                 {/* 便签针效果 */}
-                <div className={`absolute top-6 right-6 ${theme.icon} rotate-12 group-hover:rotate-0 transition-transform`}>
-                  <Icon name="push_pin" size={28} />
+                <div className={`absolute top-3.5 right-3.5 sm:top-6 sm:right-6 ${theme.icon} rotate-12 group-hover:rotate-0 transition-transform`}>
+                  <Icon name="push_pin" size={22} className="sm:w-7 sm:h-7" />
                 </div>
 
                 <div className="flex-grow">
-                  <div className="flex items-center gap-2 mb-6 flex-wrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-6 flex-wrap">
                     <span className={`premium-badge !text-[9px] !bg-white/60 !text-slate-500 border-none`}>
                       {todo.due_date ? formatDate(todo.due_date, 'short') : 'SOMEDAY'}
                     </span>
@@ -119,16 +119,16 @@ export default function Todos() {
                       </button>
                     )}
                   </div>
-                  <h3 className={`text-2xl font-black mb-4 tracking-tight ${theme.text}`}>{todo.title}</h3>
-                  <p className="text-slate-600 font-medium text-sm leading-relaxed opacity-80">{todo.description}</p>
+                  <h3 className={`text-base sm:text-xl md:text-2xl font-black mb-1.5 sm:mb-4 tracking-tight ${theme.text}`}>{todo.title}</h3>
+                  <p className="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed opacity-80">{todo.description}</p>
                 </div>
 
-                <div className="mt-10 flex items-center justify-between pt-6 border-t border-dashed border-slate-200">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isCompleted ? 'bg-primary text-white shadow-lg shadow-primary/30 animate-elastic' : 'bg-white border-2 border-slate-100 text-slate-200'}`}>
-                      <Icon name="favorite" size={18} className={isCompleted ? "fill-current" : ""} />
+                <div className="mt-4 sm:mt-8 md:mt-10 flex items-center justify-between pt-3 sm:pt-6 border-t border-dashed border-slate-200">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all ${isCompleted ? 'bg-primary text-white shadow-lg shadow-primary/30 animate-elastic' : 'bg-white border-2 border-slate-100 text-slate-200'}`}>
+                      <Icon name="favorite" size={16} className={isCompleted ? "fill-current sm:w-[18px] sm:h-[18px]" : "sm:w-[18px] sm:h-[18px]"} />
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isCompleted ? 'text-primary' : 'text-slate-300'}`}>
+                    <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${isCompleted ? 'text-primary' : 'text-slate-300'}`}>
                       {isCompleted ? 'Fulfilled' : 'In Progress'}
                     </span>
                   </div>
