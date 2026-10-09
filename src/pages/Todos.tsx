@@ -61,16 +61,16 @@ export default function Todos() {
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
-        <header className="text-center mb-8 md:mb-16 animate-fade-in">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">愿望清单</h1>
-          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+        <header className="text-center mb-4 sm:mb-6 md:mb-16 animate-fade-in">
+          <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">愿望清单</h1>
+          <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
             Dream it. Wish it. Do it together.
           </p>
           <ModuleSubNav section="couple" className="mb-0" />
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10 mb-12 md:mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-10 mb-12 md:mb-24">
           {todos.map((todo, idx) => {
             const isCompleted = todo.status === 'completed'
             const theme = stickyColors[idx % stickyColors.length]!
@@ -86,16 +86,16 @@ export default function Todos() {
             return (
               <div
                 key={todo.id}
-                className={`premium-card p-4 sm:p-6 md:!p-10 relative overflow-hidden group hover:rotate-1 transition-all duration-500 animate-slide-up ${theme.bg} ${theme.border} min-h-[160px] sm:min-h-[220px] md:min-h-[300px] flex flex-col`}
+                className={`premium-card p-3.5 sm:p-6 md:!p-10 relative overflow-hidden group hover:rotate-1 transition-all duration-500 animate-slide-up ${theme.bg} ${theme.border} min-h-[105px] sm:min-h-[200px] md:min-h-[280px] flex flex-col justify-between`}
                 style={{ animationDelay: `${idx * 0.05}s` }}
               >
                 {/* 便签针效果 */}
-                <div className={`absolute top-3.5 right-3.5 sm:top-6 sm:right-6 ${theme.icon} rotate-12 group-hover:rotate-0 transition-transform`}>
-                  <Icon name="push_pin" size={22} className="sm:w-7 sm:h-7" />
+                <div className={`absolute top-2.5 right-2.5 sm:top-6 sm:right-6 ${theme.icon} rotate-12 group-hover:rotate-0 transition-transform`}>
+                  <Icon name="push_pin" size={18} className="sm:w-7 sm:h-7" />
                 </div>
 
-                <div className="flex-grow">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-6 flex-wrap">
+                <div className="flex-grow pr-6 sm:pr-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-4 flex-wrap">
                     <span className={`premium-badge !text-[9px] !bg-white/60 !text-slate-500 border-none`}>
                       {todo.due_date ? formatDate(todo.due_date, 'short') : 'SOMEDAY'}
                     </span>
@@ -104,6 +104,9 @@ export default function Todos() {
                         {todo.category}
                       </span>
                     )}
+                    <span className={`premium-badge !text-[9px] border-none sm:hidden ${isCompleted ? '!bg-rose-500 !text-white shadow-xs' : '!bg-white/50 !text-slate-500'}`}>
+                      {isCompleted ? '✓ 已实现' : '进行中'}
+                    </span>
                     {isTravelTodo && (
                       <button
                         type="button"
@@ -111,19 +114,20 @@ export default function Todos() {
                           e.stopPropagation()
                           navigate('/map')
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 text-[10px] font-bold transition-all border border-blue-200/60 active:scale-95 shadow-sm"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 text-[9px] sm:text-[10px] font-bold transition-all border border-blue-200/60 active:scale-95 shadow-xs"
                         title="查看足迹地图"
                       >
-                        <Icon name="map" size={11} />
+                        <Icon name="map" size={10} />
                         <span>足迹地图</span>
                       </button>
                     )}
                   </div>
-                  <h3 className={`text-base sm:text-xl md:text-2xl font-black mb-1.5 sm:mb-4 tracking-tight ${theme.text}`}>{todo.title}</h3>
-                  <p className="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed opacity-80">{todo.description}</p>
+                  <h3 className={`text-sm sm:text-xl md:text-2xl font-black mb-1 sm:mb-3 tracking-tight ${theme.text}`}>{todo.title}</h3>
+                  <p className="text-slate-600 font-medium text-xs sm:text-sm leading-relaxed opacity-80 line-clamp-2 sm:line-clamp-none">{todo.description}</p>
                 </div>
 
-                <div className="mt-4 sm:mt-8 md:mt-10 flex items-center justify-between pt-3 sm:pt-6 border-t border-dashed border-slate-200">
+                {/* 桌面端完整状态栏 */}
+                <div className="hidden sm:flex mt-4 sm:mt-8 md:mt-10 items-center justify-between pt-3 sm:pt-6 border-t border-dashed border-slate-200">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all ${isCompleted ? 'bg-primary text-white shadow-lg shadow-primary/30 animate-elastic' : 'bg-white border-2 border-slate-100 text-slate-200'}`}>
                       <Icon name="favorite" size={16} className={isCompleted ? "fill-current sm:w-[18px] sm:h-[18px]" : "sm:w-[18px] sm:h-[18px]"} />

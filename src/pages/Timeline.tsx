@@ -114,19 +114,19 @@ export default function Timeline() {
 
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
-        <header className="text-center mb-8 md:mb-16 animate-fade-in">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">时光长廊</h1>
-          <p className="text-slate-400 font-bold text-[11px] md:text-sm uppercase tracking-widest leading-relaxed mb-4 md:mb-8">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+        <header className="text-center mb-4 sm:mb-8 md:mb-16 animate-fade-in">
+          <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">时光长廊</h1>
+          <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
             Beautiful moments frozen in time
           </p>
 
           {/* 年份快捷跳转 */}
           {availableYears.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 mt-3 sm:mt-4 md:mt-8">
+            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 mt-2 sm:mt-4 md:mt-8 max-w-full overflow-x-auto no-scrollbar justify-start sm:justify-center px-1">
               <button
                 onClick={() => setSelectedYear(null)}
-                className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                   selectedYear === null
                     ? 'bg-primary text-white shadow-md shadow-primary/20'
                     : 'bg-white/80 text-slate-500 hover:bg-white hover:text-slate-700 border border-slate-100'
@@ -138,7 +138,7 @@ export default function Timeline() {
                 <button
                   key={year}
                   onClick={() => setSelectedYear(year)}
-                  className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                  className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                     selectedYear === year
                       ? 'bg-primary text-white shadow-lg shadow-primary/20'
                       : 'bg-white/80 text-slate-500 hover:bg-white hover:text-slate-700 border border-slate-100'
@@ -151,18 +151,18 @@ export default function Timeline() {
           )}
 
           {/* 分类筛选 */}
-          <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 md:gap-3 mt-2.5 sm:mt-4 md:mt-8 bg-white/40 p-1 sm:p-1.5 md:p-2 rounded-xl sm:rounded-2xl md:rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
+          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-3 mt-2 sm:mt-3 md:mt-8 bg-white/40 p-1 sm:p-1.5 md:p-2 rounded-xl sm:rounded-2xl md:rounded-[2rem] border border-white max-w-full overflow-x-auto no-scrollbar mx-auto backdrop-blur-md px-1.5">
             {['all', '日常', '旅行', '纪念日', '特别时刻', '其他'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-6 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider md:tracking-widest transition-all active:scale-95 ${
+                className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-6 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider md:tracking-widest transition-all active:scale-95 ${
                   filter === cat
                     ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                     : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
-                {cat === 'all' ? 'Everything' : cat}
+                {cat === 'all' ? '全部' : cat}
               </button>
             ))}
           </div>
@@ -270,8 +270,8 @@ export default function Timeline() {
                     <div className={`w-full md:w-[45%] flex flex-col ${isEven ? 'md:items-start' : 'md:items-end'}`}>
                       <div className={`premium-card p-3.5 sm:p-5 md:p-10 group w-full md:max-w-lg hover-card ${isMilestone ? 'ring-2 ring-amber-200' : ''} ${isOldest ? 'ring-2 sm:ring-4 ring-primary shadow-xl sm:shadow-2xl shadow-primary/10' : ''}`}>
                         {isMilestone && !isOldest && (
-                          <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-100 flex items-center justify-center shadow-md sm:shadow-lg">
-                            <Icon name="star" size={13} className="text-amber-500 sm:w-4 sm:h-4" />
+                          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-amber-100 flex items-center justify-center shadow-xs sm:shadow-md">
+                            <Icon name="star" size={11} className="text-amber-500 sm:w-3.5 sm:h-3.5" />
                           </div>
                         )}
 
@@ -279,7 +279,7 @@ export default function Timeline() {
                           {/* 左侧文字主体 */}
                           <div className="flex-1 min-w-0">
                             {/* 顶部徽章行 */}
-                            <div className="flex items-center gap-1.5 md:gap-3 mb-2 md:mb-6 flex-wrap">
+                            <div className="flex items-center gap-1.5 md:gap-3 mb-1.5 md:mb-6 flex-wrap">
                               <span className="premium-badge text-[9px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1">
                                 {event.date ? formatDate(event.date, 'short') : 'SOMEDAY'}
                               </span>
@@ -289,14 +289,16 @@ export default function Timeline() {
                             </div>
 
                             {/* 标题 */}
-                            <h3 className="text-sm sm:text-base md:text-2xl font-black text-slate-800 mb-1.5 md:mb-3 group-hover:text-primary transition-colors tracking-tight line-clamp-2 md:line-clamp-none">
+                            <h3 className="text-sm sm:text-base md:text-2xl font-black text-slate-800 mb-1 sm:mb-2 md:mb-3 group-hover:text-primary transition-colors tracking-tight line-clamp-2 md:line-clamp-none">
                               {event.title}
                             </h3>
 
                             {/* 描述文本 */}
-                            <p className="text-slate-500 font-medium text-xs sm:text-sm leading-relaxed mb-2 md:mb-6 italic opacity-80 line-clamp-2 md:line-clamp-3">
-                              "{event.description}"
-                            </p>
+                            {event.description && event.description.replace(/["'\s]/g, '') && (
+                              <p className="text-slate-500 font-medium text-xs sm:text-sm leading-relaxed mb-1.5 sm:mb-2 md:mb-6 italic opacity-80 line-clamp-2 md:line-clamp-3">
+                                "{event.description}"
+                              </p>
+                            )}
 
                             {/* 地点元数据 */}
                             {event.location && (

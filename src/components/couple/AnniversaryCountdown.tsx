@@ -430,15 +430,15 @@ export default function AnniversaryCountdown() {
               {coupleName1} & {coupleName2} 已经牵手走过
             </p>
 
-            <div className="my-2 sm:my-3 md:my-5 flex items-baseline gap-1.5 sm:gap-2">
-              <span className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-800 tracking-tight font-sans tabular-nums">
+            <div className="my-1.5 sm:my-3 md:my-5 flex items-baseline gap-1.5 sm:gap-2">
+              <span className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-800 tracking-tight font-sans tabular-nums">
                 {totalDaysTogether}
               </span>
-              <span className="text-base sm:text-xl font-bold text-rose-500">DAYS</span>
+              <span className="text-xs sm:text-base font-bold text-rose-500">DAYS</span>
             </div>
           </div>
 
-          <div className="relative z-10 pt-2.5 sm:pt-4 border-t border-rose-200/40 flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-medium">
+          <div className="relative z-10 pt-2 sm:pt-4 border-t border-rose-200/40 flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1 text-rose-500/90 font-semibold truncate">
               <Icon name="auto_awesome" size={12} className="shrink-0" />
               每分每秒，都因为有你而格外闪耀
@@ -475,34 +475,38 @@ export default function AnniversaryCountdown() {
                 </span>
               </div>
 
-              <h3 className="text-lg sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-1 sm:mb-2">
-                {nearestHero.title}
-              </h3>
-              <p className="text-slate-500 text-xs sm:text-sm mb-3 sm:mb-6">
-                {nearestHero.subtitle || '心中最甜的约定，正在悄悄靠近'}
-              </p>
-
-              {/* Highlight number display */}
-              <div className="bg-slate-50/70 border border-slate-100 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 md:p-6 mb-2 sm:mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-2">
                 <div>
-                  <div className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-bold mb-0.5 sm:mb-1">
+                  <h3 className="text-base sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-0.5 sm:mb-1">
+                    {nearestHero.title}
+                  </h3>
+                  <p className="text-slate-500 text-[11px] sm:text-sm">
+                    {nearestHero.subtitle || '心中最甜的约定，正在悄悄靠近'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Highlight number display & Progress */}
+              <div className="bg-slate-50/50 sm:bg-slate-50/70 border border-slate-100/80 rounded-xl sm:rounded-3xl p-2.5 sm:p-5 md:p-6 mb-2 sm:mb-4 flex items-center justify-between gap-3 sm:gap-4">
+                <div>
+                  <div className="text-[9px] sm:text-xs uppercase tracking-wider text-slate-400 font-bold mb-0.5">
                     Counting down
                   </div>
-                  <div className="flex items-baseline gap-1.5 sm:gap-2">
+                  <div className="flex items-baseline gap-1 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-500">还有</span>
-                    <span className="text-3xl sm:text-4xl md:text-6xl font-black text-slate-800 tabular-nums font-sans">
+                    <span className="text-2xl sm:text-4xl md:text-6xl font-black text-slate-800 tabular-nums font-sans">
                       {nearestHero.daysRemaining}
                     </span>
-                    <span className="text-base sm:text-lg font-bold text-rose-500">天</span>
+                    <span className="text-xs sm:text-lg font-bold text-rose-500">天</span>
                   </div>
                 </div>
 
                 {/* Progress Visualizer Ring/Pill */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/60">
-                  <div className="text-[10px] sm:text-xs text-slate-400 font-semibold mb-0.5 sm:mb-1">
+                <div className="flex flex-col items-end justify-center">
+                  <div className="text-[9px] sm:text-xs text-slate-400 font-semibold mb-1">
                     {nearestHero.isToday ? '🎉 就在今天！' : '期盼指数'}
                   </div>
-                  <div className="w-28 sm:w-36 h-2 sm:h-3 bg-slate-200/80 rounded-full overflow-hidden p-0.5">
+                  <div className="w-24 sm:w-36 h-2 sm:h-3 bg-slate-200/80 rounded-full overflow-hidden p-0.5">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{

@@ -153,20 +153,20 @@ export default function FoodCheckin() {
   return (
     <div className="min-h-screen text-slate-700 transition-colors duration-300">
       <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
-        <header className="text-center mb-6 md:mb-16 animate-fade-in">
+        <header className="text-center mb-4 sm:mb-8 md:mb-16 animate-fade-in">
           <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">美食足迹</h1>
-          <p className="text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
+          <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
             Discovering the world, one bite at a time
           </p>
 
-          <ModuleSubNav section="couple" className="mb-4" />
+          <ModuleSubNav section="couple" className="mb-2 sm:mb-4" />
 
-          <div className="flex flex-wrap justify-center gap-1.5 md:gap-3 mt-4 md:mt-6 bg-white/40 p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-white max-w-fit mx-auto backdrop-blur-md">
+          <div className="flex items-center gap-1.5 md:gap-3 mt-2 sm:mt-4 md:mt-6 bg-white/40 p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-white max-w-full overflow-x-auto no-scrollbar mx-auto backdrop-blur-md px-2">
             {cuisines.map(c => (
               <button
                 key={c.name}
                 onClick={() => setFilter(c.name)}
-                className={`px-3 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 transition-all ${filter === c.name
+                className={`px-3 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 transition-all whitespace-nowrap shrink-0 ${filter === c.name
                   ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                   : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                   }`}
@@ -179,27 +179,27 @@ export default function FoodCheckin() {
 
           {/* 视图切换 */}
           {checkins.length > 0 && (
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center gap-2 mt-3 sm:mt-6">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                   viewMode === 'grid'
                     ? 'bg-primary/10 text-primary'
                     : 'bg-white/50 text-slate-400 hover:text-slate-600'
                 }`}
               >
-                <Icon name="grid_view" size={16} />
+                <Icon name="grid_view" size={15} />
                 卡片
               </button>
               <button
                 onClick={() => setViewMode('stats')}
-                className={`px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                   viewMode === 'stats'
                     ? 'bg-primary/10 text-primary'
                     : 'bg-white/50 text-slate-400 hover:text-slate-600'
                 }`}
               >
-                <Icon name="bar_chart" size={16} />
+                <Icon name="bar_chart" size={15} />
                 统计
               </button>
             </div>
@@ -220,7 +220,7 @@ export default function FoodCheckin() {
             const images = checkin.images || []
             return (
               <div key={checkin.id} className="premium-card !p-0 overflow-hidden group hover:-translate-y-2 transition-all duration-700 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="h-44 sm:h-52 md:h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
+                <div className="h-36 sm:h-52 md:h-64 relative overflow-hidden cursor-pointer" onClick={() => handleImageClick(images, 0)}>
                   <LazyImage
                     alt={checkin.restaurant_name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
@@ -246,34 +246,36 @@ export default function FoodCheckin() {
                   )}
                 </div>
 
-                <div className="p-4 sm:p-6 md:p-8">
-                  <div className="flex justify-between items-start mb-2 sm:mb-4">
-                    <h3 className="font-black text-lg sm:text-xl md:text-2xl text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{checkin.restaurant_name}</h3>
+                <div className="p-3.5 sm:p-6 md:p-8">
+                  <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+                    <h3 className="font-black text-base sm:text-xl md:text-2xl text-slate-800 leading-tight tracking-tight group-hover:text-primary transition-colors">{checkin.restaurant_name}</h3>
                     <div className="bg-slate-50 p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
-                      {renderStars(checkin.overall_rating, 14)}
+                      {renderStars(checkin.overall_rating, 13)}
                     </div>
                   </div>
 
-                  {checkin.address ? (
-                    <button
-                      type="button"
-                      onClick={() => navigate('/map')}
-                      className="group/loc inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary transition-all text-left mb-3 sm:mb-6 max-w-full cursor-pointer"
-                      title="在足迹地图中查看"
-                    >
-                      <Icon name="location_on" size={13} className="text-primary group-hover/loc:scale-110 transition-transform shrink-0" />
-                      <span className="text-[11px] font-bold truncate">{checkin.address}</span>
-                      <Icon name="east" size={11} className="opacity-0 group-hover/loc:opacity-100 transition-opacity shrink-0 ml-0.5" />
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2 text-slate-400 mb-3 sm:mb-6">
-                      <Icon name="location_on" size={14} className="text-primary/40" />
-                      <span className="text-[10px] font-black uppercase tracking-widest truncate">Somewhere delicious</span>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between gap-2 mb-2 sm:mb-4">
+                    {checkin.address ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/map')}
+                        className="group/loc inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary transition-all text-left max-w-[70%] cursor-pointer"
+                        title="在足迹地图中查看"
+                      >
+                        <Icon name="location_on" size={12} className="text-primary group-hover/loc:scale-110 transition-transform shrink-0" />
+                        <span className="text-[10px] sm:text-[11px] font-bold truncate">{checkin.address}</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Icon name="location_on" size={13} className="text-primary/40" />
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest truncate">Somewhere delicious</span>
+                      </div>
+                    )}
+                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold shrink-0">{formatDate(checkin.date, 'short')}</span>
+                  </div>
 
                   {checkin.recommended_dishes && (
-                    <div className="mb-3 sm:mb-6 flex flex-wrap gap-1.5 sm:gap-2">
+                    <div className="mb-2 sm:mb-6 flex flex-wrap gap-1 sm:gap-2">
                       {checkin.recommended_dishes.split(/[,，、]/).filter(Boolean).slice(0, 3).map((dish, i) => (
                         <span key={i} className="premium-badge !bg-slate-50 !text-slate-500 !shadow-none border border-slate-100 !text-[9px] sm:!text-[10px]">
                           {dish.trim()}
@@ -283,11 +285,11 @@ export default function FoodCheckin() {
                   )}
 
                   {checkin.description && (
-                    <p className="text-slate-500 font-medium text-xs sm:text-sm italic mb-3 sm:mb-6 line-clamp-2 leading-relaxed opacity-80">"{checkin.description}"</p>
+                    <p className="text-slate-500 font-medium text-xs sm:text-sm italic mb-2 sm:mb-6 line-clamp-2 leading-relaxed opacity-80">"{checkin.description}"</p>
                   )}
 
                   {(checkin.taste_rating || checkin.environment_rating || checkin.service_rating) && (
-                    <div className="flex flex-wrap gap-4 mb-8 py-4 border-y border-dashed border-slate-100">
+                    <div className="hidden sm:flex flex-wrap gap-4 mb-4 sm:mb-8 py-3 sm:py-4 border-y border-dashed border-slate-100">
                       {renderMiniRating('Taste', checkin.taste_rating)}
                       {renderMiniRating('Vibe', checkin.environment_rating)}
                       {renderMiniRating('Service', checkin.service_rating)}
@@ -295,25 +297,23 @@ export default function FoodCheckin() {
                   )}
 
                   {images.length > 1 && (
-                    <div className="flex gap-2.5 mb-8">
+                    <div className="flex gap-2 mb-2 sm:mb-8">
                       {images.slice(0, 4).map((img, i) => (
                         <div
                           key={i}
-                          className="w-12 h-12 rounded-xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-primary/10 transition-all shadow-sm"
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-primary/10 transition-all shadow-sm"
                           onClick={() => handleImageClick(images, i)}
                         >
                           <LazyImage className="w-full h-full object-cover" src={getThumbnailUrl(img, 200)} alt={`Photo ${i}`} />
                         </div>
                       ))}
                       {images.length > 4 && (
-                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-900 text-white flex items-center justify-center text-[9px] sm:text-[10px] font-black">
                           +{images.length - 4}
                         </div>
                       )}
                     </div>
                   )}
-
-                  <p className="text-[10px] text-end text-slate-300 font-black uppercase tracking-[0.2em]">{formatDate(checkin.date, 'en')}</p>
                 </div>
               </div>
             )
