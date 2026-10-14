@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -12,6 +12,7 @@ import FoodStats from '../components/map/FoodStats'
 import { getThumbnailUrl } from '../utils/imageUtils'
 import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
+import { hapticFeedback } from '../utils/haptics'
 
 type ViewMode = 'grid' | 'stats'
 
@@ -52,6 +53,16 @@ export default function FoodCheckin() {
   // 多图查看状态
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  const [showBackToTop, setShowBackToTop] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // 从API获取已使用的分类列表
   const { data: cuisinesData } = useQuery({
@@ -214,6 +225,18 @@ export default function FoodCheckin() {
           >
             <FoodStats checkins={checkins} />
           </motion.div>
+        ) : checkins.length === 0 ? (
+          <div className="text-center py-16 md:py-24 text-slate-400 animate-fade-in">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
+              <Icon name="restaurant" size={32} className="text-slate-300 md:w-10 md:h-10" />
+            </div>
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-600 mb-2">
+              {filter !== 'all' ? '暂无该分类的美食记录' : '还没有美食打卡记录'}
+            </h3>
+            <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto">
+              {filter !== 'all' ? '切换其他分类看看，或在后台添加美味记录~' : '在后台记录你们一起品尝过的第一道美味吧~'}
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
           {checkins.map((checkin, index) => {

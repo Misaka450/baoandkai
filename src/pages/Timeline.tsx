@@ -433,7 +433,7 @@ export default function Timeline() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-5 md:right-8 w-11 h-11 md:w-14 md:h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-4 md:left-8 w-11 h-11 md:w-14 md:h-14 bg-white/90 text-stone-600 hover:text-primary backdrop-blur-md border border-stone-200/80 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40"
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.95 }}
           >

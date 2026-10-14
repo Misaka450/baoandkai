@@ -104,6 +104,13 @@ export default function VinylPlayer() {
     stop: () => void
   } | null>(null)
 
+  const stopAudio = useCallback(() => {
+    if (trackNodesRef.current) {
+      trackNodesRef.current.stop()
+      trackNodesRef.current = null
+    }
+  }, [])
+
   // Track client-side mount state for document.body portal and subscribe to modal state
   useEffect(() => {
     setMounted(true)
@@ -466,12 +473,6 @@ export default function VinylPlayer() {
     }
   }
 
-  const stopAudio = () => {
-    if (trackNodesRef.current) {
-      trackNodesRef.current.stop()
-      trackNodesRef.current = null
-    }
-  }
 
   const handleTogglePlay = () => {
     hapticFeedback('light')

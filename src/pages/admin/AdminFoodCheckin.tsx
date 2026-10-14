@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { apiService } from '../../services/apiService'
@@ -55,7 +55,15 @@ const AdminFoodCheckin = () => {
     const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null)
     const [exifNotice, setExifNotice] = useState<string | null>(null)
 
-    useEffect(() => { loadCheckins() }, [])
+    const loadCheckins = useCallback(async () => {
+        try {
+            const { data, error } = await apiService.get<{ data: FoodCheckin[] }>('/food?limit=100')
+            if (error) throw new Error(error)
+            setCheckins(data?.data || [])
+        } catch (e) { console.error(e) } finally { setLoading(false) }
+    }, [])
+
+    useEffect(() => { loadCheckins() }, [loadCheckins])
 
     useEffect(() => {
         if (!exifNotice) return
@@ -64,14 +72,6 @@ const AdminFoodCheckin = () => {
         }, 3000)
         return () => clearTimeout(timer)
     }, [exifNotice])
-
-    const loadCheckins = async () => {
-        try {
-            const { data, error } = await apiService.get<{ data: FoodCheckin[] }>('/food?limit=100')
-            if (error) throw new Error(error)
-            setCheckins(data?.data || [])
-        } catch (e) { console.error(e) } finally { setLoading(false) }
-    }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return

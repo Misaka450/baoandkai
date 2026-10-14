@@ -84,8 +84,8 @@ const AdminSettings = () => {
                 [field]: prev[field] === url ? '' : prev[field],
                 [customField]: ''
             }))
-        } catch (error) {
-            console.error('删除头像物理文件失败:', error)
+        } catch {
+            console.error('删除头像物理文件失败:')
             setConfig(prev => ({ ...prev, [field]: '' }))
         }
     }
@@ -98,7 +98,7 @@ const AdminSettings = () => {
             const result = await updateConfig(config)
             if (!result.success) throw new Error(result.error)
             await showAlert('成功', '设置已保存，我们的小窝又更新啦！', 'success')
-        } catch (error) {
+        } catch {
             await showAlert('错误', '保存设置时遇到了一点小问题', 'error')
         } finally {
             setSaving(false)

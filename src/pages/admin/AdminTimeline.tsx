@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { apiService } from '../../services/apiService'
@@ -8,7 +8,6 @@ import { useAdminModal } from '../../hooks/useAdminModal'
 import Icon from '../../components/icons/Icons'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import Button from '../../components/admin/ui/Button'
-import Card from '../../components/admin/ui/Card'
 import { hapticFeedback } from '../../utils/haptics'
 
 interface TimelineEvent {
@@ -52,19 +51,7 @@ const AdminTimeline = () => {
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
 
-    useEffect(() => {
-        loadEvents()
-    }, [])
-
-    useEffect(() => {
-        if (!exifNotice) return
-        const timer = setTimeout(() => {
-            setExifNotice(null)
-        }, 3000)
-        return () => clearTimeout(timer)
-    }, [exifNotice])
-
-    const loadEvents = async () => {
+    const loadEvents = useCallback(async () => {
         try {
             const { data, error } = await apiService.get<{ data: TimelineEvent[] }>('/timeline?limit=100')
             if (error) throw new Error(error)
@@ -74,7 +61,19 @@ const AdminTimeline = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
+
+    useEffect(() => {
+        loadEvents()
+    }, [loadEvents])
+
+    useEffect(() => {
+        if (!exifNotice) return
+        const timer = setTimeout(() => {
+            setExifNotice(null)
+        }, 3000)
+        return () => clearTimeout(timer)
+    }, [exifNotice])
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
