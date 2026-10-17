@@ -48,7 +48,16 @@ export default function AdminTravelMap() {
     const [editingId, setEditingId] = useState<number | string | null>(null)
     const [formData, setFormData] = useState<CheckinFormData>(emptyForm)
     const [saving, setSaving] = useState(false)
+    const [exifNotice, setExifNotice] = useState<string | null>(null)
     const { modalState, showConfirm, showAlert, closeModal } = useAdminModal()
+
+    useEffect(() => {
+        if (!exifNotice) return
+        const timer = setTimeout(() => {
+            setExifNotice(null)
+        }, 4500)
+        return () => clearTimeout(timer)
+    }, [exifNotice])
 
     const { data: mapData, isLoading } = useQuery({
         queryKey: ['mapCheckins'],
@@ -123,19 +132,54 @@ export default function AdminTravelMap() {
         { label: '城市', value: new Set(checkins.filter(c => c.city).map(c => c.city)).size, icon: 'location_on', color: 'text-[#6BBFFF]', bg: 'bg-[#EBF7FF]' },
     ], [checkins])
 
-    // 并行上传图片，比串行上传更快
+    // 并行上传图片，并智能提取 EXIF（拍摄时间与省市）
     const handleImageUpload = async (files: FileList) => {
         const uploadPromises = Array.from(files).map(async (file) => {
             const uploadData = new globalThis.FormData()
             uploadData.append('file', file)
             uploadData.append('folder', 'map')
-            const response = await apiService.upload<{ url: string }>('/upload', uploadData)
-            return response.data?.url
+            const response = await apiService.upload<{
+                url: string
+                exif?: {
+                    date: string | null
+                    latitude: number | null
+                    longitude: number | null
+                    province: string | null
+                    city: string | null
+                    location: string | null
+                } | null
+            }>('/upload', uploadData)
+            return response.data
         })
-        const urls = await Promise.all(uploadPromises)
-        const validUrls = urls.filter((url): url is string => !!url)
+        const results = await Promise.all(uploadPromises)
+        const validUrls = results.map(r => r?.url).filter((url): url is string => !!url)
+
         if (validUrls.length > 0) {
-            setFormData(prev => ({ ...prev, images: [...prev.images, ...validUrls] }))
+            setFormData(prev => {
+                const updated = { ...prev, images: [...prev.images, ...validUrls] }
+                // 查找第一张包含 EXIF 信息的照片
+                const firstExif = results.find(r => r?.exif && (r.exif.date || r.exif.province))?.exif
+                if (firstExif) {
+                    const filledFields: string[] = []
+                    if (!prev.date && firstExif.date) {
+                        updated.date = firstExif.date
+                        filledFields.push(`日期: ${firstExif.date}`)
+                    }
+                    if (!prev.province && firstExif.province) {
+                        updated.province = firstExif.province
+                        filledFields.push(`省份: ${firstExif.province}`)
+                    }
+                    if (!prev.city && firstExif.city) {
+                        updated.city = firstExif.city
+                        filledFields.push(`城市: ${firstExif.city}`)
+                    }
+                    if (filledFields.length > 0) {
+                        setExifNotice(`✨ 已从照片自动识别：${filledFields.join(' · ')}`)
+                        hapticFeedback('medium')
+                    }
+                }
+                return updated
+            })
         }
     }
 
@@ -336,6 +380,12 @@ export default function AdminTravelMap() {
                             {/* 图片上传 */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">照片</label>
+                                {exifNotice && (
+                                    <div className="mb-3 p-2.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2 animate-fade-in">
+                                        <span>✨</span>
+                                        <span>{exifNotice}</span>
+                                    </div>
+                                )}
                                 {formData.images.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {formData.images.map((img, i) => (

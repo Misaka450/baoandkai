@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
@@ -32,6 +32,8 @@ export default function Todos() {
   const [currentPage] = useState(1)
   const itemsPerPage = 12
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
   const { data: todosData, isLoading: loading } = useQuery({
     queryKey: ['todos', currentPage, itemsPerPage],
@@ -46,6 +48,25 @@ export default function Todos() {
   const totalCount = todosData?.totalCount || 0
   const completedCount = todosData?.completedCount || 0
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+
+  const categories = useMemo(() => {
+    const set = new Set<string>()
+    todos.forEach(t => {
+      if (t.category) set.add(t.category)
+    })
+    return Array.from(set)
+  }, [todos])
+
+  const filteredTodos = useMemo(() => {
+    return todos.filter(t => {
+      const isDone = t.status === 'completed'
+      const matchStatus = statusFilter === 'all'
+        ? true
+        : statusFilter === 'completed' ? isDone : !isDone
+      const matchCategory = categoryFilter === 'all' || t.category === categoryFilter
+      return matchStatus && matchCategory
+    })
+  }, [todos, statusFilter, categoryFilter])
 
   if (loading) return (
     <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6 text-center">
@@ -70,8 +91,116 @@ export default function Todos() {
           <ModuleSubNav section="couple" className="mb-0" />
         </header>
 
+        {/* 浪漫心愿进度看板 */}
+        <section aria-label="心愿达成看板" className="max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="bg-white/75 backdrop-blur-md rounded-2xl md:rounded-3xl p-5 md:p-7 border border-white/80 shadow-lg shadow-pink-100/30">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#FFEDF3] text-rose-500 flex items-center justify-center font-bold text-lg shadow-xs border border-rose-100">
+                  💖
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    心愿达成进度
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200/60 font-bold">
+                      {completedCount} / {totalCount || todos.length}
+                    </span>
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-medium">
+                    {progress === 100
+                      ? '🎉 哇！所有小心愿全部达成啦，继续开启新的浪漫吧！'
+                      : `我们已并肩实现了 ${completedCount} 个甜蜜心愿，每一个脚印都是幸福`}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <span className="text-2xl sm:text-3xl font-black text-rose-500 font-sans tabular-nums">
+                  {progress}%
+                </span>
+              </div>
+            </div>
+
+            {/* 渐变流光进度条 */}
+            <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden p-0.5 border border-stone-200/50 relative">
+              <div
+                className="h-full bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500 rounded-full transition-all duration-700 ease-out shadow-xs"
+                style={{ width: `${Math.min(100, Math.max(progress, 2))}%` }}
+              />
+            </div>
+
+            {/* 快速筛选标签栏 */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 mt-4 pt-3 border-t border-stone-200/60 text-xs">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('all'); }}
+                  className={`px-3 py-1 rounded-full font-bold transition-all ${
+                    statusFilter === 'all'
+                      ? 'bg-slate-800 text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200/70'
+                  }`}
+                >
+                  全部 ({todos.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('pending'); }}
+                  className={`px-3 py-1 rounded-full font-bold transition-all ${
+                    statusFilter === 'pending'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200/70'
+                  }`}
+                >
+                  进行中 ({todos.length - completedCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('completed'); }}
+                  className={`px-3 py-1 rounded-full font-bold transition-all ${
+                    statusFilter === 'completed'
+                      ? 'bg-rose-500 text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200/70'
+                  }`}
+                >
+                  已实现 ({completedCount})
+                </button>
+              </div>
+
+              {categories.length > 0 && (
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => { hapticFeedback('light'); setCategoryFilter('all'); }}
+                    className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] transition-all ${
+                      categoryFilter === 'all'
+                        ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                        : 'text-stone-400 hover:text-stone-700'
+                    }`}
+                  >
+                    全部类别
+                  </button>
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => { hapticFeedback('light'); setCategoryFilter(cat); }}
+                      className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] transition-all ${
+                        categoryFilter === cat
+                          ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                          : 'text-stone-400 hover:text-stone-700'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-10 mb-12 md:mb-24">
-          {todos.map((todo, idx) => {
+          {filteredTodos.map((todo, idx) => {
             const isCompleted = todo.status === 'completed'
             const theme = stickyColors[idx % stickyColors.length]!
             const isTravelTodo =
@@ -129,19 +258,29 @@ export default function Todos() {
                 {/* 桌面端完整状态栏 */}
                 <div className="hidden sm:flex mt-4 sm:mt-8 md:mt-10 items-center justify-between pt-3 sm:pt-6 border-t border-dashed border-slate-200">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all ${isCompleted ? 'bg-primary text-white shadow-lg shadow-primary/30 animate-elastic' : 'bg-white border-2 border-slate-100 text-slate-200'}`}>
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all ${isCompleted ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-elastic' : 'bg-white border-2 border-slate-100 text-slate-200'}`}>
                       <Icon name="favorite" size={16} className={isCompleted ? "fill-current sm:w-[18px] sm:h-[18px]" : "sm:w-[18px] sm:h-[18px]"} />
                     </div>
-                    <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${isCompleted ? 'text-primary' : 'text-slate-300'}`}>
-                      {isCompleted ? 'Fulfilled' : 'In Progress'}
+                    <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${isCompleted ? 'text-rose-500' : 'text-slate-300'}`}>
+                      {isCompleted ? '已共同实现 · 幸福印记' : '计划中 · In Progress'}
                     </span>
                   </div>
                 </div>
 
-                {/* 完成勋章 */}
+                {/* 真实情侣专属复古盖章印记 (Vintage Couple Stamp) */}
                 {isCompleted && (
-                  <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center rotate-12 pointer-events-none">
-                    <Icon name="verified" size={48} className="text-primary/10" />
+                  <div
+                    className="absolute -bottom-2 -right-2 sm:bottom-3 sm:right-3 w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full border-2 border-rose-500/80 bg-rose-50/50 backdrop-blur-2xs flex flex-col items-center justify-center p-1 text-rose-600 select-none shadow-xs rotate-[-12deg] pointer-events-none z-10"
+                    title="❤️ 包包 & 恺恺 · 愿望达成"
+                  >
+                    <div className="absolute inset-[3px] rounded-full border border-dashed border-rose-400/60 pointer-events-none" />
+                    <span className="text-[8px] sm:text-[9.5px] font-black tracking-tight leading-tight text-rose-700">
+                      ❤️ 包包 & 恺恺
+                    </span>
+                    <div className="w-8 sm:w-10 h-[0.5px] bg-rose-400/60 my-0.5" />
+                    <span className="text-[7.5px] sm:text-[8.5px] font-extrabold tracking-widest leading-tight text-rose-600">
+                      愿望达成
+                    </span>
                   </div>
                 )}
 

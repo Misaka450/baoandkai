@@ -46,6 +46,7 @@ const AdminTodos = () => {
     const [completingTodo, setCompletingTodo] = useState<Todo | null>(null)
     const [completionPhotos, setCompletionPhotos] = useState<string[]>([])
     const [completionNotes, setCompletionNotes] = useState('')
+    const [completedBy, setCompletedBy] = useState<'both' | 'bao' | 'kai'>('both')
     const [uploading, setUploading] = useState(false)
     const [, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -144,18 +145,28 @@ const AdminTodos = () => {
 
     const handleComplete = async () => {
         if (!completingTodo) return
+        const actorTag = completedBy === 'both'
+            ? '【二人共同达成 ❤️】'
+            : completedBy === 'bao'
+                ? '【包包已达成 🌸】'
+                : '【恺恺已达成 💫】'
+        const finalNotes = completionNotes.trim()
+            ? `${actorTag} ${completionNotes.trim()}`
+            : actorTag
+
         try {
             const { error } = await apiService.put(`/todos/${completingTodo.id}`, {
                 ...completingTodo,
                 status: 'completed',
                 completion_photos: completionPhotos,
-                completion_notes: completionNotes
+                completion_notes: finalNotes
             })
             if (error) throw new Error(error)
-            await showAlert('成功', '心愿已完成！恭喜你们！🎉', 'success')
+            await showAlert('成功', '心愿已达成！恭喜你们！🎉', 'success')
             setCompletingTodo(null)
             setCompletionPhotos([])
             setCompletionNotes('')
+            setCompletedBy('both')
             loadTodos()
         } catch { await showAlert('错误', '更新失败', 'error') }
     }
@@ -270,6 +281,51 @@ const AdminTodos = () => {
                     <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10">
                         <h3 className="font-black text-slate-800 text-lg mb-1">{completingTodo?.title}</h3>
                         <p className="text-sm text-slate-500 font-medium">{completingTodo?.description}</p>
+                    </div>
+
+                    {/* 双人印章认领选择 */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                            达成印章 / WHO COMPLETED
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCompletedBy('both')}
+                                className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                                    completedBy === 'both'
+                                        ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
+                                        : 'bg-stone-50 text-stone-600 border-stone-200/80 hover:bg-stone-100'
+                                }`}
+                            >
+                                <span>❤️</span>
+                                <span>共同达成</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCompletedBy('bao')}
+                                className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                                    completedBy === 'bao'
+                                        ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-500/20'
+                                        : 'bg-stone-50 text-stone-600 border-stone-200/80 hover:bg-stone-100'
+                                }`}
+                            >
+                                <span>🌸</span>
+                                <span>包包认领</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCompletedBy('kai')}
+                                className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                                    completedBy === 'kai'
+                                        ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                                        : 'bg-stone-50 text-stone-600 border-stone-200/80 hover:bg-stone-100'
+                                }`}
+                            >
+                                <span>💫</span>
+                                <span>恺恺认领</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="space-y-4">

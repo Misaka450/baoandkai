@@ -108,38 +108,84 @@ export default function CoupleFeatures() {
         </div>
       </main>
 
-      {/* 时间胶囊详情弹窗 */}
+      {/* 时间胶囊·情书信笺详情弹窗 */}
       <Modal
         isOpen={!!selectedCapsule}
         onClose={handleCloseCapsule}
-        title={selectedCapsule?.isUnlocked ? '💌 已解锁的时间胶囊' : '🔒 时间胶囊'}
+        title={selectedCapsule?.isUnlocked ? '💌 跨越时光的信函' : '🔒 时间胶囊'}
       >
         {selectedCapsule && (
-          <div className="space-y-4">
-            <div className="bg-slate-50 rounded-xl p-4">
-              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                {selectedCapsule.message}
-              </p>
+          <div className="space-y-5">
+            {/* 拟物信纸背景 */}
+            <div
+              className="relative rounded-2xl p-6 md:p-8 border border-stone-200/80 shadow-sm"
+              style={{
+                backgroundColor: '#FFFDF9',
+                backgroundImage: 'radial-gradient(#e5e7eb 0.75px, transparent 0.75px)',
+                backgroundSize: '16px 16px'
+              }}
+            >
+              {/* 信纸顶部微型邮票与邮戳 */}
+              <div className="flex items-start justify-between pb-4 border-b border-stone-200/60 mb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">✉️</span>
+                    <h3 className="font-black text-slate-800 text-base md:text-lg tracking-tight">
+                      致未来的我们
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 font-mono">
+                    Time Capsule · Written from the Past
+                  </p>
+                </div>
+
+                {/* 邮戳印记 */}
+                <div className="text-right font-mono text-[10px] text-stone-400 bg-stone-100/80 px-2.5 py-1 rounded-md border border-stone-200/60">
+                  <div>POST: {formatDate(selectedCapsule.createdAt, 'dot')}</div>
+                  <div className="text-rose-500 font-bold">OPEN: {formatDate(selectedCapsule.unlockDate, 'dot')}</div>
+                </div>
+              </div>
+
+              {/* 正文内容 */}
+              <div className="py-2">
+                <p className="text-slate-800 text-sm md:text-base leading-relaxed md:leading-loose whitespace-pre-wrap font-medium tracking-wide">
+                  {selectedCapsule.message}
+                </p>
+              </div>
+
+              {/* 底部情侣印章 */}
+              <div className="mt-8 pt-4 border-t border-stone-200/60 flex items-center justify-between">
+                <div className="text-xs text-slate-400 font-serif italic">
+                  “念念不忘，必有回响。”
+                </div>
+
+                <div
+                  className="w-16 h-16 rounded-full border-2 border-rose-500/80 flex flex-col items-center justify-center p-1 text-rose-600 select-none shadow-xs bg-rose-50/40 rotate-[-12deg]"
+                >
+                  <div className="absolute inset-[2px] rounded-full border border-dashed border-rose-400/50 pointer-events-none" />
+                  <span className="text-[8px] font-black leading-tight">BB & KK</span>
+                  <div className="w-6 h-[0.5px] bg-rose-300 my-0.5" />
+                  <span className="text-[7.5px] font-bold leading-tight">真爱印证</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm text-slate-400">
-              <span>创建于：{formatDate(selectedCapsule.createdAt, 'short')}</span>
-              <span>解锁于：{formatDate(selectedCapsule.unlockDate, 'short')}</span>
-            </div>
-            <div className="flex justify-end gap-2 pt-4 border-t">
+
+            {/* 底部按钮栏 */}
+            <div className="flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   setShowDeleteConfirm(selectedCapsule.id)
                   handleCloseCapsule()
                 }}
-                className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
               >
-                删除胶囊
+                删除这封信
               </button>
               <button
                 onClick={handleCloseCapsule}
-                className="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                className="px-6 py-2.5 text-xs font-bold bg-primary text-white rounded-full hover:bg-primary/90 shadow-md shadow-primary/25 active:scale-95 transition-all"
               >
-                关闭
+                封存回信箱
               </button>
             </div>
           </div>

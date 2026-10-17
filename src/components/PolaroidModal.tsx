@@ -83,7 +83,22 @@ export default function PolaroidModal({
     defaultDate || formatDate(new Date().toISOString(), 'dot')
   )
   const [location, setLocation] = useState<string>(defaultLocation || '甜甜蜜蜜的小窝')
+  const [showQuartzDate, setShowQuartzDate] = useState<boolean>(true)
   const [isExporting, setIsExporting] = useState<boolean>(false)
+
+  // 格式化为复古胶片相机的橙色石英点阵时间戳，如 '26 10 08
+  const getQuartzDateStr = (dateStr: string): string => {
+    if (!dateStr) return ''
+    const match = dateStr.match(/\b(?:\d{2})?(\d{2})[-./](\d{1,2})[-./](\d{1,2})\b/)
+    if (match) {
+      const yy = match[1]
+      const mm = match[2]!.padStart(2, '0')
+      const dd = match[3]!.padStart(2, '0')
+      return `'${yy} ${mm} ${dd}`
+    }
+    return dateStr
+  }
+  const quartzDateStr = getQuartzDateStr(date)
 
   // Reset or update state when modal opens
   useEffect(() => {
@@ -199,6 +214,21 @@ export default function PolaroidModal({
       }
       ctx.drawImage(img, sx, sy, sWidth, sHeight, photoX, photoY, photoSize, photoSize)
       ctx.restore()
+
+      // 复古胶片石英时间戳 (Vintage Quartz Date Stamp in glowing amber)
+      if (showQuartzDate && quartzDateStr) {
+        ctx.save()
+        ctx.font = 'bold 15px "Courier New", Courier, monospace'
+        ctx.textAlign = 'right'
+        ctx.textBaseline = 'bottom'
+        ctx.fillStyle = '#FFAA00'
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)'
+        ctx.shadowBlur = 4
+        ctx.shadowOffsetX = 1
+        ctx.shadowOffsetY = 1
+        ctx.fillText(quartzDateStr, photoX + photoSize - 14, photoY + photoSize - 12)
+        ctx.restore()
+      }
 
       // Subtle photo inner shadow / border
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)'
@@ -334,15 +364,23 @@ export default function PolaroidModal({
         </button>
 
         {/* Left Side: Polaroid Photo Paper Card (#FAF7F2) */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center pt-2">
           <div
-            className="w-full max-w-[340px] sm:max-w-[370px] md:max-w-[390px] rounded-2xl p-4 pb-6 transition-all duration-300 border border-stone-200/80"
+            className="w-full max-w-[340px] sm:max-w-[370px] md:max-w-[390px] rounded-2xl p-4 pb-6 transition-all duration-300 border border-stone-200/80 relative"
             style={{
               backgroundColor: '#FAF7F2',
               boxShadow:
                 '0 20px 45px -10px rgba(50, 40, 30, 0.22), 0 0 0 1px rgba(214, 211, 209, 0.6)'
             }}
           >
+            {/* 模拟手账和纸胶带 (Washi Tape) */}
+            <div
+              className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-6 bg-amber-100/75 border-t border-b border-amber-200/90 backdrop-blur-2xs shadow-2xs rotate-[-1deg] z-20 pointer-events-none"
+              style={{
+                clipPath: 'polygon(0% 0%, 4% 50%, 0% 100%, 100% 100%, 96% 50%, 100% 0%)'
+              }}
+            />
+
             {/* Photo Paper Inner Recessed Frame */}
             <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-stone-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] border border-stone-200/50">
               <img
@@ -352,6 +390,13 @@ export default function PolaroidModal({
                 style={{ filter: activeFilter.cssFilter }}
                 crossOrigin="anonymous"
               />
+
+              {/* 经典胶片石英时间戳 (Vintage Quartz Date Stamp) */}
+              {showQuartzDate && quartzDateStr && (
+                <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-xs bg-black/45 backdrop-blur-2xs text-[#FFAA00] font-mono text-xs font-black tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] select-none pointer-events-none">
+                  {quartzDateStr}
+                </div>
+              )}
             </div>
 
             {/* Bottom White Margin (Classic Polaroid bottom margin) */}
@@ -468,9 +513,29 @@ export default function PolaroidModal({
                 />
               </div>
             </div>
+
+            {/* 4. Vintage Quartz Date Stamp Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">⏰</span>
+                <div>
+                  <div className="text-xs font-bold text-slate-700">复古石英时间戳</div>
+                  <div className="text-[10px] text-slate-400">90年代胶片相机橘色微光日期</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuartzDate(!showQuartzDate)}
+                className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                  showQuartzDate ? 'bg-rose-500 justify-end' : 'bg-stone-300 justify-start'
+                }`}
+              >
+                <span className="w-4 h-4 bg-white rounded-full shadow-xs transform transition-transform" />
+              </button>
+            </div>
           </div>
 
-          {/* 4. Action Save Button */}
+          {/* 5. Action Save Button */}
           <div className="pt-2">
             <button
               type="button"
