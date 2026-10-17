@@ -67,9 +67,9 @@ export function validateAndSanitize<T extends Record<string, unknown>>(
 
   for (const field of requiredFields) {
     const value = body[field.name];
+    rules.push(validateRequired(value, field.label));
     if (value !== undefined && value !== null) {
       const strValue = String(value);
-      rules.push(validateRequired(strValue, field.label));
       if (field.maxLength) {
         rules.push(validateLength(strValue, field.label, 1, field.maxLength));
       }

@@ -90,7 +90,7 @@ class ApiService {
             cleanup()
 
             if (response.status === 401) {
-                if (window.location.pathname !== '/login') {
+                if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
                     window.location.replace('/login')
                 }
                 return { data: null, error: 'Unauthorized' }

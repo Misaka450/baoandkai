@@ -338,36 +338,35 @@ food.put('/:id', async (c) => {
       images,
     } = body;
 
-    // 仅验证传入的字段
-    const fieldsToValidate: Array<{ name: string; label: string; maxLength?: number }> = [];
+    // 验证规则（仅验证传入的字段）
+    const rules: (string | null)[] = [];
     if (restaurant_name !== undefined) {
-      fieldsToValidate.push({ name: 'restaurant_name', label: '餐厅名称', maxLength: 100 });
+      rules.push(validateRequired(restaurant_name as string, '餐厅名称'));
+      rules.push(validateLength(restaurant_name as string, '餐厅名称', 1, 100));
     }
     if (date !== undefined) {
-      fieldsToValidate.push({ name: 'date', label: '日期' });
+      rules.push(validateRequired(date as string, '日期'));
+      rules.push(validateDate(date as string, '日期'));
+    }
+    if (overall_rating !== undefined) {
+      rules.push(validateRating(Number(overall_rating), '综合评分'));
+    }
+    const validationError = validate(rules);
+    if (validationError) return errorResponse(validationError, 400);
+
+    // XSS 检测
+    if (
+      (restaurant_name && hasXSS(String(restaurant_name))) ||
+      (description && hasXSS(String(description)))
+    ) {
+      return errorResponse('输入内容包含不安全字符', 400);
     }
 
-    // 验证并消毒
+    // 消毒数据
     const sanitized = sanitizeObject(
       { restaurant_name, description, address, cuisine, price_range, recommended_dishes },
       ['images']
     );
-
-    // 日期验证
-    if (date !== undefined) {
-      const dateError = validateDate(date as string, '日期');
-      if (dateError) {
-        return jsonResponse({ success: false, message: dateError }, 400);
-      }
-    }
-
-    // 评分校验
-    if (overall_rating !== undefined) {
-      const ratingError = validateRating(Number(overall_rating), '综合评分');
-      if (ratingError) {
-        return jsonResponse({ success: false, message: ratingError }, 400);
-      }
-    }
 
     await pool.query(
       `UPDATE food_checkins SET 

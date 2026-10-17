@@ -44,8 +44,8 @@ function resolveSafe(key: string): string {
   const uploadRoot = path.resolve(UPLOAD_DIR);
   const filePath = path.resolve(uploadRoot, normalizedKey);
 
-  if (filePath !== uploadRoot && !filePath.startsWith(uploadRoot + path.sep)) {
-    // 路径逃逸出了上传目录，属于路径遍历攻击，拒绝访问
+  if (!filePath.startsWith(uploadRoot + path.sep)) {
+    // 路径逃逸出了上传目录或指向上传根目录本身，拒绝访问
     throw new Error('非法的文件路径');
   }
 

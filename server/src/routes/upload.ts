@@ -71,8 +71,16 @@ upload.post('/', async (c) => {
       }
 
       // 存储文件 - 使用安全扩展名，防止可执行文件上传
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'bin';
-      const safeExtension = allowedTypes.some(t => t.endsWith(extension)) ? extension : 'bin';
+      const MIME_TO_EXT: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+      };
+      const rawExt = file.name.split('.').pop()?.toLowerCase() || '';
+      const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(rawExt)
+        ? rawExt
+        : (MIME_TO_EXT[file.type] || 'jpg');
       const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${safeExtension}`;
       await storage.put(filename, buffer);
 

@@ -334,14 +334,23 @@ const DataBackup = () => {
                     setImportProgress(prev => ({ ...prev, current: imported, module: '相册' }))
 
                     const albumPhotos = importData.photos?.[album.id || ''] || []
-                    for (const photo of albumPhotos) {
-                        const p = photo as { url: string; caption?: string }
-                        if (newAlbum?.id && p.url) {
-                            try {
-                                await apiService.post(`/albums/${newAlbum.id}/photos`, { url: p.url, caption: p.caption || '' })
-                            } catch {
-                                errors.push(`相册"${album.name}"照片导入失败`)
-                            }
+                    if (newAlbum?.id && albumPhotos.length > 0) {
+                        try {
+                            await apiService.put(`/albums/${newAlbum.id}`, {
+                                name: album.name,
+                                description: album.description,
+                                cover_url: album.cover_url,
+                                photos: albumPhotos.map((photo, index) => {
+                                    const p = photo as { url: string; caption?: string; sort_order?: number }
+                                    return {
+                                        url: p.url,
+                                        caption: p.caption || '',
+                                        sort_order: p.sort_order ?? index,
+                                    }
+                                }),
+                            })
+                        } catch {
+                            errors.push(`相册"${album.name}"照片导入失败`)
                         }
                     }
                 } catch {

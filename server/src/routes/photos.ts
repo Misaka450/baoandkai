@@ -5,8 +5,6 @@ import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
 import { parsePhotoExif } from '../utils/exif.js';
-import path from 'path';
-import fs from 'fs/promises';
 
 const photos = new Hono();
 
@@ -101,8 +99,16 @@ photos.post('/', async (c) => {
 
     const timestamp = Date.now();
     const randomStr = crypto.randomUUID().substring(0, 8);
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const safeExtension = allowedTypes.some((t) => t.endsWith(extension)) ? extension : 'jpg';
+    const MIME_TO_EXT: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    };
+    const rawExt = file.name.split('.').pop()?.toLowerCase() || '';
+    const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(rawExt)
+      ? rawExt
+      : (MIME_TO_EXT[file.type] || 'jpg');
 
     // 智能解析 EXIF（拍摄时间与经纬度城市）
     const exifMeta = await parsePhotoExif(buffer);
@@ -169,8 +175,8 @@ photos.post('/sync-exif', async (c) => {
         }
         if (!relativeKey) continue;
 
-        const filePath = path.resolve(uploadBase, decodeURIComponent(relativeKey));
-        const fileBuf = await fs.readFile(filePath);
+        const fileBuf = await storage.get(decodeURIComponent(relativeKey));
+        if (!fileBuf) continue;
         const meta = await parsePhotoExif(fileBuf);
 
         const newDate = p.date || meta.date;

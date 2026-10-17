@@ -38,6 +38,10 @@ export function isPublicPath(pathname: string, method: string): boolean {
     return true;
   }
 
+  if (pathname === '/api/auth/update-password-hash') {
+    return method === 'POST';
+  }
+
   return false;
 }
 

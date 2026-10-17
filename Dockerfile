@@ -16,6 +16,7 @@ RUN npm prune --omit=dev
 FROM node:20-alpine AS app
 WORKDIR /app
 ENV NODE_ENV=production
+COPY --from=backend-builder /app/server/package.json ./server/package.json
 COPY --from=backend-builder /app/server/dist ./server
 COPY --from=backend-builder /app/server/node_modules ./server/node_modules
 RUN mkdir -p /app/uploads

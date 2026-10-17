@@ -174,24 +174,28 @@ mapCheckins.put('/:id', async (c) => {
     const { title, description, province, city, date, images } = body;
 
     // 验证规则（仅验证传入字段）
-    const fieldsToValidate: Array<{ name: string; label: string; maxLength?: number }> = [];
+    const rules: (string | null)[] = [];
     if (title !== undefined) {
-      fieldsToValidate.push({ name: 'title', label: '标题', maxLength: 100 });
+      rules.push(validateRequired(title as string, '标题'));
+      rules.push(validateLength(title as string, '标题', 1, 100));
     }
     if (date !== undefined) {
-      fieldsToValidate.push({ name: 'date', label: '日期' });
+      rules.push(validateRequired(date as string, '日期'));
+      rules.push(validateDate(date as string, '日期'));
+    }
+    const validationError = validate(rules);
+    if (validationError) return errorResponse(validationError, 400);
+
+    // XSS 检测
+    if (
+      (title && hasXSS(String(title))) ||
+      (description && hasXSS(String(description)))
+    ) {
+      return errorResponse('输入内容包含不安全字符', 400);
     }
 
     // 验证并消毒
     const sanitized = sanitizeObject({ title, description, province, city }, ['images']);
-
-    // 日期格式验证
-    if (date !== undefined) {
-      const dateError = validateDate(date as string, '日期');
-      if (dateError) {
-        return jsonResponse({ success: false, message: dateError }, 400);
-      }
-    }
 
     await pool.query(
       `UPDATE map_checkins SET

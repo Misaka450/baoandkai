@@ -58,6 +58,26 @@ describe('validateImageMagic（文件魔数验证）', () => {
         expect(validateImageMagic(pngBytes, 'image/png')).toBe(true);
     });
 
+    it('WebP 文件头完整签名匹配成功（RIFF....WEBP）', () => {
+        // RIFF + 4 字节长度 + WEBP
+        const webpBytes = new Uint8Array([
+            0x52, 0x49, 0x46, 0x46, // RIFF
+            0x00, 0x00, 0x00, 0x00, // file size
+            0x57, 0x45, 0x42, 0x50, // WEBP
+        ]);
+        expect(validateImageMagic(webpBytes, 'image/webp')).toBe(true);
+    });
+
+    it('非 WebP 的其他 RIFF 容器文件被拒绝（如 WAV/AVI 伪装）', () => {
+        // RIFF + 4 字节长度 + WAVE
+        const wavBytes = new Uint8Array([
+            0x52, 0x49, 0x46, 0x46, // RIFF
+            0x00, 0x00, 0x00, 0x00, // file size
+            0x57, 0x41, 0x56, 0x45, // WAVE
+        ]);
+        expect(validateImageMagic(wavBytes, 'image/webp')).toBe(false);
+    });
+
     it('伪造的 MIME 类型被拒绝（恶意文件伪装成图片）', () => {
         // 内容实际是 PNG，却声明为 JPEG —— 必须拒绝
         const pngBytes = new Uint8Array([0x89, 0x50, 0x4E, 0x47]);

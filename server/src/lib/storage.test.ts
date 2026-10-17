@@ -33,6 +33,12 @@ describe('storage 路径安全校验（防路径遍历攻击）', () => {
     expect(await storage.get('..%2f..%2fserver%2f.env')).toBeNull();
   });
 
+  it('拒绝空路径或根目录本身（防 EISDIR 异常）', async () => {
+    expect(await storage.get('')).toBeNull();
+    expect(await storage.get('.')).toBeNull();
+    expect(await storage.get('./')).toBeNull();
+  });
+
   it('深层嵌套的合法相对路径不会误判（如 albums/xxx/photo.jpg）', async () => {
     // 该路径不存在，应返回 null（而不是抛异常），且不会被当作攻击拦截而报错
     await expect(storage.get('albums/不存在相册/photo.jpg')).resolves.toBeNull();

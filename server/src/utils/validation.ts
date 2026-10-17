@@ -117,18 +117,25 @@ const IMAGE_MAGIC_BYTES: Record<string, Uint8Array[]> = {
   'image/jpeg': [new Uint8Array([0xFF, 0xD8, 0xFF])],
   'image/png':  [new Uint8Array([0x89, 0x50, 0x4E, 0x47])],
   'image/gif':  [new Uint8Array([0x47, 0x49, 0x46])],
-  'image/webp': [new Uint8Array([0x52, 0x49, 0x46, 0x46])],
 };
 
 /**
  * 验证文件是否具有与声明 MIME 类型匹配的文件魔数
  * 防止攻击者将恶意文件伪装成图片上传
- * 
- * @param fileBuffer 文件的前 N 个字节（至少 4 字节即可验证常见图片格式）
+ *
+ * @param fileBuffer 文件的前 N 个字节（至少 12 字节即可完整验证 WebP 等图片格式）
  * @param mimeType 文件声明的 MIME 类型
  * @returns true 表示文件魔数与声明类型匹配
  */
 export function validateImageMagic(fileBuffer: Uint8Array, mimeType: string): boolean {
+  // WebP 格式：前4字节为 "RIFF"，第8-11字节为 "WEBP"（避免与其他 RIFF 如 WAV/AVI 混淆）
+  if (mimeType === 'image/webp') {
+    if (fileBuffer.length < 12) return false;
+    const isRiff = fileBuffer[0] === 0x52 && fileBuffer[1] === 0x49 && fileBuffer[2] === 0x46 && fileBuffer[3] === 0x46;
+    const isWebp = fileBuffer[8] === 0x57 && fileBuffer[9] === 0x45 && fileBuffer[10] === 0x42 && fileBuffer[11] === 0x50;
+    return isRiff && isWebp;
+  }
+
   const signatures = IMAGE_MAGIC_BYTES[mimeType];
   if (!signatures) return false;
   return signatures.some(sig =>

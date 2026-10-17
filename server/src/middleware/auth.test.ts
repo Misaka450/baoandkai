@@ -23,6 +23,8 @@ describe('isPublicPath 路径安全性判断', () => {
     it('公开认证路由允许访问', () => {
         expect(isPublicPath('/api/auth/login', 'POST')).toBe(true);
         expect(isPublicPath('/api/auth/check-token', 'GET')).toBe(true);
+        expect(isPublicPath('/api/auth/update-password-hash', 'POST')).toBe(true);
+        expect(isPublicPath('/api/auth/update-password-hash', 'GET')).toBe(false);
     });
 
     it('业务私有接口必须拦截', () => {
