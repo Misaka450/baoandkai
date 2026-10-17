@@ -40,6 +40,29 @@ export function serializeImages(images: unknown): string {
 }
 
 /**
+ * 判断 URL 是否属于本地服务托管的图片路径
+ */
+export function isLocalImageUrl(url: string | null | undefined): boolean {
+    if (!url) return false;
+    return url.startsWith('/uploads/') || url.startsWith('/api/images/');
+}
+
+/**
+ * 从 URL 中提取相对存储 Key (用于物理文件操作与沙箱读取)
+ * 适配 /uploads/xxx、/api/images/xxx?w=... 或相对路径
+ */
+export function extractStorageKey(url: string | null | undefined): string {
+    if (!url) return '';
+    let key = url;
+    if (key.includes('/uploads/')) {
+        key = key.split('/uploads/')[1] || '';
+    } else if (key.includes('/api/images/')) {
+        key = (key.split('/api/images/')[1] || '').split('?')[0] || '';
+    }
+    return decodeURIComponent(key);
+}
+
+/**
  * 转换图片数组或可能是 JSON 字符串的数据
  * @param images 图片数据
  * @returns 转换后的图片数组

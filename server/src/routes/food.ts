@@ -42,35 +42,36 @@ interface CreateFoodBody {
   images?: string[];
 }
 
+const CUISINE_LABELS: Record<string, string> = {
+  '火锅': 'Hot Pot',
+  '甜点': 'Dessert',
+  '烧烤': 'Barbecue',
+  '面食': 'Noodles',
+  '日料': 'Japanese',
+  '韩料': 'Korean',
+  '西餐': 'Western',
+  '中餐': 'Chinese',
+  '小吃': 'Snacks',
+  '饮品': 'Drinks',
+};
+
+async function fetchCuisinesData() {
+  const { rows } = await pool.query(
+    `SELECT DISTINCT cuisine FROM food_checkins
+     WHERE cuisine IS NOT NULL AND cuisine != ''
+     ORDER BY cuisine`
+  );
+  const cuisines = rows.map((r: any) => r.cuisine).filter(Boolean);
+  return { data: cuisines, labels: CUISINE_LABELS };
+}
+
 /**
  * GET /api/food/cuisines
  * 获取所有不重复的菜系列表
  */
 food.get('/cuisines', async (_c) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT DISTINCT cuisine FROM food_checkins 
-       WHERE cuisine IS NOT NULL AND cuisine != '' 
-       ORDER BY cuisine`
-    );
-
-    const cuisines = rows.map((r: any) => r.cuisine).filter(Boolean);
-
-    return jsonResponse({
-      data: cuisines,
-      labels: {
-        '火锅': 'Hot Pot',
-        '甜点': 'Dessert',
-        '烧烤': 'Barbecue',
-        '面食': 'Noodles',
-        '日料': 'Japanese',
-        '韩料': 'Korean',
-        '西餐': 'Western',
-        '中餐': 'Chinese',
-        '小吃': 'Snacks',
-        '饮品': 'Drinks',
-      },
-    });
+    return jsonResponse(await fetchCuisinesData());
   } catch (error: any) {
     console.error('获取菜系列表失败:', error);
     return errorResponse(error.message, 500);
@@ -87,63 +88,33 @@ food.get('/', async (c) => {
 
     // 兼容原有的前端 cuisines 判定
     if (c.req.query('cuisines') === 'true') {
-      // 重定向到 /cuisines
-      const cuisinesResult = await pool.query(
-        `SELECT DISTINCT cuisine FROM food_checkins 
-         WHERE cuisine IS NOT NULL AND cuisine != '' 
-         ORDER BY cuisine`
-      );
-      const cuisines = cuisinesResult.rows.map((r: any) => r.cuisine).filter(Boolean);
-      return jsonResponse({
-        data: cuisines,
-        labels: {
-          '火锅': 'Hot Pot',
-          '甜点': 'Dessert',
-          '烧烤': 'Barbecue',
-          '面食': 'Noodles',
-          '日料': 'Japanese',
-          '韩料': 'Korean',
-          '西餐': 'Western',
-          '中餐': 'Chinese',
-          '小吃': 'Snacks',
-          '饮品': 'Drinks',
-        },
-      });
+      return jsonResponse(await fetchCuisinesData());
     }
 
     const pagination = parsePagination(url, 12);
-    const cuisine = c.req.query('cuisine') || '';
+    const cuisine = (c.req.query('cuisine') || '').trim();
 
-    let total = 0;
-    let foodsList: FoodCheckin[] = [];
+    const whereClause = cuisine ? 'WHERE cuisine = $1' : '';
+    const queryParams: any[] = cuisine ? [cuisine] : [];
 
-    if (cuisine) {
-      const { rows: countRows } = await pool.query(
-        'SELECT COUNT(*) as total FROM food_checkins WHERE cuisine = $1',
-        [cuisine]
-      );
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int as total FROM food_checkins ${whereClause}`,
+      queryParams
+    );
+    const total = countRows[0]?.total || 0;
 
-      const { rows } = await pool.query(
-        `SELECT * FROM food_checkins
-         WHERE cuisine = $1
-         ORDER BY sort_order DESC, date DESC, created_at DESC
-         LIMIT $2 OFFSET $3`,
-        [cuisine, pagination.pageSize, pagination.offset]
-      );
-      foodsList = rows as FoodCheckin[];
-    } else {
-      const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM food_checkins');
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const listParams = cuisine
+      ? [cuisine, pagination.pageSize, pagination.offset]
+      : [pagination.pageSize, pagination.offset];
+    const limitOffsetPlaceholder = cuisine ? '$2 OFFSET $3' : '$1 OFFSET $2';
 
-      const { rows } = await pool.query(
-        `SELECT * FROM food_checkins
-         ORDER BY sort_order DESC, date DESC, created_at DESC
-         LIMIT $1 OFFSET $2`,
-        [pagination.pageSize, pagination.offset]
-      );
-      foodsList = rows as FoodCheckin[];
-    }
+    const { rows: foodsList } = await pool.query<FoodCheckin>(
+      `SELECT * FROM food_checkins
+       ${whereClause}
+       ORDER BY sort_order DESC, date DESC, created_at DESC
+       LIMIT ${limitOffsetPlaceholder}`,
+      listParams
+    );
 
     const foodsWithImages = foodsList.map((f) => ({
       ...f,

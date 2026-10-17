@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
-import { transformImageUrl } from '../utils/url.js';
+import { transformImageUrl, extractStorageKey } from '../utils/url.js';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
@@ -160,22 +160,16 @@ photos.post('/sync-exif', async (c) => {
     );
 
     let updatedCount = 0;
-    const uploadBase = storage.getUploadDir();
 
     for (const p of photosList) {
       // 如果日期或地点已存在，跳过不重复读取
       if (p.date && p.location) continue;
 
       try {
-        let relativeKey = p.url || '';
-        if (relativeKey.startsWith('/uploads/')) {
-          relativeKey = relativeKey.replace('/uploads/', '');
-        } else if (relativeKey.includes('/api/images/')) {
-          relativeKey = relativeKey.split('/api/images/')[1] || '';
-        }
+        const relativeKey = extractStorageKey(p.url);
         if (!relativeKey) continue;
 
-        const fileBuf = await storage.get(decodeURIComponent(relativeKey));
+        const fileBuf = await storage.get(relativeKey);
         if (!fileBuf) continue;
         const meta = await parsePhotoExif(fileBuf);
 
@@ -319,20 +313,12 @@ photos.delete('/:photoId', async (c) => {
     }
 
     // 2. 从本地存储物理删除文件
-    if (photo.url) {
-      let key = '';
-      if (photo.url.includes('/uploads/')) {
-        key = photo.url.split('/uploads/')[1] || '';
-      } else if (photo.url.includes('/api/images/')) {
-        key = photo.url.split('/api/images/')[1] || '';
-      }
-
-      if (key) {
-        try {
-          await storage.delete(decodeURIComponent(key));
-        } catch (e) {
-          console.error('删除本地图片文件失败:', key, e);
-        }
+    const key = extractStorageKey(photo.url);
+    if (key) {
+      try {
+        await storage.delete(key);
+      } catch (e) {
+        console.error('删除本地图片文件失败:', key, e);
       }
     }
 

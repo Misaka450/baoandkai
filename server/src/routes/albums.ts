@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
-import { transformImageUrl } from '../utils/url.js';
+import { transformImageUrl, extractStorageKey } from '../utils/url.js';
 import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { pool } from '../lib/db.js';
@@ -254,23 +254,8 @@ albums.delete('/:id', async (c) => {
 
     const fileCleanupPromises = photos
       .map((p: any) => {
-        if (p.url) {
-          // 适配 /uploads/ 或 /api/images/
-          let key = '';
-          if (p.url.includes('/uploads/')) {
-            key = p.url.split('/uploads/')[1] || '';
-          } else if (p.url.includes('/api/images/')) {
-            key = p.url.split('/api/images/')[1] || '';
-          }
-          if (key) {
-            try {
-              return storage.delete(decodeURIComponent(key));
-            } catch (e) {
-              console.error('物理删除本地图片失败:', key, e);
-            }
-          }
-        }
-        return null;
+        const key = extractStorageKey(p.url);
+        return key ? storage.delete(key).catch((e) => console.error('物理删除本地图片失败:', key, e)) : null;
       })
       .filter((p): p is Promise<void> => p !== null);
 

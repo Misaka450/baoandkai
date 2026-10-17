@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
-import { transformImageUrl } from '../utils/url.js';
+import { transformImageUrl, isLocalImageUrl } from '../utils/url.js';
 import { hasXSS, sanitizeObject } from '../utils/validation.js';
 import { pool } from '../lib/db.js';
 
@@ -13,10 +13,6 @@ const ALLOWED_CONFIG_FIELDS = [
 ];
 
 const TEXT_FIELDS = ['coupleName1', 'coupleName2', 'homeTitle', 'homeSubtitle'];
-
-function isLocalImageUrl(url: string): boolean {
-  return url.startsWith('/uploads/') || url.startsWith('/api/images/');
-}
 
 /**
  * GET /api/config

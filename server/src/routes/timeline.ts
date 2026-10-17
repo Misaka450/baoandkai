@@ -38,40 +38,27 @@ timeline.get('/', async (c) => {
     const pagination = parsePagination(url, 10);
     const category = (c.req.query('category') || '').trim();
 
-    let total = 0;
-    let eventsList: TimelineEvent[] = [];
+    const whereClause = category ? 'WHERE category = $1' : '';
+    const queryParams: any[] = category ? [category] : [];
 
-    if (category) {
-      // 过滤分类计数
-      const { rows: countRows } = await pool.query(
-        'SELECT COUNT(*) as total FROM timeline_events WHERE category = $1',
-        [category]
-      );
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int as total FROM timeline_events ${whereClause}`,
+      queryParams
+    );
+    const total = countRows[0]?.total || 0;
 
-      // 获取分类列表
-      const { rows } = await pool.query(
-        `SELECT * FROM timeline_events
-         WHERE category = $1
-         ORDER BY date DESC, created_at DESC
-         LIMIT $2 OFFSET $3`,
-        [category, pagination.pageSize, pagination.offset]
-      );
-      eventsList = rows as TimelineEvent[];
-    } else {
-      // 全量计数
-      const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM timeline_events');
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const listParams = category
+      ? [category, pagination.pageSize, pagination.offset]
+      : [pagination.pageSize, pagination.offset];
+    const limitOffsetPlaceholder = category ? '$2 OFFSET $3' : '$1 OFFSET $2';
 
-      // 全量获取列表
-      const { rows } = await pool.query(
-        `SELECT * FROM timeline_events
-         ORDER BY date DESC, created_at DESC
-         LIMIT $1 OFFSET $2`,
-        [pagination.pageSize, pagination.offset]
-      );
-      eventsList = rows as TimelineEvent[];
-    }
+    const { rows: eventsList } = await pool.query<TimelineEvent>(
+      `SELECT * FROM timeline_events
+       ${whereClause}
+       ORDER BY date DESC, created_at DESC
+       LIMIT ${limitOffsetPlaceholder}`,
+      listParams
+    );
 
     const eventsWithImages = eventsList.map((event) => ({
       ...event,

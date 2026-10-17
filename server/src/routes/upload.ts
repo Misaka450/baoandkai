@@ -3,6 +3,7 @@ import { jsonResponse, errorResponse } from '../utils/response.js';
 import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
 import { parsePhotoExif, ExifResult } from '../utils/exif.js';
+import { extractStorageKey } from '../utils/url.js';
 import path from 'path';
 
 const upload = new Hono();
@@ -113,18 +114,8 @@ upload.post('/delete', async (c) => {
       return errorResponse('未指定文件 Key', 400);
     }
 
-    // 执行本地存储删除
-    // key 可能是 '/uploads/xxx' 或 'xxx'，我们将其统一清理
-    let targetKey = key;
-    if (key.startsWith('/uploads/')) {
-      targetKey = key.replace('/uploads/', '');
-    } else if (key.includes('/api/images/')) {
-      targetKey = key.split('/api/images/')[1] || '';
-    }
-
-    // 路径安全检查：防止路径遍历攻击（如 ../../etc/passwd）
-    const resolvedPath = path.normalize(decodeURIComponent(targetKey));
-    if (resolvedPath.includes('..')) {
+    const resolvedPath = extractStorageKey(key);
+    if (!resolvedPath || resolvedPath.includes('..')) {
       return errorResponse('非法的文件路径', 400);
     }
 

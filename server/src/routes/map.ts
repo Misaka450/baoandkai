@@ -30,40 +30,27 @@ mapCheckins.get('/', async (c) => {
     const province = (c.req.query('province') || '').trim();
     const pagination = parsePagination(url);
 
-    let total = 0;
-    let list: MapCheckin[] = [];
+    const whereClause = province ? 'WHERE province = $1' : '';
+    const queryParams: any[] = province ? [province] : [];
 
-    if (province) {
-      // 过滤省份计数
-      const { rows: countRows } = await pool.query(
-        'SELECT COUNT(*) as total FROM map_checkins WHERE province = $1',
-        [province]
-      );
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int as total FROM map_checkins ${whereClause}`,
+      queryParams
+    );
+    const total = countRows[0]?.total || 0;
 
-      // 获取列表
-      const { rows } = await pool.query(
-        `SELECT * FROM map_checkins
-         WHERE province = $1
-         ORDER BY date DESC, created_at DESC
-         LIMIT $2 OFFSET $3`,
-        [province, pagination.pageSize, pagination.offset]
-      );
-      list = rows as MapCheckin[];
-    } else {
-      // 全量计数
-      const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM map_checkins');
-      total = parseInt(countRows[0]?.total || '0', 10);
+    const listParams = province
+      ? [province, pagination.pageSize, pagination.offset]
+      : [pagination.pageSize, pagination.offset];
+    const limitOffsetPlaceholder = province ? '$2 OFFSET $3' : '$1 OFFSET $2';
 
-      // 获取列表
-      const { rows } = await pool.query(
-        `SELECT * FROM map_checkins
-         ORDER BY date DESC, created_at DESC
-         LIMIT $1 OFFSET $2`,
-        [pagination.pageSize, pagination.offset]
-      );
-      list = rows as MapCheckin[];
-    }
+    const { rows: list } = await pool.query<MapCheckin>(
+      `SELECT * FROM map_checkins
+       ${whereClause}
+       ORDER BY date DESC, created_at DESC
+       LIMIT ${limitOffsetPlaceholder}`,
+      listParams
+    );
 
     const checkinsWithImages = list.map((checkin) => ({
       ...checkin,
