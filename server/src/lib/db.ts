@@ -33,12 +33,3 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle PostgreSQL client', err);
 });
 
-/**
- * 方便执行 SQL 查询的助手函数
- */
-export async function query<T extends pg.QueryResultRow = any>(
-  text: string,
-  params?: any[]
-): Promise<pg.QueryResult<T>> {
-  return pool.query<T>(text, params);
-}

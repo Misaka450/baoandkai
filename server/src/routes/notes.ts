@@ -156,12 +156,13 @@ notes.put('/:id', async (c) => {
 
     const sanitized = sanitizeObject({ content, color }, []);
 
-    await pool.query(
-      `UPDATE notes SET 
-         content = $1, 
-         color = $2, 
-         updated_at = NOW() 
-       WHERE id = $3`,
+    const { rows: updatedRows } = await pool.query(
+      `UPDATE notes SET
+         content = $1,
+         color = $2,
+         updated_at = NOW()
+       WHERE id = $3
+       RETURNING *`,
       [
         content !== undefined ? sanitized.content : currentNote.content,
         color !== undefined ? sanitized.color : currentNote.color,
@@ -169,10 +170,7 @@ notes.put('/:id', async (c) => {
       ]
     );
 
-    const { rows: updatedRows } = await pool.query('SELECT * FROM notes WHERE id = $1', [noteId]);
-    const updatedNote = updatedRows[0];
-
-    return jsonResponse(updatedNote);
+    return jsonResponse(updatedRows[0]);
   } catch (error: any) {
     console.error('更新笔记失败:', error);
     return errorResponse(error.message, 500);

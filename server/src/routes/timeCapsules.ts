@@ -143,13 +143,10 @@ timeCapsules.delete('/:id', async (c) => {
       return errorResponse('无效的ID', 400);
     }
 
-    // 检查是否存在
-    const { rows } = await pool.query('SELECT id FROM time_capsules WHERE id = $1', [id]);
-    if (rows.length === 0) {
+    const { rowCount } = await pool.query('DELETE FROM time_capsules WHERE id = $1', [id]);
+    if (rowCount === 0) {
       return errorResponse('时间胶囊不存在', 404);
     }
-
-    await pool.query('DELETE FROM time_capsules WHERE id = $1', [id]);
 
     return jsonResponse({ success: true, message: '时间胶囊已删除' });
   } catch (error: any) {

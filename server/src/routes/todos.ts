@@ -225,19 +225,20 @@ todos.put('/:id', async (c) => {
       'completion_photos',
     ]);
 
-    await pool.query(
-      `UPDATE todos SET 
-         title = $1, 
-         description = $2, 
-         status = $3, 
-         priority = $4, 
-         category = $5, 
-         due_date = $6, 
-         completion_notes = $7, 
-         completion_photos = $8, 
-         images = $9, 
-         updated_at = NOW() 
-       WHERE id = $10`,
+    const { rows: updatedRows } = await pool.query(
+      `UPDATE todos SET
+         title = $1,
+         description = $2,
+         status = $3,
+         priority = $4,
+         category = $5,
+         due_date = $6,
+         completion_notes = $7,
+         completion_photos = $8,
+         images = $9,
+         updated_at = NOW()
+       WHERE id = $10
+       RETURNING *`,
       [
         title !== undefined ? sanitized.title : currentTodo.title,
         description !== undefined ? sanitized.description : currentTodo.description,
@@ -252,7 +253,6 @@ todos.put('/:id', async (c) => {
       ]
     );
 
-    const { rows: updatedRows } = await pool.query('SELECT * FROM todos WHERE id = $1', [todoId]);
     const updatedTodo = updatedRows[0] as Todo;
 
     return jsonResponse({

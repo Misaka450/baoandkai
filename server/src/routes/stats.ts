@@ -20,99 +20,80 @@ stats.get('/', async (_c) => {
       return jsonResponse({ ...cached, cached: true });
     }
 
-    // 并行执行所有统计查询
+    // 并行执行统计聚合查询（基础指标由 11 个独立请求合并为 1 个单次聚合查询，大幅降低连接池竞争）
     const [
-      photoCountRes,
-      albumCountRes,
-      timelineCountRes,
-      foodCountRes,
-      mapCountRes,
-      todoCountRes,
-      todoCompletedCountRes,
-      capsuleCountRes,
-      capsuleUnlockedCountRes,
-      noteCountRes,
-      recentPhotosRes,
+      overviewRes,
       monthlyActivityRes,
       cuisineDistributionRes,
       provinceDistributionRes,
       categoryDistributionRes,
     ] = await Promise.all([
-      pool.query('SELECT COUNT(*)::int as count FROM photos'),
-      pool.query('SELECT COUNT(*)::int as count FROM albums'),
-      pool.query('SELECT COUNT(*)::int as count FROM timeline_events'),
-      pool.query('SELECT COUNT(*)::int as count FROM food_checkins'),
-      pool.query('SELECT COUNT(*)::int as count FROM map_checkins'),
-      pool.query('SELECT COUNT(*)::int as count FROM todos'),
-      pool.query("SELECT COUNT(*)::int as count FROM todos WHERE status = 'completed'"),
-      pool.query('SELECT COUNT(*)::int as count FROM time_capsules'),
-      pool.query('SELECT COUNT(*)::int as count FROM time_capsules WHERE is_unlocked = 1'),
-      pool.query('SELECT COUNT(*)::int as count FROM notes'),
-      pool.query("SELECT COUNT(*)::int as count FROM photos WHERE created_at >= NOW() - INTERVAL '7 days'"),
-      
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM photos) AS photos,
+          (SELECT COUNT(*)::int FROM albums) AS albums,
+          (SELECT COUNT(*)::int FROM timeline_events) AS timeline,
+          (SELECT COUNT(*)::int FROM food_checkins) AS food,
+          (SELECT COUNT(*)::int FROM map_checkins) AS map,
+          (SELECT COUNT(*)::int FROM todos) AS todos,
+          (SELECT COUNT(*)::int FROM todos WHERE status = 'completed') AS todos_completed,
+          (SELECT COUNT(*)::int FROM time_capsules) AS capsules,
+          (SELECT COUNT(*)::int FROM time_capsules WHERE is_unlocked = 1) AS capsules_unlocked,
+          (SELECT COUNT(*)::int FROM notes) AS notes,
+          (SELECT COUNT(*)::int FROM photos WHERE created_at >= NOW() - INTERVAL '7 days') AS recent_photos
+      `),
+
       // 12 个月内趋势查询
       pool.query(`
-        SELECT 
+        SELECT
             SUBSTRING(date FROM 1 FOR 7) as month,
             'timeline' as type,
             COUNT(*)::int as count
-        FROM timeline_events 
+        FROM timeline_events
         WHERE date >= TO_CHAR(NOW() - INTERVAL '12 months', 'YYYY-MM-DD')
         GROUP BY month
         UNION ALL
-        SELECT 
+        SELECT
             SUBSTRING(date FROM 1 FOR 7) as month,
             'food' as type,
             COUNT(*)::int as count
-        FROM food_checkins 
+        FROM food_checkins
         WHERE date >= TO_CHAR(NOW() - INTERVAL '12 months', 'YYYY-MM-DD')
         GROUP BY month
         UNION ALL
-        SELECT 
+        SELECT
             SUBSTRING(date FROM 1 FOR 7) as month,
             'map' as type,
             COUNT(*)::int as count
-        FROM map_checkins 
+        FROM map_checkins
         WHERE date >= TO_CHAR(NOW() - INTERVAL '12 months', 'YYYY-MM-DD')
         GROUP BY month
         ORDER BY month ASC
       `),
-      
+
       pool.query(`
-        SELECT cuisine, COUNT(*)::int as count 
-        FROM food_checkins 
+        SELECT cuisine, COUNT(*)::int as count
+        FROM food_checkins
         WHERE cuisine IS NOT NULL AND cuisine != ''
-        GROUP BY cuisine 
+        GROUP BY cuisine
         ORDER BY count DESC
       `),
       pool.query(`
-        SELECT province, COUNT(*)::int as count 
-        FROM map_checkins 
-        GROUP BY province 
+        SELECT province, COUNT(*)::int as count
+        FROM map_checkins
+        GROUP BY province
         ORDER BY count DESC
       `),
       pool.query(`
-        SELECT COALESCE(category, '未分类') as category, COUNT(*)::int as count 
-        FROM timeline_events 
-        GROUP BY category 
+        SELECT COALESCE(category, '未分类') as category, COUNT(*)::int as count
+        FROM timeline_events
+        GROUP BY category
         ORDER BY count DESC
       `),
     ]);
 
-    const photoCount = photoCountRes.rows[0]?.count || 0;
-    const albumCount = albumCountRes.rows[0]?.count || 0;
-    const timelineCount = timelineCountRes.rows[0]?.count || 0;
-    const foodCount = foodCountRes.rows[0]?.count || 0;
-    const mapCount = mapCountRes.rows[0]?.count || 0;
-    const todoCount = todoCountRes.rows[0]?.count || 0;
-    const todoCompletedCount = todoCompletedCountRes.rows[0]?.count || 0;
-    const capsuleCount = capsuleCountRes.rows[0]?.count || 0;
-    const capsuleUnlockedCount = capsuleUnlockedCountRes.rows[0]?.count || 0;
-    const noteCount = noteCountRes.rows[0]?.count || 0;
-    const recentPhotos = recentPhotosRes.rows[0]?.count || 0;
-
-    // 计算总打卡数
-    const totalCheckins = mapCount + foodCount;
+    const overview = overviewRes.rows[0] || {};
+    const totalCheckins = (overview.map || 0) + (overview.food || 0);
 
     // 合并月度活跃度数据
     const activityByMonth: Record<string, { timeline: number; food: number; map: number; total: number }> = {};
@@ -128,18 +109,18 @@ stats.get('/', async (_c) => {
 
     const result = {
       overview: {
-        photos: photoCount,
-        albums: albumCount,
-        timeline: timelineCount,
-        food: foodCount,
-        map: mapCount,
+        photos: overview.photos || 0,
+        albums: overview.albums || 0,
+        timeline: overview.timeline || 0,
+        food: overview.food || 0,
+        map: overview.map || 0,
         checkins: totalCheckins,
-        todos: todoCount,
-        todosCompleted: todoCompletedCount,
-        capsules: capsuleCount,
-        capsulesUnlocked: capsuleUnlockedCount,
-        notes: noteCount,
-        recentPhotos: recentPhotos,
+        todos: overview.todos || 0,
+        todosCompleted: overview.todos_completed || 0,
+        capsules: overview.capsules || 0,
+        capsulesUnlocked: overview.capsules_unlocked || 0,
+        notes: overview.notes || 0,
+        recentPhotos: overview.recent_photos || 0,
       },
       activityTrend: activityByMonth,
       cuisineDistribution: cuisineDistributionRes.rows,

@@ -275,17 +275,18 @@ timeline.put('/:id', async (c) => {
 
     const sanitized = sanitizeObject({ title, description, location, category }, ['images']);
 
-    // 更新记录
-    await pool.query(
-      `UPDATE timeline_events SET 
-         title = $1, 
-         description = $2, 
-         date = $3, 
-         location = $4, 
-         category = $5, 
-         images = $6, 
-         updated_at = NOW() 
-       WHERE id = $7`,
+    // 更新记录并返回
+    const { rows: updatedRows } = await pool.query(
+      `UPDATE timeline_events SET
+         title = $1,
+         description = $2,
+         date = $3,
+         location = $4,
+         category = $5,
+         images = $6,
+         updated_at = NOW()
+       WHERE id = $7
+       RETURNING *`,
       [
         title !== undefined ? sanitized.title : currentEvent.title,
         description !== undefined ? sanitized.description : currentEvent.description,
@@ -297,8 +298,6 @@ timeline.put('/:id', async (c) => {
       ]
     );
 
-    // 获取更新后的结果
-    const { rows: updatedRows } = await pool.query('SELECT * FROM timeline_events WHERE id = $1', [eventId]);
     const updatedEvent = updatedRows[0] as TimelineEvent;
 
     return jsonResponse({

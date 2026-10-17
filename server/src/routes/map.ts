@@ -184,7 +184,7 @@ mapCheckins.put('/:id', async (c) => {
     // 验证并消毒
     const sanitized = sanitizeObject({ title, description, province, city }, ['images']);
 
-    await pool.query(
+    const { rows: updatedRows } = await pool.query(
       `UPDATE map_checkins SET
          title = $1,
          description = $2,
@@ -193,7 +193,8 @@ mapCheckins.put('/:id', async (c) => {
          date = $5,
          images = $6,
          updated_at = NOW()
-       WHERE id = $7`,
+       WHERE id = $7
+       RETURNING *`,
       [
         title !== undefined ? sanitized.title : current.title,
         description !== undefined ? sanitized.description : current.description,
@@ -205,8 +206,7 @@ mapCheckins.put('/:id', async (c) => {
       ]
     );
 
-    const { rows } = await pool.query('SELECT * FROM map_checkins WHERE id = $1', [checkinId]);
-    const updated = rows[0] as MapCheckin;
+    const updated = updatedRows[0] as MapCheckin;
 
     return jsonResponse({
       ...updated,

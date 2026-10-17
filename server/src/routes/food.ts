@@ -339,13 +339,13 @@ food.put('/:id', async (c) => {
       ['images']
     );
 
-    await pool.query(
-      `UPDATE food_checkins SET 
-         restaurant_name = $1, 
-         description = $2, 
-         date = $3, 
-         address = $4, 
-         cuisine = $5, 
+    const { rows } = await pool.query(
+      `UPDATE food_checkins SET
+         restaurant_name = $1,
+         description = $2,
+         date = $3,
+         address = $4,
+         cuisine = $5,
          price_range = $6,
          overall_rating = $7,
          taste_rating = $8,
@@ -353,8 +353,9 @@ food.put('/:id', async (c) => {
          service_rating = $10,
          recommended_dishes = $11,
          images = $12,
-         updated_at = NOW() 
-       WHERE id = $13`,
+         updated_at = NOW()
+       WHERE id = $13
+       RETURNING *`,
       [
         restaurant_name !== undefined ? sanitized.restaurant_name : currentFood.restaurant_name,
         description !== undefined ? sanitized.description : currentFood.description,
@@ -376,7 +377,6 @@ food.put('/:id', async (c) => {
       ]
     );
 
-    const { rows } = await pool.query('SELECT * FROM food_checkins WHERE id = $1', [foodId]);
     const updatedFood = rows[0] as FoodCheckin;
 
     return jsonResponse({
