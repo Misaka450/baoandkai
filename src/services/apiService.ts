@@ -3,7 +3,7 @@ import { captureError } from '../config/sentry';
 import { API_BASE } from '../config/api'
 import { getCookieValue } from '../utils/cookie'
 
-import { ApiResponse, Note, Todo, Album, TimelineEvent, MapCheckin } from '../types'
+import { ApiResponse, Note, TimelineEvent, MapCheckin } from '../types'
 
 /**
  * 请求配置接口
@@ -313,46 +313,6 @@ export const notesService = {
     }
 }
 
-export const todosService = {
-    async getAll() {
-        return apiService.get<{ data: Todo[] }>('/todos')
-    },
-
-    async create(todo: Omit<Todo, 'id'>) {
-        return apiService.post<Todo>('/todos', todo)
-    },
-
-    async update(id: number | string, todo: Partial<Todo>) {
-        return apiService.put<Todo>(`/todos/${id}`, todo)
-    },
-
-    async delete(id: number | string) {
-        return apiService.delete(`/todos/${id}`)
-    }
-}
-
-export const albumsService = {
-    async getAll() {
-        return apiService.get<{ data: Album[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/albums')
-    },
-
-    async getById(id: string) {
-        return apiService.get<Album & { photos: { id: string; url: string; caption?: string }[] }>(`/albums/${id}`)
-    },
-
-    async create(album: Omit<Album, 'id'>) {
-        return apiService.post<Album>('/albums', album)
-    },
-
-    async update(id: string, album: Partial<Album>) {
-        return apiService.put<Album>(`/albums/${id}`, album)
-    },
-
-    async delete(id: string) {
-        return apiService.delete(`/albums/${id}`)
-    }
-}
-
 export interface OnThisDayItem {
     id: number
     title: string
@@ -403,14 +363,6 @@ export const timelineService = {
     async delete(id: number | string) {
         return apiService.delete(`/timeline/${id}`)
     }
-}
-
-/**
- * 创建可取消的请求 Hook 辅助函数
- * 用于 React 组件中管理请求生命周期
- */
-export function createAbortController(): AbortController {
-    return new AbortController()
 }
 
 export const mapService = {

@@ -7,13 +7,3 @@ export interface ApiResponse<T = unknown> {
     error: string | null;
 }
 
-export interface AuthResponse {
-    success: boolean;
-    token: string;
-    user: {
-        id: number | string;
-        username: string;
-        email?: string;
-        role: string;
-    };
-}

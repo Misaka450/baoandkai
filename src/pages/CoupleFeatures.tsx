@@ -6,7 +6,7 @@ import TimeCapsuleList from '../components/features/TimeCapsuleList'
 import Modal from '../components/modals/Modal'
 import AnniversaryCountdown from '../components/couple/AnniversaryCountdown'
 import { timeCapsuleService } from '../services/apiService'
-import type { TimeCapsule, TimeCapsuleItem } from '../types'
+import type { TimeCapsuleItem } from '../types'
 import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
 

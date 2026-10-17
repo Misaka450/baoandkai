@@ -87,17 +87,6 @@ export interface MapCheckin {
     updated_at?: string;
 }
 
-export interface TimeCapsule {
-    id: number;
-    title: string | null;
-    message: string;
-    unlock_date: string;
-    is_unlocked: number;
-    created_by: string;
-    created_at: string;
-    updated_at: string;
-}
-
 export interface TimeCapsuleItem {
     id: string;
     title?: string;

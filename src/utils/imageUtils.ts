@@ -136,59 +136,6 @@ export function getOptimizedImageUrl(
 }
 
 /**
- * 压缩图片（上传前前端 Canvas 预压缩）
- * @param file 原始文件
- * @param maxWidth 最大宽度
- * @param quality 压缩质量 (0-1)
- */
-export async function compressImage(file: File, maxWidth = 2000, quality = 0.8): Promise<File> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target?.result as string;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                // 只有当宽度超过 maxWidth 时才缩小
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-
-                // 转换为 WebP 格式（如果支持）或 JPEG
-                canvas.toBlob(
-                    (blob) => {
-                        if (blob) {
-                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
-                                type: 'image/webp',
-                                lastModified: Date.now(),
-                            });
-                            resolve(compressedFile);
-                        } else {
-                            reject(new Error('Canvas to Blob failed'));
-                        }
-                    },
-                    'image/webp',
-                    quality
-                );
-            };
-            img.onerror = reject;
-        };
-        reader.onerror = reject;
-    });
-}
-
-/**
  * 生成缩略图 URL
  * 默认宽 400px，自动由服务端 Sharp 转换为 WebP 格式
  */
@@ -259,23 +206,6 @@ export function preloadImage(url: string): Promise<void> {
             reject(new Error(`Failed to load image: ${url}`));
         };
     });
-}
-
-/**
- * 批量预加载图片
- */
-export async function preloadImages(urls: string[]): Promise<void> {
-    const validUrls = urls.filter(url => url && !loadedImagesCache.has(url));
-    await Promise.allSettled(validUrls.map(url => preloadImage(url)));
-}
-
-/**
- * 格式化头像 URL
- */
-export function formatAvatarUrl(url?: string): string {
-    if (!url) return ''
-    if (url.includes('dicebear.com') || url.startsWith('data:image/svg')) return url
-    return getOptimizedImageUrl(url, { width: 200, quality: 80, format: 'webp' })
 }
 
 /**

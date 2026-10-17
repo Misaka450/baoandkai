@@ -11,7 +11,7 @@ import { authMiddleware } from './middleware/auth.js';
 // 引入路由组
 import auth from './routes/auth.js';
 import albums from './routes/albums.js';
-import photos, { handleLegacyDeletePhoto } from './routes/photos.js';
+import photos from './routes/photos.js';
 import timeline from './routes/timeline.js';
 import food from './routes/food.js';
 import notes from './routes/notes.js';
@@ -52,10 +52,7 @@ app.route('/api/upload', upload);
 app.route('/api/images', images);
 app.route('/api/vault', vault);
 
-// 3. 兼容旧版特定 POST 端点
-app.post('/api/delete/photo', handleLegacyDeletePhoto);
-
-// 4. 开发模式下托管本地 /uploads 静态资源（生产中由 Nginx 托管）
+// 3. 开发模式下托管本地 /uploads 静态资源（生产中由 Nginx 托管）
 const MIME_MAP: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',

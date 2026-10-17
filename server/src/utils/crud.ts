@@ -1,35 +1,5 @@
 import { Context } from 'hono';
-import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from './validation.js';
 import pg from 'pg';
-
-/**
- * 从 Hono Context 提取并验证 ID 参数
- */
-export function extractIdFromContext(c: Context): number {
-  const idStr = c.req.param('id');
-  const id = parseInt(idStr || '');
-
-  if (isNaN(id) || id <= 0) {
-    throw new ValidationError('无效的ID参数');
-  }
-
-  return id;
-}
-
-/**
- * 从URL路径中提取并验证ID参数 (保留，用于兼容)
- */
-export function extractIdFromUrl(url: URL): number {
-  const segments = url.pathname.split('/').filter(Boolean);
-  const idStr = segments.pop();
-  const id = parseInt(idStr || '');
-
-  if (isNaN(id) || id <= 0) {
-    throw new ValidationError('无效的ID参数');
-  }
-
-  return id;
-}
 
 /**
  * 根据ID查找记录，不存在则抛出异常
@@ -53,56 +23,6 @@ export async function findOrThrow<T>(
   }
 
   return record as T;
-}
-
-/**
- * 通用的输入验证 + XSS检测 + 消毒流程
- */
-export function validateAndSanitize<T extends Record<string, unknown>>(
-  body: T,
-  requiredFields: Array<{ name: string; label: string; maxLength?: number }>,
-  skipFields: string[] = []
-): Record<string, unknown> {
-  const rules: (string | null)[] = [];
-
-  for (const field of requiredFields) {
-    const value = body[field.name];
-    rules.push(validateRequired(value, field.label));
-    if (value !== undefined && value !== null) {
-      const strValue = String(value);
-      if (field.maxLength) {
-        rules.push(validateLength(strValue, field.label, 1, field.maxLength));
-      }
-    }
-  }
-
-  const validationError = validate(rules);
-  if (validationError) {
-    throw new ValidationError(validationError);
-  }
-
-  for (const field of requiredFields) {
-    const value = body[field.name];
-    if (typeof value === 'string' && hasXSS(value)) {
-      throw new ValidationError(`字段 ${field.label} 包含不安全字符`);
-    }
-  }
-
-  return sanitizeObject(body, skipFields);
-}
-
-/**
- * 从URL解析分页参数
- */
-export function parsePaginationFromUrl(url: URL, defaultLimit = 20, maxLimit = 100) {
-  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
-  const limit = Math.min(
-    maxLimit,
-    Math.max(1, parseInt(url.searchParams.get('limit') || String(defaultLimit), 10) || defaultLimit)
-  );
-  const offset = (page - 1) * limit;
-
-  return { page, limit, offset };
 }
 
 /**

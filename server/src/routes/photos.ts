@@ -346,44 +346,4 @@ photos.delete('/:photoId', async (c) => {
   }
 });
 
-/**
- * 兼容旧端点: POST /api/delete/photo
- * 用于兼容原有的删除照片 POST 端点
- */
-export async function handleLegacyDeletePhoto(c: any) {
-  try {
-    const { photoId, url } = (await c.req.json()) as { photoId: number; url: string };
-
-    if (!photoId) {
-      return errorResponse('未指定照片 ID', 400);
-    }
-
-    // 1. 物理删除文件
-    if (url) {
-      let key = '';
-      if (url.includes('/uploads/')) {
-        key = url.split('/uploads/')[1] || '';
-      } else if (url.includes('/api/images/')) {
-        key = url.split('/api/images/')[1] || '';
-      }
-
-      if (key) {
-        try {
-          await storage.delete(decodeURIComponent(key));
-        } catch (e) {
-          console.error('物理删除本地图片失败:', key, e);
-        }
-      }
-    }
-
-    // 2. 从数据库删除记录
-    await pool.query('DELETE FROM photos WHERE id = $1', [photoId]);
-
-    return jsonResponse({ success: true, message: '照片已彻底删除' });
-  } catch (error: any) {
-    console.error('兼容删除照片接口失败:', error);
-    return errorResponse(error.message, 500);
-  }
-}
-
 export default photos;

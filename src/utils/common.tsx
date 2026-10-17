@@ -108,9 +108,6 @@ export const formatDate = (
     }
 }
 
-// 别名导出，便于语义化调用
-export const formatLoveDate = formatDate;
-
 // 待办事项优先级类型定义
 export type Priority = 'high' | 'medium' | 'low'
 
@@ -119,11 +116,4 @@ export const mapPriority = (priority: number): Priority => {
     if (priority >= 3) return 'high'
     if (priority <= 1) return 'low'
     return 'medium'
-}
-
-// 优先级标签的莫兰迪配色方案
-export const priorityColors: Record<Priority, string> = {
-    high: 'bg-rose-100 text-rose-700 border-rose-200',
-    medium: 'bg-amber-100 text-amber-700 border-amber-200',
-    low: 'bg-emerald-100 text-emerald-700 border-emerald-200'
 }
