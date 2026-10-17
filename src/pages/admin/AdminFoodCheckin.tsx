@@ -42,7 +42,6 @@ const AdminFoodCheckin = () => {
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<number | null>(null)
     const [uploading, setUploading] = useState(false)
-    const [uploadProgress, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({
         restaurant_name: '', description: '', date: '', address: '',
@@ -74,66 +73,56 @@ const AdminFoodCheckin = () => {
     }, [exifNotice])
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.length) return
-        setUploading(true)
-        const newImages: string[] = []
-        let currentDate = formData.date
-        let currentAddress = formData.address
+        const files = e.target.files
+        if (!files || files.length === 0) return
 
-        for (const file of Array.from(e.target.files)) {
-            try {
+        setUploading(true)
+        try {
+            const uploadPromises = Array.from(files).map(async (file) => {
                 const fd = new FormData()
                 fd.append('file', file)
                 fd.append('folder', 'food')
-                const { data, error } = await apiService.uploadWithProgress<{
+
+                const response = await apiService.upload<{
                     url: string
-                    urls?: string[]
-                    count?: number
                     exif?: {
                         date: string | null
-                        dateTime: string | null
-                        latitude: number | null
-                        longitude: number | null
-                        province: string | null
-                        city: string | null
                         location: string | null
                     } | null
-                }>(
-                    '/upload',
-                    fd,
-                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
-                )
-                if (error) throw new Error(error)
-                if (data?.url) newImages.push(data.url)
-                if (data?.exif) {
-                    const exif = data.exif
-                    let autoFilled = false
-                    if (!currentDate && exif.date) {
-                        currentDate = exif.date
-                        autoFilled = true
+                }>('/upload', fd)
+                return response.data
+            })
+
+            const results = await Promise.all(uploadPromises)
+            const validUrls = results.map(r => r?.url).filter((url): url is string => !!url)
+
+            if (validUrls.length > 0) {
+                setFormData(prev => {
+                    const updated = { ...prev, images: [...prev.images, ...validUrls] }
+                    const firstExif = results.find(r => r?.exif && (r.exif.date || r.exif.location))?.exif
+                    if (firstExif) {
+                        let autoFilled = false
+                        if (!prev.date && firstExif.date) {
+                            updated.date = firstExif.date
+                            autoFilled = true
+                        }
+                        if (!prev.address && firstExif.location) {
+                            updated.address = firstExif.location
+                            autoFilled = true
+                        }
+                        if (autoFilled) {
+                            setExifNotice('✨ 已从照片自动读取探店日期与地点')
+                        }
                     }
-                    if (!currentAddress && exif.location) {
-                        currentAddress = exif.location
-                        autoFilled = true
-                    }
-                    if (autoFilled) {
-                        setFormData(prev => ({
-                            ...prev,
-                            date: prev.date || (exif.date || ''),
-                            address: prev.address || (exif.location || '')
-                        }))
-                        setExifNotice('✨ 已从照片自动读取拍摄日期与地点，你可以随时修改')
-                    }
-                }
-            } catch (err) {
-                console.error(err)
-            } finally {
-                setUploadProgress(null)
+                    return updated
+                })
             }
+        } catch (err) {
+            console.error('上传图片失败:', err)
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
         }
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
-        setUploading(false)
-        if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
     const removeImage = (index: number) => {
@@ -366,12 +355,8 @@ const AdminFoodCheckin = () => {
                             <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
                                 {uploading ? (
                                     <div className="flex flex-col items-center">
-                                        <div className="relative w-12 h-12 mb-1">
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
-                                                {uploadProgress?.percent || 0}%
-                                            </div>
-                                        </div>
+                                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mb-1"></div>
+                                        <span className="text-[10px] font-bold text-primary">上传中...</span>
                                     </div>
                                 ) : (
                                     <>

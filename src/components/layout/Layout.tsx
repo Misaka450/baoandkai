@@ -1,8 +1,10 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
+import { lazy, Suspense } from 'react'
 import Navigation from './Navigation'
 import PageTransition from './PageTransition'
-import VinylPlayer from '../VinylPlayer'
+
+const VinylPlayer = lazy(() => import('../VinylPlayer'))
 
 export default function Layout() {
   const location = useLocation()
@@ -30,7 +32,11 @@ export default function Layout() {
       </div>
 
       {!isAdminPage && <Navigation />}
-      {!isAdminPage && <VinylPlayer />}
+      {!isAdminPage && (
+        <Suspense fallback={null}>
+          <VinylPlayer />
+        </Suspense>
+      )}
 
       <main className={`relative z-10 ${isAdminPage ? '' : 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-12'}`}>
         <AnimatePresence mode="wait">

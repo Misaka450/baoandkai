@@ -201,10 +201,10 @@ photos.post('/sync-exif', async (c) => {
 });
 
 /**
- * PUT /api/albums/:id/photos/reorder
+ * PUT/POST /api/albums/:id/photos/reorder
  * 批量更新相册照片顺序
  */
-photos.put('/reorder', async (c) => {
+const handleReorderPhotos = async (c: any) => {
   const client = await pool.connect();
   try {
     const albumId = parseInt(c.req.param('id') || '');
@@ -236,7 +236,10 @@ photos.put('/reorder', async (c) => {
   } finally {
     client.release();
   }
-});
+};
+
+photos.put('/reorder', handleReorderPhotos);
+photos.post('/reorder', handleReorderPhotos);
 
 /**
  * PUT /api/albums/:id/photos/:photoId

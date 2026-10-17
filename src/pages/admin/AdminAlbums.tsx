@@ -151,7 +151,7 @@ const AdminAlbums = () => {
                 sort_order: index
             }))
 
-            await apiService.post(`/albums/${selectedAlbum.id}/photos/reorder`, reorderData)
+            await apiService.put(`/albums/${selectedAlbum.id}/photos/reorder`, reorderData)
         } catch (error) {
             console.error('排序更新失败:', error)
             await showAlert('错误', '排序未保存成功', 'error')

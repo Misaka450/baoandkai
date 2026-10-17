@@ -224,10 +224,10 @@ food.post('/', async (c) => {
 });
 
 /**
- * POST /api/food/reorder
+ * POST/PUT /api/food/reorder
  * 批量更新美食排序
  */
-food.post('/reorder', async (c) => {
+const handleReorderFood = async (c: any) => {
   const client = await pool.connect();
   try {
     const items = (await c.req.json()) as { id: number; sort_order: number }[];
@@ -255,7 +255,10 @@ food.post('/reorder', async (c) => {
   } finally {
     client.release();
   }
-});
+};
+
+food.post('/reorder', handleReorderFood);
+food.put('/reorder', handleReorderFood);
 
 /**
  * GET /api/food/:id

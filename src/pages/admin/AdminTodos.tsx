@@ -48,7 +48,6 @@ const AdminTodos = () => {
     const [completionNotes, setCompletionNotes] = useState('')
     const [completedBy, setCompletedBy] = useState<'both' | 'bao' | 'kai'>('both')
     const [uploading, setUploading] = useState(false)
-    const [, setUploadProgress] = useState<{ percent: number, speed: number } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const completionFileRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] })
@@ -65,35 +64,32 @@ const AdminTodos = () => {
     useEffect(() => { loadTodos() }, [loadTodos])
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCompletion = false) => {
-        if (!e.target.files?.length) return
+        const files = e.target.files
+        if (!files || files.length === 0) return
+
         setUploading(true)
-        const newImages: string[] = []
-        for (const file of Array.from(e.target.files)) {
-            try {
+        try {
+            const uploadPromises = Array.from(files).map(async (file) => {
                 const fd = new FormData()
                 fd.append('file', file)
                 fd.append('folder', 'todos')
-                const { data, error } = await apiService.uploadWithProgress<{ url: string }>(
-                    '/upload',
-                    fd,
-                    (p) => setUploadProgress({ percent: p.percent, speed: p.speed })
-                )
-                if (error) throw new Error(error)
-                if (data?.url) newImages.push(data.url)
-            } catch (err) {
-                console.error(err)
-            } finally {
-                setUploadProgress(null)
+                const res = await apiService.upload<{ url: string }>('/upload', fd)
+                return res.data?.url
+            })
+            const urls = await Promise.all(uploadPromises)
+            const validUrls = urls.filter((url): url is string => !!url)
+            if (isCompletion) {
+                setCompletionPhotos(prev => [...prev, ...validUrls])
+            } else {
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...validUrls] }))
             }
+        } catch (err) {
+            console.error('上传图片失败:', err)
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+            if (completionFileRef.current) completionFileRef.current.value = ''
         }
-        if (isCompletion) {
-            setCompletionPhotos(prev => [...prev, ...newImages])
-        } else {
-            setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
-        }
-        setUploading(false)
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        if (completionFileRef.current) completionFileRef.current.value = ''
     }
 
     const removeImage = (index: number, isCompletion = false) => {
