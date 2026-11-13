@@ -143,7 +143,11 @@ const AdminFoodCheckin = () => {
                 await showAlert('成功', '美食打卡已创建！', 'success')
             }
             resetForm(); loadCheckins()
-            queryClient.invalidateQueries({ queryKey: ['food'] });
+            queryClient.invalidateQueries({ queryKey: ['food'] })
+            queryClient.invalidateQueries({ queryKey: ['foodCuisines'] })
+            queryClient.invalidateQueries({ queryKey: ['map-city-foods'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch (err: any) {
             await showAlert('错误', err.message || '保存失败', 'error')
         }
@@ -169,7 +173,11 @@ const AdminFoodCheckin = () => {
             const { error } = await apiService.delete(`/food/${id}`)
             if (error) throw new Error(error)
             await showAlert('成功', '已删除！', 'success'); loadCheckins()
-            queryClient.invalidateQueries({ queryKey: ['food'] });
+            queryClient.invalidateQueries({ queryKey: ['food'] })
+            queryClient.invalidateQueries({ queryKey: ['foodCuisines'] })
+            queryClient.invalidateQueries({ queryKey: ['map-city-foods'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch { await showAlert('错误', '删除失败', 'error') }
     }
 
@@ -217,7 +225,11 @@ const AdminFoodCheckin = () => {
                 sort_order: checkins.length - index // 保持降序排列
             }))
 
-            await apiService.post('/food/reorder', reorderData)
+            const { error } = await apiService.post('/food/reorder', reorderData)
+            if (error) throw new Error(error)
+            queryClient.invalidateQueries({ queryKey: ['food'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch (error) {
             console.error('排序更新失败:', error)
             loadCheckins() // 原始顺序

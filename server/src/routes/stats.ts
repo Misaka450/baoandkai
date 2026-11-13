@@ -5,8 +5,15 @@ import { pool } from '../lib/db.js';
 
 const stats = new Hono();
 
-const CACHE_KEY = 'stats:dashboard';
+export const CACHE_KEY = 'stats:dashboard';
 const CACHE_TTL = 900; // 缓存15分钟（统计页面数据更新不频繁）
+
+/**
+ * 主动失效仪表盘统计缓存（在增删改写操作后调用）
+ */
+export async function invalidateStatsCache(): Promise<void> {
+  await cache.del(CACHE_KEY);
+}
 
 /**
  * GET /api/stats

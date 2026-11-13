@@ -149,8 +149,11 @@ const AdminTimeline = () => {
             }
             resetForm()
             loadEvents()
-            // 失效缓存，让 Gallery/Timeline 页面重新加载
-            queryClient.invalidateQueries({ queryKey: ['timeline'] });
+            // 失效缓存，让前台 Timeline/首页与统计看板重新加载
+            queryClient.invalidateQueries({ queryKey: ['timeline'] })
+            queryClient.invalidateQueries({ queryKey: ['on-this-day'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch (err: any) {
             await showAlert('错误', err.message || '保存时间轴事件失败', 'error')
         }
@@ -178,6 +181,10 @@ const AdminTimeline = () => {
             if (error) throw new Error(error)
             await showAlert('成功', '事件已删除！', 'success')
             loadEvents()
+            queryClient.invalidateQueries({ queryKey: ['timeline'] })
+            queryClient.invalidateQueries({ queryKey: ['on-this-day'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch (error) {
             await showAlert('错误', '删除事件失败', 'error')
         }

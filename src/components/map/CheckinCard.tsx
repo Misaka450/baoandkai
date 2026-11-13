@@ -36,9 +36,10 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
     const { data: foodsData } = useQuery({
         queryKey: ['map-city-foods'],
         queryFn: async () => {
-            const res = await apiService.get<{ data: FoodCheckin[] } | FoodCheckin[]>('/food?limit=200')
-            if (Array.isArray(res.data)) return res.data
-            return res.data?.data || []
+            const response = await apiService.get<{ data: FoodCheckin[] } | FoodCheckin[]>('/food?limit=200')
+            if (response.error) throw new Error(response.error)
+            if (Array.isArray(response.data)) return response.data
+            return response.data?.data || []
         },
         staleTime: 5 * 60 * 1000,
     })
@@ -47,9 +48,10 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
     const { data: todosData } = useQuery({
         queryKey: ['map-city-todos'],
         queryFn: async () => {
-            const res = await apiService.get<{ data: Todo[] } | Todo[]>('/todos?limit=200')
-            if (Array.isArray(res.data)) return res.data
-            return res.data?.data || []
+            const response = await apiService.get<{ data: Todo[] } | Todo[]>('/todos?limit=200')
+            if (response.error) throw new Error(response.error)
+            if (Array.isArray(response.data)) return response.data
+            return response.data?.data || []
         },
         staleTime: 5 * 60 * 1000,
     })

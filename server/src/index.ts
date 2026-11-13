@@ -26,10 +26,21 @@ import vault from './routes/vault.js';
 
 import { storage } from './lib/storage.js';
 import { cleanupExpiredSessions } from './lib/session.js';
+import { pool } from './lib/db.js';
+import { errorResponse } from './utils/response.js';
 
 dotenv.config();
 
 const app = new Hono();
+
+// 全局异常兜底：拦截畸形 JSON 请求体引起的 SyntaxError 返回 400，避免直接抛出 500
+app.onError((err, _c) => {
+  if (err instanceof SyntaxError) {
+    return errorResponse('请求体 JSON 格式无效', 400);
+  }
+  console.error('Unhandled server error:', err);
+  return errorResponse('服务器内部错误', 500);
+});
 
 // 1. 全局中间件
 app.use('*', corsMiddleware);
@@ -63,7 +74,12 @@ const MIME_MAP: Record<string, string> = {
 
 app.get('/uploads/*', async (c) => {
   const fileRelativePath = c.req.path.replace('/uploads/', '');
-  const decodedPath = decodeURIComponent(fileRelativePath);
+  let decodedPath: string;
+  try {
+    decodedPath = decodeURIComponent(fileRelativePath);
+  } catch {
+    return c.text('Bad Request', 400);
+  }
   
   const data = await storage.get(decodedPath);
   if (!data) {
@@ -103,7 +119,38 @@ async function cleanExpiredSessions(): Promise<void> {
 cleanExpiredSessions();
 setInterval(cleanExpiredSessions, 24 * 60 * 60 * 1000).unref(); // unref：不阻止进程正常退出
 
-serve({
+const server = serve({
   fetch: app.fetch,
   port,
+});
+
+// 7. 优雅停机处理（SIGTERM / SIGINT）
+let isShuttingDown = false;
+async function gracefulShutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`收到 ${signal} 信号，开始优雅停机...`);
+
+  server.close(async () => {
+    try {
+      await pool.end();
+      console.log('HTTP 服务与数据库连接池已安全关闭');
+      process.exit(0);
+    } catch (err) {
+      console.error('关闭数据库连接池出错:', err);
+      process.exit(1);
+    }
+  });
+
+  setTimeout(() => {
+    console.error('优雅停机等待超时，强制退出进程');
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.on('SIGTERM', () => {
+  void gracefulShutdown('SIGTERM');
+});
+process.on('SIGINT', () => {
+  void gracefulShutdown('SIGINT');
 });

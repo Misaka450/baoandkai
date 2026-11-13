@@ -23,7 +23,6 @@ await copyRequired('server/package.json', 'server/package.json');
 await copyRequired('server/package-lock.json', 'server/package-lock.json');
 await copyRequired('server/migrations', 'server/migrations');
 await copyRequired('nginx');
-await copyRequired('uploads');
 await copyRequired('.env.docker.example');
 await copyRequired('Dockerfile.runtime');
 await copyRequired('docker-compose.runtime.yml');

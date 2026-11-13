@@ -56,6 +56,7 @@ export default function TravelMap() {
         queryKey: ['mapCheckins'],
         queryFn: async () => {
             const response = await mapService.getAll()
+            if (response.error) throw new Error(response.error)
             return response.data
         },
         staleTime: 5 * 60 * 1000,

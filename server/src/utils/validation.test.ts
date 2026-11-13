@@ -32,6 +32,7 @@ describe('hasXSS（XSS 攻击特征检测）', () => {
     it('正常文本不误报', () => {
         expect(hasXSS('今天和包包一起吃了火锅，很开心！')).toBe(false);
         expect(hasXSS('Constitution Day 纪念日 2026-10-01')).toBe(false);
+        expect(hasXSS('version=1.0 & action=submit')).toBe(false);
     });
 });
 

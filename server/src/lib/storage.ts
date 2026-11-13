@@ -27,18 +27,13 @@ try {
  * @throws 路径逃逸出上传目录时抛出错误
  */
 function resolveSafe(key: string): string {
-  // 1. 先做 URL 解码（防止 %2e%2e%2f 这种编码形态的 "../" 绕过）
-  // 声明时不赋初值：解码成功必走 try 内赋值，失败必抛错，初始值永远不会被使用
-  let decodedKey: string;
-  try {
-    decodedKey = decodeURIComponent(key);
-  } catch {
-    // 解码失败说明路径格式本身异常，直接拒绝
+  // 1. 基础合法性校验（调用方在入口已做过一次 decodeURIComponent，此处不再重复解码，防止双重解码绕过或含 % 文件名报错；同时拦截残留编码的 ../ 与空字节）
+  if (!key || key.includes('\0') || /%(2e|2f|5c)/i.test(key)) {
     throw new Error('非法的文件路径');
   }
 
   // 2. 反斜杠统一转成正斜杠（防止 Windows 风格 ..\ 绕过）
-  const normalizedKey = decodedKey.replace(/\\/g, '/');
+  const normalizedKey = key.replace(/\\/g, '/');
 
   // 3. 解析成绝对路径，并与上传目录的真实绝对路径做前缀比对
   const uploadRoot = path.resolve(UPLOAD_DIR);

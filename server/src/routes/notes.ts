@@ -3,6 +3,7 @@ import { jsonResponse, errorResponse } from '../utils/response.js';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const notes = new Hono<{
   Variables: {
@@ -87,6 +88,8 @@ notes.post('/', async (c) => {
     );
     const newNote = rows[0];
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse(newNote, 201);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';
@@ -170,6 +173,8 @@ notes.put('/:id', async (c) => {
       ]
     );
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse(updatedRows[0]);
   } catch (error: any) {
     console.error('更新笔记失败:', error);
@@ -192,6 +197,8 @@ notes.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('笔记不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '笔记已删除' });
   } catch (error: any) {

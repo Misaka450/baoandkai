@@ -5,6 +5,7 @@ import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js'
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
+import { cache } from '../lib/cache.js';
 
 const albums = new Hono();
 
@@ -105,6 +106,8 @@ albums.post('/', async (c) => {
       [sanitized.name, sanitized.description || '']
     );
     const newAlbum = rows[0];
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse(newAlbum, 201);
   } catch (error: any) {
@@ -284,6 +287,7 @@ albums.put('/:id', async (c) => {
     );
 
     await client.query('COMMIT');
+    await cache.del('stats:dashboard');
 
     return jsonResponse({
       ...updatedAlbumRows[0],
@@ -319,6 +323,7 @@ albums.delete('/:id', async (c) => {
     await client.query('DELETE FROM photos WHERE album_id = $1', [albumId]);
     await client.query('DELETE FROM albums WHERE id = $1', [albumId]);
     await client.query('COMMIT');
+    await cache.del('stats:dashboard');
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('删除相册失败:', error);

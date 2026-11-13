@@ -13,5 +13,9 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 uploads
+uploads-test
+release
+dist
+server/dist
 tmp
 temp

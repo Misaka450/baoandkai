@@ -4,6 +4,7 @@ import { transformImageArray, serializeImages } from '../utils/url.js';
 import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const timeline = new Hono();
 
@@ -96,23 +97,23 @@ timeline.get('/on-this-day', async (c) => {
       targetMonthDay = `${m}-${d}`;
     }
 
-    // 1. 查询 timeline_events 中往年同月同日的事件
+    // 1. 查询 timeline_events 中往年同月同日的事件（直接匹配 SUBSTRING 表达式，确保命中 idx_timeline_month_day 索引）
     const { rows: eventRows } = await pool.query(
       `SELECT id, title, description, date, location, category, images, created_at
        FROM timeline_events
-       WHERE (SUBSTRING(date FROM 6 FOR 5) = $1 OR date LIKE '%' || $1)
+       WHERE SUBSTRING(date FROM 6 FOR 5) = $1
          AND LENGTH(date) >= 10
          AND CAST(SUBSTRING(date FROM 1 FOR 4) AS INTEGER) < $2
        ORDER BY date DESC`,
       [targetMonthDay, targetYear]
     );
 
-    // 2. 查询 photos 中往年同月同日的照片
+    // 2. 查询 photos 中往年同月同日的照片（确保命中 idx_photos_month_day 索引）
     const { rows: photoRows } = await pool.query(
       `SELECT p.id, p.url, p.caption, p.date, p.location, a.name as album_name
        FROM photos p
        LEFT JOIN albums a ON p.album_id = a.id
-       WHERE (SUBSTRING(p.date FROM 6 FOR 5) = $1 OR p.date LIKE '%' || $1)
+       WHERE SUBSTRING(p.date FROM 6 FOR 5) = $1
          AND LENGTH(p.date) >= 10
          AND CAST(SUBSTRING(p.date FROM 1 FOR 4) AS INTEGER) < $2
        ORDER BY p.date DESC
@@ -195,6 +196,8 @@ timeline.post('/', async (c) => {
     if (!newEvent) {
       return errorResponse('创建失败', 500);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({
       ...newEvent,
@@ -300,6 +303,8 @@ timeline.put('/:id', async (c) => {
 
     const updatedEvent = updatedRows[0] as TimelineEvent;
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...updatedEvent,
       images: transformImageArray(updatedEvent?.images),
@@ -325,6 +330,8 @@ timeline.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('事件不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '事件已删除' });
   } catch (error: any) {

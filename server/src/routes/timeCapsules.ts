@@ -1,9 +1,27 @@
 import { Hono } from 'hono';
 import { jsonResponse, errorResponse } from '../utils/response.js';
 import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js';
+import { validate, validateRequired, validateLength, validateDate, hasXSS } from '../utils/validation.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const timeCapsules = new Hono();
+
+/**
+ * 获取 Asia/Shanghai 时区的今日日期（格式 YYYY-MM-DD）
+ */
+function getShanghaiToday(): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const year = parts.find((p) => p.type === 'year')?.value;
+  const month = parts.find((p) => p.type === 'month')?.value;
+  const day = parts.find((p) => p.type === 'day')?.value;
+  return `${year}-${month}-${day}`;
+}
 
 interface TimeCapsule {
   id: number;
@@ -29,12 +47,14 @@ timeCapsules.get('/', async (c) => {
     const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM time_capsules');
     const total = parseInt(countRows[0]?.total || '0', 10);
 
+    const now = getShanghaiToday();
+
     // 获取分页数据
     // 关键：未到解锁日期的胶囊，message 在 SQL 层直接返回 NULL（服务端密封），
     // 而不是依赖前端"不显示"，从根源上杜绝未到期内容通过接口泄露
     const { rows: capsuleRows } = await pool.query(
       `SELECT id, title,
-              CASE WHEN unlock_date <= TO_CHAR(NOW(), 'YYYY-MM-DD')
+              CASE WHEN unlock_date <= $3
                    THEN message
                    ELSE NULL
               END AS message,
@@ -42,13 +62,12 @@ timeCapsules.get('/', async (c) => {
        FROM time_capsules
        ORDER BY unlock_date ASC
        LIMIT $1 OFFSET $2`,
-      [pagination.pageSize, pagination.offset]
+      [pagination.pageSize, pagination.offset, now]
     );
 
     const capsules = capsuleRows as TimeCapsule[];
 
     // 批量检查并解锁到期的胶囊
-    const now = new Date().toISOString().split('T')[0] || '';
     const toUnlock = capsules.filter((item) => item.unlock_date <= now && item.is_unlocked === 0);
 
     if (toUnlock.length > 0) {
@@ -66,6 +85,8 @@ timeCapsules.get('/', async (c) => {
       toUnlock.forEach((item) => {
         item.is_unlocked = 1;
       });
+
+      await cache.del('stats:dashboard');
     }
 
     return jsonResponse(buildPaginatedResponse(capsules, total, pagination));
@@ -95,20 +116,30 @@ timeCapsules.post('/', async (c) => {
       return errorResponse('留言内容不能为空', 400);
     }
 
-    if (!unlock_date) {
+    if (!unlock_date || typeof unlock_date !== 'string') {
       return errorResponse('解锁日期不能为空', 400);
     }
 
-    // 验证解锁日期必须是未来的日期
-    const unlockDate = new Date(unlock_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (isNaN(unlockDate.getTime())) {
-      return errorResponse('解锁日期格式无效', 400);
+    const rules: (string | null)[] = [
+      validateRequired(message, '留言内容'),
+      validateLength(message.trim(), '留言内容', 1, 5000),
+      validateDate(unlock_date, '解锁日期'),
+    ];
+    if (title !== undefined && title !== null && String(title).trim() !== '') {
+      rules.push(validateLength(String(title).trim(), '标题', 1, 100));
+    }
+    const validationError = validate(rules);
+    if (validationError) {
+      return errorResponse(validationError, 400);
     }
 
-    if (unlockDate <= today) {
+    if ((title && hasXSS(String(title))) || hasXSS(message)) {
+      return errorResponse('输入内容包含不安全字符', 400);
+    }
+
+    // 验证解锁日期必须是未来的日期（基于 Asia/Shanghai 时区）
+    const today = getShanghaiToday();
+    if (unlock_date <= today) {
       return errorResponse('解锁日期必须是未来的日期', 400);
     }
 
@@ -117,13 +148,15 @@ timeCapsules.post('/', async (c) => {
       `INSERT INTO time_capsules (title, message, unlock_date, is_unlocked, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, 0, 'couple', NOW(), NOW())
        RETURNING id, title, message, unlock_date, is_unlocked, created_by, created_at, updated_at`,
-      [title || null, message.trim(), unlock_date]
+      [title ? String(title).trim() : null, message.trim(), unlock_date]
     );
 
     const newCapsule = rows[0] as TimeCapsule;
     if (!newCapsule) {
       return errorResponse('创建时间胶囊失败', 500);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ data: newCapsule }, 201);
   } catch (error: any) {
@@ -147,6 +180,8 @@ timeCapsules.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('时间胶囊不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '时间胶囊已删除' });
   } catch (error: any) {

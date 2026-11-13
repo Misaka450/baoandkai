@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import Icon from '../components/icons/Icons'
 import TimeCapsuleList from '../components/features/TimeCapsuleList'
@@ -11,6 +11,7 @@ import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
 
 export default function CoupleFeatures() {
+  const queryClient = useQueryClient()
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [showLockedTip, setShowLockedTip] = useState(false)
@@ -42,6 +43,7 @@ export default function CoupleFeatures() {
     },
     onSuccess: () => {
       // 刷新数据
+      queryClient.invalidateQueries({ queryKey: ['timeCapsules'] })
       setShowDeleteConfirm(null)
     }
   })

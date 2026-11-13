@@ -21,11 +21,17 @@ interface LazyImageProps {
 /**
  * 生成响应式图片 srcset (利用服务端 Sharp 动态裁剪接口)
  */
-function generateSrcSet(src: string): string | undefined {
+function generateSrcSet(src: string, width?: number, sizes?: string): string | undefined {
     if (!src || !src.includes('/api/images/')) return undefined
 
     try {
         const [base] = src.split('?')
+        if (width && !sizes) {
+            return [
+                `${base}?w=${width}&q=80&f=webp ${width}w`,
+                `${base}?w=${width * 2}&q=80&f=webp ${width * 2}w`,
+            ].join(', ')
+        }
         return [
             `${base}?w=400&q=75&f=webp 400w`,
             `${base}?w=800&q=80&f=webp 800w`,
@@ -61,16 +67,12 @@ export default function LazyImage({
         return getOptimizedImageUrl(src, { width, quality: 80, format: 'webp' });
     }, [src, width, noOptimize]);
 
-    // 超轻量极小占位图 url (width=50, quality=30, format='webp')
-    const lqipSrc = useMemo(() => {
-        if (noOptimize || !src) return '';
-        return getOptimizedImageUrl(src, { width: 50, quality: 30, format: 'webp' });
-    }, [src, noOptimize]);
-
     const srcSet = useMemo(() => {
         if (noOptimize || !optimizedSrc) return undefined
-        return generateSrcSet(optimizedSrc)
-    }, [optimizedSrc, noOptimize])
+        return generateSrcSet(optimizedSrc, width, sizes)
+    }, [optimizedSrc, noOptimize, width, sizes])
+
+    const resolvedSizes = sizes || (srcSet ? (width ? `${width}px` : '(max-width: 768px) 100vw, 50vw') : undefined)
 
     const [isLoaded, setIsLoaded] = useState(() => loadedImagesCache.has(optimizedSrc))
     const [error, setError] = useState(false)
@@ -98,15 +100,11 @@ export default function LazyImage({
             className={`relative overflow-hidden bg-slate-100 ${className}`}
             style={aspectRatio ? { aspectRatio } : undefined}
         >
-            {/* 渐进式毛玻璃底层：放大的超微缩略图 LQIP */}
-            {!error && lqipSrc && (
-                <img
-                    src={lqipSrc}
-                    alt=""
+            {/* 纯 CSS 渐变骨架屏占位层：避免额外发起 LQIP 网络请求 */}
+            {!error && !isLoaded && (
+                <div
                     aria-hidden="true"
-                    className={`absolute inset-0 w-full h-full object-cover filter blur-[16px] scale-[1.08] transition-opacity duration-500 pointer-events-none ${
-                        isLoaded ? 'opacity-0' : 'opacity-100'
-                    }`}
+                    className="absolute inset-0 bg-gradient-to-br from-slate-100 via-stone-100/80 to-pink-50/40 animate-pulse pointer-events-none"
                 />
             )}
 
@@ -125,7 +123,7 @@ export default function LazyImage({
                 src={optimizedSrc}
                 alt={alt}
                 srcSet={srcSet}
-                sizes={sizes || (srcSet ? '(max-width: 768px) 100vw, 50vw' : undefined)}
+                sizes={resolvedSizes}
                 loading={priority ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchPriority={priority ? 'high' : 'auto'}

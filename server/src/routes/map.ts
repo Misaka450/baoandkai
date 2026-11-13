@@ -5,6 +5,7 @@ import { validate, validateRequired, validateLength, validateDate, hasXSS, sanit
 import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js';
 import { findOrThrow, handleCrudError } from '../utils/crud.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const mapCheckins = new Hono();
 
@@ -112,6 +113,8 @@ mapCheckins.post('/', async (c) => {
       return errorResponse('创建失败', 500);
     }
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...newCheckin,
       images: transformImageArray(newCheckin.images),
@@ -208,6 +211,8 @@ mapCheckins.put('/:id', async (c) => {
 
     const updated = updatedRows[0] as MapCheckin;
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...updated,
       images: transformImageArray(updated?.images),
@@ -232,6 +237,8 @@ mapCheckins.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('记录不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '记录已删除' });
   } catch (error: unknown) {

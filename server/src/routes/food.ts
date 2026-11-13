@@ -5,6 +5,7 @@ import { validate, validateRequired, validateLength, validateDate, validateRatin
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { findOrThrow, handleCrudError } from '../utils/crud.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const food = new Hono();
 
@@ -211,6 +212,8 @@ food.post('/', async (c) => {
       return errorResponse('创建失败', 500);
     }
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...newFood,
       images: transformImageArray(newFood.images),
@@ -382,6 +385,8 @@ food.put('/:id', async (c) => {
 
     const updatedFood = rows[0] as FoodCheckin;
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...updatedFood,
       images: transformImageArray(updatedFood?.images),
@@ -407,6 +412,8 @@ food.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('记录不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '记录已删除' });
   } catch (error: unknown) {

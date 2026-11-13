@@ -59,7 +59,11 @@ export function extractStorageKey(url: string | null | undefined): string {
     } else if (key.includes('/api/images/')) {
         key = (key.split('/api/images/')[1] || '').split('?')[0] || '';
     }
-    return decodeURIComponent(key);
+    try {
+        return decodeURIComponent(key);
+    } catch {
+        return '';
+    }
 }
 
 /**

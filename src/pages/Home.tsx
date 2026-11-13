@@ -13,10 +13,10 @@ import OnThisDayCard from '../components/home/OnThisDayCard'
 
 export default function Home() {
   const { config } = useConfig()
-  const timeTogether = useLoveTimer(config.anniversaryDate)
   const toast = useToast()
   const [isHeartPopping, setIsHeartPopping] = useState(false)
   const [isPrecisionOpen, setIsPrecisionOpen] = useState(false)
+  const timeTogether = useLoveTimer(config.anniversaryDate, isPrecisionOpen)
 
   const handleHeartClick = () => {
     setIsHeartPopping(true)

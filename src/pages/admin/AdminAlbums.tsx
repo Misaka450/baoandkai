@@ -108,6 +108,10 @@ const AdminAlbums = () => {
             setPhotos(prev => prev.map(p =>
                 p.id === captionModalPhoto.id ? { ...p, caption: captionModalText.trim() } : p
             ))
+            queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] })
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
             setCaptionModalPhoto(null)
             await showAlert('成功', '照片名称已保存', 'success')
         } catch (error) {
@@ -151,7 +155,12 @@ const AdminAlbums = () => {
                 sort_order: index
             }))
 
-            await apiService.put(`/albums/${selectedAlbum.id}/photos/reorder`, reorderData)
+            const { error } = await apiService.put(`/albums/${selectedAlbum.id}/photos/reorder`, reorderData)
+            if (error) throw new Error(error)
+            queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] })
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
         } catch (error) {
             console.error('排序更新失败:', error)
             await showAlert('错误', '排序未保存成功', 'error')
@@ -176,6 +185,10 @@ const AdminAlbums = () => {
             setPhotos(prev => prev.map(p =>
                 p.id === editingCaption.id ? { ...p, caption: editingCaption.text } : p
             ))
+            queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] })
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
             setEditingCaption(null)
         } catch (error) {
             console.error('更新名称失败:', error)
@@ -197,12 +210,16 @@ const AdminAlbums = () => {
             if (editingAlbum) {
                 const { error } = await apiService.put(`/albums/${editingAlbum.id}`, { name: albumName, description: albumDesc })
                 if (error) throw new Error(error)
+                queryClient.invalidateQueries({ queryKey: ['album-detail', String(editingAlbum.id)] })
                 await showAlert('成功', '相册已更新！', 'success')
             } else {
                 const { error } = await apiService.post('/albums', { name: albumName, description: albumDesc })
                 if (error) throw new Error(error)
                 await showAlert('成功', '相册已创建！', 'success')
             }
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
             setAlbumName('')
             setAlbumDesc('')
             setShowAlbumForm(false)
@@ -252,6 +269,8 @@ const AdminAlbums = () => {
                     setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, photo_count: (a.photo_count || 0) + 1 } : a));
                     queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
                     queryClient.invalidateQueries({ queryKey: ['albums'] });
+                    queryClient.invalidateQueries({ queryKey: ['stats'] });
+                    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
                 }
             } catch (err) {
                 console.error('上传失败:', err);
@@ -278,6 +297,8 @@ const AdminAlbums = () => {
                 queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] });
                 queryClient.invalidateQueries({ queryKey: ['albums'] });
             }
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
             await showAlert('成功', '照片已删除！', 'success')
         } catch (error) {
             await showAlert('错误', '删除失败', 'error')
@@ -291,6 +312,10 @@ const AdminAlbums = () => {
             if (error) throw new Error(error)
             setAlbums(prev => prev.map(a => a.id === selectedAlbum.id ? { ...a, cover_url: photoUrl } : a))
             setSelectedAlbum(prev => prev ? { ...prev, cover_url: photoUrl } : null)
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
             await showAlert('成功', '封面图已更新！', 'success')
         } catch (error) {
             await showAlert('错误', '设置封面失败', 'error')
@@ -304,6 +329,10 @@ const AdminAlbums = () => {
         try {
             const { error } = await apiService.delete(`/albums/${album.id}`)
             if (error) throw new Error(error)
+            queryClient.invalidateQueries({ queryKey: ['albums'] })
+            queryClient.invalidateQueries({ queryKey: ['album-detail', String(album.id)] })
+            queryClient.invalidateQueries({ queryKey: ['stats'] })
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
             await showAlert('成功', '相册已从地球上消失', 'success')
             if (selectedAlbum?.id === album.id) {
                 setSelectedAlbum(null)

@@ -1,5 +1,15 @@
 import { Context } from 'hono';
 import pg from 'pg';
+import { cache } from '../lib/cache.js';
+
+export const STATS_CACHE_KEY = 'stats:dashboard';
+
+/**
+ * 主动失效仪表盘统计缓存（在增删改写操作后调用）
+ */
+export async function invalidateStatsCache(): Promise<void> {
+  await cache.del(STATS_CACHE_KEY);
+}
 
 /**
  * 根据ID查找记录，不存在则抛出异常
@@ -49,6 +59,9 @@ export class NotFoundError extends Error {
  * 统一的CRUD错误处理包装器
  */
 export function handleCrudError(error: unknown, c: Context) {
+  if (error instanceof SyntaxError) {
+    return c.json({ error: '请求体 JSON 格式无效', success: false }, 400);
+  }
   if (error instanceof ValidationError) {
     return c.json({ error: error.message, success: false }, 400);
   }

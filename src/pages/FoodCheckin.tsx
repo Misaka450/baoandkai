@@ -64,6 +64,7 @@ export default function FoodCheckin() {
     queryKey: ['foodCuisines'],
     queryFn: async () => {
       const response = await apiService.get<{ data: string[] }>('/food?cuisines=true')
+      if (response.error) throw new Error(response.error)
       return response.data?.data || []
     },
     staleTime: 60 * 60 * 1000, // 分类数据缓存1小时

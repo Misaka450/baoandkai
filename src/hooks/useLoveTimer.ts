@@ -13,21 +13,23 @@ interface TimeTogether {
 /**
  * 相爱时长计数器 Hook
  * 
- * 每秒更新一次，使用单个时间戳状态驱动所有计算，
- * 避免多 state 更新导致的重复渲染。
+ * 默认按分钟更新，仅当精确计时面板展开时启用秒级（1000ms）定时器，
+ * 使用单个时间戳状态驱动所有计算，避免未展开时整个页面每秒重渲染。
  */
-export function useLoveTimer(anniversaryDate: string | null): TimeTogether {
+export function useLoveTimer(anniversaryDate: string | null, isPrecisionOpen = false): TimeTogether {
     const [now, setNow] = useState(Date.now())
 
     useEffect(() => {
         if (!anniversaryDate) return
 
+        setNow(Date.now())
+        const intervalMs = isPrecisionOpen ? 1000 : 60_000
         const timer = setInterval(() => {
             setNow(Date.now())
-        }, 1000)
+        }, intervalMs)
 
         return () => clearInterval(timer)
-    }, [anniversaryDate])
+    }, [anniversaryDate, isPrecisionOpen])
 
     return useMemo(() => {
         const defaultTime: TimeTogether = {

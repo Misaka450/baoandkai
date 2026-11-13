@@ -89,6 +89,10 @@ export const cache = {
     store.delete(key);
   },
 
+  async del(key: string): Promise<void> {
+    store.delete(key);
+  },
+
   /** 清空所有缓存 */
   clear() {
     store.clear();

@@ -3,6 +3,7 @@ import { jsonResponse, errorResponse } from '../utils/response.js';
 import { transformImageUrl, extractStorageKey } from '../utils/url.js';
 import { pool } from '../lib/db.js';
 import { storage } from '../lib/storage.js';
+import { cache } from '../lib/cache.js';
 import { validateImageMagic } from '../utils/validation.js';
 import { parsePhotoExif } from '../utils/exif.js';
 
@@ -64,6 +65,12 @@ photos.post('/', async (c) => {
       return errorResponse('无效的相册ID', 400);
     }
 
+    // 先查询确认相册存在，避免无效相册写盘产生孤儿文件
+    const { rows: albumRows } = await pool.query('SELECT id, name FROM albums WHERE id = $1', [albumId]);
+    if (albumRows.length === 0) {
+      return errorResponse('相册不存在', 404);
+    }
+
     const body = await c.req.parseBody();
     const file = body.file as File | undefined;
 
@@ -93,7 +100,6 @@ photos.post('/', async (c) => {
     }
 
     // 获取相册名称以便按结构存放，并过滤特殊字符防止路径异常
-    const { rows: albumRows } = await pool.query('SELECT name FROM albums WHERE id = $1', [albumId]);
     const albumName = albumRows[0]?.name || 'default';
     const safeAlbumName = albumName.replace(/[^a-zA-Z0-9_\u4e00-\u9fa5-]/g, '_');
 
@@ -131,6 +137,7 @@ photos.post('/', async (c) => {
     );
 
     const newPhoto = newPhotoRows[0] as Photo;
+    await cache.del('stats:dashboard');
 
     return jsonResponse({
       ...newPhoto,
@@ -327,6 +334,7 @@ photos.delete('/:photoId', async (c) => {
 
     // 3. 从数据库删除记录
     await pool.query('DELETE FROM photos WHERE id = $1', [photoId]);
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '照片已彻底删除' });
   } catch (error: any) {

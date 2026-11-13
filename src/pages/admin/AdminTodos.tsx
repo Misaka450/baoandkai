@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiService } from '../../services/apiService'
 import AdminModal from '../../components/modals/AdminModal'
 import Modal from '../../components/modals/Modal'
@@ -52,6 +53,14 @@ const AdminTodos = () => {
     const completionFileRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<FormData>({ title: '', description: '', priority: 2, status: 'pending', due_date: '', category: '其他', images: [] })
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
+    const queryClient = useQueryClient()
+
+    const invalidateTodoCaches = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ['todos'] })
+        queryClient.invalidateQueries({ queryKey: ['map-city-todos'] })
+        queryClient.invalidateQueries({ queryKey: ['stats'] })
+        queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
+    }, [queryClient])
 
     const loadTodos = useCallback(async () => {
         try {
@@ -112,7 +121,9 @@ const AdminTodos = () => {
                 if (error) throw new Error(error)
                 await showAlert('成功', '待办事项已创建！', 'success')
             }
-            resetForm(); loadTodos()
+            resetForm()
+            loadTodos()
+            invalidateTodoCaches()
         } catch (err: any) {
             await showAlert('错误', err.message || '保存失败', 'error')
         }
@@ -129,7 +140,9 @@ const AdminTodos = () => {
         try {
             const { error } = await apiService.delete(`/todos/${id}`)
             if (error) throw new Error(error)
-            await showAlert('成功', '已删除！', 'success'); loadTodos()
+            await showAlert('成功', '已删除！', 'success')
+            loadTodos()
+            invalidateTodoCaches()
         } catch { await showAlert('错误', '删除失败', 'error') }
     }
 
@@ -164,6 +177,7 @@ const AdminTodos = () => {
             setCompletionNotes('')
             setCompletedBy('both')
             loadTodos()
+            invalidateTodoCaches()
         } catch { await showAlert('错误', '更新失败', 'error') }
     }
 
@@ -175,6 +189,7 @@ const AdminTodos = () => {
                 const { error } = await apiService.put(`/todos/${t.id}`, { ...t, status: 'pending', completion_photos: [], completion_notes: '' })
                 if (error) throw new Error(error)
                 loadTodos()
+                invalidateTodoCaches()
             } catch { await showAlert('错误', '更新失败', 'error') }
         }
     }

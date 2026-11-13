@@ -7,8 +7,8 @@
  * - 只做 trim 级别的清洗，不做字符级别的转义
  */
 
-// 危险HTML标签和事件属性正则
-const XSS_PATTERN = /<\s*script|<\s*\/script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed|<\s*form/gi
+// 危险HTML标签和事件属性正则（使用 \bon[a-z]+\s*= 避免误杀 version= 等正常单词）
+const XSS_PATTERN = /<\s*script|<\s*\/script|javascript:|\bon[a-z]+\s*=|<\s*iframe|<\s*object|<\s*embed|<\s*form/gi
 // SQL注入关键词正则（仅用于基础检测，参数化查询是主要防线）
 const SQL_INJECTION_PATTERN = /(\b(union\s+select|drop\s+table|insert\s+into|delete\s+from|update\s+\w+\s+set)\b)/gi
 

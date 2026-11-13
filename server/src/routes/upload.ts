@@ -37,12 +37,22 @@ upload.post('/', async (c) => {
       return errorResponse('没有上传文件', 400);
     }
 
-    // 验证 + 存储合并在一个循环中，避免重复读取文件
+    const MAX_FILES_PER_REQUEST = 20;
+    if (files.length > MAX_FILES_PER_REQUEST) {
+      return errorResponse(`单次最多只能上传 ${MAX_FILES_PER_REQUEST} 个文件`, 400);
+    }
+
     const maxFileSize = 20 * 1024 * 1024; // 20MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    const uploadedUrls: string[] = [];
-    let lastExifMeta: ExifResult | null = null;
+    const MIME_TO_EXT: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    };
 
+    // 第一阶段：先完成所有文件的大小、MIME 类型与 Magic Bytes 校验，任一不通过则整体拒绝，避免产生半截脏文件
+    const validatedFiles: Array<{ buffer: Buffer; safeExtension: string }> = [];
     for (const file of files) {
       // 验证 MIME 类型
       if (!allowedTypes.includes(file.type)) {
@@ -63,6 +73,19 @@ upload.post('/', async (c) => {
         return errorResponse(`文件类型验证失败: ${file.name}，文件内容与声明类型不匹配`, 400);
       }
 
+      const rawExt = file.name.split('.').pop()?.toLowerCase() || '';
+      const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(rawExt)
+        ? rawExt
+        : (MIME_TO_EXT[file.type] || 'jpg');
+
+      validatedFiles.push({ buffer, safeExtension });
+    }
+
+    // 第二阶段：全部文件校验通过后，再统一解析 EXIF 并落盘
+    const uploadedUrls: string[] = [];
+    let lastExifMeta: ExifResult | null = null;
+
+    for (const { buffer, safeExtension } of validatedFiles) {
       // 智能解析 EXIF（拍摄时间与经纬度城市）
       const exif = await parsePhotoExif(buffer);
       if (exif && (exif.date || exif.location)) {
@@ -71,17 +94,6 @@ upload.post('/', async (c) => {
         lastExifMeta = exif;
       }
 
-      // 存储文件 - 使用安全扩展名，防止可执行文件上传
-      const MIME_TO_EXT: Record<string, string> = {
-        'image/jpeg': 'jpg',
-        'image/png': 'png',
-        'image/gif': 'gif',
-        'image/webp': 'webp',
-      };
-      const rawExt = file.name.split('.').pop()?.toLowerCase() || '';
-      const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(rawExt)
-        ? rawExt
-        : (MIME_TO_EXT[file.type] || 'jpg');
       const filename = `${folder}/${Date.now()}_${crypto.randomUUID().substring(0, 6)}.${safeExtension}`;
       await storage.put(filename, buffer);
 

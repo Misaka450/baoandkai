@@ -4,6 +4,7 @@ import { transformImageArray, serializeImages } from '../utils/url.js';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { pool } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 
 const todos = new Hono();
 
@@ -135,6 +136,8 @@ todos.post('/', async (c) => {
       return errorResponse('创建失败', 500);
     }
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...newTodo,
       images: transformImageArray(newTodo.images),
@@ -255,6 +258,8 @@ todos.put('/:id', async (c) => {
 
     const updatedTodo = updatedRows[0] as Todo;
 
+    await cache.del('stats:dashboard');
+
     return jsonResponse({
       ...updatedTodo,
       images: transformImageArray(updatedTodo.images),
@@ -281,6 +286,8 @@ todos.delete('/:id', async (c) => {
     if (rowCount === 0) {
       return errorResponse('任务不存在', 404);
     }
+
+    await cache.del('stats:dashboard');
 
     return jsonResponse({ success: true, message: '任务已删除' });
   } catch (error: any) {
