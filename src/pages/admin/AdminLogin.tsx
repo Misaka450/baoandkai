@@ -25,7 +25,7 @@ const AdminLogin: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50 relative overflow-hidden">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50 py-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] relative overflow-hidden">
       {/* 装饰性背景元素 */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-rose-200/30 to-pink-200/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-stone-200/30 to-amber-200/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />

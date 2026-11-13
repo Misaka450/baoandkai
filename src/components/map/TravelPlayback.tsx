@@ -361,7 +361,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
     // 地图数据尚未加载完成时展示平滑加载态，避免误触发空状态弹窗
     if (isProvincesLoading) {
         return createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl text-white">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl text-white">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xl animate-pulse">
                         ✈️
@@ -376,7 +376,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
     // 如果打卡站点少于 1 个，给出温馨提示
     if (totalPoints < 1) {
         return createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl text-white">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl text-white">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -405,7 +405,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
     const firstImage = currentPoint?.checkin.images && currentPoint.checkin.images.length > 0 ? currentPoint.checkin.images[0] : null
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex flex-col justify-between overflow-hidden bg-slate-950 text-slate-100 select-none">
+        <div className="fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden bg-slate-950 text-slate-100 select-none">
             {/* 深色莫兰迪星空渐变与柔和径向星晕 */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/90 to-slate-950" />
@@ -417,7 +417,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
             </div>
 
             {/* 顶部工具栏 */}
-            <header className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4 border-b border-white/5 bg-slate-950/40 backdrop-blur-xl">
+            <header className="relative z-20 flex items-center justify-between px-4 sm:px-8 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3 sm:pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pb-4 border-b border-white/5 bg-slate-950/40 backdrop-blur-xl">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-primary/30 to-amber-300/30 border border-white/10 flex items-center justify-center text-lg shadow-inner">
                         ✈️
@@ -466,7 +466,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
 
             {/* 中央舞台：ChinaMap SVG 与 动态航线/飞机 */}
             <main className="relative z-10 flex-1 flex items-center justify-center p-2 sm:p-4 overflow-hidden min-h-0">
-                <div className="relative w-full h-full max-w-5xl max-h-[72vh] flex items-center justify-center">
+                <div className="relative w-full h-full max-w-5xl max-h-[72dvh] flex items-center justify-center">
                     <svg
                         viewBox={CHINA_MAP_VIEWBOX}
                         className="w-full h-full object-contain filter drop-shadow-[0_10px_35px_rgba(0,0,0,0.5)]"
@@ -777,7 +777,7 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
             </main>
 
             {/* 4. 底栏播放控制器 */}
-            <footer className="relative z-20 border-t border-white/5 bg-slate-950/60 backdrop-blur-xl px-4 sm:px-8 py-3 sm:py-4">
+            <footer className="relative z-20 border-t border-white/5 bg-slate-950/60 backdrop-blur-xl px-4 sm:px-8 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
                 <div className="max-w-4xl mx-auto flex flex-col gap-2.5">
                     {/* 进度指示条与站点选择器 */}
                     <div className="flex items-center gap-3">

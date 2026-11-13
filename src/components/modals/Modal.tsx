@@ -45,7 +45,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             />
 
             {/* 模态框主体 */}
-            <div className="relative bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-scale-in">
+            <div className="relative bg-white w-full max-w-2xl max-h-[85dvh] sm:max-h-[90dvh] rounded-2xl md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-scale-in">
                 {/* 头部标题栏 */}
                 <div className="px-5 py-4 md:px-8 md:py-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
                     <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight">{title}</h2>
@@ -60,7 +60,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
                 </div>
 
                 {/* 内容区域 */}
-                <div className="p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
+                <div className="px-4 pt-4 pb-0 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
                     {children}
                 </div>
             </div>

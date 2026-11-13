@@ -478,7 +478,7 @@ export default function ImageModal({
             <img
               src={thumbnailUrl}
               alt="Thumbnail"
-              className={`max-w-[100vw] max-h-[100vh] object-contain transition-opacity duration-500 absolute inset-0 filter blur-md scale-105 pointer-events-none ${
+              className={`max-w-[100vw] max-h-[100dvh] object-contain transition-opacity duration-500 absolute inset-0 filter blur-md scale-105 pointer-events-none ${
                 isFullLoaded ? 'opacity-0' : 'opacity-100'
               }`}
             />
@@ -487,7 +487,7 @@ export default function ImageModal({
             <img
               src={currentImage}
               alt="Viewer"
-              className={`max-w-[100vw] max-h-[100vh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-opacity duration-500 ease-out ${
+              className={`max-w-[100vw] max-h-[100dvh] object-contain select-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] transition-opacity duration-500 ease-out ${
                 isFullLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
@@ -522,7 +522,7 @@ export default function ImageModal({
         >
           <div
             ref={thumbListRef}
-            className="flex gap-2 md:gap-4 min-w-max mx-auto justify-center items-center"
+            className="w-max mx-auto flex gap-2 md:gap-4 items-center"
           >
             {images.map((img, idx) => (
               <div

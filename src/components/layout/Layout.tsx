@@ -12,7 +12,7 @@ export default function Layout() {
   const isAdminPage = location.pathname.startsWith('/admin')
 
   return (
-    <div className="min-h-screen bg-background-light text-slate-700 transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-background-light text-slate-700 transition-colors duration-300 overflow-x-hidden">
       {/* 浮动装饰 - 纯 CSS 实现，比 SVG Icon 更轻量 */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ contain: 'strict' }}>
         <div className="absolute top-20 left-10 w-12 h-12 rounded-full bg-stone-300/20 animate-float" />

@@ -6,6 +6,7 @@ import Icon from '../icons/Icons'
 import LazyImage from '../common/LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import { formatDate } from '../../utils/common'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface SlideshowProps {
     checkins: MapCheckin[]
@@ -65,16 +66,17 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
     }, [goToNext, goToPrev, onClose])
 
     const currentPhoto = allPhotos[currentIndex]
+    useBodyScrollLock(Boolean(currentPhoto))
     if (!currentPhoto) return null
 
     if (typeof document === 'undefined') return null
 
     return createPortal(
-        <div className={`fixed inset-0 z-50 flex items-center justify-center ${
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center ${
             isFullscreen ? 'bg-black' : 'bg-black/95 backdrop-blur-xl'
         }`}>
             {/* 顶部控制栏 */}
-            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-6 bg-gradient-to-b from-black/60 to-transparent">
+            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6 pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] bg-gradient-to-b from-black/60 to-transparent">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onClose}
@@ -125,7 +127,7 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
             </AnimatePresence>
 
             {/* 底部信息 */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/60 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] bg-gradient-to-t from-black/60 to-transparent">
                 <div className="max-w-3xl mx-auto text-center">
                     <div className="flex items-center justify-center gap-2 text-white/80 mb-3">
                         <Icon name="location_on" size={16} />
@@ -160,8 +162,8 @@ export default function Slideshow({ checkins, onClose }: SlideshowProps) {
             </button>
 
             {/* 缩略图导航 */}
-            <div className="absolute bottom-32 left-0 right-0 z-10">
-                <div className="flex justify-center gap-2 overflow-x-auto px-4 pb-2">
+            <div className="absolute bottom-[calc(8rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-10 overflow-x-auto px-4 pb-2 no-scrollbar touch-pan-x">
+                <div className="w-max mx-auto flex gap-2">
                     {allPhotos.slice(0, 20).map((photo, idx) => (
                         <button
                             key={idx}

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { notesService } from '../../services/apiService'
 import Icon from '../icons/Icons'
 import { useToast } from '../common/Toast'
+import { StickyNotesSkeleton } from '../common/Skeleton'
 import Modal from '../modals/Modal'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../../constants/styles'
 import { formatDate } from '../../utils/common'
@@ -98,10 +99,10 @@ export default function StickyNotes() {
     }
   }
 
-  if (isLoading) return <div className="text-center py-10 opacity-50">加载中...</div>
+  if (isLoading) return <StickyNotesSkeleton />
 
   return (
-    <div className={RESPONSIVE_GRID}>
+    <div className={`${RESPONSIVE_GRID} !gap-4 md:!gap-8`}>
       {notes.map((note, idx) => {
         const colorKey = (note.color && colorMap[note.color]) ? note.color : Object.keys(colorMap)[idx % Object.keys(colorMap).length] || 'pink'
         const style = colorMap[colorKey]!

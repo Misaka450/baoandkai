@@ -62,7 +62,7 @@ export default function AlbumDetail() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3 md:px-6">
+            <div className="min-h-[100dvh] pt-[calc(5rem+env(safe-area-inset-top,0px))] md:pt-40 max-w-6xl mx-auto px-3 md:px-6">
                 <div className="text-center mb-8 md:mb-16">
                     <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
                     <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
@@ -78,7 +78,7 @@ export default function AlbumDetail() {
 
     if (!albumDetail) {
         return (
-            <div className="min-h-screen pt-20 md:pt-40 flex items-center justify-center px-4">
+            <div className="min-h-[100dvh] pt-[calc(5rem+env(safe-area-inset-top,0px))] md:pt-40 flex items-center justify-center px-4">
                 <div className="text-center text-slate-400">
                     <Icon name="photo_library" size={60} className="mx-auto mb-4 opacity-20 md:w-20 md:h-20" />
                     <p className="text-lg md:text-xl font-black text-slate-800 mb-2">相册不存在</p>
@@ -94,15 +94,15 @@ export default function AlbumDetail() {
     }
 
     return (
-        <div className="min-h-screen text-slate-700 transition-colors duration-300">
-            <main className="max-w-6xl mx-auto px-3 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
+        <div className="min-h-[100dvh] text-slate-700 transition-colors duration-300">
+            <main className="max-w-6xl mx-auto px-3 md:px-6 pb-20 md:pb-32 pt-[calc(5rem+env(safe-area-inset-top,0px))] md:pt-40 relative">
                 {/* 页面头部 */}
                 <header className="text-center mb-8 md:mb-16 animate-fade-in relative">
                     {/* 返回按钮 */}
                     <button
                         onClick={handleBack}
                         aria-label="返回相册列表"
-                        className="absolute left-0 sm:left-1 top-0 w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-md focus-visible:outline-2 focus-visible:outline-primary z-10"
+                        className="absolute left-0 sm:left-1 top-0 w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl glass-card flex items-center justify-center text-slate-600 hover:text-primary hover:scale-110 active:scale-95 transition-all shadow-md focus-visible:outline-2 focus-visible:outline-primary z-10"
                     >
                         <Icon name="west" size={18} className="md:w-6 md:h-6" />
                     </button>
@@ -118,7 +118,7 @@ export default function AlbumDetail() {
                         </div>
                     )}
 
-                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-gradient tracking-tight mb-2 md:mb-4 px-10 md:px-0">{albumDetail.name}</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-gradient tracking-tight mb-2 md:mb-4 px-12 md:px-0">{albumDetail.name}</h1>
 
                     {albumDetail.description && (
                         <p className="text-slate-400 font-medium text-xs md:text-sm italic max-w-lg mx-auto leading-relaxed px-4">

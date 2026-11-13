@@ -66,20 +66,20 @@ export default function Todos() {
   }, [todos, statusFilter, categoryFilter])
 
   if (loading) return (
-    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6 text-center">
+    <div className="min-h-[100dvh] pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6 text-center">
       <div className="mb-8 md:mb-16">
         <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
         <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 md:h-64 rounded-2xl md:rounded-[2rem]" />)}
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-36 md:h-64 rounded-2xl md:rounded-[2rem]" />)}
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+    <div className="min-h-[100dvh] text-slate-700 transition-colors duration-300">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 relative">
         <header className="text-center mb-4 sm:mb-6 md:mb-16 animate-fade-in">
           <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">愿望清单</h1>
           <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
@@ -310,11 +310,11 @@ export default function Todos() {
               hapticFeedback('light')
               navigate('/admin/todos')
             }}
-            className="group premium-card !p-0 !bg-slate-50/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[300px] cursor-pointer hover:bg-white hover:border-primary/40 transition-all animate-slide-up"
+            className="group premium-card !py-5 md:!p-0 !bg-slate-50/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[120px] md:min-h-[300px] cursor-pointer hover:bg-white hover:border-primary/40 transition-all animate-slide-up"
             style={{ animationDelay: '0.4s' }}
           >
-            <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:scale-110 group-hover:rotate-12 transition-all mb-4">
-              <Icon name="add_circle" size={40} />
+            <div className="w-12 h-12 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-white shadow-sm flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:scale-110 group-hover:rotate-12 transition-all mb-2 md:mb-4">
+              <Icon name="add_circle" size={40} className="w-7 h-7 md:w-10 md:h-10" />
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">添加甜蜜心愿</p>
           </div>
@@ -378,26 +378,26 @@ export default function Todos() {
 
         {/* 进度控制面板 */}
         <section className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
-          <div className="premium-card p-12 max-w-3xl mx-auto overflow-hidden relative group">
+          <div className="premium-card p-6 md:p-12 max-w-3xl mx-auto overflow-hidden relative group">
             <div className="absolute -top-12 -left-12 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
 
-            <div className="flex items-center justify-between mb-10 relative z-10">
+            <div className="flex items-center justify-between gap-4 mb-6 md:mb-10 relative z-10">
               <div>
-                <span className="premium-badge mb-3">JOURNEY PROGRESS</span>
-                <h4 className="text-3xl font-black text-slate-800 tracking-tight">我们的愿望进度</h4>
+                <span className="premium-badge mb-2 md:mb-3">JOURNEY PROGRESS</span>
+                <h4 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 tracking-tight">我们的愿望进度</h4>
               </div>
               <div className="text-right">
-                <div className="text-5xl font-black text-primary tracking-tighter">{progress}%</div>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-primary tracking-tighter">{progress}%</div>
               </div>
             </div>
 
-            <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden mb-8 shadow-inner relative z-10">
+            <div className="w-full bg-slate-100 h-3 md:h-4 rounded-full overflow-hidden mb-5 md:mb-8 shadow-inner relative z-10">
               <div className="bg-gradient-to-r from-primary to-secondary h-full rounded-full transition-all duration-1000 relative" style={{ width: `${progress}%` }}>
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[shimmer_2s_linear_infinite]"></div>
               </div>
             </div>
 
-            <p className="text-center text-slate-400 font-medium italic opacity-80 relative z-10">
+            <p className="text-center text-xs sm:text-sm md:text-base text-slate-400 font-medium italic opacity-80 relative z-10">
               “我们已经共同完成了 {completedCount} 个甜蜜的约定，未来还有无限可能。”
             </p>
           </div>

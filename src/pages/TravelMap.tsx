@@ -158,7 +158,7 @@ export default function TravelMap() {
     ]
 
     if (isLoading) return (
-        <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+        <div className="min-h-[100dvh] pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
             <div className="text-center mb-8 md:mb-16">
                 <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
                 <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
@@ -177,8 +177,8 @@ export default function TravelMap() {
     )
 
     return (
-        <div className="min-h-screen text-slate-700 transition-colors duration-300">
-            <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-20 md:pt-40 relative">
+        <div className="min-h-[100dvh] text-slate-700 transition-colors duration-300">
+            <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 relative">
                 {/* 标题 */}
                 <header className="text-center mb-6 md:mb-12 animate-fade-in">
                     <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-gradient tracking-tight mb-1.5 md:mb-6">足迹地图</h1>
@@ -227,49 +227,49 @@ export default function TravelMap() {
 
                     {/* 功能按钮 - 移动端优化 */}
                     {checkins.length > 0 && (
-                        <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8">
+                        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3 mt-6 md:mt-8">
                             <button
                                 onClick={() => setShowTravelPlayback(true)}
-                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-primary/20 hover:from-amber-500/25 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-amber-700 transition-all shadow-sm border border-amber-500/20"
+                                className="flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-primary/20 hover:from-amber-500/25 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-[11px] sm:text-xs md:text-sm text-amber-700 transition-all shadow-sm border border-amber-500/20"
                             >
                                 <Icon name="flight" size={16} className="text-amber-600" />
                                 <span>时光漫游</span>
                             </button>
                             <button
                                 onClick={() => setShowAnnualReport(true)}
-                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-primary transition-all shadow-sm"
+                                className="flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-[11px] sm:text-xs md:text-sm text-primary transition-all shadow-sm"
                             >
                                 <Icon name="auto_awesome" size={16} />
-                                <span className="hidden sm:inline">年度报告</span>
+                                <span>年度报告</span>
                             </button>
                             <button
                                 onClick={() => setShowSlideshow(true)}
-                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-xs md:text-sm text-primary transition-all shadow-sm"
+                                className="flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 rounded-lg md:rounded-xl font-bold text-[11px] sm:text-xs md:text-sm text-primary transition-all shadow-sm"
                             >
                                 <Icon name="slideshow" size={16} />
-                                <span className="hidden sm:inline">幻灯片</span>
+                                <span>幻灯片</span>
                             </button>
                             <button
                                 onClick={() => setShowHeatmap(!showHeatmap)}
-                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
+                                className={`flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all shadow-sm ${
                                     showHeatmap
                                         ? 'bg-gradient-to-r from-orange-100 to-red-100 text-red-600'
                                         : 'bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 text-primary'
                                 }`}
                             >
                                 <Icon name="whatshot" size={16} />
-                                <span className="hidden sm:inline">热力图 {showHeatmap ? '已开启' : '已关闭'}</span>
+                                <span>热力图<span className="hidden sm:inline"> {showHeatmap ? '已开启' : '已关闭'}</span></span>
                             </button>
                             <button
                                 onClick={() => setShowRoute(!showRoute)}
-                                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
+                                className={`flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all shadow-sm ${
                                     showRoute
                                         ? 'bg-gradient-to-r from-emerald-100 to-emerald-100 text-emerald-600'
                                         : 'bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 text-primary'
                                 }`}
                             >
                                 <Icon name="route" size={16} />
-                                <span className="hidden sm:inline">路线 {showRoute ? '已开启' : '已关闭'}</span>
+                                <span>路线<span className="hidden sm:inline"> {showRoute ? '已开启' : '已关闭'}</span></span>
                             </button>
                         </div>
                     )}

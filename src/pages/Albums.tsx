@@ -83,7 +83,7 @@ export default function Albums() {
   }
 
   if (loading) return (
-    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+    <div className="min-h-[100dvh] pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
       <div className="text-center mb-8 md:mb-16">
         <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
         <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
@@ -93,8 +93,8 @@ export default function Albums() {
   )
 
   return (
-    <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-24 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+    <div className="min-h-[100dvh] text-slate-700 transition-colors duration-300">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-24 md:pb-32 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 relative">
         <header className="text-center mb-4 sm:mb-6 md:mb-12 animate-fade-in">
           <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">时光画册</h1>
           <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">

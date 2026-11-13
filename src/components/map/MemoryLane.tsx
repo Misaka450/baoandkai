@@ -6,6 +6,7 @@ import Icon from '../icons/Icons'
 import LazyImage from '../common/LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import { formatDate } from '../../utils/common'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface MemoryLaneProps {
     checkins: MapCheckin[]
@@ -14,6 +15,7 @@ interface MemoryLaneProps {
 export default function MemoryLane({ checkins }: MemoryLaneProps) {
     const [showMemory, setShowMemory] = useState(false)
     const [currentMemory, setCurrentMemory] = useState<MapCheckin | null>(null)
+    useBodyScrollLock(showMemory && Boolean(currentMemory))
 
     // 那年今日
     const memoryToday = useMemo(() => {
@@ -164,14 +166,14 @@ export default function MemoryLane({ checkins }: MemoryLaneProps) {
             <AnimatePresence>
                 {showMemory && currentMemory && typeof document !== 'undefined' && createPortal(
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[100] flex items-center justify-center px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMemory(false)} />
                         <motion.div
-                            className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                            className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto"
                             initial={{ scale: 0.9, y: 50 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 50 }}

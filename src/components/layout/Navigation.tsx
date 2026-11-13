@@ -220,7 +220,7 @@ export default function Navigation() {
                                     hapticFeedback('light')
                                     setIsOpen(false)
                                 }}
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
+                                className="w-11 h-11 md:w-9 md:h-9 -mr-1.5 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
                                 aria-label="关闭导航栏"
                             >
                                 <Icon name="close" size={20} />

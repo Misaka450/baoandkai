@@ -7,6 +7,7 @@ import type { Photo } from '../types'
 import Icon from '../components/icons/Icons'
 import PolaroidModal from '../components/PolaroidModal'
 import { hapticFeedback } from '../utils/haptics'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 
 interface AlbumDetailResponse {
     id: number
@@ -17,6 +18,7 @@ interface AlbumDetailResponse {
 }
 
 export default function PhotoViewer() {
+    useBodyScrollLock(true)
     const { albumId } = useParams<{ albumId: string }>()
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
@@ -283,7 +285,7 @@ export default function PhotoViewer() {
 
     if (!albumDetail || images.length === 0) {
         return (
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+            <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center">
                 <div className="text-white/60 text-center">
                     <Icon name="photo_library" size={64} className="mx-auto mb-4 opacity-40" />
                     <p>加载中...</p>
@@ -298,7 +300,7 @@ export default function PhotoViewer() {
 
     return (
         <div
-            className={`fixed inset-0 flex flex-col touch-none overflow-hidden ${
+            className={`fixed inset-0 z-[100] flex flex-col touch-none overflow-hidden ${
                 isDismissing ? 'opacity-0 scale-95 transition-all duration-200' : 'transition-colors duration-150'
             }`}
             style={{
@@ -416,13 +418,13 @@ export default function PhotoViewer() {
                     <img
                         src={thumbnailUrl}
                         alt="Thumbnail"
-                        className={`max-w-[95vw] max-h-[80vh] object-contain absolute inset-0 filter blur-md scale-105 pointer-events-none transition-opacity duration-500 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        className={`max-w-[95vw] max-h-[80dvh] object-contain absolute inset-0 filter blur-md scale-105 pointer-events-none transition-opacity duration-500 ${isFullLoaded ? 'opacity-0' : 'opacity-100'}`}
                     />
                     {/* 优化后的大图（WebP/AVIF） */}
                     <img
                         src={optimizedFullImageUrl}
                         alt="Photo"
-                        className={`max-w-[95vw] max-h-[80vh] object-contain transition-opacity duration-500 ease-out ${isFullLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`max-w-[95vw] max-h-[80dvh] object-contain transition-opacity duration-500 ease-out ${isFullLoaded ? 'opacity-100' : 'opacity-0'}`}
                         style={{
                             cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
                         }}
@@ -457,7 +459,7 @@ export default function PhotoViewer() {
                     onTouchMove={(e) => e.stopPropagation()}
                     onTouchEnd={(e) => e.stopPropagation()}
                 >
-                    <div className="flex gap-2 md:gap-3 min-w-max mx-auto justify-center">
+                    <div className="w-max mx-auto flex gap-2 md:gap-3">
                         {images.map((img, idx) => (
                             <div
                                 key={idx}

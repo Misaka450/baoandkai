@@ -560,7 +560,7 @@ export default function VinylPlayer() {
                     hapticFeedback('light')
                     setIsOpen(false)
                   }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-200/60 transition-colors text-stone-500 hover:text-stone-800 active:scale-90"
+                  className="w-10 h-10 sm:w-8 sm:h-8 -mr-1 sm:mr-0 rounded-full flex items-center justify-center hover:bg-stone-200/60 transition-colors text-stone-500 hover:text-stone-800 active:scale-90"
                   aria-label="收起播放器"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -648,7 +648,7 @@ export default function VinylPlayer() {
               <button
                 type="button"
                 onClick={() => setIsMuted(!isMuted)}
-                className="text-stone-500 hover:text-stone-800 transition-colors"
+                className="w-9 h-9 -m-1.5 rounded-lg flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200/50 active:scale-90 transition-all"
                 aria-label={isMuted ? '取消静音' : '静音'}
               >
                 {isMuted || volume === 0 ? (
@@ -700,7 +700,7 @@ export default function VinylPlayer() {
                     key={opt.value}
                     type="button"
                     onClick={() => setTimerMinutes(opt.value)}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                    className={`min-h-[32px] px-2.5 py-1.5 rounded-lg text-[11px] sm:text-[10px] font-medium transition-all active:scale-95 ${
                       timerMinutes === opt.value
                         ? 'bg-stone-800 text-white shadow-sm'
                         : 'bg-stone-100 hover:bg-stone-200 text-stone-600'
@@ -758,7 +758,7 @@ export default function VinylPlayer() {
             setIsOpen(!isOpen)
           }}
           aria-label={isPlaying ? '正在播放白噪音，点击展开或收起播放器' : '点击打开黑胶白噪音播放器'}
-          className={`relative w-13 h-13 md:w-14 md:h-14 rounded-full p-0.5 bg-stone-800 shadow-xl border-2 border-white/80 hover:scale-105 active:scale-90 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group ${
+          className={`relative w-[52px] h-[52px] md:w-14 md:h-14 rounded-full p-0.5 bg-stone-800 shadow-xl border-2 border-white/80 hover:scale-105 active:scale-90 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group ${
             !isPlaying && !isOpen ? 'translate-x-1.5 md:translate-x-0 hover:translate-x-0' : 'translate-x-0'
           }`}
         >

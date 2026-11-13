@@ -366,7 +366,7 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
             {/* Tooltip - 使用 opacity 控制显示隐藏以保留 DOM 引用 */}
             <div
                 ref={tooltipRef}
-                className="absolute pointer-events-none z-20 bg-white/95 backdrop-blur-md shadow-lg rounded-2xl px-4 py-2.5 border border-white/80 transition-opacity duration-150 will-change-transform"
+                className="hidden md:block absolute pointer-events-none z-20 bg-white/95 backdrop-blur-md shadow-lg rounded-2xl px-4 py-2.5 border border-white/80 transition-opacity duration-150 will-change-transform"
                 style={{
                     left: 0,
                     top: 0,

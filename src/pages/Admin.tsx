@@ -54,7 +54,7 @@ export default function Admin() {
       <main className="flex-1 lg:ml-72 h-[100dvh] overflow-y-auto">
         <div className="p-4 md:p-8 min-h-full w-full pb-[calc(4rem+env(safe-area-inset-bottom))]">
           {/* 吸顶头部 - 移动端支持随时呼出侧边栏 */}
-          <header className="sticky top-0 z-30 -mx-4 -mt-4 px-4 py-3 md:-mx-8 md:-mt-8 md:px-8 md:py-4 bg-[#FAF7F2]/90 backdrop-blur-md border-b border-stone-200/60 lg:border-none lg:static lg:bg-transparent lg:p-0 lg:m-0 flex justify-between items-center mb-6 lg:mb-10">
+          <header className="sticky top-0 z-30 -mx-4 -mt-4 px-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3 md:-mx-8 md:-mt-8 md:px-8 md:pt-[calc(1rem+env(safe-area-inset-top,0px))] md:pb-4 bg-[#FAF7F2]/90 backdrop-blur-md border-b border-stone-200/60 lg:border-none lg:static lg:bg-transparent lg:p-0 lg:m-0 flex justify-between items-center mb-6 lg:mb-10">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
@@ -130,7 +130,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
       {/* 顶部标题 - 不收缩 */}
-      <div className="p-6 flex justify-between items-center flex-shrink-0 border-b border-stone-200/50">
+      <div className="px-6 pb-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] lg:pt-6 flex justify-between items-center flex-shrink-0 border-b border-stone-200/50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <Icon name="favorite" size={20} />
@@ -141,11 +141,13 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           </div>
         </div>
         <button
+          type="button"
           onClick={() => {
             hapticFeedback('light')
             onClose()
           }}
-          className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-stone-200/50 active:scale-90 transition-all"
+          aria-label="关闭管理菜单"
+          className="lg:hidden w-11 h-11 -mr-2 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-stone-200/50 active:scale-90 transition-all"
         >
           <Icon name="west" size={20} />
         </button>
@@ -177,7 +179,7 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       </nav>
 
       {/* 底部按钮 - 固定不收缩，并严格适配移动端安全区域 (杜绝任何浏览器底栏遮挡) */}
-      <div className="p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-2 flex-shrink-0 border-t border-stone-200/60 mt-auto bg-[#FAF7F2]">
+      <div className="p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] space-y-2 flex-shrink-0 border-t border-stone-200/60 mt-auto bg-[#FAF7F2]">
         <Link
           to="/"
           onClick={() => hapticFeedback('light')}

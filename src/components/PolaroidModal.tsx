@@ -350,7 +350,7 @@ export default function PolaroidModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/80 p-5 md:p-8 flex flex-col lg:flex-row gap-8 max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/80 p-4 sm:p-5 md:p-8 flex flex-col lg:flex-row gap-5 sm:gap-8 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Right Close Button */}
@@ -364,9 +364,9 @@ export default function PolaroidModal({
         </button>
 
         {/* Left Side: Polaroid Photo Paper Card (#FAF7F2) */}
-        <div className="flex-1 flex items-center justify-center pt-2">
+        <div className="flex-1 flex items-center justify-center pt-1 sm:pt-2">
           <div
-            className="w-full max-w-[340px] sm:max-w-[370px] md:max-w-[390px] rounded-2xl p-4 pb-6 transition-all duration-300 border border-stone-200/80 relative"
+            className="w-full max-w-[240px] sm:max-w-[360px] md:max-w-[390px] rounded-2xl p-3 pb-4 sm:p-4 sm:pb-6 transition-all duration-300 border border-stone-200/80 relative"
             style={{
               backgroundColor: '#FAF7F2',
               boxShadow:
@@ -414,17 +414,17 @@ export default function PolaroidModal({
 
               {/* Romantic couple red seal stamp: rotated -12deg circular stamp with '❤️ 包包 & 恺恺 · 珍藏回忆' */}
               <div
-                className="flex-shrink-0 relative w-[76px] h-[76px] rounded-full border-2 border-rose-600/85 flex flex-col items-center justify-center p-1 text-rose-700 select-none shadow-[0_2px_8px_rgba(225,29,72,0.15)] bg-rose-50/25"
+                className="flex-shrink-0 relative w-14 h-14 sm:w-[76px] sm:h-[76px] rounded-full border-2 border-rose-600/85 flex flex-col items-center justify-center p-1 text-rose-700 select-none shadow-[0_2px_8px_rgba(225,29,72,0.15)] bg-rose-50/25"
                 style={{ transform: 'rotate(-12deg)' }}
                 title="❤️ 包包 & 恺恺 · 珍藏回忆"
               >
                 {/* Inner dashed ring */}
-                <div className="absolute inset-[3px] rounded-full border border-dashed border-rose-500/60 pointer-events-none" />
-                <span className="text-[9px] font-black tracking-tighter leading-tight text-rose-700">
+                <div className="absolute inset-[2px] sm:inset-[3px] rounded-full border border-dashed border-rose-500/60 pointer-events-none" />
+                <span className="text-[7px] sm:text-[9px] font-black tracking-tighter leading-tight text-rose-700">
                   ❤️ 包包 & 恺恺
                 </span>
-                <div className="w-8 h-[0.5px] bg-rose-400/60 my-0.5" />
-                <span className="text-[8.5px] font-extrabold tracking-widest leading-tight text-rose-600">
+                <div className="w-6 sm:w-8 h-[0.5px] bg-rose-400/60 my-0.5" />
+                <span className="text-[7px] sm:text-[8.5px] font-extrabold tracking-widest leading-tight text-rose-600">
                   珍藏回忆
                 </span>
               </div>

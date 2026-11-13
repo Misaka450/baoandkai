@@ -41,7 +41,7 @@ export default function ModuleSubNav({ section, className = '' }: ModuleSubNavPr
             <Link
               key={tab.key}
               to={tab.path}
-              className={`relative px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs md:text-sm font-medium tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary select-none whitespace-nowrap ${
+              className={`relative inline-flex items-center justify-center min-h-[36px] px-3 sm:px-4 py-2 rounded-full text-xs md:text-sm font-medium tracking-wide transition-all duration-300 focus-visible:outline-2 focus-visible:outline-primary select-none whitespace-nowrap ${
                 isActive
                   ? 'text-primary font-semibold shadow-sm'
                   : 'text-stone-500 hover:text-stone-800 hover:bg-white/50 active:scale-95'

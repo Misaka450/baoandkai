@@ -28,7 +28,7 @@ const Login: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background-light p-6 transition-colors duration-300 relative overflow-hidden">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-background-light p-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] transition-colors duration-300 relative overflow-hidden">
             {/* 背景装饰 */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                 <div className="absolute -top-24 -left-24 text-primary animate-float">

@@ -46,7 +46,7 @@ export const ListSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => (
  * 图片网格骨架屏
  */
 export const ImageGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-4">
         {Array.from({ length: count }).map((_, index) => (
             <Skeleton key={index} className="aspect-square rounded-xl" />
         ))}
@@ -57,17 +57,17 @@ export const ImageGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) =
  * 时间轴骨架屏
  */
 export const TimelineSkeleton: React.FC = () => (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
         {[1, 2, 3].map((_, index) => (
-            <div key={index} className="flex gap-4">
+            <div key={index} className="flex gap-3 md:gap-4">
                 <div className="flex flex-col items-center">
-                    <Skeleton className="w-4 h-4 rounded-full" />
-                    <Skeleton className="w-0.5 h-20" />
+                    <Skeleton className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full" />
+                    <Skeleton className="w-0.5 h-16 md:h-20" />
                 </div>
                 <div className="flex-1">
-                    <Skeleton className="h-6 w-24 mb-2 rounded" />
-                    <Skeleton className="h-4 w-full mb-2 rounded" />
-                    <Skeleton className="h-32 w-full rounded-xl" />
+                    <Skeleton className="h-5 md:h-6 w-20 md:w-24 mb-2 rounded" />
+                    <Skeleton className="h-3.5 md:h-4 w-full mb-2 rounded" />
+                    <Skeleton className="h-24 md:h-32 w-full rounded-xl" />
                 </div>
             </div>
         ))}
@@ -78,8 +78,8 @@ export const TimelineSkeleton: React.FC = () => (
  * 页面加载骨架屏
  */
 export const PageSkeleton: React.FC<{ title?: string }> = ({ title }) => (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-stone-50 via-stone-100 to-stone-50">
+        <div className="max-w-4xl mx-auto px-4 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] pb-12 sm:py-12">
             <div className="text-center mb-12">
                 <Skeleton className="w-16 h-16 rounded-2xl mx-auto mb-4" />
                 {title ? (
@@ -173,27 +173,53 @@ export const MapMarkerSkeleton: React.FC = () => (
  * 便签卡片骨架屏
  */
 export const TodoCardSkeleton: React.FC = () => (
-    <div className="bg-[#FFF9F0] border border-[#F0E6D2] rounded-2xl p-6 shadow-lg">
-        <Skeleton className="w-6 h-6 rounded-full mb-4" />
-        <Skeleton className="h-5 w-full mb-2 rounded" />
-        <Skeleton className="h-4 w-2/3 rounded" />
-        <div className="mt-4 pt-4 border-t border-[#F0E6D2]">
-            <Skeleton className="h-3 w-24 rounded" />
+    <div className="bg-[#FFF9F0] border border-[#F0E6D2] rounded-2xl p-4 md:p-6 shadow-lg">
+        <Skeleton className="w-5 h-5 md:w-6 md:h-6 rounded-full mb-3 md:mb-4" />
+        <Skeleton className="h-4 md:h-5 w-full mb-2 rounded" />
+        <Skeleton className="h-3.5 md:h-4 w-2/3 rounded" />
+        <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-[#F0E6D2]">
+            <Skeleton className="h-3 w-20 md:w-24 rounded" />
         </div>
+    </div>
+)
+
+/**
+ * 便利贴墙骨架屏
+ */
+export const StickyNotesSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        {Array.from({ length: count }).map((_, index) => (
+            <div
+                key={index}
+                className="bg-amber-50/60 border border-amber-100 rounded-2xl p-6 sm:p-8 md:p-10 py-8 sm:py-10 md:py-12 min-h-[160px] md:min-h-[200px] flex flex-col justify-between shadow-sm"
+            >
+                <div className="space-y-2.5 mb-6">
+                    <Skeleton className="h-4 md:h-5 w-full rounded" />
+                    <Skeleton className="h-4 md:h-5 w-5/6 rounded" />
+                    <Skeleton className="h-4 md:h-5 w-2/3 rounded" />
+                </div>
+                <div className="pt-4 border-t border-black/5 flex items-center justify-between">
+                    <Skeleton className="h-3 w-20 rounded" />
+                    <Skeleton className="h-3 w-12 rounded" />
+                </div>
+            </div>
+        ))}
     </div>
 )
 
 /**
  * 照片墙骨架屏
  */
+const PHOTO_WALL_HEIGHTS = [160, 210, 180, 230, 195, 170, 220, 185]
+
 export const PhotoWallSkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
         {Array.from({ length: count }).map((_, index) => (
             <Skeleton
                 key={index}
                 className="aspect-square rounded-2xl"
                 style={{
-                    height: `${Math.random() * 100 + 150}px`,
+                    height: `${PHOTO_WALL_HEIGHTS[index % PHOTO_WALL_HEIGHTS.length]}px`,
                     animationDelay: `${index * 0.1}s`
                 }}
             />

@@ -123,13 +123,14 @@ export default function ProvinceDetail({ province, cityPaths, checkins, onBack, 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3 }}
+            className="pt-safe pb-[env(safe-area-inset-bottom,0px)]"
         >
             {/* 头部 */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-6 sm:mb-8">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onBack}
-                        className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors group"
+                        className="flex items-center gap-2 py-2 px-1 -ml-1 text-slate-500 hover:text-primary transition-colors group"
                     >
                         <Icon name="west" size={18} className="group-hover:-translate-x-1 transition-transform" />
                         <span className="text-sm font-bold">返回全国</span>
@@ -154,7 +155,7 @@ export default function ProvinceDetail({ province, cityPaths, checkins, onBack, 
             </div>
 
             {/* 省份地图 + 城市区域 */}
-            <div className="relative premium-card !p-8 !bg-white/40 backdrop-blur-sm overflow-hidden">
+            <div className="relative premium-card !p-4 sm:!p-8 !bg-white/40 backdrop-blur-sm overflow-hidden">
                 <svg
                     viewBox={viewBox}
                     className="w-full h-auto max-h-[400px]"

@@ -11,6 +11,7 @@ import LazyImage from '../common/LazyImage'
 import { getThumbnailUrl } from '../../utils/imageUtils'
 import { useToast } from '../common/Toast'
 import { formatDate } from '../../utils/common'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface CheckinCardProps {
     checkins: MapCheckin[]
@@ -23,6 +24,7 @@ interface CheckinCardProps {
 type TabType = 'checkins' | 'foods' | 'todos'
 
 export default function CheckinCard({ checkins, cityName, onClose, onRefresh, onNavigateToTimeline }: CheckinCardProps) {
+    useBodyScrollLock(true)
     const navigate = useNavigate()
     const toast = useToast()
 
@@ -115,7 +117,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
         <>
             <AnimatePresence>
                 <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] flex items-center justify-center px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -125,7 +127,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
 
                     {/* 卡片 */}
                     <motion.div
-                        className="relative z-10 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto border border-white/80"
+                        className="relative z-10 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto border border-white/80"
                         initial={{ scale: 0.9, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.9, y: 20 }}
@@ -207,7 +209,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
                         </div>
 
                         {/* 内容区域 */}
-                        <div className="p-6">
+                        <div className="p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
                             {/* 1. 足迹 Tab */}
                             {activeTab === 'checkins' && (
                                 <div className="space-y-6">
@@ -548,7 +550,7 @@ export default function CheckinCard({ checkins, cityName, onClose, onRefresh, on
             <AnimatePresence>
                 {showDeleteConfirm !== null && (
                     <motion.div
-                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[110] flex items-center justify-center px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

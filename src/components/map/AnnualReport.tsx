@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import type { MapCheckin } from '../../types'
 import Icon from '../icons/Icons'
 import { formatDate } from '../../utils/common'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface AnnualReportProps {
     checkins: MapCheckin[]
@@ -12,6 +13,7 @@ interface AnnualReportProps {
 }
 
 export default function AnnualReport({ checkins, year, onClose }: AnnualReportProps) {
+    useBodyScrollLock(true)
     const stats = useMemo(() => {
         if (checkins.length === 0) return null
 
@@ -63,13 +65,13 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
     if (typeof document === 'undefined') return null
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-3 sm:px-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             {/* 背景遮罩 */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
             {/* 报告卡片 */}
             <motion.div
-                className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                className="relative z-10 bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90dvh] overflow-y-auto"
                 initial={{ scale: 0.9, y: 50 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 50 }}

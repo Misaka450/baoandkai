@@ -140,15 +140,15 @@ export default function FoodCheckin() {
   }
 
   if (loading) return (
-    <div className="min-h-screen pt-20 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
+    <div className="min-h-[100dvh] pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 max-w-6xl mx-auto px-3.5 md:px-6">
       <div className="text-center mb-8 md:mb-16">
         <Skeleton className="h-8 md:h-12 w-48 md:w-64 mx-auto mb-2 md:mb-4" />
         <Skeleton className="h-3 md:h-4 w-32 md:w-48 mx-auto" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-10">
         {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="premium-card p-0 overflow-hidden h-80 md:h-96 rounded-2xl md:rounded-[2.5rem]">
-            <Skeleton className="h-44 md:h-52 w-full" />
+          <div key={i} className="premium-card p-0 overflow-hidden h-64 sm:h-80 md:h-96 rounded-2xl md:rounded-[2.5rem]">
+            <Skeleton className="h-28 sm:h-40 md:h-52 w-full" />
             <div className="p-4 md:p-6 space-y-3 md:space-y-4">
               <Skeleton className="h-5 md:h-6 w-3/4" />
               <Skeleton className="h-3 md:h-4 w-full" />
@@ -161,8 +161,8 @@ export default function FoodCheckin() {
   )
 
   return (
-    <div className="min-h-screen text-slate-700 transition-colors duration-300">
-      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-16 sm:pt-20 md:pt-40 relative">
+    <div className="min-h-[100dvh] text-slate-700 transition-colors duration-300">
+      <main className="max-w-6xl mx-auto px-3.5 md:px-6 pb-20 md:pb-32 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:pt-28 md:pt-40 relative">
         <header className="text-center mb-4 sm:mb-8 md:mb-16 animate-fade-in">
           <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-gradient tracking-tight mb-1 sm:mb-1.5 md:mb-6">美食足迹</h1>
           <p className="hidden sm:block text-slate-400 font-bold text-[10px] sm:text-xs md:text-sm uppercase tracking-widest leading-relaxed mb-3 sm:mb-4 md:mb-8">
@@ -350,14 +350,14 @@ export default function FoodCheckin() {
         {totalPages > 1 && (
           <div className="relative flex flex-col items-center justify-center py-16 mt-8">
             <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] animate-pulse"></div>
-            <div className="mt-8 flex gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
               <button
                 onClick={() => {
                   setCurrentPage(prev => prev - 1)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 disabled={currentPage === 1}
-                className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
               >
                 <Icon name="chevron_left" size={24} />
               </button>
@@ -370,7 +370,7 @@ export default function FoodCheckin() {
                       setCurrentPage(pageNum)
                       window.scrollTo({ top: 0, behavior: 'smooth' })
                     }}
-                    className={`w-12 h-12 rounded-2xl transition-all text-sm font-black active:scale-95 ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl transition-all text-xs sm:text-sm font-black active:scale-95 ${
                       currentPage === pageNum
                         ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                         : 'bg-white text-gray-400 hover:text-primary'
@@ -386,7 +386,7 @@ export default function FoodCheckin() {
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 disabled={currentPage === totalPages}
-                className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
               >
                 <Icon name="chevron_right" size={24} />
               </button>
