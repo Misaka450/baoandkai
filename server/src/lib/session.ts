@@ -43,9 +43,10 @@ export function generateCsrfToken(): string {
  * 创建一个新的 Session
  *
  * @param userId 用户 ID
- * @returns { token, csrfToken, expiresAt }  返回的 token 是原始值，需要交给客户端
+ * @returns { sessionId, token, csrfToken, expiresAt }  返回的 token 是原始值，需要交给客户端
  */
 export async function createSession(userId: number): Promise<{
+  sessionId: number;
   token: string;
   csrfToken: string;
   expiresAt: Date;
@@ -56,13 +57,14 @@ export async function createSession(userId: number): Promise<{
 
   const tokenHash = hashToken(token);
 
-  await pool.query(
+  const { rows } = await pool.query(
     `INSERT INTO sessions (user_id, token_hash, csrf_token, expires_at)
-     VALUES ($1, $2, $3, $4)`,
+     VALUES ($1, $2, $3, $4)
+     RETURNING id`,
     [userId, tokenHash, csrfToken, expiresAt.toISOString()]
   );
 
-  return { token, csrfToken, expiresAt };
+  return { sessionId: rows[0].id, token, csrfToken, expiresAt };
 }
 
 /**

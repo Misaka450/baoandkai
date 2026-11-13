@@ -226,7 +226,7 @@ auth.post('/login', async (c) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      sessionId: user.id, // 缓存中用 userId 标识
+      sessionId: session.sessionId,
       tokenExpires: session.expiresAt.toISOString(),
     };
     const ttl = 7 * 24 * 60 * 60;

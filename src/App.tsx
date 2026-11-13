@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
 import Layout from './components/layout/Layout'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './components/common/Toast'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import RouteErrorBoundary from './components/common/RouteErrorBoundary'
@@ -62,15 +62,24 @@ function LoadingFallback() {
   )
 }
 
-function App() {
-  // 首页渲染后预加载常用路由
-  useEffect(() => {
-    prefetchCommonRoutes()
-  }, [])
+// 仅在已登录时预加载受保护的常用路由模块
+function RoutePrefetcher() {
+  const { isAuthenticated } = useAuth()
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      prefetchCommonRoutes()
+    }
+  }, [isAuthenticated])
+
+  return null
+}
+
+function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <RoutePrefetcher />
         <ToastProvider>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>

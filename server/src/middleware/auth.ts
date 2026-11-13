@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { errorResponse } from '../utils/response.js';
@@ -12,16 +13,36 @@ export interface CachedUser {
   tokenExpires: string;
 }
 
+const CSRF_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+/**
+ * 常量时间比对 CSRF Token（防止时序侧信道攻击）
+ * 长度不等时先安全返回 false，避免 timingSafeEqual 抛出 RangeError
+ */
+export function safeCompareCsrf(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 /**
  * 判断请求是否为公开路径（无需登录即可访问）
  *
  * 安全约束：
+ * - /api/health：仅 GET 为公开健康检查端点
  * - /api/config：仅 GET 为公开读取，PUT/POST 等写操作必须经过管理员认证与 CSRF 校验
  * - /api/vault/export：必须要求已登录 Session + CSRF + 二次密码校验（非公开路径）
  * - /api/images/*：仅 GET 为公开图片读取
  * - /api/auth/login & /api/auth/check-token：公开鉴权端点
  */
 export function isPublicPath(pathname: string, method: string): boolean {
+  if (pathname === '/api/health') {
+    return method === 'GET';
+  }
+
   if (pathname === '/api/config') {
     return method === 'GET';
   }
@@ -63,12 +84,12 @@ export async function authMiddleware(c: Context, next: Next) {
       return errorResponse('未授权访问', 401);
     }
 
-    // 2. CSRF 验证（非 GET 请求）
-    if (c.req.method !== 'GET') {
+    // 2. CSRF 验证（豁免 GET/HEAD/OPTIONS 安全只读请求）
+    if (!CSRF_SAFE_METHODS.has(c.req.method.toUpperCase())) {
       const csrfFromHeader = c.req.header('X-CSRF-Token');
       const csrfFromCookie = getCookie(c, 'csrf_token');
 
-      if (!csrfFromHeader || !csrfFromCookie || csrfFromHeader !== csrfFromCookie) {
+      if (!csrfFromHeader || !csrfFromCookie || !safeCompareCsrf(csrfFromHeader, csrfFromCookie)) {
         return errorResponse('CSRF验证失败', 403);
       }
 
@@ -90,7 +111,7 @@ export async function authMiddleware(c: Context, next: Next) {
           }
         }
       }
-      if (!storedCsrf || storedCsrf !== csrfFromHeader) {
+      if (!storedCsrf || !safeCompareCsrf(storedCsrf, csrfFromHeader)) {
         return errorResponse('CSRF令牌不匹配', 403);
       }
     }

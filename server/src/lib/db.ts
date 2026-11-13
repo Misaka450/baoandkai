@@ -8,11 +8,16 @@ const { Pool } = pg;
 
 const databaseUrl = process.env.DATABASE_URL;
 
+if (process.env.NODE_ENV === 'production' && !databaseUrl) {
+  throw new Error('生产环境必须配置 DATABASE_URL 环境变量，禁止回退默认数据库凭据');
+}
+
 // 连接池配置
 const poolConfig = {
   max: 20,                    // 最大连接数（默认 10）
   idleTimeoutMillis: 30000,   // 空闲连接超时 30 秒
   connectionTimeoutMillis: 5000, // 连接超时 5 秒
+  statement_timeout: 15000,   // 单条 SQL 语句超时 15 秒
   maxUses: 7500,              // 单个连接最大复用次数后自动回收（防内存泄漏）
   allowExitOnIdle: true,     // 允许空闲时退出进程
 };

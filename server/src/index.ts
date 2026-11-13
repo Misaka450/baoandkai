@@ -47,6 +47,17 @@ app.use('*', corsMiddleware);
 app.use('*', securityMiddleware);
 app.use('*', authMiddleware);
 
+// 健康检查端点（免鉴权，包含数据库探活）
+app.get('/api/health', async (c) => {
+  try {
+    await pool.query('SELECT 1');
+    return c.json({ status: 'ok' }, 200);
+  } catch (err) {
+    console.error('健康检查数据库探活失败:', err);
+    return c.json({ status: 'error', message: 'Database unavailable' }, 503);
+  }
+});
+
 // 2. 注册路由组
 app.route('/api/auth', auth);
 app.route('/api/albums', albums);
