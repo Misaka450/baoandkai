@@ -3,7 +3,7 @@ import { captureError } from '../config/sentry';
 import { API_BASE } from '../config/api'
 import { getCookieValue } from '../utils/cookie'
 
-import { ApiResponse, Note, TimelineEvent, MapCheckin } from '../types'
+import { ApiResponse, PaginatedResponse, Note, TimelineEvent, MapCheckin } from '../types'
 
 /**
  * 请求配置接口
@@ -297,7 +297,7 @@ export const apiService = new ApiService()
 // 专用API服务
 export const notesService = {
     async getAll() {
-        return apiService.get<{ data: Note[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/notes')
+        return apiService.get<PaginatedResponse<Note>>('/notes')
     },
 
     async create(note: Omit<Note, 'id'>) {
@@ -343,8 +343,15 @@ export interface OnThisDayResponse {
 }
 
 export const timelineService = {
-    async getAll(page: number = 1, limit: number = 10) {
-        return apiService.get<{ data: TimelineEvent[]; pagination: { totalPages: number } }>(`/timeline?page=${page}&limit=${limit}`)
+    async getAll(page: number = 1, limit: number = 10, category?: string) {
+        const params = new URLSearchParams({
+            page: String(page),
+            limit: String(limit),
+        })
+        if (category && category !== 'all') {
+            params.set('category', category)
+        }
+        return apiService.get<PaginatedResponse<TimelineEvent>>(`/timeline?${params.toString()}`)
     },
 
     async getOnThisDay(date?: string) {
@@ -372,7 +379,7 @@ export const mapService = {
         params.set('page', String(page))
         params.set('limit', String(limit))
         const query = params.toString() ? `?${params.toString()}` : ''
-        return apiService.get<{ data: MapCheckin[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/map${query}`)
+        return apiService.get<PaginatedResponse<MapCheckin>>(`/map${query}`)
     },
 
     async create(checkin: Omit<MapCheckin, 'id'>) {
@@ -401,7 +408,7 @@ export interface TimeCapsuleData {
 
 export const timeCapsuleService = {
     async getAll() {
-        return apiService.get<{ data: TimeCapsuleData[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/time-capsules')
+        return apiService.get<PaginatedResponse<TimeCapsuleData>>('/time-capsules')
     },
 
     async create(capsule: Omit<TimeCapsuleData, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'is_unlocked'>) {

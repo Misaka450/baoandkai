@@ -83,14 +83,15 @@ vault.post('/export', async (c) => {
     }
 
     const { password, mode = 'full' } = body;
-    if (!password || typeof password !== 'string') {
-      return errorResponse('请输入小窝安全密码以核验身份', 400);
+    if (!password || typeof password !== 'string' || password.length > 72) {
+      return errorResponse('请输入有效的小窝安全密码以核验身份（长度不超过 72 位）', 400);
     }
 
-    // 1. 验证密码
-    const { rows: users } = await pool.query(
-      'SELECT id, username, password_hash FROM users ORDER BY id ASC LIMIT 1'
-    );
+    // 1. 验证已登录会话与二次密码校验
+    const sessionUser = c.get('user' as never) as { id?: number } | undefined;
+    const { rows: users } = sessionUser?.id
+      ? await pool.query('SELECT id, username, password_hash FROM users WHERE id = $1 LIMIT 1', [sessionUser.id])
+      : await pool.query('SELECT id, username, password_hash FROM users ORDER BY id ASC LIMIT 1');
     const adminUser = users[0];
     if (!adminUser) {
       return errorResponse('系统未初始化管理员账号', 500);

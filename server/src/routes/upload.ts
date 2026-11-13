@@ -9,7 +9,7 @@ import path from 'path';
 const upload = new Hono();
 
 // 允许的上传文件夹白名单，防止路径遍历攻击
-const ALLOWED_FOLDERS = ['images', 'albums', 'avatars', 'food', 'map'];
+const ALLOWED_FOLDERS = ['images', 'albums', 'avatars', 'food', 'map', 'timeline', 'todos'];
 
 /**
  * POST /api/upload

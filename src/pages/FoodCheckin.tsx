@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
-import type { FoodCheckin } from '../types'
+import type { FoodCheckin, PaginatedResponse } from '../types'
 import ImageModal from '../components/modals/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton } from '../components/common/Skeleton'
@@ -16,12 +16,7 @@ import { hapticFeedback } from '../utils/haptics'
 
 type ViewMode = 'grid' | 'stats'
 
-interface FoodResponse {
-  data: FoodCheckin[]
-  totalPages: number
-  totalCount: number
-  currentPage: number
-}
+type FoodResponse = PaginatedResponse<FoodCheckin>
 
 interface CuisineConfig {
   name: string
@@ -98,6 +93,7 @@ export default function FoodCheckin() {
     queryKey: ['food', currentPage, filter],
     queryFn: async () => {
       const response = await apiService.get<FoodResponse>(`/food?page=${currentPage}&limit=12&cuisine=${filter === 'all' ? '' : filter}`)
+      if (response.error) throw new Error(response.error)
       return response.data
     },
     staleTime: 5 * 60 * 1000,
@@ -105,6 +101,8 @@ export default function FoodCheckin() {
   })
 
   const checkins = foodData?.data || []
+  const totalPages = foodData?.pagination?.totalPages || 0
+  const totalCount = foodData?.pagination?.total || 0
 
   const renderStars = (rating: number = 0, size: number = 16) => (
     <div className="flex text-primary">
@@ -176,7 +174,10 @@ export default function FoodCheckin() {
             {cuisines.map(c => (
               <button
                 key={c.name}
-                onClick={() => setFilter(c.name)}
+                onClick={() => {
+                  setFilter(c.name)
+                  setCurrentPage(1)
+                }}
                 className={`px-3 py-1.5 md:px-6 md:py-2.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 transition-all whitespace-nowrap shrink-0 ${filter === c.name
                   ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                   : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
@@ -345,7 +346,7 @@ export default function FoodCheckin() {
         )}
 
         {/* 分页 */}
-        {foodData && foodData.totalPages > 1 && (
+        {totalPages > 1 && (
           <div className="relative flex flex-col items-center justify-center py-16 mt-8">
             <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] animate-pulse"></div>
             <div className="mt-8 flex gap-3">
@@ -359,7 +360,7 @@ export default function FoodCheckin() {
               >
                 <Icon name="chevron_left" size={24} />
               </button>
-              {Array.from({ length: Math.min(foodData.totalPages, 7) }).map((_, i) => {
+              {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
                 const pageNum = i + 1
                 return (
                   <button
@@ -383,14 +384,14 @@ export default function FoodCheckin() {
                   setCurrentPage(prev => prev + 1)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
-                disabled={currentPage === foodData.totalPages}
+                disabled={currentPage === totalPages}
                 className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
               >
                 <Icon name="chevron_right" size={24} />
               </button>
             </div>
             <p className="text-xs text-slate-400 mt-4 font-medium">
-              第 {currentPage} / {foodData.totalPages} 页，共 {foodData.totalCount} 条
+              第 {currentPage} / {totalPages} 页，共 {totalCount} 条
             </p>
           </div>
         )}

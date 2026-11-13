@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../contexts/AuthContext';
 import { timelineService } from '../../services/apiService';
 import Icon from '../icons/Icons';
 import { getThumbnailUrl } from '../../utils/imageUtils';
 import ImageModal from '../modals/ImageModal';
 
 export default function OnThisDayCard() {
+  const { isAuthenticated } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImages, setModalImages] = useState<string[]>([]);
   const [modalIndex, setModalIndex] = useState(0);
@@ -14,9 +16,13 @@ export default function OnThisDayCard() {
   const { data: response, isLoading } = useQuery({
     queryKey: ['on-this-day'],
     queryFn: async () => {
-      const res = await timelineService.getOnThisDay();
-      return res.data;
+      const response = await timelineService.getOnThisDay();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data;
     },
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 30, // 30 分钟缓存
   });
 

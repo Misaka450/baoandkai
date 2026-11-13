@@ -39,7 +39,7 @@ const getRandomColorName = () => {
 }
 
 export default function StickyNotes() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isAuthenticated } = useAuth()
   const queryClient = useQueryClient()
   const toast = useToast()
   const [newNote, setNewNote] = useState('')
@@ -54,11 +54,15 @@ export default function StickyNotes() {
     queryKey: ['notes'],
     queryFn: async () => {
       const response = await notesService.getAll()
+      if (response.error) {
+        throw new Error(response.error)
+      }
       const responseData = response.data
       if (Array.isArray(responseData)) return responseData
       if (responseData && 'data' in responseData && Array.isArray(responseData.data)) return responseData.data
       return []
     },
+    enabled: isAuthenticated,
     staleTime: 2 * 60 * 1000,
   })
 

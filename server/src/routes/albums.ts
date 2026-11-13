@@ -157,17 +157,26 @@ albums.get('/:id', async (c) => {
  * 更新相册基本信息及照片列表
  */
 albums.put('/:id', async (c) => {
+  const albumId = parseInt(c.req.param('id') || '', 10);
+  if (isNaN(albumId)) {
+    return errorResponse('无效的ID', 400);
+  }
+
+  let body: any;
+  try {
+    body = await c.req.json();
+  } catch {
+    return errorResponse('请求参数格式错误', 400);
+  }
+
+  const { name, description, photos, cover_url } = body || {};
+  if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+    return errorResponse('相册名称不能为空', 400);
+  }
+
   const client = await pool.connect();
   try {
-    const albumId = parseInt(c.req.param('id') || '');
-    if (isNaN(albumId)) {
-      return errorResponse('无效的ID', 400);
-    }
-
-    const body: any = await c.req.json();
-    const { name, description, photos, cover_url } = body;
-
-    // 开启事务
+    // 开启事务（持有 client 期间统一用 client.query 防止连接池死锁）
     await client.query('BEGIN');
 
     // 1. 获取当前数据
@@ -179,7 +188,7 @@ albums.put('/:id', async (c) => {
     }
 
     const finalName = name !== undefined ? name.trim() : currentAlbum.name;
-    const finalDescription = description !== undefined ? description.trim() : currentAlbum.description;
+    const finalDescription = description !== undefined ? String(description).trim() : currentAlbum.description;
     const finalCoverUrl = cover_url !== undefined ? cover_url : currentAlbum.cover_url;
 
     if (!finalName) {
@@ -188,41 +197,93 @@ albums.put('/:id', async (c) => {
     }
 
     // 更新相册基本信息
-    await client.query(
+    const { rows: updatedAlbumRows } = await client.query(
       `UPDATE albums 
        SET name = $1, description = $2, cover_url = $3, updated_at = NOW() 
-       WHERE id = $4`,
+       WHERE id = $4
+       RETURNING *`,
       [finalName, finalDescription, finalCoverUrl, albumId]
     );
 
-    // 2. 如果传入了照片列表，则先删除旧的，再插入新的
+    // 2. 如果传入了照片列表，按 id / url 增量更新并保留原有 date/location（EXIF）
     if (photos && Array.isArray(photos)) {
-      await client.query('DELETE FROM photos WHERE album_id = $1', [albumId]);
+      const { rows: existingPhotos } = await client.query(
+        'SELECT id, url, caption, date, location, sort_order FROM photos WHERE album_id = $1',
+        [albumId]
+      );
 
-      if (photos.length > 0) {
-        for (let index = 0; index < photos.length; index++) {
-          const photo = photos[index];
-          const photoUrl = typeof photo === 'string' ? photo : photo.url;
-          const photoCaption = typeof photo === 'string' ? '' : photo.caption || '';
-          const photoSortOrder = (typeof photo !== 'string' && photo.sort_order !== undefined) ? photo.sort_order : index;
+      const existingById = new Map<number, any>();
+      const existingByUrl = new Map<string, any>();
+      for (const ep of existingPhotos) {
+        existingById.set(Number(ep.id), ep);
+        if (ep.url && !existingByUrl.has(ep.url)) {
+          existingByUrl.set(ep.url, ep);
+        }
+      }
+
+      const keptIds = new Set<number>();
+
+      for (let index = 0; index < photos.length; index++) {
+        const photo = photos[index];
+        const isObj = typeof photo === 'object' && photo !== null;
+        const photoId = isObj && photo.id !== undefined ? Number(photo.id) : undefined;
+        const photoUrl = typeof photo === 'string' ? photo : photo?.url;
+        const photoCaption = typeof photo === 'string' ? undefined : photo?.caption;
+        const photoSortOrder = isObj && photo.sort_order !== undefined ? Number(photo.sort_order) : index;
+        const photoDate = isObj ? photo.date : undefined;
+        const photoLocation = isObj ? photo.location : undefined;
+
+        let matched = photoId !== undefined && Number.isFinite(photoId) ? existingById.get(photoId) : undefined;
+        if (!matched && photoUrl) {
+          const candidate = existingByUrl.get(photoUrl);
+          if (candidate && !keptIds.has(Number(candidate.id))) {
+            matched = candidate;
+          }
+        }
+
+        if (matched) {
+          const matchedId = Number(matched.id);
+          keptIds.add(matchedId);
+          const finalUrl = photoUrl || matched.url;
+          const finalCaption = photoCaption !== undefined ? photoCaption : (matched.caption || '');
+          const finalDate = photoDate !== undefined ? photoDate : (matched.date ?? null);
+          const finalLocation = photoLocation !== undefined ? photoLocation : (matched.location ?? null);
 
           await client.query(
-            `INSERT INTO photos (album_id, url, caption, sort_order, created_at) 
-             VALUES ($1, $2, $3, $4, NOW())`,
-            [albumId, photoUrl, photoCaption, photoSortOrder]
+            `UPDATE photos 
+             SET url = $1, caption = $2, date = $3, location = $4, sort_order = $5
+             WHERE id = $6 AND album_id = $7`,
+            [finalUrl, finalCaption, finalDate, finalLocation, photoSortOrder, matchedId, albumId]
           );
+        } else if (photoUrl) {
+          const { rows: insertedRows } = await client.query(
+            `INSERT INTO photos (album_id, url, caption, date, location, sort_order, created_at) 
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())
+             RETURNING id`,
+            [albumId, photoUrl, photoCaption || '', photoDate ?? null, photoLocation ?? null, photoSortOrder]
+          );
+          if (insertedRows[0]?.id !== undefined) {
+            keptIds.add(Number(insertedRows[0].id));
+          }
         }
+      }
+
+      if (keptIds.size > 0) {
+        await client.query(
+          'DELETE FROM photos WHERE album_id = $1 AND NOT (id = ANY($2::int[]))',
+          [albumId, Array.from(keptIds)]
+        );
+      } else {
+        await client.query('DELETE FROM photos WHERE album_id = $1', [albumId]);
       }
     }
 
-    await client.query('COMMIT');
-
-    // 重新获取更新后的数据返回
-    const { rows: updatedAlbumRows } = await pool.query('SELECT * FROM albums WHERE id = $1', [albumId]);
-    const { rows: updatedPhotoRows } = await pool.query(
+    const { rows: updatedPhotoRows } = await client.query(
       'SELECT * FROM photos WHERE album_id = $1 ORDER BY sort_order ASC',
       [albumId]
     );
+
+    await client.query('COMMIT');
 
     return jsonResponse({
       ...updatedAlbumRows[0],
@@ -242,35 +303,22 @@ albums.put('/:id', async (c) => {
  * 删除相册及其关联的所有照片
  */
 albums.delete('/:id', async (c) => {
+  const albumId = parseInt(c.req.param('id') || '', 10);
+  if (isNaN(albumId)) {
+    return errorResponse('无效的ID', 400);
+  }
+
   const client = await pool.connect();
+  let photosToDelete: Array<{ url: string }> = [];
   try {
-    const albumId = parseInt(c.req.param('id') || '');
-    if (isNaN(albumId)) {
-      return errorResponse('无效的ID', 400);
-    }
-
-    // 1. 获取照片，以便删除本地物理文件
-    const { rows: photos } = await pool.query('SELECT url FROM photos WHERE album_id = $1', [albumId]);
-
-    const fileCleanupPromises = photos
-      .map((p: any) => {
-        const key = extractStorageKey(p.url);
-        return key ? storage.delete(key).catch((e) => console.error('物理删除本地图片失败:', key, e)) : null;
-      })
-      .filter((p): p is Promise<void> => p !== null);
-
-    // 物理删除磁盘图片
-    await Promise.all(fileCleanupPromises).catch((e) =>
-      console.error('物理删除相册照片文件出错:', e)
-    );
-
-    // 2. 事务删除数据库记录
+    // 1. 事务内查询关联照片并删除数据库记录（统一使用 client.query 防止连接池死锁）
     await client.query('BEGIN');
+    const { rows: photos } = await client.query('SELECT url FROM photos WHERE album_id = $1', [albumId]);
+    photosToDelete = photos;
+
     await client.query('DELETE FROM photos WHERE album_id = $1', [albumId]);
     await client.query('DELETE FROM albums WHERE id = $1', [albumId]);
     await client.query('COMMIT');
-
-    return jsonResponse({ success: true, message: '相册及照片资源已彻底删除' });
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('删除相册失败:', error);
@@ -278,6 +326,20 @@ albums.delete('/:id', async (c) => {
   } finally {
     client.release();
   }
+
+  // 2. 事务 COMMIT 成功后，再异步删除磁盘物理文件
+  const fileCleanupPromises = photosToDelete
+    .map((p: any) => {
+      const key = extractStorageKey(p.url);
+      return key ? storage.delete(key).catch((e) => console.error('物理删除本地图片失败:', key, e)) : null;
+    })
+    .filter((p): p is Promise<void> => p !== null);
+
+  Promise.all(fileCleanupPromises).catch((e) =>
+    console.error('物理删除相册照片文件出错:', e)
+  );
+
+  return jsonResponse({ success: true, message: '相册及照片资源已彻底删除' });
 });
 
 export default albums;

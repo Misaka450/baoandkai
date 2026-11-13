@@ -12,27 +12,39 @@ const auth = new Hono();
 // 登录速率限制配置
 const RATE_LIMIT = {
   MAX_ATTEMPTS: 5,
+  MAX_IP_ATTEMPTS: 20,
   WINDOW_SECONDS: 300,
   LOCKOUT_SECONDS: 1800,
 };
 
 /**
- * 获取客户端标识（优先使用IP，回退到用户名）
+ * 校验密码是否为合法字符串且长度不超过 bcrypt 72 字符上限
+ */
+function isValidBcryptPassword(password: unknown): password is string {
+  return typeof password === 'string' && password.length > 0 && password.length <= 72;
+}
+
+/**
+ * 获取客户端 IP 与登录限流 Key（按 IP 与 IP+用户名 双维度限流，避免仅按用户名全局锁死管理员）
  *
  * 安全说明：只信任 Nginx 反向代理注入的 X-Real-IP（客户端无法伪造，
  * 因为 Nginx 会用真实客户端地址覆盖它）。
- * 不能信任 CF-Connecting-IP 等客户端可自行携带的请求头，
- * 否则攻击者每次换一个伪造 IP 即可绕过登录失败锁定。
  */
-function getClientId(c: Context, username: string): string {
-  const ip = c.req.header('X-Real-IP') || '';
-  return ip ? `login_rate:${ip}` : `login_rate:user:${username}`;
+function getLoginRateKeys(c: Context, username: string): { ipKey: string; ipUserKey: string } {
+  const ip = c.req.header('X-Real-IP') || 'local';
+  return {
+    ipKey: `login_rate:ip:${ip}`,
+    ipUserKey: `login_rate:ip_user:${ip}:${username}`,
+  };
 }
 
 /**
  * 检查登录速率限制
  */
-async function checkRateLimit(clientId: string): Promise<{
+async function checkRateLimit(
+  clientId: string,
+  maxAttempts: number = RATE_LIMIT.MAX_ATTEMPTS
+): Promise<{
   allowed: boolean;
   remaining: number;
   retryAfter: number;
@@ -48,25 +60,29 @@ async function checkRateLimit(clientId: string): Promise<{
   }
 
   const attempts = record?.attempts || 0;
-  const remaining = Math.max(0, RATE_LIMIT.MAX_ATTEMPTS - attempts);
+  const remaining = Math.max(0, maxAttempts - attempts);
 
-  return { allowed: attempts < RATE_LIMIT.MAX_ATTEMPTS, remaining, retryAfter: 0 };
+  return { allowed: attempts < maxAttempts, remaining, retryAfter: 0 };
 }
 
 /**
  * 记录一次失败的登录尝试
  */
-async function recordFailedAttempt(clientId: string): Promise<void> {
+async function recordFailedAttempt(
+  clientId: string,
+  maxAttempts: number = RATE_LIMIT.MAX_ATTEMPTS
+): Promise<void> {
   const record = (await cache.get<{ attempts: number; lockedUntil?: string }>(clientId)) || { attempts: 0 };
   const attempts = record.attempts + 1;
 
   const data: { attempts: number; lockedUntil?: string } = { attempts };
 
-  if (attempts >= RATE_LIMIT.MAX_ATTEMPTS) {
+  if (attempts >= maxAttempts) {
     data.lockedUntil = new Date(Date.now() + RATE_LIMIT.LOCKOUT_SECONDS * 1000).toISOString();
+    await cache.set(clientId, data, RATE_LIMIT.LOCKOUT_SECONDS);
+  } else {
+    await cache.set(clientId, data, RATE_LIMIT.WINDOW_SECONDS);
   }
-
-  await cache.set(clientId, data, RATE_LIMIT.LOCKOUT_SECONDS);
 }
 
 /**
@@ -76,7 +92,10 @@ async function clearRateLimit(clientId: string): Promise<void> {
   await cache.delete(clientId);
 }
 
-async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+async function verifyPassword(plainPassword: unknown, hashedPassword: string): Promise<boolean> {
+  if (!isValidBcryptPassword(plainPassword)) {
+    return false;
+  }
   try {
     return await bcrypt.compare(plainPassword, hashedPassword);
   } catch (error) {
@@ -143,20 +162,28 @@ auth.post('/login', async (c) => {
 
     const { username, password } = body;
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
       return errorResponse('用户名和密码不能为空', 400);
     }
 
-    // 检查登录速率限制
-    const clientId = getClientId(c, username);
-    const rateCheck = await checkRateLimit(clientId);
+    if (!isValidBcryptPassword(password)) {
+      return errorResponse('密码长度不能超过 72 个字符', 400);
+    }
 
-    if (!rateCheck.allowed) {
-      const minutes = Math.ceil(rateCheck.retryAfter / 60);
+    // 检查登录速率限制（按 IP 与 IP+用户名 双维度）
+    const { ipKey, ipUserKey } = getLoginRateKeys(c, username);
+    const [ipRateCheck, ipUserRateCheck] = await Promise.all([
+      checkRateLimit(ipKey, RATE_LIMIT.MAX_IP_ATTEMPTS),
+      checkRateLimit(ipUserKey, RATE_LIMIT.MAX_ATTEMPTS),
+    ]);
+
+    if (!ipRateCheck.allowed || !ipUserRateCheck.allowed) {
+      const retryAfter = Math.max(ipRateCheck.retryAfter, ipUserRateCheck.retryAfter);
+      const minutes = Math.ceil(retryAfter / 60);
       return errorResponse(
         `登录尝试次数过多，请在 ${minutes} 分钟后重试`,
         429,
-        `Too many login attempts. Retry after ${rateCheck.retryAfter}s`
+        `Too many login attempts. Retry after ${retryAfter}s`
       );
     }
 
@@ -170,7 +197,10 @@ auth.post('/login', async (c) => {
     const user = rows[0];
 
     if (!user) {
-      await recordFailedAttempt(clientId);
+      await Promise.all([
+        recordFailedAttempt(ipKey, RATE_LIMIT.MAX_IP_ATTEMPTS),
+        recordFailedAttempt(ipUserKey, RATE_LIMIT.MAX_ATTEMPTS),
+      ]);
       console.error('用户不存在:', username);
       return errorResponse('用户名或密码错误', 401);
     }
@@ -179,12 +209,15 @@ auth.post('/login', async (c) => {
     const isValidPassword = await verifyPassword(password, user.password_hash);
 
     if (!isValidPassword) {
-      await recordFailedAttempt(clientId);
+      await Promise.all([
+        recordFailedAttempt(ipKey, RATE_LIMIT.MAX_IP_ATTEMPTS),
+        recordFailedAttempt(ipUserKey, RATE_LIMIT.MAX_ATTEMPTS),
+      ]);
       return errorResponse('用户名或密码错误', 401);
     }
 
-    // 登录成功，清除速率限制
-    await clearRateLimit(clientId);
+    // 登录成功，清除当前 IP+用户名 速率限制
+    await clearRateLimit(ipUserKey);
 
     // 创建 Session（token 通过 SHA-256 哈希后存储在 sessions 表）
     const session = await createSession(user.id);
@@ -312,7 +345,12 @@ auth.post('/update-password-hash', async (c) => {
       return errorResponse('尝试次数过多，请稍后再试', 429);
     }
 
-    const body = await c.req.json();
+    let body: { username?: unknown; newPassword?: unknown; adminToken?: unknown };
+    try {
+      body = await c.req.json();
+    } catch {
+      return errorResponse('请求格式错误', 400);
+    }
     const { username, newPassword, adminToken } = body;
 
     // 验证管理员token（常量时间比较，防时序攻击泄露）
@@ -323,8 +361,12 @@ auth.post('/update-password-hash', async (c) => {
       return errorResponse('无权限执行此操作', 403);
     }
 
-    if (!username || !newPassword) {
+    if (typeof username !== 'string' || typeof newPassword !== 'string' || !username.trim() || !newPassword) {
       return errorResponse('用户名和新密码不能为空', 400);
+    }
+
+    if (newPassword.length < 8 || !isValidBcryptPassword(newPassword)) {
+      return errorResponse('新密码长度需为 8 到 72 个字符', 400);
     }
 
     // 生成新的密码哈希

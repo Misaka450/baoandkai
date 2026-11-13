@@ -3,19 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { apiService } from '../services/apiService'
 import { getThumbnailUrl } from '../utils/imageUtils'
-import type { TimelineEvent } from '../types'
+import type { TimelineEvent, PaginatedResponse } from '../types'
 import ImageModal from '../components/modals/ImageModal'
 import Icon, { IconName } from '../components/icons/Icons'
 import { Skeleton, TimelineSkeleton } from '../components/common/Skeleton'
 import LazyImage from '../components/common/LazyImage'
 import { formatDate } from '../utils/common'
 
-interface TimelineResponse {
-  data: TimelineEvent[]
-  totalPages: number
-  totalCount: number
-  currentPage: number
-}
+type TimelineResponse = PaginatedResponse<TimelineEvent>
 
 interface CategoryConfig {
   icon: IconName
@@ -60,6 +55,7 @@ export default function Timeline() {
     queryKey: ['timeline', currentPage, filter],
     queryFn: async () => {
       const response = await apiService.get<TimelineResponse>(`/timeline?page=${currentPage}&limit=20&category=${filter === 'all' ? '' : filter}`)
+      if (response.error) throw new Error(response.error)
       return response.data
     },
     staleTime: 5 * 60 * 1000,
@@ -95,7 +91,7 @@ export default function Timeline() {
     })
   }, [events, selectedYear])
 
-  const totalPages = timelineData?.totalPages || 0
+  const totalPages = timelineData?.pagination?.totalPages || 0
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -155,7 +151,10 @@ export default function Timeline() {
             {['all', '日常', '旅行', '纪念日', '特别时刻', '其他'].map((cat) => (
               <button
                 key={cat}
-                onClick={() => setFilter(cat)}
+                onClick={() => {
+                  setFilter(cat)
+                  setCurrentPage(1)
+                }}
                 className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-6 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider md:tracking-widest transition-all active:scale-95 ${
                   filter === cat
                     ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'

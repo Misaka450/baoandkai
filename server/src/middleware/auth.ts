@@ -17,17 +17,13 @@ export interface CachedUser {
  *
  * 安全约束：
  * - /api/config：仅 GET 为公开读取，PUT/POST 等写操作必须经过管理员认证与 CSRF 校验
- * - /api/vault/export：仅 POST 为导出端点（由接口内部核验管理员安全密码与限流）
+ * - /api/vault/export：必须要求已登录 Session + CSRF + 二次密码校验（非公开路径）
  * - /api/images/*：仅 GET 为公开图片读取
  * - /api/auth/login & /api/auth/check-token：公开鉴权端点
  */
 export function isPublicPath(pathname: string, method: string): boolean {
   if (pathname === '/api/config') {
     return method === 'GET';
-  }
-
-  if (pathname === '/api/vault/export') {
-    return method === 'POST';
   }
 
   if (pathname.startsWith('/api/images/')) {

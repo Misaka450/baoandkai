@@ -9,8 +9,8 @@ describe('isPublicPath 路径安全性判断', () => {
         expect(isPublicPath('/api/config', 'DELETE')).toBe(false);
     });
 
-    it('/api/vault/export 仅允许 POST 导出请求', () => {
-        expect(isPublicPath('/api/vault/export', 'POST')).toBe(true);
+    it('/api/vault/export 已从公开路径移除，必须经过登录 Session 与 CSRF 校验', () => {
+        expect(isPublicPath('/api/vault/export', 'POST')).toBe(false);
         expect(isPublicPath('/api/vault/export', 'GET')).toBe(false);
     });
 

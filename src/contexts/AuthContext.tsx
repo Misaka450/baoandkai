@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean
   isAdmin: boolean
   isLoggedIn: boolean
+  isAuthenticated: boolean
   csrfToken: string | null
 }
 
@@ -129,6 +130,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loading,
     isAdmin: user?.role === 'admin',
     isLoggedIn: !!user,
+    isAuthenticated: !!user,
     csrfToken,
   }
 

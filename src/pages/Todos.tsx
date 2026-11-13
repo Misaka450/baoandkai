@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '../services/apiService'
-import type { Todo } from '../types'
+import type { Todo, PaginatedResponse } from '../types'
 import ImageModal from '../components/modals/ImageModal'
 import Icon from '../components/icons/Icons'
 import { Skeleton } from '../components/common/Skeleton'
@@ -11,12 +11,8 @@ import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
 import { hapticFeedback } from '../utils/haptics'
 
-interface TodosResponse {
-  data: Todo[]
-  totalPages: number
-  totalCount: number
+interface TodosResponse extends PaginatedResponse<Todo> {
   completedCount: number
-  currentPage: number
 }
 
 const stickyColors = [
@@ -29,7 +25,7 @@ const stickyColors = [
 
 export default function Todos() {
   const navigate = useNavigate()
-  const [currentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all')
@@ -45,7 +41,8 @@ export default function Todos() {
   })
 
   const todos = todosData?.data || []
-  const totalCount = todosData?.totalCount || 0
+  const totalCount = todosData?.pagination?.total ?? todos.length
+  const totalPages = todosData?.pagination?.totalPages || 0
   const completedCount = todosData?.completedCount || 0
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
@@ -140,7 +137,7 @@ export default function Todos() {
                       : 'bg-stone-100 text-stone-500 hover:bg-stone-200/70'
                   }`}
                 >
-                  全部 ({todos.length})
+                  全部 ({totalCount})
                 </button>
                 <button
                   type="button"
@@ -151,7 +148,7 @@ export default function Todos() {
                       : 'bg-stone-100 text-stone-500 hover:bg-stone-200/70'
                   }`}
                 >
-                  进行中 ({todos.length - completedCount})
+                  进行中 ({Math.max(0, totalCount - completedCount)})
                 </button>
                 <button
                   type="button"
@@ -322,6 +319,62 @@ export default function Todos() {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">添加甜蜜心愿</p>
           </div>
         </div>
+
+        {/* 分页 */}
+        {totalPages > 1 && (
+          <div className="relative flex flex-col items-center justify-center pb-12 md:pb-20">
+            <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  hapticFeedback('light')
+                  setCurrentPage(prev => Math.max(prev - 1, 1))
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                disabled={currentPage === 1}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
+              >
+                <Icon name="chevron_left" size={20} />
+              </button>
+              {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
+                const pageNum = i + 1
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback('light')
+                      setCurrentPage(pageNum)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl transition-all text-xs md:text-sm font-black active:scale-95 ${
+                      currentPage === pageNum
+                        ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
+                        : 'bg-white text-gray-400 hover:text-primary'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  hapticFeedback('light')
+                  setCurrentPage(prev => Math.min(prev + 1, totalPages))
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
+              >
+                <Icon name="chevron_right" size={20} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-4 font-medium">
+              第 {currentPage} / {totalPages} 页，共 {totalCount} 条
+            </p>
+          </div>
+        )}
 
         {/* 进度控制面板 */}
         <section className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
