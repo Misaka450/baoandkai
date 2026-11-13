@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { MapCheckin } from '../../types'
-import { provinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
+import { useChinaProvinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import Icon from '../icons/Icons'
 import LazyImage from '../common/LazyImage'
@@ -116,8 +116,10 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
     const timerRef = useRef<number | null>(null)
     const animationFrameRef = useRef<number | null>(null)
 
+    const { provinces, isLoading: isProvincesLoading } = useChinaProvinces()
+
     // 预构建省份映射表
-    const provinceMap = useMemo(() => new Map(provinces.map(p => [p.name, p])), [])
+    const provinceMap = useMemo(() => new Map(provinces.map(p => [p.name, p])), [provinces])
 
     // 1. 过滤有效且包含 province 的打卡记录，按 checkin.date 升序排列
     const validPoints = useMemo<PlaybackPoint[]>(() => {
@@ -355,6 +357,21 @@ export default function TravelPlayback({ checkins, onClose }: TravelPlaybackProp
             totalStations: validPoints.length
         }
     }, [validPoints])
+
+    // 地图数据尚未加载完成时展示平滑加载态，避免误触发空状态弹窗
+    if (isProvincesLoading) {
+        return createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl text-white">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xl animate-pulse">
+                        ✈️
+                    </div>
+                    <p className="text-slate-400 text-xs tracking-widest uppercase">正在准备航线地图...</p>
+                </div>
+            </div>,
+            document.body
+        )
+    }
 
     // 如果打卡站点少于 1 个，给出温馨提示
     if (totalPoints < 1) {

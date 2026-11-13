@@ -1,5 +1,5 @@
 import { useState, useMemo, memo, useRef, useCallback } from 'react'
-import { provinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
+import { useChinaProvinces, CHINA_MAP_VIEWBOX, type ProvinceData } from '../../data/chinaMapData'
 import type { MapCheckin } from '../../types'
 import MapPin from './MapPin'
 import RouteLines from './RouteLines'
@@ -57,6 +57,7 @@ const ProvincePath = memo(({
 ProvincePath.displayName = 'ProvincePath'
 
 export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = false, showRoute = true }: ChinaMapProps) {
+    const { provinces } = useChinaProvinces()
     const [hoveredProvince, setHoveredProvince] = useState<string | null>(null)
     const [tooltipData, setTooltipData] = useState<{ name: string; count: number } | null>(null)
     const [scale, setScale] = useState(1)

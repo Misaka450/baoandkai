@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { MapCheckin } from '../../types'
-import { findProvinceByName } from '../../data/chinaMapData'
+import { findProvinceByName, useChinaProvinces } from '../../data/chinaMapData'
 import { hasCityPathsForProvince, loadCityPathsForProvince, type CityPathData } from '../../data/provinceCityPaths'
 import ProvinceDetail from './ProvinceDetail'
 
@@ -19,22 +19,24 @@ export default function ProvinceDetailLoader({
     onCityClick,
     onNavigateToTimeline
 }: ProvinceDetailLoaderProps) {
+    const { provinces, isLoading: isProvincesLoading } = useChinaProvinces()
     const [cityPaths, setCityPaths] = useState<CityPathData[]>([])
-    const [isLoading, setIsLoading] = useState(true)
-    const province = findProvinceByName(provinceName)
+    const [isCityLoading, setIsCityLoading] = useState(true)
+    const province = findProvinceByName(provinceName, provinces)
+    const isLoading = isProvincesLoading || isCityLoading
 
     useEffect(() => {
         let isActive = true
 
         async function loadCityPaths() {
-            setIsLoading(true)
+            setIsCityLoading(true)
             const nextCityPaths = hasCityPathsForProvince(provinceName)
                 ? await loadCityPathsForProvince(provinceName)
                 : []
 
             if (!isActive) return
             setCityPaths(nextCityPaths)
-            setIsLoading(false)
+            setIsCityLoading(false)
         }
 
         loadCityPaths()
@@ -43,14 +45,6 @@ export default function ProvinceDetailLoader({
             isActive = false
         }
     }, [provinceName])
-
-    if (!province) {
-        return (
-            <div className="text-center py-16">
-                <p className="text-slate-400 font-bold">未找到省份数据</p>
-            </div>
-        )
-    }
 
     if (isLoading) {
         return (
@@ -63,7 +57,7 @@ export default function ProvinceDetailLoader({
                         <span className="text-sm font-bold">返回全国</span>
                     </button>
                     <div className="text-right">
-                        <h3 className="text-2xl font-black text-slate-800">{province.name}</h3>
+                        <h3 className="text-2xl font-black text-slate-800">{province?.name ?? provinceName}</h3>
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
                             正在加载城市边界
                         </p>
@@ -73,6 +67,14 @@ export default function ProvinceDetailLoader({
                 <div className="relative premium-card !p-8 !bg-white/40 backdrop-blur-sm overflow-hidden">
                     <div className="h-[400px] animate-pulse rounded-3xl bg-slate-100/80" />
                 </div>
+            </div>
+        )
+    }
+
+    if (!province) {
+        return (
+            <div className="text-center py-16">
+                <p className="text-slate-400 font-bold">未找到省份数据</p>
             </div>
         )
     }

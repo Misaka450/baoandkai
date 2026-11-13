@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import type { MapCheckin } from '../../types'
-import { provinces } from '../../data/chinaMapData'
+import { useChinaProvinces } from '../../data/chinaMapData'
 
 interface RouteLinesProps {
     checkins: MapCheckin[]
@@ -37,10 +37,12 @@ const seasonEmojis = {
     winter: '❄️'
 }
 
-// 预构建省份名到数据的 Map 索引，避免每次 find 线性查找
-const provinceMap = new Map(provinces.map(p => [p.name, p]))
-
 function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
+    const { provinces } = useChinaProvinces()
+
+    // 预构建省份名到数据的 Map 索引，避免每次 find 线性查找
+    const provinceMap = useMemo(() => new Map(provinces.map(p => [p.name, p])), [provinces])
+
     // 按日期排序并获取有效坐标的点
     const points = useMemo(() => {
         if (!showRoute || checkins.length < 2) return []
@@ -61,7 +63,7 @@ function RouteLines({ checkins, showRoute = true }: RouteLinesProps) {
             }
         }
         return result
-    }, [checkins, showRoute])
+    }, [checkins, showRoute, provinceMap])
 
     // 注意：React 要求 Hook 调用顺序稳定，
     // 因此 early return 必须放在所有 useMemo 之后，否则会触发条件调用 Hook 错误
