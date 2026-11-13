@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import Icon from '../icons/Icons'
 import type { TimeCapsuleItem } from '../../types'
@@ -127,8 +128,9 @@ export default function TimeCapsuleList({
                         setDeleteConfirmId(capsule.id)
                       }
                     }}
-                    className="w-7 h-7 rounded-full text-stone-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                    className="w-7 h-7 rounded-full text-stone-400 md:text-stone-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     title="删除胶囊"
+                    aria-label="删除胶囊"
                   >
                     <Icon name="delete" size={15} />
                   </button>
@@ -201,8 +203,8 @@ export default function TimeCapsuleList({
         </div>
       )}
 
-      {/* 内置莫兰迪删除确认弹窗 */}
-      {!showDeleteConfirm && deleteConfirmId && (
+      {/* 内置莫兰迪删除确认弹窗 - Portal 渲染至 body 避免包含块错位 */}
+      {typeof document !== 'undefined' && !showDeleteConfirm && deleteConfirmId && createPortal(
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirmId(null)}>
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-white/80 animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-4">
@@ -214,12 +216,14 @@ export default function TimeCapsuleList({
             </div>
             <div className="flex gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-600 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors"
               >
                 取消
               </button>
               <button
+                type="button"
                 onClick={() => {
                   onDeleteCapsule?.(deleteConfirmId);
                   setDeleteConfirmId(null);
@@ -230,7 +234,8 @@ export default function TimeCapsuleList({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

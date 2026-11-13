@@ -76,106 +76,107 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                 transition={{ type: 'spring', duration: 0.5 }}
             >
                 {/* 头部 */}
-                <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 via-primary/5 to-white px-5 py-4 md:px-8 md:py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-2xl md:rounded-t-[2.5rem]">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                            <Icon name="auto_awesome" size={28} className="text-primary" />
+                <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 via-primary/5 to-white px-4 py-3.5 sm:px-6 sm:py-4 md:px-8 md:py-6 border-b border-slate-100/50 flex items-center justify-between rounded-t-2xl md:rounded-t-[2.5rem]">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center flex-shrink-0">
+                            <Icon name="auto_awesome" size={24} className="text-primary sm:w-7 sm:h-7" />
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-slate-800">{year}年度旅行报告</h2>
-                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Annual Travel Report</p>
+                        <div className="min-w-0">
+                            <h2 className="text-lg sm:text-2xl font-black text-slate-800 truncate">{year}年度旅行报告</h2>
+                            <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Annual Travel Report</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition-all shadow-sm"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition-all shadow-sm flex-shrink-0"
                     >
                         <Icon name="close" size={20} />
                     </button>
                 </div>
 
                 {/* 内容 */}
-                <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
+                <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 md:space-y-8">
                     {/* 核心数据 */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
                         <motion.div
-                            className="bg-gradient-to-br from-[#FFEDF3] to-[#FFE0E9] p-6 rounded-3xl text-center"
+                            className="bg-gradient-to-br from-[#FFEDF3] to-[#FFE0E9] p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center"
                             whileHover={{ scale: 1.05 }}
                         >
-                            <div className="text-4xl font-black text-[#FF8BB1] mb-2">{stats.provinces}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">去过的省份</div>
+                            <div className="text-2xl sm:text-4xl font-black text-[#FF8BB1] mb-1 sm:mb-2">{stats.provinces}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider sm:tracking-widest">去过的省份</div>
                         </motion.div>
                         <motion.div
-                            className="bg-gradient-to-br from-[#EBF7FF] to-[#E0F0FF] p-6 rounded-3xl text-center"
+                            className="bg-gradient-to-br from-[#EBF7FF] to-[#E0F0FF] p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center"
                             whileHover={{ scale: 1.05 }}
                         >
-                            <div className="text-4xl font-black text-[#6BBFFF] mb-2">{stats.cities}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">去过的城市</div>
+                            <div className="text-2xl sm:text-4xl font-black text-[#6BBFFF] mb-1 sm:mb-2">{stats.cities}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider sm:tracking-widest">去过的城市</div>
                         </motion.div>
                         <motion.div
-                            className="bg-gradient-to-br from-[#F0FFF4] to-[#E0FFE9] p-6 rounded-3xl text-center"
+                            className="bg-gradient-to-br from-[#F0FFF4] to-[#E0FFE9] p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center"
                             whileHover={{ scale: 1.05 }}
                         >
-                            <div className="text-4xl font-black text-[#6BCB77] mb-2">{stats.totalCheckins}</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">总足迹数</div>
+                            <div className="text-2xl sm:text-4xl font-black text-[#6BCB77] mb-1 sm:mb-2">{stats.totalCheckins}</div>
+                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider sm:tracking-widest">总足迹数</div>
                         </motion.div>
                     </div>
 
                     {/* 最爱目的地 */}
                     {stats.favoriteCity && (
                         <motion.div
-                            className="premium-card !p-6"
+                            className="premium-card !p-4 sm:!p-6"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <div className="flex items-center gap-4 mb-4">
+                            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
                                     <Icon name="favorite" size={20} className="text-yellow-600" />
                                 </div>
-                                <h3 className="text-lg font-black text-slate-800">最爱目的地</h3>
+                                <h3 className="text-base sm:text-lg font-black text-slate-800">最爱目的地</h3>
                             </div>
                             <div className="flex items-end gap-3">
-                                <span className="text-3xl font-black text-slate-800">{stats.favoriteCity.name}</span>
-                                <span className="text-sm font-bold text-slate-400 mb-1">打卡 {stats.favoriteCity.count} 次</span>
+                                <span className="text-2xl sm:text-3xl font-black text-slate-800">{stats.favoriteCity.name}</span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-400 mb-0.5 sm:mb-1">打卡 {stats.favoriteCity.count} 次</span>
                             </div>
                         </motion.div>
                     )}
 
                     {/* 月度分布 */}
                     <motion.div
-                        className="premium-card !p-6"
+                        className="premium-card !p-4 sm:!p-6"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 }}
                     >
-                        <div className="flex items-center gap-4 mb-6">
+                        <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                                 <Icon name="trending_up" size={20} className="text-primary" />
                             </div>
-                            <h3 className="text-lg font-black text-slate-800">月度足迹分布</h3>
+                            <h3 className="text-base sm:text-lg font-black text-slate-800">月度足迹分布</h3>
                         </div>
-                        <div className="grid grid-cols-12 gap-2">
+                        <div className="grid grid-cols-12 gap-1 sm:gap-2">
                             {stats.monthCounts.map((count, idx) => (
                                 <div key={idx} className="text-center">
                                     <div 
-                                        className={`w-full rounded-lg mb-2 transition-all ${
+                                        className={`w-full rounded-lg mb-1.5 sm:mb-2 transition-all ${
                                             count > 0 
                                                 ? 'bg-gradient-to-t from-primary/40 to-primary/20 hover:from-primary/60 hover:to-primary/40' 
                                                 : 'bg-slate-100'
                                         }`}
                                         style={{ height: `${Math.max(20, count * 10)}px` }}
                                     />
-                                    <span className="text-[10px] font-bold text-slate-400">{monthNames[idx]}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 sm:hidden">{idx + 1}</span>
+                                    <span className="hidden sm:inline text-[10px] font-bold text-slate-400">{monthNames[idx]}</span>
                                 </div>
                             ))}
                         </div>
                     </motion.div>
 
                     {/* 第一次和最后一次旅行 */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <motion.div
-                            className="premium-card !p-5"
+                            className="premium-card !p-4 sm:!p-5"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
@@ -191,7 +192,7 @@ export default function AnnualReport({ checkins, year, onClose }: AnnualReportPr
                         </motion.div>
 
                         <motion.div
-                            className="premium-card !p-5"
+                            className="premium-card !p-4 sm:!p-5"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}

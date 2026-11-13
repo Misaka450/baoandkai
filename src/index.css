@@ -44,12 +44,9 @@
     scroll-behavior: smooth;
   }
 
-  /* 对滚动容器启用硬件加速 */
-  .scroll-container,
-  main,
-  [class*="overflow-"] {
+  /* 滚动容器启用 iOS 弹性滚动（不设置全局 transform 以免破坏 fixed 包含块） */
+  .scroll-container {
     -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
   }
 
   /* 对动画元素提前分配合成层 */
@@ -63,11 +60,11 @@
     backface-visibility: hidden;
   }
 
-  /* 限制卡片重绘范围 */
+  /* 限制卡片样式计算范围（避免 layout/paint containment 裁切胶带与困住 fixed 弹窗） */
   .premium-card,
   .glass-card,
   .polaroid-card {
-    contain: layout style paint;
+    contain: style;
   }
 
   /* 自定义滚动条 */
@@ -261,4 +258,13 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #e2e8f0 transparent;
+}
+
+/* 防止 iOS Safari 在输入框 font-size < 16px 时自动放大页面 */
+@media screen and (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }

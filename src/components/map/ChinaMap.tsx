@@ -67,8 +67,10 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     const tooltipRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const svgRef = useRef<SVGSVGElement>(null)
-    // 用 ref 存储拖拽状态和 tooltip 数据，避免 handleMouseMove 闭包过期
+    // 用 ref 存储拖拽状态、双指捏合状态和 tooltip 数据，避免事件回调闭包过期
     const isDraggingRef = useRef(false)
+    const initialPinchDistanceRef = useRef<number | null>(null)
+    const initialPinchScaleRef = useRef(1)
     const tooltipDataRef = useRef<{ name: string; count: number } | null>(null)
 
     // 统计每个省份的打卡数量
@@ -87,11 +89,21 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     const checkedProvinces = useMemo(() => new Set(Object.keys(provinceCheckinCounts)), [provinceCheckinCounts])
 
     // 缩放控制
+    const updateScale = useCallback((computeNext: (prev: number) => number) => {
+        setScale(prev => {
+            const next = Math.min(Math.max(computeNext(prev), 1), 3)
+            if (next <= 1) {
+                setTranslate({ x: 0, y: 0 })
+            }
+            return next
+        })
+    }, [])
+
     const handleWheel = useCallback((e: React.WheelEvent) => {
         e.preventDefault()
         const delta = e.deltaY > 0 ? -0.1 : 0.1
-        setScale(prev => Math.min(Math.max(prev + delta, 1), 3))
-    }, [])
+        updateScale(prev => prev + delta)
+    }, [updateScale])
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         isDraggingRef.current = true
@@ -119,8 +131,19 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
         setCursorStyle('grab')
     }, [])
 
+    const getTouchDistance = (touches: React.TouchList) => {
+        const t1 = touches[0]
+        const t2 = touches[1]
+        if (!t1 || !t2) return 0
+        return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+    }
+
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
-        if (e.touches.length === 1 && scale > 1) {
+        if (e.touches.length === 2) {
+            isDraggingRef.current = false
+            initialPinchDistanceRef.current = getTouchDistance(e.touches)
+            initialPinchScaleRef.current = scale
+        } else if (e.touches.length === 1 && scale > 1) {
             const touch = e.touches[0]
             if (!touch) return
             isDraggingRef.current = true
@@ -129,7 +152,13 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
     }, [scale, translate])
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
-        if (isDraggingRef.current && e.touches.length === 1) {
+        if (e.touches.length === 2 && initialPinchDistanceRef.current) {
+            const distance = getTouchDistance(e.touches)
+            if (distance > 0) {
+                const ratio = distance / initialPinchDistanceRef.current
+                updateScale(() => initialPinchScaleRef.current * ratio)
+            }
+        } else if (isDraggingRef.current && e.touches.length === 1) {
             const touch = e.touches[0]
             if (!touch) return
             setTranslate({
@@ -137,11 +166,23 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
                 y: touch.clientY - dragStart.current.y
             })
         }
-    }, [])
+    }, [updateScale])
 
-    const handleTouchEnd = useCallback(() => {
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (e.touches.length < 2) {
+            initialPinchDistanceRef.current = null
+        }
+        // 双指松开其中一指且仍处于放大态时，平滑切换为单指拖拽起点
+        if (e.touches.length === 1 && scale > 1) {
+            const touch = e.touches[0]
+            if (touch) {
+                isDraggingRef.current = true
+                dragStart.current = { x: touch.clientX - translate.x, y: touch.clientY - translate.y }
+                return
+            }
+        }
         isDraggingRef.current = false
-    }, [])
+    }, [scale, translate])
 
     const handleReset = useCallback(() => {
         setScale(1)
@@ -227,27 +268,30 @@ export default function ChinaMap({ checkins, onProvinceClick, showHeatmap = fals
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchEnd}
-            style={{ cursor: cursorStyle }}
+            style={{
+                cursor: cursorStyle,
+                touchAction: scale > 1 ? 'none' : 'pan-y',
+            }}
         >
             {/* 缩放控制按钮 */}
             <div className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 md:gap-2">
                 <button
-                    onClick={() => setScale(prev => Math.min(prev + 0.2, 3))}
+                    onClick={() => updateScale(prev => prev + 0.2)}
                     className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all active:scale-95"
                     title="放大"
                 >
                     <Icon name="zoom_in" size={20} />
                 </button>
                 <button
-                    onClick={() => setScale(prev => Math.max(prev - 0.2, 1))}
-                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    onClick={() => updateScale(prev => prev - 0.2)}
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all active:scale-95"
                     title="缩小"
                 >
                     <Icon name="zoom_out" size={20} />
                 </button>
                 <button
                     onClick={handleReset}
-                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all"
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-slate-600 hover:bg-white hover:text-primary transition-all active:scale-95"
                     title="复位"
                 >
                     <Icon name="restart_alt" size={20} />

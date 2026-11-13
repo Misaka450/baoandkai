@@ -213,16 +213,13 @@ const AdminFoodCheckin = () => {
         }
     }
 
-    const handleDragEnd = async () => {
-        if (!draggedItem) return
-        setDraggedItem(null)
-
+    const persistCheckinsOrder = async (orderedItems: FoodCheckin[]) => {
         try {
             // 同步后端排序
             // 注意：我们使用的是 sort_order DESC，所以 index 越大（在后面），sort_order 越小
-            const reorderData = checkins.map((item, index) => ({
+            const reorderData = orderedItems.map((item, index) => ({
                 id: item.id,
-                sort_order: checkins.length - index // 保持降序排列
+                sort_order: orderedItems.length - index // 保持降序排列
             }))
 
             const { error } = await apiService.post('/food/reorder', reorderData)
@@ -236,7 +233,25 @@ const AdminFoodCheckin = () => {
         }
     }
 
-    // 图片拖拽处理
+    const handleDragEnd = async () => {
+        if (!draggedItem) return
+        setDraggedItem(null)
+        await persistCheckinsOrder(checkins)
+    }
+
+    const handleMoveCheckin = async (index: number, direction: -1 | 1) => {
+        const targetIndex = index + direction
+        if (targetIndex < 0 || targetIndex >= checkins.length) return
+
+        const newItems = [...checkins]
+        const [movedItem] = newItems.splice(index, 1)
+        if (!movedItem) return
+        newItems.splice(targetIndex, 0, movedItem)
+        setCheckins(newItems)
+        await persistCheckinsOrder(newItems)
+    }
+
+    // 图片拖拽与移动排序处理
     const handleImageDragStart = (e: unknown, index: number) => {
         setDraggedImageIndex(index)
         const dataTransfer = (e as { dataTransfer?: DataTransfer | null })?.dataTransfer
@@ -251,6 +266,18 @@ const AdminFoodCheckin = () => {
         newImages.splice(index, 0, item)
         setFormData(prev => ({ ...prev, images: newImages }))
         setDraggedImageIndex(index)
+    }
+
+    const handleMoveImage = (index: number, direction: -1 | 1) => {
+        const targetIndex = index + direction
+        if (targetIndex < 0 || targetIndex >= formData.images.length) return
+        setFormData(prev => {
+            const newImages = [...prev.images]
+            const [moved] = newImages.splice(index, 1)
+            if (!moved) return prev
+            newImages.splice(targetIndex, 0, moved)
+            return { ...prev, images: newImages }
+        })
     }
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
@@ -357,10 +384,36 @@ const AdminFoodCheckin = () => {
                                                 e.stopPropagation();
                                                 removeImage(i);
                                             }}
-                                            className="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                            aria-label="删除图片"
+                                            className="absolute top-1.5 right-1.5 w-7 h-7 bg-black/60 hover:bg-rose-500 backdrop-blur-sm text-white rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex items-center justify-center shadow-sm"
                                         >
-                                            <Icon name="delete" size={16} />
+                                            <Icon name="delete" size={14} />
                                         </button>
+                                        {/* 移动端图片排序移动按钮 */}
+                                        {formData.images.length > 1 && (
+                                            <div className="absolute bottom-1.5 left-1.5 right-1.5 flex md:hidden items-center justify-between gap-1 z-10">
+                                                <button
+                                                    type="button"
+                                                    disabled={i === 0}
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(i, -1); }}
+                                                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 active:scale-90 shadow-sm"
+                                                    title="前移"
+                                                    aria-label="前移照片"
+                                                >
+                                                    <Icon name="chevron_left" size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={i === formData.images.length - 1}
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(i, 1); }}
+                                                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 active:scale-90 shadow-sm"
+                                                    title="后移"
+                                                    aria-label="后移照片"
+                                                >
+                                                    <Icon name="chevron_right" size={14} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
@@ -403,7 +456,7 @@ const AdminFoodCheckin = () => {
                             <p className="text-slate-400 font-bold tracking-tight">空空如也，快去探索美食吧！</p>
                         </motion.div>
                     ) : (
-                        checkins.map((c) => (
+                        checkins.map((c, index) => (
                             <motion.div
                                 key={c.id}
                                 layout
@@ -435,6 +488,31 @@ const AdminFoodCheckin = () => {
                                         </div>
 
                                         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                            {/* 移动端上下移动排序按钮 */}
+                                            {checkins.length > 1 && (
+                                                <div className="flex sm:hidden items-center gap-1">
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === 0}
+                                                        onClick={() => handleMoveCheckin(index, -1)}
+                                                        className="w-7 h-7 rounded-lg bg-stone-100 text-slate-600 hover:bg-primary hover:text-white transition-all flex items-center justify-center active:scale-90 disabled:opacity-30"
+                                                        title="上移"
+                                                        aria-label="上移打卡"
+                                                    >
+                                                        <Icon name="chevron_up" size={14} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={index === checkins.length - 1}
+                                                        onClick={() => handleMoveCheckin(index, 1)}
+                                                        className="w-7 h-7 rounded-lg bg-stone-100 text-slate-600 hover:bg-primary hover:text-white transition-all flex items-center justify-center active:scale-90 disabled:opacity-30"
+                                                        title="下移"
+                                                        aria-label="下移打卡"
+                                                    >
+                                                        <Icon name="chevron_down" size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
                                             {/* 显式的拖拽手柄（桌面端支持） */}
                                             <div className="hidden sm:flex w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-50 text-slate-400 cursor-move items-center justify-center shadow-xs hover:text-primary transition-colors">
                                                 <Icon name="drag_indicator" size={16} />

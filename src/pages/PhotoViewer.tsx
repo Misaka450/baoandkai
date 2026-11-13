@@ -449,12 +449,15 @@ export default function PhotoViewer() {
             {/* 底部缩略图 */}
             {images.length > 1 && (
                 <div
-                    className={`absolute bottom-0 left-0 right-0 py-3 md:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-4 px-3 md:px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
+                    className={`absolute bottom-0 left-0 right-0 py-3 md:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-4 px-3 md:px-6 overflow-x-auto touch-pan-x no-scrollbar bg-gradient-to-t from-black/70 via-black/40 to-transparent transition-opacity duration-200 ${
                         dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
                     }`}
                     style={{ zIndex: 100 }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
                 >
-                    <div className="flex gap-2 md:gap-3 justify-center">
+                    <div className="flex gap-2 md:gap-3 min-w-max mx-auto justify-center">
                         {images.map((img, idx) => (
                             <div
                                 key={idx}

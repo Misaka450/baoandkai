@@ -318,9 +318,10 @@ const AdminTimeline = () => {
                                     <button
                                         type="button"
                                         onClick={() => removeImage(index)}
-                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                        aria-label="删除图片"
+                                        className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-500 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex items-center justify-center shadow-sm"
                                     >
-                                        <Icon name="delete" size={24} className="text-white" />
+                                        <Icon name="delete" size={14} />
                                     </button>
                                 </div>
                             ))}

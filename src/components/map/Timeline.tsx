@@ -66,7 +66,7 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
                     {/* 时间线 */}
                     <div className="relative">
                         {/* 时间轴线 */}
-                        <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-primary/30 via-primary/10 to-transparent" />
+                        <div className="absolute left-4 sm:left-6 top-0 bottom-0 w-px bg-gradient-to-b from-primary/30 via-primary/10 to-transparent" />
 
                         <div className="space-y-6">
                             {yearCheckins.map((checkin, idx) => {
@@ -78,13 +78,13 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
                                 return (
                                     <motion.div
                                         key={checkin.id}
-                                        className="relative pl-16"
+                                        className="relative pl-10 sm:pl-16"
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: idx * 0.1 }}
                                     >
                                         {/* 时间点 */}
-                                        <div className="absolute left-4 top-0 w-4 h-4 rounded-full border-4 border-white shadow-lg"
+                                        <div className="absolute left-2 sm:left-4 top-0 w-4 h-4 rounded-full border-4 border-white shadow-lg"
                                             style={{
                                                 background: isExpanded 
                                                     ? 'linear-gradient(135deg, #FF8BB1 0%, #FF6B9A 100%)'
@@ -100,27 +100,27 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
                                             onClick={() => onCheckinClick?.(checkin)}
                                             whileHover={{ y: -2 }}
                                         >
-                                            <div className="flex">
+                                            <div className="flex flex-col sm:flex-row">
                                                 {/* 日期区域 */}
-                                                <div className="w-24 bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex flex-col items-center justify-center border-r border-slate-100">
+                                                <div className="w-full sm:w-24 bg-gradient-to-br from-slate-50 to-slate-100 px-3.5 py-2 sm:p-4 flex flex-row sm:flex-col items-center justify-between sm:justify-center border-b sm:border-b-0 sm:border-r border-slate-100">
                                                     <span className="text-xs font-bold text-slate-400 uppercase">
                                                         {dateInfo.month}.{dateInfo.day}
                                                     </span>
-                                                    <span className="text-[10px] font-bold text-slate-300 uppercase mt-1">
+                                                    <span className="text-[10px] font-bold text-slate-300 uppercase sm:mt-1">
                                                         {weekday}
                                                     </span>
                                                 </div>
 
                                                 {/* 内容区域 */}
-                                                <div className="flex-1 p-4">
-                                                    <div className="flex items-start justify-between gap-4">
-                                                        <div className="flex-1">
-                                                            <h3 className="font-black text-lg text-slate-800 mb-1">
+                                                <div className="flex-1 min-w-0 p-3.5 sm:p-4">
+                                                    <div className="flex items-start justify-between gap-3 sm:gap-4">
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-black text-base sm:text-lg text-slate-800 mb-1">
                                                                 {checkin.title}
                                                             </h3>
                                                             <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">
-                                                                <Icon name="location_on" size={12} className="text-primary/40" />
-                                                                <span>{checkin.province}{checkin.city ? ` · ${checkin.city}` : ''}</span>
+                                                                <Icon name="location_on" size={12} className="text-primary/40 flex-shrink-0" />
+                                                                <span className="truncate">{checkin.province}{checkin.city ? ` · ${checkin.city}` : ''}</span>
                                                             </div>
                                                             {checkin.description && (
                                                                 <p className={`text-slate-400 text-xs leading-relaxed ${
@@ -134,7 +134,7 @@ export default function Timeline({ checkins, onCheckinClick, onNavigateToMap }: 
                                                         {/* 缩略图 */}
                                                         {checkin.images && checkin.images.length > 0 && (
                                                             <div className="flex-shrink-0">
-                                                                <div className="w-20 h-20 rounded-xl overflow-hidden shadow-sm">
+                                                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shadow-sm">
                                                                     <LazyImage
                                                                         src={getThumbnailUrl(coverImage || '', 200)}
                                                                         alt={checkin.title}

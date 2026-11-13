@@ -6,25 +6,20 @@ interface PageTransitionProps {
     children: ReactNode
 }
 
+// 仅使用 opacity 过渡，避免在祖先节点生成 transform 包含块而困住页面内 fixed 元素
 const pageVariants = {
     initial: {
-        opacity: 0,
-        y: 20,
-        scale: 0.98
+        opacity: 0
     },
     enter: {
         opacity: 1,
-        y: 0,
-        scale: 1,
         transition: {
-            duration: 0.4,
+            duration: 0.3,
             ease: [0.22, 1, 0.36, 1] as const
         }
     },
     exit: {
         opacity: 0,
-        y: -10,
-        scale: 1.02,
         transition: {
             duration: 0.2,
             ease: [0.55, 0, 1, 0.45] as const

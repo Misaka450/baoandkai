@@ -562,8 +562,9 @@ export default function AnniversaryCountdown() {
                     <button
                       type="button"
                       title="删除此倒数日"
+                      aria-label="删除此倒数日"
                       onClick={(e) => handleDeleteCustom(card.id, e)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-white/70 hover:bg-rose-50 text-slate-400 hover:text-rose-500 shadow-sm cursor-pointer"
+                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-white/70 hover:bg-rose-50 text-slate-400 hover:text-rose-500 shadow-sm cursor-pointer"
                     >
                       <Icon name="delete" size={14} className="sm:w-4 sm:h-4" />
                     </button>

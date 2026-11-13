@@ -84,8 +84,8 @@ export default function PhotoWall({ checkins, onPhotoClick }: PhotoWallProps) {
                                 alt={photo.checkin.title}
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
                                     <p className="text-white text-xs font-bold truncate">{photo.checkin.title}</p>
                                     <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">
                                         {formatDate(photo.checkin.date, 'short')}

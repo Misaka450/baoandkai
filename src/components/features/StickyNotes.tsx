@@ -5,7 +5,6 @@ import { notesService } from '../../services/apiService'
 import Icon from '../icons/Icons'
 import { useToast } from '../common/Toast'
 import Modal from '../modals/Modal'
-import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../../constants/styles'
 import { formatDate } from '../../utils/common'
 
@@ -46,8 +45,6 @@ export default function StickyNotes() {
   const [selectedColor, setSelectedColor] = useState('pink')
   const [showAddModal, setShowAddModal] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
-
-  useBodyScrollLock(showAddModal)
 
   // 使用 React Query 获取便签数据，自动缓存和刷新
   const { data: notesData, isLoading } = useQuery({

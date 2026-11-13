@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl } from '../utils/imageUtils'
@@ -156,15 +157,15 @@ export default function AlbumDetail() {
                                 />
 
                                 {/* 悬浮遮罩 */}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/20 backdrop-blur-md opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/0 md:group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/20 backdrop-blur-md opacity-0 md:group-hover:opacity-100 scale-50 md:group-hover:scale-100 transition-all duration-300 flex items-center justify-center">
                                         <Icon name="search" size={16} className="text-white md:w-6 md:h-6" />
                                     </div>
                                 </div>
 
-                                {/* 照片标题 */}
+                                {/* 照片标题 - 移动端常显，桌面端悬停滑入 */}
                                 {photo.caption && (
-                                    <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                    <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300">
                                         <p className="text-white text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-widest line-clamp-1">{photo.caption}</p>
                                     </div>
                                 )}
@@ -174,8 +175,8 @@ export default function AlbumDetail() {
                 )}
             </main>
 
-            {/* 返回顶部浮动按钮 */}
-            {showBackToTop && (
+            {/* 返回顶部浮动按钮 - Portal 渲染至 body 避免包含块错位 */}
+            {typeof document !== 'undefined' && showBackToTop && createPortal(
                 <button
                     type="button"
                     onClick={() => {
@@ -186,7 +187,8 @@ export default function AlbumDetail() {
                     className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-4 md:left-8 z-40 w-11 h-11 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 shadow-lg flex items-center justify-center text-stone-600 hover:text-primary hover:scale-110 active:scale-95 transition-all"
                 >
                     <Icon name="chevron_up" size={20} />
-                </button>
+                </button>,
+                document.body
             )}
         </div>
     )

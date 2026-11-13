@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { apiService } from '../services/apiService'
@@ -424,22 +425,27 @@ export default function Timeline() {
         onJumpTo={setCurrentImageIndex}
       />
 
-      {/* 返回顶部按钮 */}
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-4 md:left-8 w-11 h-11 md:w-14 md:h-14 bg-white/90 text-stone-600 hover:text-primary backdrop-blur-md border border-stone-200/80 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40"
-            whileHover={{ y: -3 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Icon name="chevron_up" size={20} className="md:w-6 md:h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* 返回顶部按钮 - Portal 渲染至 body 避免包含块错位 */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showBackToTop && (
+            <motion.button
+              type="button"
+              aria-label="返回顶部"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={scrollToTop}
+              className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-4 md:left-8 w-11 h-11 md:w-14 md:h-14 bg-white/90 text-stone-600 hover:text-primary backdrop-blur-md border border-stone-200/80 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icon name="chevron_up" size={20} className="md:w-6 md:h-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }

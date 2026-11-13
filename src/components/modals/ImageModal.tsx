@@ -513,13 +513,16 @@ export default function ImageModal({
       {/* 底部缩略图 */}
       {images.length > 1 && (
         <div
-          className={`absolute bottom-0 left-0 right-0 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-12 pt-2 md:pt-4 px-3 md:px-8 z-50 overflow-hidden overflow-x-auto no-scrollbar transition-opacity duration-200 ${
+          className={`absolute bottom-0 left-0 right-0 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-12 pt-2 md:pt-4 px-3 md:px-8 z-50 overflow-x-auto touch-pan-x no-scrollbar transition-opacity duration-200 ${
             dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
         >
           <div
             ref={thumbListRef}
-            className="flex gap-2 md:gap-4 min-w-max justify-center items-center"
+            className="flex gap-2 md:gap-4 min-w-max mx-auto justify-center items-center"
           >
             {images.map((img, idx) => (
               <div

@@ -393,8 +393,10 @@ export default function AdminTravelMap() {
                                             <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden group">
                                                 <img src={img} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleRemoveImage(i)}
-                                                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    aria-label="删除图片"
+                                                    className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-rose-500 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shadow-sm"
                                                 >
                                                     <Icon name="close" size={12} />
                                                 </button>

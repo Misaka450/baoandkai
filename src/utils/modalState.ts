@@ -11,16 +11,23 @@ function notify() {
   listeners.forEach(cb => cb(modalCount > 0))
 }
 
-// 模态框打开时调用
+// 模态框打开时调用，返回当前打开计数
 export function openModal() {
   modalCount++
   notify()
+  return modalCount
 }
 
-// 模态框关闭时调用
+// 模态框关闭时调用，返回剩余打开计数
 export function closeModal() {
   modalCount = Math.max(0, modalCount - 1)
   notify()
+  return modalCount
+}
+
+// 获取当前活跃模态框数量
+export function getModalCount() {
+  return modalCount
 }
 
 // Navigation 组件订阅模态框状态

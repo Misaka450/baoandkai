@@ -252,7 +252,7 @@ const AdminTodos = () => {
                             {formData.images.map((img, i) => (
                                 <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
                                     <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
-                                    <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
+                                    <button type="button" onClick={() => removeImage(i)} aria-label="删除图片" className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-500 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={14} /></button>
                                 </div>
                             ))}
                             <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">
@@ -346,7 +346,7 @@ const AdminTodos = () => {
                                 {completionPhotos.map((img, i) => (
                                     <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden group shadow-md transition-all hover:scale-105">
                                         <img src={getThumbnailUrl(img, 200)} alt="" className="w-full h-full object-cover" />
-                                        <button type="button" onClick={() => removeImage(i, true)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon name="delete" size={24} className="text-white" /></button>
+                                        <button type="button" onClick={() => removeImage(i, true)} aria-label="删除图片" className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-500 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex items-center justify-center shadow-sm"><Icon name="delete" size={14} /></button>
                                     </div>
                                 ))}
                                 <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group shadow-sm">

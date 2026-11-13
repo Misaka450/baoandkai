@@ -312,7 +312,7 @@ export default function TravelMap() {
 
                 {/* 地图区域 */}
                 {viewMode === 'country' && (
-                    <div className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up">
+                    <div className="premium-card !p-4 sm:!p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up">
                         <motion.div
                             key="country"
                             initial={{ opacity: 0 }}
@@ -333,7 +333,7 @@ export default function TravelMap() {
 
                 {viewMode === 'province' && selectedProvinceName && (
                     <motion.div
-                        className="premium-card !p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        className="premium-card !p-4 sm:!p-6 md:!p-10 !bg-white/40 backdrop-blur-sm animate-slide-up"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
@@ -352,7 +352,7 @@ export default function TravelMap() {
                 {/* 时间线视图 */}
                 {viewMode === 'timeline' && (
                     <motion.div
-                        className="premium-card !p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        className="premium-card !p-4 sm:!p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
@@ -388,7 +388,7 @@ export default function TravelMap() {
                 {/* 照片墙视图 */}
                 {viewMode === 'photos' && (
                     <motion.div
-                        className="premium-card !p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
+                        className="premium-card !p-4 sm:!p-8 !bg-white/40 backdrop-blur-sm animate-slide-up"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >

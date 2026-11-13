@@ -145,12 +145,11 @@ const AdminAlbums = () => {
         }
     }
 
-    const handleDragEnd = async (e: React.DragEvent | any) => {
-        if (!selectedAlbum || !draggedPhoto) return
-        setDraggedPhoto(null)
+    const persistPhotoOrder = async (nextPhotos: Photo[]) => {
+        if (!selectedAlbum) return
 
         try {
-            const reorderData = photos.map((p, index) => ({
+            const reorderData = nextPhotos.map((p, index) => ({
                 id: p.id,
                 sort_order: index
             }))
@@ -166,6 +165,24 @@ const AdminAlbums = () => {
             await showAlert('错误', '排序未保存成功', 'error')
             loadPhotos(selectedAlbum.id)
         }
+    }
+
+    const handleDragEnd = async (_e: React.DragEvent | any) => {
+        if (!selectedAlbum || !draggedPhoto) return
+        setDraggedPhoto(null)
+        await persistPhotoOrder(photos)
+    }
+
+    const handleMovePhoto = async (index: number, direction: -1 | 1) => {
+        const targetIndex = index + direction
+        if (targetIndex < 0 || targetIndex >= photos.length) return
+
+        const nextPhotos = [...photos]
+        const [movedPhoto] = nextPhotos.splice(index, 1)
+        if (!movedPhoto) return
+        nextPhotos.splice(targetIndex, 0, movedPhoto)
+        setPhotos(nextPhotos)
+        await persistPhotoOrder(nextPhotos)
     }
 
     // --- Caption Editing Logic ---
@@ -494,7 +511,7 @@ const AdminAlbums = () => {
                                     </div>
                                 ) : (
                                     <AnimatePresence mode="popLayout">
-                                        {photos.map((photo) => (
+                                        {photos.map((photo, index) => (
                                             <motion.div
                                                 key={photo.id}
                                                 layout
@@ -512,9 +529,35 @@ const AdminAlbums = () => {
                                                 onDragEnd={handleDragEnd}
                                                 className={`premium-card !p-0 aspect-square group overflow-hidden border-4 border-white shadow-sm hover:shadow-2xl transition-all duration-300 cursor-move relative ${draggedPhoto?.id === photo.id ? 'opacity-20 z-0 scale-95' : 'z-10'}`}
                                             >
-                                                <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
+                                                {/* 桌面端拖拽提示图标 */}
+                                                <div className="hidden md:block absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-60 transition-opacity bg-black/20 p-1 rounded-full backdrop-blur-sm pointer-events-none">
                                                     <Icon name="drag_indicator" size={16} className="text-white" />
                                                 </div>
+                                                {/* 触屏/移动端左右移动排序按钮 */}
+                                                {photos.length > 1 && (
+                                                    <div className="absolute top-2 left-2 z-30 flex md:hidden items-center gap-1">
+                                                        <button
+                                                            type="button"
+                                                            disabled={index === 0}
+                                                            onClick={(e) => { e.stopPropagation(); handleMovePhoto(index, -1); }}
+                                                            className="w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-90 disabled:opacity-30 shadow-sm"
+                                                            title="向前移动"
+                                                            aria-label="向前移动照片"
+                                                        >
+                                                            <Icon name="chevron_left" size={14} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={index === photos.length - 1}
+                                                            onClick={(e) => { e.stopPropagation(); handleMovePhoto(index, 1); }}
+                                                            className="w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-90 disabled:opacity-30 shadow-sm"
+                                                            title="向后移动"
+                                                            aria-label="向后移动照片"
+                                                        >
+                                                            <Icon name="chevron_right" size={14} />
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 <img
                                                     src={getThumbnailUrl(photo.url, 400)}
                                                     loading="lazy"
