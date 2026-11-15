@@ -34,9 +34,17 @@ export default function Albums() {
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300)
 
   const { data: albumsData, isLoading: loading } = useQuery({
-    queryKey: ['albums', currentPage, itemsPerPage],
+    queryKey: ['albums', currentPage, itemsPerPage, debouncedSearchQuery, sortBy],
     queryFn: async () => {
-      const { data, error } = await apiService.get<AlbumsResponse>(`/albums?page=${currentPage}&pageSize=${itemsPerPage}`)
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        pageSize: String(itemsPerPage),
+        sort: sortBy,
+      })
+      if (debouncedSearchQuery.trim()) {
+        params.set('search', debouncedSearchQuery.trim())
+      }
+      const { data, error } = await apiService.get<AlbumsResponse>(`/albums?${params.toString()}`)
       if (error) throw new Error(error)
       return data
     }
@@ -44,6 +52,7 @@ export default function Albums() {
 
   const albums = useMemo(() => albumsData?.data || [], [albumsData?.data])
   const totalPages = albumsData?.pagination?.totalPages || 0
+  const totalMatched = albumsData?.pagination?.total ?? albums.length
 
   // 搜索和排序（使用防抖后的搜索词）
   const filteredAndSortedAlbums = useMemo(() => {
@@ -111,13 +120,19 @@ export default function Albums() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
               placeholder="搜索相册名称..."
               className="w-full pl-9 pr-8 py-1.5 sm:py-2 md:py-3 bg-white/80 border border-slate-100 rounded-xl md:rounded-2xl text-xs md:text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all active:scale-[0.99]"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('')
+                  setCurrentPage(1)
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
                 aria-label="清除搜索"
               >
@@ -140,6 +155,7 @@ export default function Albums() {
                 onClick={() => {
                   hapticFeedback('light')
                   setSortBy(option.value as SortOption)
+                  setCurrentPage(1)
                 }}
                 className={`flex-shrink-0 px-2.5 py-1 sm:py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
                   sortBy === option.value
@@ -157,7 +173,7 @@ export default function Albums() {
         {debouncedSearchQuery && (
           <div className="text-center mb-6 animate-fade-in">
             <p className="text-xs md:text-sm text-slate-400">
-              找到 <span className="font-bold text-primary">{filteredAndSortedAlbums.length}</span> 个相册
+              找到 <span className="font-bold text-primary">{totalMatched}</span> 个相册
             </p>
           </div>
         )}

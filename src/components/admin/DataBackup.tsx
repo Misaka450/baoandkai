@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { apiService } from '../../services/apiService'
 import { useAdminModal } from '../../hooks/useAdminModal'
+import AdminModal from '../modals/AdminModal'
 import Icon from '../icons/Icons'
 import { SiteConfig } from '../../types'
 import Button from './ui/Button'
@@ -54,9 +55,10 @@ const compareVersions = (v1: string, v2: string): number => {
 
 const DataBackup = () => {
     const [exporting, setExporting] = useState(false)
+    const [importStrategy, setImportStrategy] = useState<ImportStrategy>('merge')
     const [importProgress, setImportProgress] = useState<ImportProgress>({ current: 0, total: 0, module: '', isImporting: false })
     const importFileRef = useRef<HTMLInputElement>(null)
-    const { showAlert, showConfirm } = useAdminModal()
+    const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
 
     // 导出全量数据为 JSON 文件（对接后端 /api/vault/export 全量接口，避免分页截断与未解锁胶囊内容丢失）
     const handleExportData = async () => {
@@ -123,22 +125,17 @@ const DataBackup = () => {
             }
             const totalItems = Object.values(dataCounts).reduce((a, b) => a + b, 0)
 
-            // 选择导入策略
-            const strategy = await showConfirm(
-                '选择导入方式',
-                `备份日期：${(importData.exportDate || '').split('T')[0] || '未知'}\n版本：v${importData.version}\n数据量：${totalItems} 条\n\n覆盖导入：事务内清空现有数据后完整恢复\n合并导入：保留现有数据，自动跳过重复项`,
-                '覆盖导入'
-            )
+            const chosenStrategy: ImportStrategy = importStrategy
 
-            const chosenStrategy: ImportStrategy = strategy ? 'overwrite' : 'merge'
-
-            // 二次确认
+            // 确认导入（点击取消则真正取消操作）
             const finalConfirm = await showConfirm(
-                '最终确认',
-                chosenStrategy === 'overwrite'
-                    ? '覆盖导入将在事务内替换所有现有数据（若导入出错会自动回滚）。确定继续？'
-                    : '合并导入将保留现有数据并自动去重。确定继续？',
-                '确认导入'
+                chosenStrategy === 'overwrite' ? '确认全量覆盖导入' : '确认增量合并导入',
+                `备份日期：${(importData.exportDate || '').split('T')[0] || '未知'}\n版本：v${importData.version}\n数据量：${totalItems} 条\n\n${
+                    chosenStrategy === 'overwrite'
+                        ? '覆盖导入将在事务内清空现有数据后完整恢复（若导入出错会自动回滚）。确定继续？'
+                        : '合并导入将保留现有数据并自动跳过重复项。确定继续？'
+                }`,
+                chosenStrategy === 'overwrite' ? '确认覆盖导入' : '确认合并导入'
             )
 
             if (!finalConfirm) {
@@ -230,6 +227,33 @@ const DataBackup = () => {
                     <Icon name="download" size={16} />
                     {exporting ? '正在导出全量备份...' : '导出数据备份'}
                 </Button>
+
+                {/* 导入模式选择器 */}
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/70 border border-slate-200/80 rounded-xl">
+                    <button
+                        type="button"
+                        onClick={() => setImportStrategy('merge')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+                            importStrategy === 'merge'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        增量合并（推荐）
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setImportStrategy('overwrite')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+                            importStrategy === 'overwrite'
+                                ? 'bg-amber-500 text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        全量覆盖恢复
+                    </button>
+                </div>
+
                 <label className="w-full">
                     <input
                         ref={importFileRef}
@@ -241,13 +265,23 @@ const DataBackup = () => {
                     />
                     <div className={`w-full px-4 py-2 text-sm border border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-2 text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer ${exporting || importProgress.isImporting ? 'opacity-50 pointer-events-none' : ''}`}>
                         <Icon name="upload" size={16} />
-                        导入数据备份
+                        {importStrategy === 'overwrite' ? '选择备份文件（全量覆盖）' : '选择备份文件（增量合并）'}
                     </div>
                 </label>
             </div>
             <p className="text-[10px] text-slate-400 mt-3 text-center">
                 支持全量导出与单事务覆盖/合并导入，自动版本校验
             </p>
+            <AdminModal
+                isOpen={modalState.isOpen}
+                onClose={closeModal}
+                title={modalState.title}
+                message={modalState.message}
+                type={modalState.type}
+                onConfirm={modalState.onConfirm || undefined}
+                showCancel={modalState.showCancel}
+                confirmText={modalState.confirmText}
+            />
         </Card>
     )
 }

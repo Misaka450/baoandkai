@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useConfig } from '../../hooks/useConfig'
 import Icon, { IconName } from '../icons/Icons'
 import Modal from '../modals/Modal'

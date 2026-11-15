@@ -10,9 +10,12 @@ import { getThumbnailUrl } from '../utils/imageUtils'
 import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
 import { hapticFeedback } from '../utils/haptics'
+import { useConfig } from '../hooks/useConfig'
 
 interface TodosResponse extends PaginatedResponse<Todo> {
+  totalCount?: number
   completedCount: number
+  categories?: string[]
 }
 
 const stickyColors = [
@@ -25,6 +28,8 @@ const stickyColors = [
 
 export default function Todos() {
   const navigate = useNavigate()
+  const { config } = useConfig()
+  const coupleStampText = `${config.coupleName1 || '包包'} & ${config.coupleName2 || '恺恺'}`
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -32,27 +37,38 @@ export default function Todos() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
   const { data: todosData, isLoading: loading } = useQuery({
-    queryKey: ['todos', currentPage, itemsPerPage],
+    queryKey: ['todos', currentPage, itemsPerPage, statusFilter, categoryFilter],
     queryFn: async () => {
-      const { data, error } = await apiService.get<TodosResponse>(`/todos?page=${currentPage}&limit=${itemsPerPage}`)
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(itemsPerPage),
+      })
+      if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+      const { data, error } = await apiService.get<TodosResponse>(`/todos?${params.toString()}`)
       if (error) throw new Error(error)
       return data
     }
   })
 
   const todos = todosData?.data || []
-  const totalCount = todosData?.pagination?.total ?? todos.length
+  const filteredTotalCount = todosData?.pagination?.total ?? todos.length
+  const totalCount = todosData?.totalCount ?? filteredTotalCount
   const totalPages = todosData?.pagination?.totalPages || 0
   const completedCount = todosData?.completedCount || 0
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const serverCategories = todosData?.categories
 
   const categories = useMemo(() => {
+    if (serverCategories && serverCategories.length > 0) {
+      return serverCategories
+    }
     const set = new Set<string>()
     todos.forEach(t => {
       if (t.category) set.add(t.category)
     })
     return Array.from(set)
-  }, [todos])
+  }, [serverCategories, todos])
 
   const filteredTodos = useMemo(() => {
     return todos.filter(t => {
@@ -130,7 +146,7 @@ export default function Todos() {
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                 <button
                   type="button"
-                  onClick={() => { hapticFeedback('light'); setStatusFilter('all'); }}
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('all'); setCurrentPage(1); }}
                   className={`px-3 py-1 rounded-full font-bold transition-all ${
                     statusFilter === 'all'
                       ? 'bg-slate-800 text-white shadow-xs'
@@ -141,7 +157,7 @@ export default function Todos() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { hapticFeedback('light'); setStatusFilter('pending'); }}
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('pending'); setCurrentPage(1); }}
                   className={`px-3 py-1 rounded-full font-bold transition-all ${
                     statusFilter === 'pending'
                       ? 'bg-primary text-white shadow-xs'
@@ -152,7 +168,7 @@ export default function Todos() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { hapticFeedback('light'); setStatusFilter('completed'); }}
+                  onClick={() => { hapticFeedback('light'); setStatusFilter('completed'); setCurrentPage(1); }}
                   className={`px-3 py-1 rounded-full font-bold transition-all ${
                     statusFilter === 'completed'
                       ? 'bg-rose-500 text-white shadow-xs'
@@ -167,7 +183,7 @@ export default function Todos() {
                 <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
                   <button
                     type="button"
-                    onClick={() => { hapticFeedback('light'); setCategoryFilter('all'); }}
+                    onClick={() => { hapticFeedback('light'); setCategoryFilter('all'); setCurrentPage(1); }}
                     className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] transition-all ${
                       categoryFilter === 'all'
                         ? 'bg-rose-100 text-rose-700 border border-rose-200'
@@ -180,7 +196,7 @@ export default function Todos() {
                     <button
                       key={cat}
                       type="button"
-                      onClick={() => { hapticFeedback('light'); setCategoryFilter(cat); }}
+                      onClick={() => { hapticFeedback('light'); setCategoryFilter(cat); setCurrentPage(1); }}
                       className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] transition-all ${
                         categoryFilter === cat
                           ? 'bg-rose-100 text-rose-700 border border-rose-200'
@@ -268,11 +284,11 @@ export default function Todos() {
                 {isCompleted && (
                   <div
                     className="absolute -bottom-2 -right-2 sm:bottom-3 sm:right-3 w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full border-2 border-rose-500/80 bg-rose-50/50 backdrop-blur-2xs flex flex-col items-center justify-center p-1 text-rose-600 select-none shadow-xs rotate-[-12deg] pointer-events-none z-10"
-                    title="❤️ 包包 & 恺恺 · 愿望达成"
+                    title={`❤️ ${coupleStampText} · 愿望达成`}
                   >
                     <div className="absolute inset-[3px] rounded-full border border-dashed border-rose-400/60 pointer-events-none" />
-                    <span className="text-[8px] sm:text-[9.5px] font-black tracking-tight leading-tight text-rose-700">
-                      ❤️ 包包 & 恺恺
+                    <span className="text-[8px] sm:text-[9.5px] font-black tracking-tight leading-tight text-rose-700 line-clamp-1">
+                      ❤️ {coupleStampText}
                     </span>
                     <div className="w-8 sm:w-10 h-[0.5px] bg-rose-400/60 my-0.5" />
                     <span className="text-[7.5px] sm:text-[8.5px] font-extrabold tracking-widest leading-tight text-rose-600">
@@ -371,7 +387,7 @@ export default function Todos() {
               </button>
             </div>
             <p className="text-xs text-slate-400 mt-4 font-medium">
-              第 {currentPage} / {totalPages} 页，共 {totalCount} 条
+              第 {currentPage} / {totalPages} 页，共 {filteredTotalCount} 条
             </p>
           </div>
         )}

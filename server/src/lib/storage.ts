@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
+import { extractStorageKey, transformImageArray } from '../utils/url.js';
 
 dotenv.config();
 
@@ -66,7 +67,7 @@ export const storage = {
   },
 
   /**
-   * 删除文件
+   * 删除文件及其在 .cache 下的动态缩略图缓存
    * @param key 相对文件名/路径
    */
   async delete(key: string): Promise<void> {
@@ -78,6 +79,50 @@ export const storage = {
       if (err.code !== 'ENOENT') {
         console.error(`Failed to delete local file at ${filePath}:`, err);
         throw err;
+      }
+    }
+
+    // 同步清理 .cache 目录中对应的派生缩略图（如 photos_xxx.jpg_w400_hauto_q80.webp）
+    try {
+      const cacheDir = path.join(UPLOAD_DIR, '.cache');
+      const cachePrefix = `${key.replace(/[/\\]/g, '_')}_`;
+      const entries = await fs.readdir(cacheDir);
+      await Promise.all(
+        entries
+          .filter((name) => name.startsWith(cachePrefix))
+          .map((name) => fs.unlink(path.join(cacheDir, name)).catch(() => {}))
+      );
+    } catch {
+      // .cache 目录不存在或无权限时静默忽略
+    }
+  },
+
+  /**
+   * 对比新旧图片列表，清理被移除图片的本地物理文件与缩略图缓存
+   * @param oldImages 旧图片数据（字符串、JSON 字符串或数组）
+   * @param newImages 新图片数据（可选；不传则删除 oldImages 中的全部本地图片）
+   */
+  async deleteRemovedUrls(oldImages: unknown, newImages?: unknown): Promise<void> {
+    const oldList = transformImageArray(oldImages as string | string[] | null | undefined);
+    if (oldList.length === 0) return;
+
+    const keptKeys = new Set<string>();
+    if (newImages !== undefined) {
+      const newList = transformImageArray(newImages as string | string[] | null | undefined);
+      for (const url of newList) {
+        const k = extractStorageKey(url);
+        if (k) keptKeys.add(k);
+      }
+    }
+
+    for (const url of oldList) {
+      const key = extractStorageKey(url);
+      if (key && !keptKeys.has(key)) {
+        try {
+          await this.delete(key);
+        } catch (err) {
+          console.error(`Failed to delete removed image key ${key}:`, err);
+        }
       }
     }
   },

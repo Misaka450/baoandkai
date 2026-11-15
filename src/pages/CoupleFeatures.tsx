@@ -9,9 +9,14 @@ import { timeCapsuleService } from '../services/apiService'
 import type { TimeCapsuleItem } from '../types'
 import { formatDate } from '../utils/common'
 import ModuleSubNav from '../components/ModuleSubNav'
+import { useAuth } from '../contexts/AuthContext'
+import { useConfig } from '../hooks/useConfig'
 
 export default function CoupleFeatures() {
   const queryClient = useQueryClient()
+  const { isAdmin } = useAuth()
+  const { config } = useConfig()
+  const coupleSealName = `${config.coupleName1 || '包包'} & ${config.coupleName2 || '恺恺'}`
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsuleItem | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [showLockedTip, setShowLockedTip] = useState(false)
@@ -103,7 +108,7 @@ export default function CoupleFeatures() {
               capsules={timeCapsules}
               isLoading={isLoadingCapsules}
               onOpenCapsule={handleOpenCapsule}
-              onDeleteCapsule={(id) => setShowDeleteConfirm(id)}
+              onDeleteCapsule={isAdmin ? (id) => setShowDeleteConfirm(id) : undefined}
               showDeleteConfirm={true}
             />
           </motion.div>
@@ -165,7 +170,7 @@ export default function CoupleFeatures() {
                   className="w-16 h-16 rounded-full border-2 border-rose-500/80 flex flex-col items-center justify-center p-1 text-rose-600 select-none shadow-xs bg-rose-50/40 rotate-[-12deg]"
                 >
                   <div className="absolute inset-[2px] rounded-full border border-dashed border-rose-400/50 pointer-events-none" />
-                  <span className="text-[8px] font-black leading-tight">BB & KK</span>
+                  <span className="text-[8px] font-black leading-tight line-clamp-1">{coupleSealName}</span>
                   <div className="w-6 h-[0.5px] bg-rose-300 my-0.5" />
                   <span className="text-[7.5px] font-bold leading-tight">真爱印证</span>
                 </div>
@@ -174,15 +179,19 @@ export default function CoupleFeatures() {
 
             {/* 底部按钮栏 */}
             <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(selectedCapsule.id)
-                  handleCloseCapsule()
-                }}
-                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-              >
-                删除这封信
-              </button>
+              {isAdmin ? (
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(selectedCapsule.id)
+                    handleCloseCapsule()
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                >
+                  删除这封信
+                </button>
+              ) : (
+                <div />
+              )}
               <button
                 onClick={handleCloseCapsule}
                 className="px-6 py-2.5 text-xs font-bold bg-primary text-white rounded-full hover:bg-primary/90 shadow-md shadow-primary/25 active:scale-95 transition-all"

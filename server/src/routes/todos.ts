@@ -4,6 +4,7 @@ import { transformImageArray, serializeImages } from '../utils/url.js';
 import { validate, validateRequired, validateLength, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { pool } from '../lib/db.js';
+import { storage } from '../lib/storage.js';
 import { cache } from '../lib/cache.js';
 
 const todos = new Hono();
@@ -37,38 +38,65 @@ interface CreateTodoBody {
 
 /**
  * GET /api/todos
- * 获取待办事项列表（支持分页，并返回已完成数量）
+ * 获取待办事项列表（支持分页、状态与分类筛选，并返回全量统计与全量分类列表）
  */
 todos.get('/', async (c) => {
   try {
     const url = new URL(c.req.url);
-    const pagination = parsePagination(url, 10);
+    const pagination = parsePagination(url, 10, 500);
+    const statusFilter = (c.req.query('status') || '').trim();
+    const categoryFilter = (c.req.query('category') || '').trim();
 
-    // 获取总记录数
-    const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM todos');
-    const total = parseInt(countRows[0]?.total || '0', 10);
+    const conditions: string[] = [];
+    const queryParams: any[] = [];
 
-    // 获取已完成记录数
-    const { rows: completedRows } = await pool.query("SELECT COUNT(*) as total FROM todos WHERE status = 'completed'");
-    const completedCount = parseInt(completedRows[0]?.total || '0', 10);
+    if (statusFilter === 'completed') {
+      conditions.push(`status = 'completed'`);
+    } else if (statusFilter === 'pending') {
+      conditions.push(`status != 'completed'`);
+    }
 
-    // 获取分页待办事项
-    const { rows } = await pool.query(
-      `SELECT * FROM todos 
-       ORDER BY created_at DESC 
-       LIMIT $1 OFFSET $2`,
-      [pagination.pageSize, pagination.offset]
-    );
+    if (categoryFilter && categoryFilter !== 'all') {
+      queryParams.push(categoryFilter);
+      conditions.push(`category = $${queryParams.length}`);
+    }
 
-    const formattedTodos = (rows as Todo[]).map((todo) => ({
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const [filteredCountRes, allCountRes, completedCountRes, categoriesRes, listRes] = await Promise.all([
+      pool.query(`SELECT COUNT(*)::int as total FROM todos ${whereClause}`, queryParams),
+      pool.query('SELECT COUNT(*)::int as total FROM todos'),
+      pool.query("SELECT COUNT(*)::int as total FROM todos WHERE status = 'completed'"),
+      pool.query(
+        `SELECT DISTINCT category FROM todos
+         WHERE category IS NOT NULL AND category != ''
+         ORDER BY category ASC`
+      ),
+      pool.query<Todo>(
+        `SELECT * FROM todos
+         ${whereClause}
+         ORDER BY created_at DESC
+         LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
+        [...queryParams, pagination.pageSize, pagination.offset]
+      ),
+    ]);
+
+    const filteredTotal = filteredCountRes.rows[0]?.total || 0;
+    const totalCount = allCountRes.rows[0]?.total || 0;
+    const completedCount = completedCountRes.rows[0]?.total || 0;
+    const categories = categoriesRes.rows.map((r: any) => String(r.category)).filter(Boolean);
+
+    const formattedTodos = listRes.rows.map((todo) => ({
       ...todo,
       images: transformImageArray(todo.images),
       completion_photos: transformImageArray(todo.completion_photos),
     }));
 
     return jsonResponse({
-      ...buildPaginatedResponse(formattedTodos, total, pagination),
+      ...buildPaginatedResponse(formattedTodos, filteredTotal, pagination),
+      totalCount,
       completedCount,
+      categories,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';
@@ -258,6 +286,17 @@ todos.put('/:id', async (c) => {
 
     const updatedTodo = updatedRows[0] as Todo;
 
+    if (images !== undefined) {
+      storage.deleteRemovedUrls(currentTodo.images, images).catch((err) => {
+        console.error('清理待办移除图片文件失败:', err);
+      });
+    }
+    if (completion_photos !== undefined) {
+      storage.deleteRemovedUrls(currentTodo.completion_photos, completion_photos).catch((err) => {
+        console.error('清理待办完成纪念照文件失败:', err);
+      });
+    }
+
     await cache.del('stats:dashboard');
 
     return jsonResponse({
@@ -282,9 +321,23 @@ todos.delete('/:id', async (c) => {
       return errorResponse('无效的ID', 400);
     }
 
-    const { rowCount } = await pool.query('DELETE FROM todos WHERE id = $1', [todoId]);
+    const { rows: deletedRows, rowCount } = await pool.query(
+      'DELETE FROM todos WHERE id = $1 RETURNING images, completion_photos',
+      [todoId]
+    );
     if (rowCount === 0) {
       return errorResponse('任务不存在', 404);
+    }
+
+    if (deletedRows[0]?.images) {
+      storage.deleteRemovedUrls(deletedRows[0].images).catch((err) => {
+        console.error('清理已删除待办图片失败:', err);
+      });
+    }
+    if (deletedRows[0]?.completion_photos) {
+      storage.deleteRemovedUrls(deletedRows[0].completion_photos).catch((err) => {
+        console.error('清理已删除待办纪念照失败:', err);
+      });
     }
 
     await cache.del('stats:dashboard');

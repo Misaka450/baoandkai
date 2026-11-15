@@ -13,15 +13,15 @@ export async function securityMiddleware(c: Context, next: Next) {
     if (isProd) {
         c.res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         
-        // 允许的图片来源添加本地服务路径 /uploads
+        // 允许的图片来源包含本地服务路径与安全 Data/Blob URL（已彻底移除外部第三方 DiceBear 依赖）
         c.res.headers.set(
             'Content-Security-Policy',
             [
                 "default-src 'self'",
                 "script-src 'self' https://static.cloudflareinsights.com",
                 "style-src 'self' 'unsafe-inline'",
-                "img-src 'self' data: blob: https://api.dicebear.com /uploads",
-                "font-src 'self'",
+                "img-src 'self' data: blob: https: http: /uploads",
+                "font-src 'self' data:",
                 "connect-src 'self' https://o*.ingest.sentry.io",
                 "frame-ancestors 'none'",
                 "base-uri 'self'",

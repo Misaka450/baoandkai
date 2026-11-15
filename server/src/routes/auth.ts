@@ -216,8 +216,11 @@ auth.post('/login', async (c) => {
       return errorResponse('用户名或密码错误', 401);
     }
 
-    // 登录成功，清除当前 IP+用户名 速率限制
-    await clearRateLimit(ipUserKey);
+    // 登录成功，清除当前 IP 与 IP+用户名 速率限制
+    await Promise.all([
+      clearRateLimit(ipUserKey),
+      clearRateLimit(ipKey),
+    ]);
 
     // 创建 Session（token 通过 SHA-256 哈希后存储在 sessions 表）
     const session = await createSession(user.id);
@@ -383,6 +386,7 @@ auth.post('/update-password-hash', async (c) => {
     );
 
     if (rows.length === 0) {
+      await recordResetAttempt(resetClientId);
       return errorResponse('用户不存在', 404);
     }
 

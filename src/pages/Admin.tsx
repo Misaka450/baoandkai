@@ -6,6 +6,7 @@ import Icon, { IconName } from '../components/icons/Icons'
 import { useConfig } from '../hooks/useConfig'
 import ErrorBoundary from '../components/common/ErrorBoundary'
 import { getOptimizedAvatarUrl } from '../utils/imageUtils'
+import { generateLocalAvatar } from '../utils/localAvatar'
 import { hapticFeedback } from '../utils/haptics'
 
 const AdminSettings = lazy(() => import('./admin/AdminSettings'))
@@ -33,7 +34,7 @@ export default function Admin() {
   if (!user) return <AdminLogin />
 
   const getDefaultAvatar = (seed: string, bg: string) =>
-    `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
+    generateLocalAvatar(seed, bg)
 
   return (
     <div className="h-[100dvh] bg-background-light text-slate-700 transition-colors duration-300 flex relative overflow-hidden">

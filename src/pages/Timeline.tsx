@@ -11,7 +11,10 @@ import { Skeleton, TimelineSkeleton } from '../components/common/Skeleton'
 import LazyImage from '../components/common/LazyImage'
 import { formatDate } from '../utils/common'
 
-type TimelineResponse = PaginatedResponse<TimelineEvent>
+interface TimelineResponse extends PaginatedResponse<TimelineEvent> {
+  years?: string[]
+  milestones?: TimelineEvent[]
+}
 
 interface CategoryConfig {
   icon: IconName
@@ -53,9 +56,15 @@ export default function Timeline() {
   }
 
   const { data: timelineData, isLoading: loading } = useQuery({
-    queryKey: ['timeline', currentPage, filter],
+    queryKey: ['timeline', currentPage, filter, selectedYear],
     queryFn: async () => {
-      const response = await apiService.get<TimelineResponse>(`/timeline?page=${currentPage}&limit=20&category=${filter === 'all' ? '' : filter}`)
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: '20',
+      })
+      if (filter !== 'all') params.set('category', filter)
+      if (selectedYear) params.set('year', selectedYear)
+      const response = await apiService.get<TimelineResponse>(`/timeline?${params.toString()}`)
       if (response.error) throw new Error(response.error)
       return response.data
     },
@@ -64,9 +73,14 @@ export default function Timeline() {
   })
 
   const events = useMemo(() => timelineData?.data || [], [timelineData?.data])
+  const serverYears = timelineData?.years
+  const serverMilestones = timelineData?.milestones
 
-  // 提取所有可用年份
+  // 提取所有可用年份（优先使用服务端返回的全量年份，避免受分页影响）
   const availableYears = useMemo(() => {
+    if (serverYears && serverYears.length > 0) {
+      return serverYears
+    }
     const years = new Set<string>()
     events.forEach(event => {
       if (event.date) {
@@ -74,16 +88,19 @@ export default function Timeline() {
       }
     })
     return Array.from(years).sort((a, b) => Number(b) - Number(a))
-  }, [events])
+  }, [serverYears, events])
 
-  // 里程碑事件（纪念类别）
+  // 里程碑事件（优先使用服务端返回的全量高光时刻）
   const milestoneEvents = useMemo(() => {
+    if (serverMilestones && serverMilestones.length > 0) {
+      return serverMilestones
+    }
     return events.filter(
-      event => ['纪念', '纪念日', '特别时刻'].includes(event.category) && (event.images?.length ?? 0) > 0
+      event => ['milestone', '纪念', '纪念日', '特别时刻'].includes(event.category) && (event.images?.length ?? 0) > 0
     )
-  }, [events])
+  }, [serverMilestones, events])
 
-  // 过滤事件（按年份）
+  // 过滤事件（按年份，服务端已过滤，前端保底）
   const filteredEvents = useMemo(() => {
     if (!selectedYear) return events
     return events.filter(event => {
@@ -122,7 +139,10 @@ export default function Timeline() {
           {availableYears.length > 0 && (
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 mt-2 sm:mt-4 md:mt-8 max-w-full overflow-x-auto no-scrollbar justify-start sm:justify-center px-1">
               <button
-                onClick={() => setSelectedYear(null)}
+                onClick={() => {
+                  setSelectedYear(null)
+                  setCurrentPage(1)
+                }}
                 className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                   selectedYear === null
                     ? 'bg-primary text-white shadow-md shadow-primary/20'
@@ -134,7 +154,10 @@ export default function Timeline() {
               {availableYears.map(year => (
                 <button
                   key={year}
-                  onClick={() => setSelectedYear(year)}
+                  onClick={() => {
+                    setSelectedYear(year)
+                    setCurrentPage(1)
+                  }}
                   className={`flex-shrink-0 px-2.5 py-1 sm:px-3.5 sm:py-1.5 md:px-5 md:py-2 rounded-xl md:rounded-2xl text-[10px] sm:text-[11px] md:text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
                     selectedYear === year
                       ? 'bg-primary text-white shadow-lg shadow-primary/20'

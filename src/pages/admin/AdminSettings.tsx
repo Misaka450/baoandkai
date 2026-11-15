@@ -8,6 +8,7 @@ import { SiteConfig } from '../../types'
 import Button from '../../components/admin/ui/Button'
 import Card from '../../components/admin/ui/Card'
 import DataBackup from '../../components/admin/DataBackup'
+import { generateLocalAvatar } from '../../utils/localAvatar'
 
 // 预设卡通头像列表
 const presetAvatars = [
@@ -36,7 +37,7 @@ const AdminSettings = () => {
     }, [globalConfig])
 
     const getAvatarUrl = (seed: string, bg: string) =>
-        `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid`
+        generateLocalAvatar(seed, bg)
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'avatar1' | 'avatar2') => {
         const file = e.target.files?.[0]

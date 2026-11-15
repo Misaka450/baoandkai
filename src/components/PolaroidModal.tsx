@@ -4,6 +4,7 @@ import Icon from './icons/Icons'
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { useToast } from './common/Toast'
 import { formatDate } from '../utils/common'
+import { useConfig } from '../hooks/useConfig'
 
 export interface PolaroidModalProps {
   isOpen: boolean
@@ -75,6 +76,8 @@ export default function PolaroidModal({
   defaultLocation = ''
 }: PolaroidModalProps) {
   const toast = useToast()
+  const { config } = useConfig()
+  const coupleStampLabel = `❤️ ${config.coupleName1 || '包包'} & ${config.coupleName2 || '恺恺'}`
   useBodyScrollLock(isOpen)
 
   const [activeFilterId, setActiveFilterId] = useState<string>('warm')
@@ -298,9 +301,9 @@ export default function PolaroidModal({
       ctx.textBaseline = 'middle'
       ctx.fillStyle = '#BE123C'
 
-      // Top text: ❤️ 包包 & 恺恺
+      // Top text: 情侣署名
       ctx.font = 'bold 11px sans-serif'
-      ctx.fillText('❤️ 包包 & 恺恺', 0, -10)
+      ctx.fillText(coupleStampLabel, 0, -10)
 
       // Center separator line
       ctx.strokeStyle = 'rgba(190, 18, 60, 0.4)'
@@ -412,16 +415,16 @@ export default function PolaroidModal({
                 </div>
               </div>
 
-              {/* Romantic couple red seal stamp: rotated -12deg circular stamp with '❤️ 包包 & 恺恺 · 珍藏回忆' */}
+              {/* Romantic couple red seal stamp */}
               <div
                 className="flex-shrink-0 relative w-14 h-14 sm:w-[76px] sm:h-[76px] rounded-full border-2 border-rose-600/85 flex flex-col items-center justify-center p-1 text-rose-700 select-none shadow-[0_2px_8px_rgba(225,29,72,0.15)] bg-rose-50/25"
                 style={{ transform: 'rotate(-12deg)' }}
-                title="❤️ 包包 & 恺恺 · 珍藏回忆"
+                title={`${coupleStampLabel} · 珍藏回忆`}
               >
                 {/* Inner dashed ring */}
                 <div className="absolute inset-[2px] sm:inset-[3px] rounded-full border border-dashed border-rose-500/60 pointer-events-none" />
-                <span className="text-[7px] sm:text-[9px] font-black tracking-tighter leading-tight text-rose-700">
-                  ❤️ 包包 & 恺恺
+                <span className="text-[7px] sm:text-[9px] font-black tracking-tighter leading-tight text-rose-700 line-clamp-1">
+                  {coupleStampLabel}
                 </span>
                 <div className="w-6 sm:w-8 h-[0.5px] bg-rose-400/60 my-0.5" />
                 <span className="text-[7px] sm:text-[8.5px] font-extrabold tracking-widest leading-tight text-rose-600">

@@ -4,7 +4,6 @@ import { storage } from '../lib/storage.js';
 import { validateImageMagic } from '../utils/validation.js';
 import { parsePhotoExif, ExifResult } from '../utils/exif.js';
 import { extractStorageKey } from '../utils/url.js';
-import path from 'path';
 
 const upload = new Hono();
 

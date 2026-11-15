@@ -44,7 +44,6 @@ const AdminAlbums = () => {
 
     // New Feature State
     const [draggedPhoto, setDraggedPhoto] = useState<Photo | null>(null)
-    const [editingCaption, setEditingCaption] = useState<{ id: number, text: string } | null>(null)
     const { modalState, showAlert, showConfirm, closeModal } = useAdminModal()
     const queryClient = useQueryClient()
 
@@ -54,7 +53,7 @@ const AdminAlbums = () => {
 
     const loadAlbums = async () => {
         try {
-            const { data, error } = await apiService.get<{ data: Album[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/albums')
+            const { data, error } = await apiService.get<{ data: Album[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>('/albums?pageSize=200')
             if (error) throw new Error(error)
             const albumList = data?.data || []
             setAlbums(albumList)
@@ -183,42 +182,6 @@ const AdminAlbums = () => {
         nextPhotos.splice(targetIndex, 0, movedPhoto)
         setPhotos(nextPhotos)
         await persistPhotoOrder(nextPhotos)
-    }
-
-    // --- Caption Editing Logic ---
-    const startEditingCaption = (photo: Photo) => {
-        setEditingCaption({ id: photo.id, text: photo.caption || '' })
-    }
-
-    const saveCaption = async () => {
-        if (!editingCaption || !selectedAlbum) return
-
-        try {
-            const { error } = await apiService.put(`/albums/${selectedAlbum.id}/photos/${editingCaption.id}`, {
-                caption: editingCaption.text
-            })
-            if (error) throw new Error(error)
-
-            setPhotos(prev => prev.map(p =>
-                p.id === editingCaption.id ? { ...p, caption: editingCaption.text } : p
-            ))
-            queryClient.invalidateQueries({ queryKey: ['album-detail', String(selectedAlbum.id)] })
-            queryClient.invalidateQueries({ queryKey: ['albums'] })
-            queryClient.invalidateQueries({ queryKey: ['stats'] })
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
-            setEditingCaption(null)
-        } catch (error) {
-            console.error('更新名称失败:', error)
-            await showAlert('错误', '名称更新失败', 'error')
-        }
-    }
-
-    const handleCaptionKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            saveCaption()
-        } else if (e.key === 'Escape') {
-            setEditingCaption(null)
-        }
     }
 
     const handleCreateAlbum = async (e: React.FormEvent) => {

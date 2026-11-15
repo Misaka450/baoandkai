@@ -5,6 +5,7 @@ import { validate, validateRequired, validateLength, validateDate, hasXSS, sanit
 import { parsePagination, buildPaginatedResponse } from '../utils/pagination.js';
 import { findOrThrow, handleCrudError } from '../utils/crud.js';
 import { pool } from '../lib/db.js';
+import { storage } from '../lib/storage.js';
 import { cache } from '../lib/cache.js';
 
 const mapCheckins = new Hono();
@@ -29,7 +30,7 @@ mapCheckins.get('/', async (c) => {
   try {
     const url = new URL(c.req.url);
     const province = (c.req.query('province') || '').trim();
-    const pagination = parsePagination(url);
+    const pagination = parsePagination(url, 20, 500);
 
     const whereClause = province ? 'WHERE province = $1' : '';
     const queryParams: any[] = province ? [province] : [];
@@ -211,6 +212,12 @@ mapCheckins.put('/:id', async (c) => {
 
     const updated = updatedRows[0] as MapCheckin;
 
+    if (images !== undefined) {
+      storage.deleteRemovedUrls(current.images, images).catch((err) => {
+        console.error('清理地图打卡移除图片文件失败:', err);
+      });
+    }
+
     await cache.del('stats:dashboard');
 
     return jsonResponse({
@@ -233,9 +240,18 @@ mapCheckins.delete('/:id', async (c) => {
       return errorResponse('无效的ID', 400);
     }
 
-    const { rowCount } = await pool.query('DELETE FROM map_checkins WHERE id = $1', [checkinId]);
+    const { rows: deletedRows, rowCount } = await pool.query(
+      'DELETE FROM map_checkins WHERE id = $1 RETURNING images',
+      [checkinId]
+    );
     if (rowCount === 0) {
       return errorResponse('记录不存在', 404);
+    }
+
+    if (deletedRows[0]?.images) {
+      storage.deleteRemovedUrls(deletedRows[0].images).catch((err) => {
+        console.error('清理已删除地图打卡图片失败:', err);
+      });
     }
 
     await cache.del('stats:dashboard');

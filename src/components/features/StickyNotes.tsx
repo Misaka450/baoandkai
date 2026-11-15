@@ -9,14 +9,6 @@ import Modal from '../modals/Modal'
 import { RESPONSIVE_GRID, PRIMARY_BUTTON, SECONDARY_BUTTON } from '../../constants/styles'
 import { formatDate } from '../../utils/common'
 
-interface Note {
-  id: number
-  content: string
-  color: string
-  created_at?: string
-  likes?: number
-}
-
 interface colorStyle {
   bg: string
   border: string
@@ -45,7 +37,7 @@ export default function StickyNotes() {
   const [newNote, setNewNote] = useState('')
   const [selectedColor, setSelectedColor] = useState('pink')
   const [showAddModal, setShowAddModal] = useState(false)
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | string | null>(null)
 
   // 使用 React Query 获取便签数据，自动缓存和刷新
   const { data: notesData, isLoading } = useQuery({
@@ -79,16 +71,18 @@ export default function StickyNotes() {
       toast.success('碎碎念已贴上啦')
       // 创建后刷新缓存
       queryClient.invalidateQueries({ queryKey: ['notes'] })
-    } catch (err) {
+    } catch {
       toast.error('贴便签失败，请稍后重试')
     }
   }
 
-  const handleDelete = (id: number) => {
-    setDeleteConfirmId(id)
+  const handleDelete = (id?: number | string) => {
+    if (id !== undefined) {
+      setDeleteConfirmId(id)
+    }
   }
 
-  const confirmDelete = async (id: number) => {
+  const confirmDelete = async (id: number | string) => {
     try {
       await notesService.delete(id)
       toast.success("碎碎念已删除")
@@ -117,9 +111,9 @@ export default function StickyNotes() {
             <p className={`${style.text} text-xl leading-relaxed mb-6 md:mb-10 font-medium font-handwriting tracking-wide`}>"{note.content}"</p>
             <div className={`flex items-center justify-between border-t ${style.border} pt-6 mt-auto`}>
               <div className={`flex items-center space-x-5 ${style.icon}`}>
-                <span className="flex items-center space-x-1.5 hover:scale-110 transition-transform cursor-pointer">
-                  <Icon name="favorite" size={20} />
-                  <span className="text-sm font-bold">{note.likes || 0}</span>
+                <span className="flex items-center space-x-1.5 select-none">
+                  <Icon name="favorite" size={18} />
+                  <span className="text-xs font-bold tracking-wider">心动便签</span>
                 </span>
               </div>
               <div className="flex items-center space-x-3">
@@ -127,7 +121,11 @@ export default function StickyNotes() {
                   {note.created_at ? formatDate(note.created_at, 'short') : 'JUST NOW'}
                 </span>
                 {isAdmin && (
-                  <button onClick={() => handleDelete(note.id)} className={`${style.text} opacity-20 hover:opacity-100 hover:text-red-500 transition-all flex items-center justify-center p-1`}>
+                  <button
+                    onClick={() => handleDelete(note.id)}
+                    className={`${style.text} w-8 h-8 rounded-full opacity-60 md:opacity-30 hover:opacity-100 hover:bg-black/10 hover:text-red-500 transition-all flex items-center justify-center`}
+                    title="删除便签"
+                  >
                     <Icon name="delete" size={18} />
                   </button>
                 )}

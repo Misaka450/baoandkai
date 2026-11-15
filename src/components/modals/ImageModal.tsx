@@ -351,7 +351,7 @@ export default function ImageModal({
           dismissOffsetY > 20 ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <div className="flex items-center gap-1.5 md:gap-3 pointer-events-auto">
+        <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
           <div className="bg-black/40 backdrop-blur-md px-2.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl border border-white/10">
             <span className="text-[9px] md:text-[10px] font-black text-white uppercase tracking-wider md:tracking-[0.2em]">
               {images.length > 0 ? `${currentIndex + 1} / ${images.length}` : 'VIEWER'}
@@ -365,7 +365,7 @@ export default function ImageModal({
                 downloadOriginalImage(currentImage);
               }
             }}
-            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-blue-500/80 hover:bg-blue-500 text-white rounded-lg md:rounded-2xl transition-all border border-blue-400/50 active:scale-95 shadow-md shadow-blue-500/30 gap-1.5 md:gap-2"
+            className="w-9 h-9 md:w-12 md:h-12 flex items-center justify-center bg-blue-500/80 hover:bg-blue-500 text-white rounded-xl md:rounded-2xl transition-all border border-blue-400/50 active:scale-95 shadow-md shadow-blue-500/30 gap-1.5 md:gap-2"
             title="下载原图"
           >
             <Icon name="download" size={16} className="md:w-[18px] md:h-[18px]" />
@@ -377,7 +377,7 @@ export default function ImageModal({
               hapticFeedback('light');
               setIsPolaroidOpen(true);
             }}
-            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 text-white rounded-lg md:rounded-2xl transition-all border border-rose-400/50 active:scale-95 shadow-md shadow-rose-500/30 gap-1.5 md:gap-2"
+            className="w-9 h-9 md:w-12 md:h-12 flex items-center justify-center bg-rose-500/80 hover:bg-rose-500 text-white rounded-xl md:rounded-2xl transition-all border border-rose-400/50 active:scale-95 shadow-md shadow-rose-500/30 gap-1.5 md:gap-2"
             title="拍立得相片"
           >
             <Icon name="photo_camera" size={16} className="md:w-[18px] md:h-[18px]" />
@@ -416,7 +416,7 @@ export default function ImageModal({
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); hapticFeedback('light'); onClose(); }}
-            className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-md text-white md:bg-white md:text-slate-900 rounded-full md:rounded-2xl transition-all shadow-md active:scale-90"
+            className="w-9 h-9 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-md text-white md:bg-white md:text-slate-900 rounded-full md:rounded-2xl transition-all shadow-md active:scale-90"
             title="退出"
           >
             <Icon name="close" size={18} className="md:w-5 md:h-5" />

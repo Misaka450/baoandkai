@@ -4,6 +4,7 @@ import { transformImageArray, serializeImages } from '../utils/url.js';
 import { validate, validateRequired, validateLength, validateDate, hasXSS, sanitizeObject } from '../utils/validation.js';
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { pool } from '../lib/db.js';
+import { storage } from '../lib/storage.js';
 import { cache } from '../lib/cache.js';
 
 const timeline = new Hono();
@@ -31,42 +32,72 @@ interface CreateTimelineBody {
 
 /**
  * GET /api/timeline
- * 获取时间轴列表（支持分页和分类过滤）
+ * 获取时间轴列表（支持分页、分类过滤与年份过滤，并返回全量年份列表与重要时刻）
  */
 timeline.get('/', async (c) => {
   try {
     const url = new URL(c.req.url);
-    const pagination = parsePagination(url, 10);
+    const pagination = parsePagination(url, 10, 500);
     const category = (c.req.query('category') || '').trim();
+    const year = (c.req.query('year') || '').trim();
 
-    const whereClause = category ? 'WHERE category = $1' : '';
-    const queryParams: any[] = category ? [category] : [];
+    const conditions: string[] = [];
+    const queryParams: any[] = [];
 
-    const { rows: countRows } = await pool.query(
-      `SELECT COUNT(*)::int as total FROM timeline_events ${whereClause}`,
-      queryParams
-    );
-    const total = countRows[0]?.total || 0;
+    if (category && category !== 'all') {
+      queryParams.push(category);
+      conditions.push(`category = $${queryParams.length}`);
+    }
+    if (year && /^\d{4}$/.test(year)) {
+      queryParams.push(year);
+      conditions.push(`SUBSTRING(date FROM 1 FOR 4) = $${queryParams.length}`);
+    }
 
-    const listParams = category
-      ? [category, pagination.pageSize, pagination.offset]
-      : [pagination.pageSize, pagination.offset];
-    const limitOffsetPlaceholder = category ? '$2 OFFSET $3' : '$1 OFFSET $2';
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const { rows: eventsList } = await pool.query<TimelineEvent>(
-      `SELECT * FROM timeline_events
-       ${whereClause}
-       ORDER BY date DESC, created_at DESC
-       LIMIT ${limitOffsetPlaceholder}`,
-      listParams
-    );
+    const [countRes, eventsRes, yearsRes, milestonesRes] = await Promise.all([
+      pool.query(
+        `SELECT COUNT(*)::int as total FROM timeline_events ${whereClause}`,
+        queryParams
+      ),
+      pool.query<TimelineEvent>(
+        `SELECT * FROM timeline_events
+         ${whereClause}
+         ORDER BY date DESC, created_at DESC
+         LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
+        [...queryParams, pagination.pageSize, pagination.offset]
+      ),
+      pool.query<{ year: string }>(
+        `SELECT DISTINCT SUBSTRING(date FROM 1 FOR 4) AS year
+         FROM timeline_events
+         WHERE date IS NOT NULL AND LENGTH(date) >= 4
+         ORDER BY year DESC`
+      ),
+      pool.query<TimelineEvent>(
+        `SELECT * FROM timeline_events
+         WHERE category IN ('milestone', '纪念', '纪念日', '特别时刻')
+           AND images IS NOT NULL AND images != '[]' AND images != ''
+         ORDER BY date DESC, created_at DESC
+         LIMIT 4`
+      ),
+    ]);
 
-    const eventsWithImages = eventsList.map((event) => ({
+    const total = countRes.rows[0]?.total || 0;
+    const eventsWithImages = eventsRes.rows.map((event) => ({
+      ...event,
+      images: transformImageArray(event.images),
+    }));
+    const years = yearsRes.rows.map((r) => r.year).filter((y) => /^\d{4}$/.test(y));
+    const milestones = milestonesRes.rows.map((event) => ({
       ...event,
       images: transformImageArray(event.images),
     }));
 
-    return jsonResponse(buildPaginatedResponse(eventsWithImages, total, pagination));
+    return jsonResponse({
+      ...buildPaginatedResponse(eventsWithImages, total, pagination),
+      years,
+      milestones,
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '未知错误';
     console.error('获取时间轴失败:', message);
@@ -303,6 +334,12 @@ timeline.put('/:id', async (c) => {
 
     const updatedEvent = updatedRows[0] as TimelineEvent;
 
+    if (images !== undefined) {
+      storage.deleteRemovedUrls(currentEvent.images, images).catch((err) => {
+        console.error('清理时间轴移除图片文件失败:', err);
+      });
+    }
+
     await cache.del('stats:dashboard');
 
     return jsonResponse({
@@ -326,9 +363,18 @@ timeline.delete('/:id', async (c) => {
       return errorResponse('无效的ID', 400);
     }
 
-    const { rowCount } = await pool.query('DELETE FROM timeline_events WHERE id = $1', [eventId]);
+    const { rows: deletedRows, rowCount } = await pool.query(
+      'DELETE FROM timeline_events WHERE id = $1 RETURNING images',
+      [eventId]
+    );
     if (rowCount === 0) {
       return errorResponse('事件不存在', 404);
+    }
+
+    if (deletedRows[0]?.images) {
+      storage.deleteRemovedUrls(deletedRows[0].images).catch((err) => {
+        console.error('清理已删除时间轴事件图片失败:', err);
+      });
     }
 
     await cache.del('stats:dashboard');

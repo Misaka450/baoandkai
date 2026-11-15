@@ -101,7 +101,20 @@ export default function FoodCheckin() {
     refetchOnWindowFocus: true,
   })
 
+  // 统计视图拉取当前筛选下的全量美食记录，确保统计数据完整准确（不受单页 12 条分页限制）
+  const { data: statsFoodData } = useQuery({
+    queryKey: ['foodStats', filter],
+    queryFn: async () => {
+      const response = await apiService.get<FoodResponse>(`/food?page=1&limit=500&cuisine=${filter === 'all' ? '' : filter}`)
+      if (response.error) throw new Error(response.error)
+      return response.data
+    },
+    enabled: viewMode === 'stats',
+    staleTime: 5 * 60 * 1000,
+  })
+
   const checkins = foodData?.data || []
+  const statsCheckins = statsFoodData?.data || checkins
   const totalPages = foodData?.pagination?.totalPages || 0
   const totalCount = foodData?.pagination?.total || 0
 
@@ -225,7 +238,7 @@ export default function FoodCheckin() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <FoodStats checkins={checkins} />
+            <FoodStats checkins={statsCheckins} />
           </motion.div>
         ) : checkins.length === 0 ? (
           <div className="text-center py-16 md:py-24 text-slate-400 animate-fade-in">

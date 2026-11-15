@@ -41,7 +41,7 @@ interface TimeCapsule {
 timeCapsules.get('/', async (c) => {
   try {
     const url = new URL(c.req.url);
-    const pagination = parsePagination(url);
+    const pagination = parsePagination(url, 20, 500);
 
     // 获取总记录数
     const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM time_capsules');

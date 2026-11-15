@@ -5,6 +5,7 @@ import { validate, validateRequired, validateLength, validateDate, validateRatin
 import { buildPaginatedResponse, parsePagination } from '../utils/pagination.js';
 import { findOrThrow, handleCrudError } from '../utils/crud.js';
 import { pool } from '../lib/db.js';
+import { storage } from '../lib/storage.js';
 import { cache } from '../lib/cache.js';
 
 const food = new Hono();
@@ -92,7 +93,7 @@ food.get('/', async (c) => {
       return jsonResponse(await fetchCuisinesData());
     }
 
-    const pagination = parsePagination(url, 12);
+    const pagination = parsePagination(url, 12, 500);
     const cuisine = (c.req.query('cuisine') || '').trim();
 
     const whereClause = cuisine ? 'WHERE cuisine = $1' : '';
@@ -385,6 +386,12 @@ food.put('/:id', async (c) => {
 
     const updatedFood = rows[0] as FoodCheckin;
 
+    if (images !== undefined) {
+      storage.deleteRemovedUrls(currentFood.images, images).catch((err) => {
+        console.error('清理美食移除图片文件失败:', err);
+      });
+    }
+
     await cache.del('stats:dashboard');
 
     return jsonResponse({
@@ -408,9 +415,18 @@ food.delete('/:id', async (c) => {
       return errorResponse('无效的ID', 400);
     }
 
-    const { rowCount } = await pool.query('DELETE FROM food_checkins WHERE id = $1', [foodId]);
+    const { rows: deletedRows, rowCount } = await pool.query(
+      'DELETE FROM food_checkins WHERE id = $1 RETURNING images',
+      [foodId]
+    );
     if (rowCount === 0) {
       return errorResponse('记录不存在', 404);
+    }
+
+    if (deletedRows[0]?.images) {
+      storage.deleteRemovedUrls(deletedRows[0].images).catch((err) => {
+        console.error('清理已删除美食记录图片失败:', err);
+      });
     }
 
     await cache.del('stats:dashboard');

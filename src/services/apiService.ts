@@ -373,7 +373,7 @@ export const timelineService = {
 }
 
 export const mapService = {
-    async getAll(province?: string, page: number = 1, limit: number = 20) {
+    async getAll(province?: string, page: number = 1, limit: number = 500) {
         const params = new URLSearchParams()
         if (province) params.set('province', province)
         params.set('page', String(page))
@@ -407,8 +407,8 @@ export interface TimeCapsuleData {
 }
 
 export const timeCapsuleService = {
-    async getAll() {
-        return apiService.get<PaginatedResponse<TimeCapsuleData>>('/time-capsules')
+    async getAll(page: number = 1, limit: number = 200) {
+        return apiService.get<PaginatedResponse<TimeCapsuleData>>(`/time-capsules?page=${page}&limit=${limit}`)
     },
 
     async create(capsule: Omit<TimeCapsuleData, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'is_unlocked'>) {

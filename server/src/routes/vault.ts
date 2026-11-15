@@ -22,9 +22,48 @@ const ALLOWED_CONFIG_FIELDS = [
 const TEXT_CONFIG_FIELDS = ['coupleName1', 'coupleName2', 'homeTitle', 'homeSubtitle'];
 
 /**
- * 提取全量小窝数据（供 JSON 备份导出与 ZIP 归档共用）
+ * 获取东八区（Asia/Shanghai）当前日期字符串 YYYY-MM-DD
  */
-async function fetchFullVaultData() {
+function getShanghaiToday(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+/**
+ * 校验图片 URL 是否安全（拒绝 javascript:/vbscript:/data:text 等危险协议与 XSS 载荷）
+ */
+function isSafeImageUrl(url: unknown): url is string {
+  if (typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed.length > 2048) return false;
+  if (hasXSS(trimmed)) return false;
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('data:text/')) {
+    return false;
+  }
+  return (
+    trimmed.startsWith('/uploads/') ||
+    trimmed.startsWith('/api/images/') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:image/')
+  );
+}
+
+function sanitizeImageList(raw: unknown): string[] {
+  const arr = transformImageArray(raw as string | string[] | null | undefined);
+  return arr.filter((u) => isSafeImageUrl(u));
+}
+
+/**
+ * 提取全量小窝数据（供 JSON 备份导出与 ZIP 归档共用）
+ * @param sealLockedCapsules 是否遮罩尚未到解锁日期的时光胶囊正文（未经过二次密码核验时设为 true）
+ */
+async function fetchFullVaultData(sealLockedCapsules = false) {
   const [
     timelineRes,
     mapRes,
@@ -91,7 +130,15 @@ async function fetchFullVaultData() {
     images: transformImageArray(r.images),
     completion_photos: transformImageArray(r.completion_photos),
   }));
-  const capsules = capsulesRes.rows;
+  const today = getShanghaiToday();
+  const capsules = capsulesRes.rows.map((c: any) => {
+    const isUnlocked = Boolean(c.is_unlocked || (c.unlock_date && String(c.unlock_date) <= today));
+    return {
+      ...c,
+      is_unlocked: isUnlocked ? 1 : 0,
+      message: sealLockedCapsules && !isUnlocked ? null : c.message,
+    };
+  });
   const notes = notesRes.rows;
   const albums = albumsRes.rows.map((a: any) => ({
     ...a,
@@ -198,7 +245,7 @@ vault.get('/export', async (c) => {
       notes,
       albums,
       photosByAlbum,
-    } = await fetchFullVaultData();
+    } = await fetchFullVaultData(true);
 
     return jsonResponse({
       version: '3.0.0',
@@ -260,38 +307,36 @@ vault.post('/export', async (c) => {
       return errorResponse('密码错误，身份核验未通过，禁止下载回忆归档', 401);
     }
 
-    // 2. 从数据库提取全量数据
-    const [
-      timelineRes,
-      mapRes,
-      foodRes,
-      todosRes,
-      capsulesRes,
-      notesRes,
-      albumsRes,
-      photosRes,
-      configRes
-    ] = await Promise.all([
-      pool.query('SELECT * FROM timeline_events ORDER BY date ASC, id ASC'),
-      pool.query('SELECT * FROM map_checkins ORDER BY date ASC, id ASC'),
-      pool.query('SELECT * FROM food_checkins ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM todos ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM time_capsules ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM notes ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM albums ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM photos ORDER BY created_at ASC'),
-      pool.query('SELECT * FROM settings WHERE key = $1', ['site_config'])
-    ]);
+    // 2. 从数据库提取全量数据（已通过二次密码核验，包含未解锁胶囊完整正文与规范化图片数组）
+    const {
+      siteConfig,
+      timeline,
+      mapCheckins,
+      food,
+      todos,
+      capsules,
+      notes,
+      albums,
+      photos,
+      photosByAlbum,
+    } = await fetchFullVaultData(false);
 
-    const timeline = timelineRes.rows;
-    const mapCheckins = mapRes.rows;
-    const food = foodRes.rows;
-    const todos = todosRes.rows;
-    const capsules = capsulesRes.rows;
-    const notes = notesRes.rows;
-    const albums = albumsRes.rows;
-    const photos = photosRes.rows;
-    const siteConfig = configRes.rows[0]?.value ? JSON.parse(configRes.rows[0].value) : {};
+    if (mode === 'json') {
+      return jsonResponse({
+        version: '3.0.0',
+        exportDate: new Date().toISOString(),
+        config: siteConfig,
+        albums,
+        photos: photosByAlbum,
+        timeline,
+        food,
+        map: mapCheckins,
+        mapCheckins,
+        notes,
+        todos,
+        capsules,
+      });
+    }
 
     // 3. 生成排版优美的 Markdown 纪念文档
     const now = new Date();
@@ -371,24 +416,27 @@ vault.post('/export', async (c) => {
       albumsMd += `## 🖼️ ${a.name} (${albumPhotos.length} 张照片)\n`;
       if (a.description) albumsMd += `*${a.description}*\n\n`;
       for (const p of albumPhotos) {
-        albumsMd += `- **${p.title || '照片'}** [${p.url}] ${p.description ? `— ${p.description}` : ''}\n`;
+        const photoLabel = p.caption || p.title || '照片';
+        const extraMeta = [p.date, p.location, p.description].filter(Boolean).join(' · ');
+        albumsMd += `- **${photoLabel}** [${p.url}]${extraMeta ? ` — ${extraMeta}` : ''}\n`;
       }
       albumsMd += `\n`;
     }
 
-    // 3.8 全量备份 JSON
+    // 3.8 全量备份 JSON（与 GET /api/vault/export 结构完全一致，可直接用于恢复）
     const fullBackupJson = JSON.stringify({
       version: '3.0.0',
       exportDate: now.toISOString(),
       config: siteConfig,
+      albums,
+      photos: photosByAlbum,
       timeline,
-      mapCheckins,
       food,
+      map: mapCheckins,
+      mapCheckins,
+      notes,
       todos,
       capsules,
-      notes,
-      albums,
-      photos
     }, null, 2);
 
     // 4. 创建 Zip 流
@@ -545,8 +593,17 @@ vault.post('/import', async (c) => {
     // 2. 覆盖模式：在同一事务内原子清空所有业务表；合并模式：构建去重集合
     const existingKeys = new Set<string>();
     const existingAlbumsByName = new Map<string, number>();
+    const existingCapsuleMessagesById = new Map<string, string>();
 
     if (strategy === 'overwrite') {
+      // 保留现有未解锁胶囊的正文映射，防止从无密码遮罩备份恢复时丢失封存胶囊正文
+      const existingCapsulesRes = await client.query('SELECT id, message FROM time_capsules');
+      existingCapsulesRes.rows.forEach((r: any) => {
+        if (r.id !== undefined && r.message) {
+          existingCapsuleMessagesById.set(String(r.id), String(r.message));
+        }
+      });
+
       await client.query('DELETE FROM photos');
       await client.query('DELETE FROM albums');
       await client.query('DELETE FROM timeline_events');
@@ -595,7 +652,7 @@ vault.post('/import', async (c) => {
           String(item.date),
           item.location ? String(item.location) : '',
           item.category ? String(item.category) : 'general',
-          serializeImages(item.images),
+          serializeImages(sanitizeImageList(item.images)),
         ]
       );
       existingKeys.add(key);
@@ -622,7 +679,7 @@ vault.post('/import', async (c) => {
           String(item.province),
           item.city ? String(item.city) : '',
           String(item.date),
-          serializeImages(item.images),
+          serializeImages(sanitizeImageList(item.images)),
         ]
       );
       existingKeys.add(key);
@@ -665,7 +722,7 @@ vault.post('/import', async (c) => {
           clampRating(item.environment_rating ?? item.overall_rating),
           clampRating(item.service_rating ?? item.overall_rating),
           recommendedDishes,
-          serializeImages(item.images),
+          serializeImages(sanitizeImageList(item.images)),
           Number(item.sort_order) || 0,
         ]
       );
@@ -721,8 +778,8 @@ vault.post('/import', async (c) => {
           item.category ? String(item.category) : 'general',
           item.due_date || null,
           item.completion_notes ? String(item.completion_notes) : null,
-          serializeImages(item.completion_photos),
-          serializeImages(item.images),
+          serializeImages(sanitizeImageList(item.completion_photos)),
+          serializeImages(sanitizeImageList(item.images)),
         ]
       );
       existingKeys.add(key);
@@ -732,8 +789,15 @@ vault.post('/import', async (c) => {
     // 8. 导入时光胶囊
     const capsuleItems = Array.isArray(importData.capsules) ? importData.capsules : [];
     for (const item of capsuleItems) {
-      if (!item || !item.message || !item.unlock_date) continue;
-      const key = `capsule_${String(item.message).substring(0, 50)}_${item.unlock_date}`;
+      if (!item || !item.unlock_date) continue;
+      const resolvedMessage = item.message
+        ? String(item.message)
+        : (item.id !== undefined ? existingCapsuleMessagesById.get(String(item.id)) : undefined);
+      if (!resolvedMessage) {
+        skipped++;
+        continue;
+      }
+      const key = `capsule_${resolvedMessage.substring(0, 50)}_${item.unlock_date}`;
       if (strategy === 'merge' && existingKeys.has(key)) {
         skipped++;
         continue;
@@ -743,7 +807,7 @@ vault.post('/import', async (c) => {
          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
         [
           item.title ? String(item.title) : null,
-          String(item.message),
+          resolvedMessage,
           String(item.unlock_date),
           item.is_unlocked ? 1 : 0,
           item.created_by ? String(item.created_by) : 'couple',
@@ -787,7 +851,7 @@ vault.post('/import', async (c) => {
           [
             albumName,
             album.description ? String(album.description) : '',
-            album.cover_url ? String(album.cover_url) : null,
+            isSafeImageUrl(album.cover_url) ? String(album.cover_url) : null,
           ]
         );
         targetAlbumId = Number(newAlbumRows[0].id);
@@ -811,7 +875,7 @@ vault.post('/import', async (c) => {
         for (let idx = 0; idx < albumPhotos.length; idx++) {
           const photo = albumPhotos[idx];
           const url = typeof photo === 'string' ? photo : photo?.url;
-          if (!url) continue;
+          if (!isSafeImageUrl(url)) continue;
           if (strategy === 'merge' && existingPhotoUrls.has(String(url))) {
             continue;
           }

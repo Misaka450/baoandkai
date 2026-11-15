@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import Icon from '../icons/Icons'
 
 interface TimeCapsuleProps {
@@ -44,7 +43,7 @@ export default function TimeCapsule({ onSave, onClose }: TimeCapsuleProps) {
     try {
       await onSave(message, unlockDate)
       onClose()
-    } catch (err) {
+    } catch {
       setError('保存失败，请重试')
       setIsSaving(false)
     }

@@ -19,12 +19,6 @@ export default function LoadingSpinner({
   text = '加载中...', 
   className = '' 
 }: LoadingSpinnerProps) {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12'
-  }
-
   return (
     <div className={`flex flex-col items-center justify-center space-y-2 ${className}`}>
       <Icon name="loading" size={size === 'sm' ? 16 : size === 'md' ? 32 : 48} className={`animate-spin text-pink-500`} />

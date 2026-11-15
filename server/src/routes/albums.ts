@@ -29,27 +29,49 @@ interface Photo {
 
 /**
  * GET /api/albums
- * 获取相册列表（支持分页）
+ * 获取相册列表（支持分页、关键词搜索、排序）
  */
 albums.get('/', async (c) => {
   try {
     const url = new URL(c.req.url);
-    const pagination = parsePagination(url);
+    const pagination = parsePagination(url, 20, 500);
+    const search = (url.searchParams.get('search') || '').trim();
+    const sort = (url.searchParams.get('sort') || 'newest').trim();
+
+    let whereSql = 'WHERE 1=1';
+    const params: any[] = [];
+    if (search) {
+      params.push(`%${search}%`);
+      whereSql += ` AND (a.name ILIKE $${params.length} OR a.description ILIKE $${params.length})`;
+    }
 
     // 获取总记录数
-    const { rows: countRows } = await pool.query('SELECT COUNT(*) as total FROM albums');
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*) as total FROM albums a ${whereSql}`,
+      params
+    );
     const total = parseInt(countRows[0]?.total || '0', 10);
+
+    let orderBySql = 'a.id DESC';
+    if (sort === 'oldest') {
+      orderBySql = 'a.id ASC';
+    } else if (sort === 'name') {
+      orderBySql = 'a.name ASC, a.id DESC';
+    } else if (sort === 'photos') {
+      orderBySql = 'photo_count DESC, a.id DESC';
+    }
 
     // 获取相册列表，结合子查询获取第一张照片为封面及照片数
     const { rows: albumsList } = await pool.query(
       `SELECT 
          a.*,
-         (SELECT url FROM photos WHERE album_id = a.id ORDER BY sort_order ASC, id ASC LIMIT 1) AS cover_url,
+         COALESCE(a.cover_url, (SELECT url FROM photos WHERE album_id = a.id ORDER BY sort_order ASC, id ASC LIMIT 1)) AS cover_url,
          (SELECT COUNT(*)::int FROM photos WHERE album_id = a.id) AS photo_count
        FROM albums a
-       ORDER BY a.id DESC
-       LIMIT $1 OFFSET $2`,
-      [pagination.pageSize, pagination.offset]
+       ${whereSql}
+       ORDER BY ${orderBySql}
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, pagination.pageSize, pagination.offset]
     );
 
     const albumsWithPhotos = albumsList.map((album: any) => ({
@@ -209,11 +231,13 @@ albums.put('/:id', async (c) => {
     );
 
     // 2. 如果传入了照片列表，按 id / url 增量更新并保留原有 date/location（EXIF）
+    let previousPhotoUrls: string[] = [];
     if (photos && Array.isArray(photos)) {
       const { rows: existingPhotos } = await client.query(
         'SELECT id, url, caption, date, location, sort_order FROM photos WHERE album_id = $1',
         [albumId]
       );
+      previousPhotoUrls = existingPhotos.map((ep: any) => String(ep.url || '')).filter(Boolean);
 
       const existingById = new Map<number, any>();
       const existingByUrl = new Map<string, any>();
@@ -289,6 +313,13 @@ albums.put('/:id', async (c) => {
     await client.query('COMMIT');
     await cache.del('stats:dashboard');
 
+    if (previousPhotoUrls.length > 0) {
+      const currentUrls = updatedPhotoRows.map((p: any) => String(p.url || '')).filter(Boolean);
+      storage.deleteRemovedUrls(previousPhotoUrls, currentUrls).catch((err) => {
+        console.error('清理相册移除照片物理文件失败:', err);
+      });
+    }
+
     return jsonResponse({
       ...updatedAlbumRows[0],
       photos: updatedPhotoRows,
@@ -313,7 +344,7 @@ albums.delete('/:id', async (c) => {
   }
 
   const client = await pool.connect();
-  let photosToDelete: Array<{ url: string }> = [];
+  let photosToDelete: Array<{ url: string }>;
   try {
     // 1. 事务内查询关联照片并删除数据库记录（统一使用 client.query 防止连接池死锁）
     await client.query('BEGIN');

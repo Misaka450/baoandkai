@@ -229,9 +229,9 @@ export function getAvatarSrcSet(url?: string): string | undefined {
 }
 
 /**
- * 清除无效头像 URL
+ * 清除无效头像 URL（过滤遗留外链 DiceBear 与旧版 Base64 SVG，保留本地生成的 URL 编码 SVG 与上传头像）
  */
 export function sanitizeAvatarUrl(url?: string): string {
-    if (!url || url.includes('dicebear.com') || url.startsWith('data:image/svg')) return ''
+    if (!url || url.includes('dicebear.com') || url.startsWith('data:image/svg+xml;base64')) return ''
     return url
 }

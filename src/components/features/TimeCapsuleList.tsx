@@ -5,6 +5,7 @@ import Icon from '../icons/Icons'
 import type { TimeCapsuleItem } from '../../types'
 import { formatDate } from '../../utils/common'
 import { hapticFeedback } from '../../utils/haptics'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 
 interface TimeCapsuleListProps {
   capsules: TimeCapsuleItem[]
@@ -24,6 +25,7 @@ export default function TimeCapsuleList({
 }: TimeCapsuleListProps) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [lockedNoticeId, setLockedNoticeId] = useState<string | null>(null)
+  useBodyScrollLock(!showDeleteConfirm && deleteConfirmId !== null)
 
   // 计算剩余时间
   const getTimeRemaining = (unlockDate: string): string => {
@@ -116,24 +118,26 @@ export default function TimeCapsuleList({
                     </span>
                   </div>
 
-                  {/* 删除操作 */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      hapticFeedback('light')
-                      if (showDeleteConfirm) {
-                        onDeleteCapsule?.(capsule.id)
-                      } else {
-                        setDeleteConfirmId(capsule.id)
-                      }
-                    }}
-                    className="w-7 h-7 rounded-full text-stone-400 md:text-stone-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                    title="删除胶囊"
-                    aria-label="删除胶囊"
-                  >
-                    <Icon name="delete" size={15} />
-                  </button>
+                  {/* 删除操作（仅传入 onDeleteCapsule 时展示） */}
+                  {onDeleteCapsule && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        hapticFeedback('light')
+                        if (showDeleteConfirm) {
+                          onDeleteCapsule(capsule.id)
+                        } else {
+                          setDeleteConfirmId(capsule.id)
+                        }
+                      }}
+                      className="w-8 h-8 rounded-full text-stone-400 md:text-stone-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                      title="删除胶囊"
+                      aria-label="删除胶囊"
+                    >
+                      <Icon name="delete" size={16} />
+                    </button>
+                  )}
                 </div>
 
                 {/* 信封卡片中央核心：火漆印章与解锁状态 */}
